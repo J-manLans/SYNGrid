@@ -34,7 +34,7 @@ class PositiveResource(BaseTierResource):
         super()._consume()
         super()._resolve_tier_progression()
         self._is_restart_needed()
-        return self._TIER_BASE_REWARD
+        return  self._TIER_BASE_REWARD #, thinking it might insentivice it to go for tier 2 and 3
 
     # ================= #
     #      Helpers      #

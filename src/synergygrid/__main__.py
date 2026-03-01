@@ -83,7 +83,7 @@ def main():
         # Continue training from a saved model
         continue_training = False
         # Model that we shall continue to train
-        agent_steps = "1509376"
+        agent_steps = "1204224"
         # Num of timesteps for training or model selection when running
         timesteps = 100000
         # Number of training iterations
@@ -99,7 +99,7 @@ def main():
         iterations = args.iterations
 
     # For human controls
-    control = False if training == True and agent == True else False
+    control = True
 
     runner = AgentRunner(environment=env, algorithm=algorithm)
 

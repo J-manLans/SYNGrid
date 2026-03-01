@@ -34,8 +34,8 @@ class PygameRenderer:
         self._step_fps = fps
 
         # Default font
-        self.font = pygame.font.Font("assets/fonts/Minecraft.ttf", 20)
-        self.font_height = self.font.get_height()
+        self.tier_font = pygame.font.Font("assets/fonts/Minecraft.ttf", 20)
+        self.hud_font = pygame.font.Font("assets/fonts/Minecraft.ttf", 30)
 
         self._init_colors()
         self._init_vars()
@@ -171,26 +171,26 @@ class PygameRenderer:
         """Sets all the colors the game uses"""
 
         self._background_clr = (26, 26, 26)
-        self._hud_text_clr = (0, 210, 210)
+        self._hud_text_clr = (165, 102, 192)
 
     def _init_vars(self):
         # Sizes of each cell in the grid
         self._cell_width = 64
         self._cell_height = 64
 
+        # Used for created tier surfaces in draw_resources()
+        self._tier_text_cache: dict[int, pygame.Surface] = {}
+
         self._grid_offset = self._cell_width // 4
         self._window_width = (
             self._cell_width * self._grid_cols
         ) + self._grid_offset * 2
-        self._hud_height = self._cell_height * 3
-        self._hud_width = self._cell_width * 4
+        self._hud_height = self._cell_height * 4
+        self._hud_width = self._cell_width * 5
         self._padding = 10
 
     def _load_graphics(self) -> None:
         """Load graphics via JSON file"""
-
-        # Used for created tier surfaces
-        self._tier_text_cache: dict[int, pygame.Surface] = {}
 
         ROOT_DIR = path.abspath(path.join(path.dirname(__file__), "..", "..", ".."))
         json_file = path.join(ROOT_DIR, "assets/paths.json")
@@ -262,7 +262,7 @@ class PygameRenderer:
             return self._tier_text_cache[tier]
 
         # render main text
-        text_surf = self.font.render(str(tier), True, self._background_clr)
+        text_surf = self.tier_font.render(str(tier), True, self._background_clr)
 
         # create target surface (copy of base)
         surf = base_img.copy()
@@ -286,47 +286,32 @@ class PygameRenderer:
     def _draw_hud(self, hud_data: dict[str, int]):
         """Draw HUD / score with background rectangle for multiple data"""
 
-        # --- HUD rectangle --- #
-        hud_rect = pygame.Rect(
-            self._window_width // 7.5,
-            (self._cell_height * self._grid_rows) + self._grid_offset * 2,
-            self._hud_width,
-            self._hud_height,
+        # --- Hud element --- #
+        hud_img = self.graphics["hud_img"]
+        hud_rect = hud_img.get_rect(topleft=(
+            self._grid_offset,
+            (self._cell_height * self._grid_rows) + self._grid_offset * 2
+        ))
+        self.window_surface.blit(hud_img, hud_rect)
+
+        # --- Life and moves bar --- #
+        self._draw_life_bar(hud_data["score"], hud_rect)
+        self._draw_moves_bar(hud_data["moves"], hud_rect)
+
+        # --- Current tier chain --- #
+        tier_surf = self.hud_font.render(str(hud_data['current tier chain']), True, self._hud_text_clr)
+
+        tier_rect = pygame.Rect(
+            hud_rect.x + 33,
+            hud_rect.y + (hud_rect.height - 68),
+            64,
+            52
         )
 
-        # draw background rectangle
-        pygame.draw.rect(self.window_surface, (75, 75, 75), hud_rect, 2, 10)
-
-        self._draw_life_bar(hud_data["score"], hud_rect)
-
-        # --- Texts --- #
-        hud_texts = [
-            f"Moves: {hud_data['moves']}",
-            f"Current Tier Chain: {hud_data['current tier chain']}",
-            f"Score: {hud_data['score']}",
-        ]
-
-        # Render all text surfaces first
-        text_surfaces = [
-            self.font.render(line, True, self._hud_text_clr) for line in hud_texts
-        ]
-
-        # Calculate total height for vertical centering
-        line_spacing = self._padding
-        total_height = sum(
-            surf.get_height() for surf in text_surfaces
-        ) + line_spacing * (len(text_surfaces) - 1)
-
-        # Start y position so block is vertically centered
-        y = hud_rect.y + (hud_rect.height - total_height) // 2
-
-        # Blit each text, centered horizontally
-        for surf in text_surfaces:
-            rect = surf.get_rect()
-            rect.centerx = hud_rect.centerx  # center horizontally
-            rect.y = y
-            self.window_surface.blit(surf, rect)
-            y += surf.get_height() + line_spacing
+        rect = tier_surf.get_rect()
+        rect.centerx = tier_rect.centerx
+        rect.y = tier_rect.y + (tier_rect.height // 4)
+        self.window_surface.blit(tier_surf, rect)
 
     def _draw_life_bar(self, current_score, hud_rect):
         """
@@ -334,29 +319,60 @@ class PygameRenderer:
         Bar fills relative to highest score reached so far (max_seen_score).
         """
 
-        # --- Update max_seen_score dynamically ---
+        # --- Update max_seen_score dynamically --- #
         if not hasattr(self, "_max_seen_score"):
             self._max_seen_score = max(current_score, 1)  # init, avoid div by zero
         self._max_seen_score = max(self._max_seen_score, current_score)
 
-        bar_padding = 5  # padding inside HUD rect
-        bar_height = 10  # height of the life bar
-        bar_width = hud_rect.width - (4 * bar_padding)
-        # --- Position bar at bottom of HUD ---
-        bar_x = hud_rect.x + bar_padding * 2
-        bar_y = hud_rect.y + hud_rect.height - bar_height - (bar_padding * 2)
-        status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
+        bar_height = 10
+        bar_width = hud_rect.width - 116
+        # --- Position bar at top of HUD --- #
+        bar_x = hud_rect.x + 55
+        bar_y = hud_rect.y + 23
 
-        # --- Calculate fill proportion ---
+        # --- Calculate fill proportion --- #
         fill_ratio = current_score / self._max_seen_score
         fill_width = int(fill_ratio * bar_width)
         fill_width = max(0, fill_width)  # clamp to [0, fill_width]
 
-        # --- Draw filled portion ---
+        # --- Draw filled portion --- #
         pygame.draw.rect(
             self.window_surface, (255, 255, 65), (bar_x, bar_y, fill_width, bar_height)
         )
-        # --- Optional: draw border ---
+
+        # --- Draw border --- #
+        status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
+        pygame.draw.rect(self.window_surface, (75, 75, 75), status_rect, 2)
+
+    def _draw_moves_bar(self, remaining_moves, hud_rect):
+        """
+        Draw a dynamic life bar inside hud_rect.
+        Bar fills relative to highest score reached so far (max_seen_score).
+        """
+
+        # --- Catch initial episode moves --- #
+        if not hasattr(self, "_initial_moves"):
+            self._initial_moves = remaining_moves
+        ratio = remaining_moves / self._initial_moves
+
+        bar_height = hud_rect.height - 73
+        bar_width = 10
+        # --- Position bar at right side of HUD --- #
+        bar_x = hud_rect.x + (hud_rect.width - 47)
+        bar_y = hud_rect.y + (hud_rect.height - bar_height) - 40
+
+        current_height = int(bar_height * ratio)
+
+
+        # --- Draw filled portion --- #
+        pygame.draw.rect(
+            self.window_surface,
+            (58, 216, 48),
+            (bar_x, bar_y + (bar_height - current_height), bar_width, current_height)
+        )
+
+        # --- Draw border --- #
+        status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
         pygame.draw.rect(self.window_surface, (75, 75, 75), status_rect, 2)
 
     def _update(self, render_fps: int):

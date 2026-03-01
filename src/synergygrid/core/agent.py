@@ -17,7 +17,7 @@ class SynergyAgent:
     #       Init        #
     # ================= #
 
-    def __init__(self, grid_rows: int, grid_cols: int, starting_score: int = 20):
+    def __init__(self, grid_rows: int, grid_cols: int, starting_score: int = 25):
         """
         Initializes the agent.
 

@@ -95,27 +95,27 @@ class ObservationHandler:
         active = self._world.get_resource_is_active_status(False)
         positions = self._world.get_resource_positions(False)
         remaining = self._world.get_resource_life()
-        tiers = self._world.get_resource_tiers()
         categories = self._world.get_resource_categories()
         types = self._world.get_resource_types()
+        tiers = self._world.get_resource_tiers()
 
         for i in range(len(self._world._ALL_RESOURCES)):
             if active[i]:
                 # NOTE: change here
                 pos = positions[i]
                 r_timer = remaining[i]
-                r_tier = tiers[i]
                 r_cat = int(categories[i])
                 r_type = int(types[i])
+                r_tier = tiers[i]
 
                 # NOTE: change here
                 self.resource_data[i] = [
                     pos[0],
                     pos[1],
                     r_timer,
-                    r_tier,
                     r_cat,
                     r_type,
+                    r_tier,
                 ]
             else:
                 # NOTE: change here
