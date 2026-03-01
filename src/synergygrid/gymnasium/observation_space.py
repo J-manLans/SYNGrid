@@ -48,13 +48,19 @@ class ObservationHandler:
         (0..1 for active features, -1 for absent fields)
         """
         # original raw bounds — match _get_observation()
-        _, self._agent_raw_high = self._build_agent_box_bounds(False)
-        _, self._resource_raw_high = self._build_resource_box_bounds(False)
+        # TODO: använd _ här för att göra self._raw_low som jag nu skapar 2 ggr i build bounds
+        raw_low, self._agent_raw_high = self._build_agent_box_bounds(False, np.int32)
+        raw_high, self._resource_raw_high = self._build_resource_box_bounds(
+            False, np.int32
+        )
+
+        self.agent_data = np.zeros_like(raw_low, dtype=np.int32)
+        self.resource_data = np.zeros_like(raw_high, dtype=np.int32)
 
         # normalized bounds — match _normalize_obs()
         # inactive resources keep -1 as a valid "low" value; active features map to 0..1
-        agent_low_norm, agent_high_norm = self._build_agent_box_bounds(True)
-        resource_low_norm, resource_high_norm = self._build_resource_box_bounds(True)
+        agent_low_norm, agent_high_norm = self._build_agent_box_bounds(True, np.float32)
+        resource_low_norm, resource_high_norm = self._build_resource_box_bounds(True, np.float32)
 
         self.observation_space: dict[str, spaces.Space] = {
             "agent data": spaces.Box(
@@ -78,10 +84,11 @@ class ObservationHandler:
 
         # NOTE: change here
         # ---- Agent ---- #
-        self.agent_data[0] = self._step_count_down
-        self.agent_data[1] = agent_row
-        self.agent_data[2] = agent_col
-        self.agent_data[3] = len(BaseResource._chained_tiers)
+        self.agent_data[0] = agent_row
+        self.agent_data[1] = agent_col
+        self.agent_data[2] = self._step_count_down
+        self.agent_data[3] = self._world._agent.score
+        self.agent_data[4] = len(BaseResource._chained_tiers)
 
         # NOTE: change here
         # ---- Resources ---- #
@@ -93,7 +100,7 @@ class ObservationHandler:
         types = self._world.get_resource_types()
 
         for i in range(len(self._world._ALL_RESOURCES)):
-            if i < len(active) and active[i]:
+            if active[i]:
                 # NOTE: change here
                 pos = positions[i]
                 r_timer = remaining[i]
@@ -118,7 +125,8 @@ class ObservationHandler:
 
     def normalize_obs(self, obs: dict[str, Any]) -> dict[str, Any]:
         # --- Agent --- #
-        agent = obs["agent data"].astype(np.float32)
+        # TODO: casta inte här å på resource, bättre att köra mde int å låta normalized bli float
+        agent = obs["agent data"]
         absent_mask = agent == -1.0
 
         norm_agent = self._normalize_obs_fields(
@@ -149,36 +157,36 @@ class ObservationHandler:
     # resource types would be needed so constant flipping back and forth when testing different
     # things which introduce bugs can be avoided.
     def _build_agent_box_bounds(
-        self, normalized: bool
-    ) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
+        self, normalized: bool, arr_type
+    ) -> tuple[NDArray[Any], NDArray[Any]]:
         if normalized:
-            min_steps = min_row = min_col = min_tier_chain = 0.0
+            min_row = min_col = min_steps = min_score = min_tier_chain = 0.0
 
-            max_steps = max_row = max_col = max_tier_chain = 1.0
+            max_steps = max_row = max_col = max_score = max_tier_chain = 1.0
         else:
-            min_steps = min_row = min_col = min_tier_chain = 0
+            min_row = min_col = min_steps = min_score = min_tier_chain = 0
 
-            max_steps = self._max_steps
             max_row = self._grid_rows - 1
             max_col = self._grid_cols - 1
+            max_steps = self._max_steps
+            max_score = 150
             # guards against div / 0 when just using direct rewards
             max_tier_chain = max(1, self._world.max_tier)
 
         # NOTE: change here
-        low = [min_steps, min_row, min_col, min_tier_chain]
-        high = [max_steps, max_row, max_col, max_tier_chain]
+        low = [min_row, min_col, min_steps, min_score, min_tier_chain]
+        high = [max_row, max_col, max_steps, max_score, max_tier_chain]
 
-        low_arr = np.asarray(low, dtype=np.float32)
-        high_arr = np.asarray(high, dtype=np.float32)
+        low_arr = np.asarray(low, dtype=arr_type)
+        high_arr = np.asarray(high, dtype=arr_type)
 
         self._control_arrays(low_arr, high_arr)
-        self.agent_data = np.zeros_like(low_arr, dtype=np.int32)
 
         return low_arr, high_arr
 
     def _build_resource_box_bounds(
-        self, normalized: bool
-    ) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
+        self, normalized: bool, arr_type
+    ) -> tuple[NDArray[Any], NDArray[Any]]:
         if normalized:
             no_resource_yx = -1.0
             min_r_life_span = -1.0
@@ -210,17 +218,26 @@ class ObservationHandler:
         N = len(self._world._ALL_RESOURCES)
         # NOTE: change here
         low = np.tile(
-            [no_resource_yx, no_resource_yx, min_r_life_span, min_r_cat, min_r_type, min_r_tier],
+            [
+                no_resource_yx,
+                no_resource_yx,
+                min_r_life_span,
+                min_r_cat,
+                min_r_type,
+                min_r_tier,
+            ],
             (N, 1),
         )
         # NOTE: change here
-        high = np.tile([max_row, max_col, max_r_life_span, max_r_cat, max_r_type, max_r_tier], (N, 1))
+        high = np.tile(
+            [max_row, max_col, max_r_life_span, max_r_cat, max_r_type, max_r_tier],
+            (N, 1),
+        )
 
-        low_arr = np.asarray(low, dtype=np.float32)
-        high_arr = np.asarray(high, dtype=np.float32)
+        low_arr = np.asarray(low, dtype=arr_type)
+        high_arr = np.asarray(high, dtype=arr_type)
 
         self._control_arrays(low_arr, high_arr)
-        self.resource_data = np.zeros_like(low_arr, dtype=np.int32)
 
         return low_arr, high_arr
 
@@ -251,18 +268,19 @@ class ObservationHandler:
         # Normalize regular entries element wise
         norm_array[regular_idx] = array[regular_idx] / scale[regular_idx]
 
-        # Handle masked/special entries
-        special_values = array[masked_idx]
+        if mask.any():
+            # Handle masked/special entries
+            special_values = array[masked_idx]
 
-        absent_mask = special_values == -1.0
-        present_mask = ~absent_mask
+            absent_mask = special_values == -1.0
+            present_mask = ~absent_mask
 
-        # Keep sentinel values
-        norm_array[masked_idx[absent_mask]] = -1.0
+            # Keep sentinel values
+            norm_array[masked_idx[absent_mask]] = -1.0
 
-        # Normalize only present values
-        norm_array[masked_idx[present_mask]] = (
-            special_values[present_mask] / scale[masked_idx[present_mask]]
-        )
+            # Normalize only present values
+            norm_array[masked_idx[present_mask]] = (
+                special_values[present_mask] / scale[masked_idx[present_mask]]
+            )
 
         return norm_array

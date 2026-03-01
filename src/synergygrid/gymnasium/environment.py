@@ -75,9 +75,10 @@ class SynergyGridEnv(gym.Env):
             self.render()
 
         obs = self._observation_handler.get_observation()
+        norm_obs = self._observation_handler.normalize_obs(obs)
 
         # Return observation and info (not used)
-        return self._observation_handler.normalize_obs(obs), {}
+        return norm_obs, {}
 
     def step(self, action: AgentAction):
         # Perform action and adjust variables affected by it

@@ -22,7 +22,7 @@ class TierResource(BaseTierResource):
     # ================= #
 
     def __init__(self, tier, world_boundaries: tuple[int, int], cool_down: int = 10):
-        self._REWARD = self._calculate_reward(tier + 1)
+        self._REWARD = self._calculate_reward(tier)
 
         super().__init__(
             world_boundaries,

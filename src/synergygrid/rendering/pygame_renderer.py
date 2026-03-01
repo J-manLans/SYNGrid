@@ -295,7 +295,7 @@ class PygameRenderer:
         )
 
         # draw background rectangle
-        pygame.draw.rect(self.window_surface, (75,75,75), hud_rect, 2, 10)
+        pygame.draw.rect(self.window_surface, (75, 75, 75), hud_rect, 2, 10)
 
         self._draw_life_bar(hud_data["score"], hud_rect)
 
@@ -357,7 +357,7 @@ class PygameRenderer:
             self.window_surface, (255, 255, 65), (bar_x, bar_y, fill_width, bar_height)
         )
         # --- Optional: draw border ---
-        pygame.draw.rect(self.window_surface, (75,75,75), status_rect, 2)
+        pygame.draw.rect(self.window_surface, (75, 75, 75), status_rect, 2)
 
     def _update(self, render_fps: int):
         """Refreshes the display and limits FPS"""
