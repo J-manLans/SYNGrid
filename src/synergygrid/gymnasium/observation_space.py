@@ -48,32 +48,34 @@ class ObservationHandler:
         (0..1 for active features, -1 for absent fields)
         """
         # original raw bounds — match _get_observation()
-        # TODO: använd _ här för att göra self._raw_low som jag nu skapar 2 ggr i build bounds
-        raw_low, self._agent_raw_high = self._build_agent_box_bounds(False, np.int32)
+        # TODO: think it was stupid to use int32 here, now it has to convert to float16 in the eval / training loop
+        raw_low, self._agent_raw_high = self._build_agent_box_bounds(False, np.float16)
         raw_high, self._resource_raw_high = self._build_resource_box_bounds(
-            False, np.int32
+            False, np.float16
         )
 
-        self.agent_data = np.zeros_like(raw_low, dtype=np.int32)
-        self.resource_data = np.zeros_like(raw_high, dtype=np.int32)
+        # NOTE: don't touch these though, they should be int
+        # - edit: changed, need to see how it works when training
+        self.agent_data = np.zeros_like(raw_low, dtype=np.int16)
+        self.resource_data = np.zeros_like(raw_high, dtype=np.int16)
 
         # normalized bounds — match _normalize_obs()
         # inactive resources keep -1 as a valid "low" value; active features map to 0..1
-        agent_low_norm, agent_high_norm = self._build_agent_box_bounds(True, np.float32)
-        resource_low_norm, resource_high_norm = self._build_resource_box_bounds(True, np.float32)
+        agent_low_norm, agent_high_norm = self._build_agent_box_bounds(True, np.float16)
+        resource_low_norm, resource_high_norm = self._build_resource_box_bounds(True, np.float16)
 
         self.observation_space: dict[str, spaces.Space] = {
             "agent data": spaces.Box(
                 # steps, row, col, current tier chain
                 low=agent_low_norm,
                 high=agent_high_norm,
-                dtype=np.float32,
+                dtype=np.float16,
             ),
             "resources data": spaces.Box(
                 # row, col, timer, tier
                 low=resource_low_norm,
                 high=resource_high_norm,
-                dtype=np.float32,
+                dtype=np.float16,
             ),
         }
 
@@ -125,7 +127,6 @@ class ObservationHandler:
 
     def normalize_obs(self, obs: dict[str, Any]) -> dict[str, Any]:
         # --- Agent --- #
-        # TODO: casta inte här å på resource, bättre att köra mde int å låta normalized bli float
         agent = obs["agent data"]
         absent_mask = agent == -1.0
 
@@ -134,7 +135,7 @@ class ObservationHandler:
         )
 
         # --- Resources --- #
-        norm_res = obs["resources data"].astype(np.float32)
+        norm_res = obs["resources data"].astype(np.float16)
         for i in range(norm_res.shape[0]):
             row = norm_res[i]
             absent_mask = row == -1.0
@@ -252,14 +253,14 @@ class ObservationHandler:
             )
 
     def _normalize_obs_fields(
-        self, array: NDArray[np.float32], mask, scale: NDArray[np.float32]
-    ) -> NDArray[np.float32]:
+        self, array: NDArray[np.float16], mask, scale: NDArray[np.float16]
+    ) -> NDArray[np.float16]:
         """
         Normalize observation to 0..1 while preserving sentinel values (-1) for absent resources.
         """
 
         # Prepare output array
-        norm_array = np.empty_like(array, dtype=np.float32)
+        norm_array = np.empty_like(array, dtype=np.float16)
 
         # Indices for "regular" entries and "masked/special" entries
         masked_idx = np.where(mask)[0]

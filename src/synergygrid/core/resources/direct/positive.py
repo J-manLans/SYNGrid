@@ -34,7 +34,7 @@ class PositiveResource(BaseTierResource):
         super()._consume()
         super()._resolve_tier_progression()
         self._is_restart_needed()
-        return  self._TIER_BASE_REWARD #, thinking it might insentivice it to go for tier 2 and 3
+        return self._TIER_BASE_REWARD
 
     # ================= #
     #      Helpers      #
@@ -42,5 +42,6 @@ class PositiveResource(BaseTierResource):
 
     def _is_restart_needed(self):
         """If we just broke the chain, restart it since this is the base for the tier resources"""
+
         if len(self._chained_tiers) == 0:
             super()._chain_tier()

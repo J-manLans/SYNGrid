@@ -17,14 +17,14 @@ class SynergyAgent:
     #       Init        #
     # ================= #
 
-    def __init__(self, grid_rows: int, grid_cols: int, starting_score: int = 25):
+    def __init__(self, grid_rows: int, grid_cols: int, starting_score: int = 30):
         """
         Initializes the agent.
 
         Defines the game world so the agent know its bounds, set its starting score and store it for later resetting.
         """
 
-        if grid_cols <= 1 or grid_rows <= 1:
+        if grid_cols < 1 or grid_rows < 1:
             raise ValueError("grid_cols and grid_rows should be larger than 0")
 
         self._grid_rows = grid_rows

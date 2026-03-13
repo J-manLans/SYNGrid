@@ -32,7 +32,7 @@ class GridWorld:
         Initializes the grid world. Defines the game world's size and initializes the agent and resources.
         """
 
-        if grid_cols <= 1 or grid_rows <= 1:
+        if grid_cols < 1 or grid_rows < 1:
             raise ValueError("grid_cols and grid_rows should be larger than 0")
 
         self._max_active_resources = max_active_resources

@@ -33,7 +33,7 @@ class BaseResource(ABC):
         cool_down: int,
         meta: ResourceMeta,
     ):
-        if world_boundaries[0] <= 1 or world_boundaries[1] <= 1:
+        if world_boundaries[0] < 1 or world_boundaries[1] < 1:
             raise ValueError("grid_cols and grid_rows should be larger than 0")
 
         self._world_boundaries = world_boundaries
