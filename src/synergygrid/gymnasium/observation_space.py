@@ -48,14 +48,11 @@ class ObservationHandler:
         (0..1 for active features, -1 for absent fields)
         """
         # original raw bounds — match _get_observation()
-        # TODO: think it was stupid to use int32 here, now it has to convert to float16 in the eval / training loop
         raw_low, self._agent_raw_high = self._build_agent_box_bounds(False, np.float16)
         raw_high, self._resource_raw_high = self._build_resource_box_bounds(
             False, np.float16
         )
 
-        # NOTE: don't touch these though, they should be int
-        # - edit: changed, need to see how it works when training
         self.agent_data = np.zeros_like(raw_low, dtype=np.int16)
         self.resource_data = np.zeros_like(raw_high, dtype=np.int16)
 

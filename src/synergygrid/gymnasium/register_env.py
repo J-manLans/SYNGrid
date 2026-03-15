@@ -7,5 +7,5 @@ def register_env():
     if "synergy_grid-v0" not in registry:
         register(
             id="synergy_grid-v0",
-            entry_point="synergygrid.gymnasium.environment:SynergyGridEnv",
+            entry_point="synergygrid.gymnasium.environment:SYNGridEnv",
         )

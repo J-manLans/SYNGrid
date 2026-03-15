@@ -39,7 +39,7 @@ def evaluate_agent(runner: AgentRunner, agent_steps: str, trained_model: bool):
             print(f"System crashed: {e}")
             return  # exit function gracefully
         finally:
-            env.close() # cleanup
+            env.close()  # cleanup
 
         # Exit environment if terminated or truncated.
         done = truncated or terminated

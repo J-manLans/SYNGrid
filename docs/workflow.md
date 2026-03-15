@@ -82,7 +82,7 @@ git pull origin main
   2. Identify any blocking issues.
   3. Merge only after approval.
 
-> All merges into main should be squash or rebase to maintain linear history.
+> All merges into main should be squash to maintain a clean linear history.
 
 ### Step E: Feature Merged Back Into Main
 After your feature branch has been merged into `main` the other member update their branch according to step C above.

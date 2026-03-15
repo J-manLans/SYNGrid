@@ -15,8 +15,9 @@ class SYNGridEnv(gym.Env):
 
     # Metadata required by Gym.
     # "human" for Pygame visualization.
-    # FPS caps the render() update rate; each call corresponds to one logic step, not full game fps.
-    # Alternative sub-loop in PygameRenderer.render() creates smooth animation between steps.
+    # render_fps caps the update rate of render(); each call corresponds to one logic step, not the
+    # full game framerate. Simply put: render_fps controls the speed of the environment’s logic,
+    # while a sub-loop in the renderer would handle smooth animation between steps.
     metadata = {"render_modes": ["human"], "render_fps": 4}
 
     # ================= #
