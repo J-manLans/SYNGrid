@@ -95,7 +95,7 @@ For all classes, use headings to improve readability and navigation, as of now 3
 # ================= #
 
 # ================= #
-#        Api        #
+#        API        #
 # ================= #
 
 # ================= #
@@ -110,7 +110,7 @@ If subsections are needed write them like this:
 
 # === Getters === #
 
-#...
+# ...
 ```
 
 For the helpers section, provide subheadings indicating what section the helpers belong to:
