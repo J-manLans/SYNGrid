@@ -1,6 +1,13 @@
 import pytest
-from synergygrid.core import GridWorld, AgentAction, ResourceMeta, DirectType, SynergyType
+from synergygrid.core import (
+    GridWorld,
+    AgentAction,
+    ResourceMeta,
+    DirectType,
+    SynergyType,
+)
 import numpy as np
+
 
 class TestGridWorld:
     @pytest.fixture
@@ -22,7 +29,9 @@ class TestGridWorld:
         active_resources = grid_world.get_resource_is_active_status(False)
         active_cnt = sum(active_resources)
 
-        assert active_cnt == 1  # There should be exactly one active resource after initialization.
+        assert (
+            active_cnt == 1
+        )  # There should be exactly one active resource after initialization.
         assert grid_world.grid_rows == 1  # The grid should have 1 row.
         assert grid_world.grid_cols == 2  # The grid should have 2 columns.
 
@@ -36,7 +45,9 @@ class TestGridWorld:
         for pos in positions:
             assert isinstance(pos, list)  # Each position should be a list.
             assert len(pos) == 2  # Each list should contain two elements (x, y).
-            assert isinstance(pos[0], np.integer) and isinstance(pos[1], np.integer)  # Each coordinate should be an np.integer.
+            assert isinstance(pos[0], np.integer) and isinstance(
+                pos[1], np.integer
+            )  # Each coordinate should be an np.integer.
 
     def test_get_resource_is_active_status(self, grid_world: GridWorld):
         """
@@ -60,7 +71,9 @@ class TestGridWorld:
 
         for t in types:
             max_type = max(len(DirectType), len(SynergyType))
-            assert t <= max_type  # Integer should not exceed the max number of enum members.
+            assert (
+                t <= max_type
+            )  # Integer should not exceed the max number of enum members.
 
     def test_get_resource_timers(self, grid_world: GridWorld):
         """

@@ -3,6 +3,7 @@ from synergygrid.agentrunner import AgentRunner
 from stable_baselines3 import A2C
 from unittest.mock import patch
 
+
 class TestAgentRunnerBase:
     """
     This test suite verifies that the `AgentRunner` class functions correctly in various scenarios. Specifically, it tests:
@@ -13,18 +14,18 @@ class TestAgentRunnerBase:
 
     Tests are designed to check edge cases, error handling, and correct interactions with the underlying model-loading functionality.
     """
-    
+
     @pytest.fixture
     def agent_runner(self):
         """
         Fixture to create and return an instance of the `AgentRunner` class for testing.
 
         Returns:
-            AgentRunner: A configured `AgentRunner` instance with a specified environment ("synergy_grid-v0") 
+            AgentRunner: A configured `AgentRunner` instance with a specified environment ("synergy_grid-v0")
                          and algorithm ("A2C").
         """
         return AgentRunner("synergy_grid-v0", "A2C")
-    
+
     def test_initialization(self, agent_runner):
         """
         Tests the correct initialization of the `AgentRunner` object.
@@ -42,7 +43,7 @@ class TestAgentRunnerBase:
         assert agent_runner.model == None
         assert agent_runner.algorithm == "A2C"
         assert agent_runner.AlgorithmClass == A2C
-        
+
     def test_initialization_with_invalid_algorithm(self):
         """
         Tests the behavior when an invalid algorithm is passed to the `AgentRunner` constructor.
@@ -56,7 +57,7 @@ class TestAgentRunnerBase:
         """
         with pytest.raises(ValueError):
             AgentRunner("environment", "invalid_algorithm")
-            
+
     def test_get_model_with_no_agent_steps(self, agent_runner):
         """
         Tests the behavior when no agent steps are provided to the `get_model` method.
@@ -70,7 +71,7 @@ class TestAgentRunnerBase:
         """
         with pytest.raises(SystemExit):
             agent_runner.get_model("", "env")
-    
+
     def test_get_model_with_no_matching_model(self, agent_runner):
         """
         Tests the behavior when the `get_model` method is called with valid agent steps but no matching model is found.
@@ -84,9 +85,9 @@ class TestAgentRunnerBase:
         """
         valid_agent_steps = "1000"
         mock_env = "some_env"
-        
-        with patch('pathlib.Path.glob') as mock_glob:
+
+        with patch("pathlib.Path.glob") as mock_glob:
             mock_glob.return_value = []
-            
+
             with pytest.raises(IndexError):
                 agent_runner.get_model(valid_agent_steps, mock_env)

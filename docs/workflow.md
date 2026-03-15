@@ -1,5 +1,7 @@
+- [**Home**](home)
+
 # Two-Person Git Workflow for SynergyGrid
-This workflow is designed to minimize merge conflicts, maintain a stable main branch, and enable parallel development for two team members.
+This workflow is designed to minimize merge conflicts, maintain a stable main branch, and enable parallel development.
 
 ## 1. Branch Structure
 - **`main`**: always stable and tested.
@@ -38,31 +40,52 @@ git commit -m "Implement basic reward calculation"
 * Include **clear commit messages** describing what changed and where.
 
 ### Step C: Pull Latest `main` Frequently (specially if we're working in the same file)
-* Even if the task is not done, update your branch if the other team member have issued a PR which has been merged, also pull `main` before each session starts:
+Even if the task is not done, update your branch if the other team member have issued a PR which has been merged:
 
 ```bash
 # More flexible
 git fetch
-git merge origin/main
 
-# More straight forward, but u need to have committed all
-# your ongoing changes for it to work and decide upon merg
-# strategy or set it with git config pull.rebase true (or what strategy you choose)
+git merge origin/main # Messier history
+git push
+```
+
+Or:
+
+```bash
+# Replays your commits on top of main for a cleaner, linear history. You must have branched from
+# main though, rebasing on a branch branched from something else can overwrite commits unexpectedly
+git rebase origin/main
+# Rebase rewrites history; ensures you don't overwrite commits on the branch you're working on
+git push --force-with-lease
+```
+
+Not recommended:
+
+```bash
+# More straight forward, but you need to have decide upon merging strategy or set it:
+# git config pull.rebase true, for example (or what strategy you choose (merge is default))
 git pull origin main
 ```
 
-* Resolve any conflicts immediately.
-* Test locally before committing merged changes.
-* Push branch updates and continue working on your branch afterward.
+- Resolve any conflicts immediately.
+- Test locally before committing merged changes.
+- Push branch updates and continue working on your branch afterward.
 
 ### Step D: Create Pull Request (PR)
-* When a logical unit (method or feature) is ready, first pull `main` into your branch, resolve any conflicts and make sure everything works as intended, then open a PR against `main`.
-* The other team member reviews the PR:
-  * Check logic, style, and tests.
-  * Identify **blocking issues**; otherwise merge.
+- Once a logical unit (method or feature) is ready:
+  1. Update one last time onto `main`.
+  2. Resolve conflicts and verify functionality.
+  3. Push and open PR against `main`.
+- Issue review by your teammate:
+  1. Check logic, style, and tests.
+  2. Identify any blocking issues.
+  3. Merge only after approval.
+
+> All merges into main should be squash to maintain a clean linear history.
 
 ### Step E: Feature Merged Back Into Main
-1. After your feature branch has been merged into `main` the other member **pulls `main`** before continuing work to stay up-to-date.
+After your feature branch has been merged into `main` the other member update their branch according to step C above.
 
 ## 3. Best Practices
 * **Work in isolated methods or blocks** to reduce conflicts.
@@ -71,4 +94,4 @@ git pull origin main
 * **Document contracts** in code (inputs, outputs, docstring, state assumptions).
 * **Lightweight review** in small teams: check for correctness and obvious issues; avoid unnecessary vetoes.
 * **Pull early and often**: prevents last-minute conflicts.
-* **TODO**: communicates intent if the other team member needs to check out your branch, as well as reminding yourself about where you are and what needs to be done.
+* **TODO, NOTE**: communicates intent if the other team member needs to check out your branch, as well as reminding yourself about where you are and what needs to be done.

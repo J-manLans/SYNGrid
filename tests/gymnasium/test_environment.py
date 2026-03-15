@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from synergygrid.core import AgentAction
-from synergygrid.gymnasium.environment import SynergyGridEnv
+from synergygrid.gymnasium.environment import SYNGridEnv
 
 
 class TestEnvironment:
@@ -19,7 +19,7 @@ class TestEnvironment:
         Pytest fixture that provides a fresh environment instance
         for tests that require a default configuration.
         """
-        return SynergyGridEnv()
+        return SYNGridEnv()
 
     def test_initialization(self, env):
         """
@@ -34,7 +34,9 @@ class TestEnvironment:
         Verify that custom initialization parameters are correctly
         applied to the environment.
         """
-        env = SynergyGridEnv(max_active_resources=5, grid_rows=7, grid_cols=6, max_steps=50)
+        env = SYNGridEnv(
+            max_active_resources=5, grid_rows=7, grid_cols=6, max_steps=50
+        )
 
         # Check that configuration parameters were stored correctly
         assert env.max_active_resources == 5
@@ -63,8 +65,8 @@ class TestEnvironment:
         Verify that resetting two environments with the same seed
         produces identical observations.
         """
-        env1 = SynergyGridEnv()
-        env2 = SynergyGridEnv()
+        env1 = SYNGridEnv()
+        env2 = SYNGridEnv()
 
         obs1, _ = env1.reset(seed=42)
         obs2, _ = env2.reset(seed=42)
@@ -118,7 +120,7 @@ class TestEnvironment:
         Verify that the environment eventually returns truncated=True
         when the maximum number of steps is exceeded.
         """
-        env = SynergyGridEnv(max_steps=5)
+        env = SYNGridEnv(max_steps=5)
         env.reset()
 
         truncated = False
@@ -156,7 +158,7 @@ class TestEnvironment:
         Verify that render() returns either None or a string when rendering
         is enabled with human mode.
         """
-        env = SynergyGridEnv(render_mode="human")
+        env = SYNGridEnv(render_mode="human")
         env.reset()
 
         result = env.render()

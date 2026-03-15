@@ -2,15 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug package: experiments",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "experiments",
-      "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}",
-      "justMyCode": true
-    },
-    {
       "name": "Debug package: synergygrid",
       "type": "debugpy",
       "request": "launch",

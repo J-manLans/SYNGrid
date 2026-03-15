@@ -17,7 +17,7 @@ class SynergyAgent:
     #       Init        #
     # ================= #
 
-    def __init__(self, grid_rows: int, grid_cols: int, starting_score: int = 30):
+    def __init__(self, grid_rows: int, grid_cols: int, starting_score: int = 50):
         """
         Initializes the agent.
 
@@ -47,11 +47,16 @@ class SynergyAgent:
 
         # Move Agent to the next cell
         match agent_action:
-            case AgentAction.LEFT: self._moveTowardsMinBound(1)
-            case AgentAction.RIGHT: self._moveTowardsMaxBound(1, self._grid_cols - 1)
-            case AgentAction.UP: self._moveTowardsMinBound(0)
-            case AgentAction.DOWN: self._moveTowardsMaxBound(0, self._grid_rows - 1)
-            case _: raise TypeError("This action isn't implemented")
+            case AgentAction.LEFT:
+                self._moveTowardsMinBound(1)
+            case AgentAction.RIGHT:
+                self._moveTowardsMaxBound(1, self._grid_cols - 1)
+            case AgentAction.UP:
+                self._moveTowardsMinBound(0)
+            case AgentAction.DOWN:
+                self._moveTowardsMaxBound(0, self._grid_rows - 1)
+            case _:
+                raise TypeError("This action isn't implemented")
 
         self.score -= 1
 

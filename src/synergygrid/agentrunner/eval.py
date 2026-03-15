@@ -33,7 +33,13 @@ def evaluate_agent(runner: AgentRunner, agent_steps: str, trained_model: bool):
 
     done = False
     while not done:
-        obs, _, terminated, truncated, _ = env.step(get_action(obs))
+        try:
+            obs, _, terminated, truncated, _ = env.step(get_action(obs))
+        except Exception as e:
+            print(f"System crashed: {e}")
+            return  # exit function gracefully
+        finally:
+            env.close()  # cleanup
 
         # Exit environment if terminated or truncated.
         done = truncated or terminated

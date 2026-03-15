@@ -90,20 +90,20 @@ class GridWorld:
 
     # === Getters === #
 
-    def get_resource_positions(self, rendering: bool) -> list[list[np.int64]]:
-        if rendering:
+    def get_resource_positions(self, only_active: bool) -> list[list[np.int64]]:
+        if only_active:
             return [r.position for r in self._active_resources]
 
         return [r.position for r in self._ALL_RESOURCES]
 
-    def get_resource_is_active_status(self, rendering: bool) -> list[bool]:
-        if rendering:
+    def get_resource_is_active_status(self, only_active: bool) -> list[bool]:
+        if only_active:
             return [r.is_active for r in self._active_resources]
 
         return [r.is_active for r in self._ALL_RESOURCES]
 
-    def get_resource_meta(self, rendering: bool) -> list[ResourceMeta]:
-        if rendering:
+    def get_resource_meta(self, only_active: bool) -> list[ResourceMeta]:
+        if only_active:
             return [r.meta for r in self._active_resources]
 
         return [r.meta for r in self._ALL_RESOURCES]
@@ -132,13 +132,13 @@ class GridWorld:
 
         if max_tier > 1:
             ratio = (0.50, 0.20, 0.30)
-            n_pos = self.compute_spawn_count(ratio[0])
-            n_neg = self.compute_spawn_count(ratio[1])
-            n_tier = self.compute_spawn_count(ratio[2])
+            n_pos = self._compute_spawn_count(ratio[0])
+            n_neg = self._compute_spawn_count(ratio[1])
+            n_tier = self._compute_spawn_count(ratio[2])
         else:
             ratio = (0.75, 0.25)
-            n_pos = self.compute_spawn_count(ratio[0])
-            n_neg = self.compute_spawn_count(ratio[1])
+            n_pos = self._compute_spawn_count(ratio[0])
+            n_neg = self._compute_spawn_count(ratio[1])
 
         for _ in range(n_pos):
             resources.append(PositiveResource((self.grid_rows, self.grid_cols)))
@@ -150,7 +150,7 @@ class GridWorld:
 
         return resources
 
-    def compute_spawn_count(self, ratio: float) -> int:
+    def _compute_spawn_count(self, ratio: float) -> int:
         return max(1, int(self._max_active_resources * ratio + 0.5))
 
     # === API === #
@@ -198,7 +198,7 @@ class GridWorld:
         if len(self._active_resources) == 0:
             return True
 
-        # Check against all active resources
+        # Else check against all active resources
         for r in self._active_resources:
             if position == r.position:
                 return False

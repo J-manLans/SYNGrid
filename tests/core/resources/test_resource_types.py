@@ -17,6 +17,7 @@ class TestResourceMeta:
     - Explicit tier behavior
     - Validation of invalid inputs
     """
+
     def test_direct_positive_initialization(self):
         """
         Verify that a DIRECT POSITIVE resource initializes correctly.
@@ -73,7 +74,7 @@ class TestResourceMeta:
         meta = ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER, tier)
 
         assert meta.tier == tier
-    
+
     def test_explicit_none_tier_defaults_to_zero(self):
         """
         Ensure that explicitly passing tier=None
@@ -82,9 +83,9 @@ class TestResourceMeta:
         This confirms consistent default handling.
         """
         meta = ResourceMeta(ResourceCategory.DIRECT, DirectType.POSITIVE, None)
-        
+
         assert meta.tier == 0
-        
+
     def test_negative_tier_raises(self):
         """
         Ensure that passing a negative tier value
@@ -94,7 +95,7 @@ class TestResourceMeta:
         """
         with pytest.raises(ValueError):
             ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER, -1)
-    
+
     def test_mismatch_category_and_type_raises(self):
         """
         Ensure that mismatched category/type combinations

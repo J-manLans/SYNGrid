@@ -6,17 +6,18 @@ from synergygrid.rendering import PygameRenderer
 from synergygrid.gymnasium import ObservationHandler
 
 
-class SynergyGridEnv(gym.Env):
+class SYNGridEnv(gym.Env):
     """
-    SynergyGrid reinforcement learning environment.
+    SYNGrid reinforcement learning environment.
 
     A discrete grid-world environment for benchmarking single-agent RL.
     """
 
     # Metadata required by Gym.
     # "human" for Pygame visualization.
-    # FPS caps the render() update rate; each call corresponds to one logic step, not full game fps.
-    # Alternative sub-loop in PygameRenderer.render() creates smooth animation between steps.
+    # render_fps caps the update rate of render(); each call corresponds to one logic step, not the
+    # full game framerate. Simply put: render_fps controls the speed of the environment’s logic,
+    # while a sub-loop in the renderer would handle smooth animation between steps.
     metadata = {"render_modes": ["human"], "render_fps": 4}
 
     # ================= #
@@ -30,18 +31,18 @@ class SynergyGridEnv(gym.Env):
         grid_cols: int = 5,
         max_steps: int = 100,
         render_mode: str | None = None,
-        control: bool = False,
+        human_control: bool = False,
     ):
         # Set up bench environment;
 
         self._init_vars(
-            max_active_resources, grid_rows, grid_cols, render_mode, control
+            max_active_resources, grid_rows, grid_cols, render_mode, human_control
         )
         self._init_world(max_active_resources, grid_rows, grid_cols)
         if self.render_mode == "human":
             self._init_renderer(grid_rows, grid_cols)
 
-        if control:
+        if human_control:
             self._max_steps = max_steps
             self._human_play_loop()
             return
@@ -103,26 +104,12 @@ class SynergyGridEnv(gym.Env):
         )
 
     def render(self) -> None | str:
-        hud_data: dict[str, int] = {}
-        hud_data["score"] = self._world._agent.score
-        if self.control:
-            hud_data["moves"] = self._step_count_down
-        else:
-            hud_data["moves"] = self._observation_handler._step_count_down
-        if len(BaseResource._chained_tiers) > 0:
-            if BaseResource._chained_tiers[-1] == self._world.max_tier:
-                hud_data["current tier chain"] = 0
-            else:
-                hud_data["current tier chain"] = BaseResource._chained_tiers[-1]
-        else:
-            hud_data["current tier chain"] = 0
-
         return self._renderer.render(
             self._world._agent.position,
             self._world.get_resource_is_active_status(True),
             self._world.get_resource_positions(True),
             self._world.get_resource_meta(True),
-            hud_data,
+            self._get_hud_data(),
         )
 
     # ================== #
@@ -137,13 +124,13 @@ class SynergyGridEnv(gym.Env):
         grid_rows: int,
         grid_cols: int,
         render_mode: str | None,
-        control: bool,
+        human_control: bool,
     ) -> None:
         self.max_active_resources = max_active_resources
         self.grid_rows = grid_rows
         self.grid_cols = grid_cols
         self.render_mode = render_mode
-        self.control = control
+        self.human_control = human_control
 
     def _init_world(
         self, max_active_resources: int, grid_rows: int, grid_cols: int
@@ -158,6 +145,27 @@ class SynergyGridEnv(gym.Env):
             grid_cols=grid_cols,
             fps=self.metadata["render_fps"],
         )
+
+    # === Gymnasium contract === #
+
+    def _get_hud_data(self) -> dict[str, int]:
+        hud_data: dict[str, int] = {}
+        hud_data["score"] = self._world._agent.score
+        if self.human_control:
+            hud_data["moves"] = self._step_count_down
+        else:
+            hud_data["moves"] = self._observation_handler._step_count_down
+        if len(BaseResource._chained_tiers) > 0:
+            if BaseResource._chained_tiers[-1] == self._world.max_tier:
+                hud_data["current tier chain"] = 0
+            else:
+                hud_data["current tier chain"] = BaseResource._chained_tiers[-1]
+        else:
+            hud_data["current tier chain"] = 0
+
+        return hud_data
+
+    # === Human control === #
 
     def _human_play_loop(self):
         self._step_count_down = 100

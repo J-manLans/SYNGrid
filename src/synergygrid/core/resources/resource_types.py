@@ -39,8 +39,9 @@ class ResourceMeta:
     ) -> None:
         if category == ResourceCategory.DIRECT:
             if not isinstance(type, DirectType):
-                raise TypeError("If the category is DIRECT, the resource need to be of direct type")
-
+                raise TypeError(
+                    "If the category is DIRECT, the resource need to be of direct type"
+                )
 
         if category == ResourceCategory.SYNERGY:
             if not isinstance(type, SynergyType):

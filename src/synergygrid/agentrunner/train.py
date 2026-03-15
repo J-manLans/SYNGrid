@@ -14,7 +14,7 @@ def train_agent(
     agent_steps="",
     timesteps=20000,
     iterations=10,
-):
+) -> None:
     """
     Train an agent, either from scratch or by continuing from a saved checkpoint.
 

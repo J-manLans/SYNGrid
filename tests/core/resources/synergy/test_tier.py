@@ -85,7 +85,7 @@ class TestTier:
         resource.consume()
 
         assert resource._chained_tiers[-1] == resource.meta.tier
-        expected_chain = list(range(resource.meta.tier + 1)) # Check correct order
+        expected_chain = list(range(resource.meta.tier + 1))  # Check correct order
         assert resource._chained_tiers == expected_chain
 
     def test_bad_consume_breaks_tiers_list(self, resource: TierResource):

@@ -1,11 +1,6 @@
-import gymnasium as gym
-import pygame
-import os
-import datetime
 import sys
 from pathlib import Path
-from stable_baselines3.common.monitor import Monitor
-from synergygrid.config import environment, algorithms
+from synergygrid.config import algorithms
 
 
 class AgentRunner:

@@ -288,10 +288,12 @@ class PygameRenderer:
 
         # --- Hud element --- #
         hud_img = self.graphics["hud_img"]
-        hud_rect = hud_img.get_rect(topleft=(
-            self._grid_offset,
-            (self._cell_height * self._grid_rows) + self._grid_offset * 2
-        ))
+        hud_rect = hud_img.get_rect(
+            topleft=(
+                self._grid_offset,
+                (self._cell_height * self._grid_rows) + self._grid_offset * 2,
+            )
+        )
         self.window_surface.blit(hud_img, hud_rect)
 
         # --- Life and moves bar --- #
@@ -299,13 +301,12 @@ class PygameRenderer:
         self._draw_moves_bar(hud_data["moves"], hud_rect)
 
         # --- Current tier chain --- #
-        tier_surf = self.hud_font.render(str(hud_data['current tier chain']), True, self._hud_text_clr)
+        tier_surf = self.hud_font.render(
+            str(hud_data["current tier chain"]), True, self._hud_text_clr
+        )
 
         tier_rect = pygame.Rect(
-            hud_rect.x + 33,
-            hud_rect.y + (hud_rect.height - 68),
-            64,
-            52
+            hud_rect.x + 33, hud_rect.y + (hud_rect.height - 68), 64, 52
         )
 
         rect = tier_surf.get_rect()
@@ -363,12 +364,11 @@ class PygameRenderer:
 
         current_height = int(bar_height * ratio)
 
-
         # --- Draw filled portion --- #
         pygame.draw.rect(
             self.window_surface,
             (58, 216, 48),
-            (bar_x, bar_y + (bar_height - current_height), bar_width, current_height)
+            (bar_x, bar_y + (bar_height - current_height), bar_width, current_height),
         )
 
         # --- Draw border --- #

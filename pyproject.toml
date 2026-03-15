@@ -44,23 +44,20 @@ requires-python = ">=3.10,<3.13"
 dependencies = [
     "gymnasium>=1.2",
     "numpy>=2.2",
+    "pygame>=2.6"
 ]
 
 [project.optional-dependencies]
 # Used for users who wants the extra functionalities but don't need the [dev] setup.
-extras = [
-    "pygame>=2.6",
+extra = [
     "matplotlib>=3.10"
 ]
 
 dev = [
-    "pygame>=2.6",
-    "matplotlib>=3.10",
-    "pytest>=9.0.2", # pytest -v path/to/file.py
-    "stable-baselines3[extra]>=2.7.1",
-    "swig>=4.4.1", # Generates Python bindings for C/C++ libs (needed for Box2D)
-    "gymnasium[box2d]>=1.2", # RL environments with Box2D physics (LunarLander and BipedalWalker)
-    "black>=26.1" # For automatic code formatting. Usage: black path/to/file.py or black src/synergygrid
+    "pytest>=9.0.2",
+    "stable-baselines3>=2.7.1",
+    "tensorboard>=2.20.0",
+    "black>=26.1" # For automatic code formatting. Usage: black path/to/file.py or black src/synergygrid for the whole module
 ]
 
 [tool.setuptools.packages.find]

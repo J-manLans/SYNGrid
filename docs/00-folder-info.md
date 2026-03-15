@@ -1,1 +1,0 @@
-Here all documentation for the project will be kept

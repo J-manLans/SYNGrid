@@ -9,6 +9,7 @@ class DummyPositiveResource:
     Simulates a resource that always returns a fixed positive reward
     when consumed. Used to isolate agent logic from resource logic.
     """
+
     def consume(self):
         return 5
 
@@ -20,6 +21,7 @@ class DummyNegativeResource:
     Simulates a resource that always returns a fixed negative reward
     when consumed. Used to test score deduction logic.
     """
+
     def consume(self):
         return -5
 
@@ -54,7 +56,7 @@ class TestAgent:
             (6, 6, [3, 3]),
             (5, 5, [2, 2]),
             (1, 1, [0, 0]),
-        ]
+        ],
     )
     def test_initial_positions(self, y, x, expected_position):
         """
@@ -66,14 +68,7 @@ class TestAgent:
 
         assert agent.position == expected_position
 
-    @pytest.mark.parametrize(
-        "y, x",
-        [
-            (1, 0),
-            (0, 1),
-            (0, 0)
-        ]
-    )
+    @pytest.mark.parametrize("y, x", [(1, 0), (0, 1), (0, 0)])
     def test_invalid_initial_positions(self, y, x):
         """
         Ensure that creating a SynergyAgent with invalid grid dimensions
@@ -82,14 +77,7 @@ class TestAgent:
         with pytest.raises(ValueError):
             SynergyAgent(y, x)
 
-    @pytest.mark.parametrize(
-        "score",
-        [
-            100,
-            0,
-            -100
-        ]
-    )
+    @pytest.mark.parametrize("score", [100, 0, -100])
     def test_initial_score(self, score):
         """
         Ensure that the agent's score is initialized to the starting value
@@ -106,7 +94,7 @@ class TestAgent:
             (AgentAction.LEFT, [3, 2]),
             (AgentAction.UP, [2, 3]),
             (AgentAction.DOWN, [4, 3]),
-        ]
+        ],
     )
     def test_movement(self, agent, action, expected_position):
         """
@@ -119,13 +107,7 @@ class TestAgent:
         assert agent.position == expected_position
         assert initial_score == agent.score + 1
 
-    @pytest.mark.parametrize(
-        "action",
-        [
-            None,
-            "LEFT"
-        ]
-    )
+    @pytest.mark.parametrize("action", [None, "LEFT"])
     def test_invalid_movement(self, agent, action):
         """
         Ensure that passing an invalid value to perform_action
@@ -155,12 +137,7 @@ class TestAgent:
 
     @pytest.mark.parametrize(
         "action",
-        [
-            AgentAction.LEFT,
-            AgentAction.RIGHT,
-            AgentAction.UP,
-            AgentAction.DOWN
-        ]
+        [AgentAction.LEFT, AgentAction.RIGHT, AgentAction.UP, AgentAction.DOWN],
     )
     def test_edge_case_boundaries(self, action):
         """

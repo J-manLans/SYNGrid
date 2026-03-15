@@ -13,6 +13,7 @@ class DummyResource(BaseResource):
     Minimal concrete implementation of BaseResource
     used to isolate and test BaseResource behavior.
     """
+
     def consume(self):
         self._consume()
         return 1
@@ -31,6 +32,7 @@ class TestBaseResource:
     - Timer behavior
     - Edge cases
     """
+
     @pytest.fixture
     def meta(self):
         return ResourceMeta(ResourceCategory.DIRECT, DirectType.POSITIVE, 1)
