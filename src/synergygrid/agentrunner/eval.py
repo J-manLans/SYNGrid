@@ -1,5 +1,5 @@
-from synergygrid.agentrunner import AgentRunner
-import gymnasium as gym
+from synergygrid.agentrunner.base import AgentRunner
+from synergygrid.gymnasium.env_factory import make
 
 
 def evaluate_agent(runner: AgentRunner, agent_steps: str, trained_model: bool):
@@ -10,7 +10,7 @@ def evaluate_agent(runner: AgentRunner, agent_steps: str, trained_model: bool):
     """
 
     # Create the environment with human rendering and load the model
-    env = gym.make(runner.environment, render_mode="human")
+    env = make('human')
 
     # Define get_action() depending on type of model
     if trained_model:

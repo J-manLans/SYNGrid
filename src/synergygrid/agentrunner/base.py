@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
-from synergygrid import algorithms, environment, register_env
+from synergygrid.config.configs import algorithms, environment
+from synergygrid.gymnasium.env_factory import register_env
 from stable_baselines3.common.base_class import BaseAlgorithm
 
 

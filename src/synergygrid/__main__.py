@@ -1,5 +1,9 @@
 import sys
-from synergygrid import AgentRunner, train_agent, evaluate_agent, SYNGridEnv, parse_args
+from synergygrid.agentrunner.base import AgentRunner
+from synergygrid.agentrunner.train import train_agent
+from synergygrid.agentrunner.eval import evaluate_agent
+from synergygrid.utils.parse_args import parse_args
+from synergygrid.gymnasium.environment import SYNGridEnv
 
 
 def main():

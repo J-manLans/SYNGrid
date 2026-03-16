@@ -1,9 +1,9 @@
-import gymnasium as gym
 import datetime
 from pathlib import Path
 from stable_baselines3.common.monitor import Monitor
-from synergygrid.agentrunner import AgentRunner
-from synergygrid.config import environment
+from synergygrid.agentrunner.base import AgentRunner
+from synergygrid.config.configs import environment
+from synergygrid.gymnasium.env_factory import make
 
 
 # TODO: this only accompanies the stable baselines3 models as of now. We need to crete a more
@@ -39,7 +39,7 @@ def train_agent(
     Path(log_dir).mkdir(parents=True, exist_ok=True)
 
     # Create and wrap the training environment
-    env = gym.make(runner.environment, render_mode=None)
+    env = make(None)
     # Wrap the environment with a Monitor for logging.
     # The created csv is needed for plotting our own graphs with matplotlib later.
     monitor_file = Path(log_dir) / f"{runner.environment}_{runner.algorithm}_{date}.csv"
