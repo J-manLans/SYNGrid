@@ -3,13 +3,11 @@ import numpy as np
 from typing import Any
 from gymnasium import spaces
 from gymnasium.spaces import Dict
-from synergygrid.core import (
-    GridWorld,
-    BaseResource,
-    ResourceCategory,
-    DirectType,
-    SynergyType,
-)
+from synergygrid.core.grid_world import GridWorld
+from synergygrid.core.resources.base_resource import BaseResource
+from synergygrid.core.resources.resource_meta import ResourceCategory
+from synergygrid.core.resources.resource_meta import DirectType
+from synergygrid.core.resources.resource_meta import SynergyType
 
 
 class ObservationHandler:
@@ -30,7 +28,7 @@ class ObservationHandler:
         self._max_steps = _max_steps
 
     def reset(self):
-        self._step_count_down = self._max_steps
+        self.step_count_down = self._max_steps
 
     # ================== #
     #       API      #
@@ -53,8 +51,8 @@ class ObservationHandler:
             False, np.float16
         )
 
-        self.agent_data = np.zeros_like(raw_low, dtype=np.int16)
-        self.resource_data = np.zeros_like(raw_high, dtype=np.int16)
+        self._agent_data = np.zeros_like(raw_low, dtype=np.int16)
+        self._resource_data = np.zeros_like(raw_high, dtype=np.int16)
 
         # normalized bounds — match _normalize_obs()
         # inactive resources keep -1 as a valid "low" value; active features map to 0..1
@@ -85,11 +83,11 @@ class ObservationHandler:
 
         # NOTE: change here
         # ---- Agent ---- #
-        self.agent_data[0] = agent_row
-        self.agent_data[1] = agent_col
-        self.agent_data[2] = self._step_count_down
-        self.agent_data[3] = self._world._agent.score
-        self.agent_data[4] = len(BaseResource._chained_tiers)
+        self._agent_data[0] = agent_row
+        self._agent_data[1] = agent_col
+        self._agent_data[2] = self.step_count_down
+        self._agent_data[3] = self._world._agent.score
+        self._agent_data[4] = len(BaseResource._chained_tiers)
 
         # NOTE: change here
         # ---- Resources ---- #
@@ -110,7 +108,7 @@ class ObservationHandler:
                 r_tier = tiers[i]
 
                 # NOTE: change here
-                self.resource_data[i] = [
+                self._resource_data[i] = [
                     pos[0],
                     pos[1],
                     r_timer,
@@ -120,9 +118,9 @@ class ObservationHandler:
                 ]
             else:
                 # NOTE: change here
-                self.resource_data[i] = [-1, -1, -1, -1, -1, -1]
+                self._resource_data[i] = [-1, -1, -1, -1, -1, -1]
 
-        return {"agent data": self.agent_data, "resources data": self.resource_data}
+        return {"agent data": self._agent_data, "resources data": self._resource_data}
 
     def normalize_obs(self, obs: dict[str, Any]) -> dict[str, Any]:
         # --- Agent --- #

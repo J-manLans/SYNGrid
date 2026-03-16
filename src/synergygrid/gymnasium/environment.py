@@ -1,9 +1,10 @@
 import gymnasium as gym
 from gymnasium import spaces
-from synergygrid.core import GridWorld, AgentAction
-from synergygrid.core.resources import BaseResource
-from synergygrid.rendering import PygameRenderer
-from synergygrid.gymnasium import ObservationHandler
+from synergygrid.core.grid_world import GridWorld
+from synergygrid.core.resources.base_resource import BaseResource
+from synergygrid.gymnasium.action_space import AgentAction
+from synergygrid.gymnasium.observation_space import ObservationHandler
+from synergygrid.rendering.pygame_renderer import PygameRenderer
 
 
 class SYNGridEnv(gym.Env):
@@ -84,8 +85,8 @@ class SYNGridEnv(gym.Env):
     def step(self, action: AgentAction):
         # Perform action and adjust variables affected by it
         reward = self._world.perform_agent_action(AgentAction(action))
-        self._observation_handler._step_count_down -= 1
-        truncated = self._observation_handler._step_count_down <= 0
+        self._observation_handler.step_count_down -= 1
+        truncated = self._observation_handler.step_count_down <= 0
         terminated = self._world._agent.score <= 0
 
         if self.render_mode == "human":
@@ -94,7 +95,7 @@ class SYNGridEnv(gym.Env):
         obs = self._observation_handler.get_observation()
         norm_obs = self._observation_handler.normalize_obs(obs)
 
-        # Return observation, reward, terminated, truncated and info (not used)
+        # Return observation, reward, terminated, truncated and info (TODO: not used now, but add it at termination or truncation so result can be persisted in the evaluate_agent() method)
         return (
             norm_obs,
             reward,
@@ -154,7 +155,7 @@ class SYNGridEnv(gym.Env):
         if self.human_control:
             hud_data["moves"] = self._step_count_down
         else:
-            hud_data["moves"] = self._observation_handler._step_count_down
+            hud_data["moves"] = self._observation_handler.step_count_down
         if len(BaseResource._chained_tiers) > 0:
             if BaseResource._chained_tiers[-1] == self._world.max_tier:
                 hud_data["current tier chain"] = 0

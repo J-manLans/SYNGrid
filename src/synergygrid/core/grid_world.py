@@ -1,12 +1,10 @@
-from synergygrid.core import (
-    AgentAction,
-    SynergyAgent,
-    ResourceMeta,
-    BaseResource,
-    PositiveResource,
-    NegativeResource,
-    TierResource,
-)
+from synergygrid.gymnasium.action_space import AgentAction
+from synergygrid.core.agent import SynergyAgent
+from synergygrid.core.resources.resource_meta import ResourceMeta
+from synergygrid.core.resources.base_resource import BaseResource
+from synergygrid.core.resources.direct.positive import PositiveResource
+from synergygrid.core.resources.direct.negative import NegativeResource
+from synergygrid.core.resources.synergy.tier import TierResource
 import numpy as np
 from numpy.random import Generator, default_rng
 from typing import Final

@@ -1,14 +1,5 @@
-from enum import Enum
 from synergygrid.core.resources import BaseResource
-
-
-class AgentAction(Enum):
-    """Actions the Agent is capable of performing i.e. go in a certain direction"""
-
-    LEFT = 0
-    DOWN = 1
-    RIGHT = 2
-    UP = 3
+from synergygrid.gymnasium.action_space import AgentAction
 
 
 class SynergyAgent:
