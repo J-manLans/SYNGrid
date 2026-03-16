@@ -11,8 +11,6 @@ class AgentRunner:
         alg = list(algorithms.keys())
         self.algorithm = alg[algorithm]
         self.AlgorithmClass = algorithms.get(self.algorithm, {})
-        if not self.AlgorithmClass:
-            raise ValueError(f"Unsupported algorithm: {self.algorithm}")
 
         self.model = None
 
