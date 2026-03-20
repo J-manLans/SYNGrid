@@ -4,6 +4,7 @@ from stable_baselines3.common.monitor import Monitor
 from synergygrid.agentrunner.base import AgentRunner
 from synergygrid.config.configs import agent_config
 from synergygrid.gymnasium.env_factory import make
+from synergygrid.utils.paths import get_project_path
 
 
 # TODO: this only accompanies the stable baselines3 models as of now. We need to crete a more
@@ -32,8 +33,8 @@ def train_agent(
     date = datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
 
     # Create directories for saving models and logs
-    model_dir = Path("results/models")
-    log_dir = Path("results/logs")
+    model_dir = Path(get_project_path('results', 'models'))
+    log_dir = Path(get_project_path('results', 'logs'))
 
     Path(model_dir).mkdir(parents=True, exist_ok=True)
     Path(log_dir).mkdir(parents=True, exist_ok=True)

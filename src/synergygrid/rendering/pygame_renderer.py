@@ -1,9 +1,10 @@
+from synergygrid.core import ResourceMeta, ResourceCategory, DirectType, SynergyType
+from synergygrid.utils.paths import get_package_path, get_package_root
 import pygame
 import json
 from os import path
 import sys
 import numpy as np
-from synergygrid.core import ResourceMeta, ResourceCategory, DirectType, SynergyType
 
 
 class PygameRenderer:
@@ -34,8 +35,8 @@ class PygameRenderer:
         self._step_fps = fps
 
         # Default font
-        self.tier_font = pygame.font.Font("assets/fonts/Minecraft.ttf", 20)
-        self.hud_font = pygame.font.Font("assets/fonts/Minecraft.ttf", 30)
+        self.tier_font = pygame.font.Font(get_package_path('assets', 'fonts', 'Minecraft.ttf'), 20)
+        self.hud_font = pygame.font.Font(get_package_path('assets', 'fonts', 'Minecraft.ttf'), 30)
 
         self._init_colors()
         self._init_vars()
@@ -192,15 +193,14 @@ class PygameRenderer:
     def _load_graphics(self) -> None:
         """Load graphics via JSON file"""
 
-        ROOT_DIR = path.abspath(path.join(path.dirname(__file__), "..", "..", ".."))
-        json_file = path.join(ROOT_DIR, "assets/paths.json")
+        json_file = get_package_path('assets', 'paths.json')
 
         with open(json_file, "r") as f:
             graphics_paths = json.load(f)
 
         self.graphics = {}
         for attr, rel_path in graphics_paths.items():
-            full_path = path.join(ROOT_DIR, rel_path)
+            full_path = path.join(get_package_root(), rel_path)
             self.graphics[attr] = pygame.image.load(full_path)
 
     def _set_frames_per_step(self):

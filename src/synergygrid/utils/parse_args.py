@@ -1,9 +1,9 @@
+from synergygrid.config.configs import algorithms
 import argparse
+from argparse import Namespace
 import re
-from synergygrid import algorithms
 
-
-def parse_args():
+def parse_args() -> Namespace:
     parser = argparse.ArgumentParser(description="Run agent experiments.")
 
     parser.add_argument(
