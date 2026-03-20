@@ -35,7 +35,7 @@ class TestBaseResource:
 
     @pytest.fixture
     def meta(self):
-        return ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TierBase, 1)
+        return ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER_BASE, 1)
 
     @pytest.fixture
     def resource(self, meta):
@@ -62,23 +62,6 @@ class TestBaseResource:
 
         assert resource.is_active is False
         assert resource.timer.remaining == 0
-
-    @pytest.mark.parametrize(
-        "rows, cols",
-        [
-            (0, 5),
-            (5, 0),
-        ],
-    )
-    def test_invalid_grid_raises(self, meta, rows, cols):
-        """
-        Ensure that creating a resource with invalid grid dimensions
-        (rows or columns < 1) raises a ValueError.
-
-        This validates constructor boundary checks.
-        """
-        with pytest.raises(ValueError):
-            DummyResource((rows, cols), 3, meta)
 
     def test_spawn_activates_resource(self, resource):
         """

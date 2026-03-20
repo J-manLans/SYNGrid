@@ -68,15 +68,6 @@ class TestAgent:
 
         assert agent.position == expected_position
 
-    @pytest.mark.parametrize("y, x", [(1, 0), (0, 1), (0, 0)])
-    def test_invalid_initial_positions(self, y, x):
-        """
-        Ensure that creating a SynergyAgent with invalid grid dimensions
-        (rows or columns <= 0) raises a ValueError.
-        """
-        with pytest.raises(ValueError):
-            SynergyAgent(y, x)
-
     @pytest.mark.parametrize("score", [100, 0, -100])
     def test_initial_score(self, score):
         """

@@ -237,7 +237,7 @@ class PygameRenderer:
             if resource_meta.type == DirectType.NEGATIVE:
                 self.window_surface.blit(self.graphics["negative_resource"], pos)
         else:
-            if resource_meta.type == SynergyType.TierBase:
+            if resource_meta.type == SynergyType.TIER_BASE:
                 self._draw_tier_resource(resource_meta, pos)
             elif resource_meta.type == SynergyType.TIER:
                 self._draw_tier_resource(resource_meta, pos)
@@ -339,6 +339,7 @@ class PygameRenderer:
             self.window_surface, (255, 255, 65), (bar_x, bar_y, fill_width, bar_height)
         )
 
+        # TODO: these could be made into a helper method, same thing exist in the draw hud method
         # --- Draw border --- #
         status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
         pygame.draw.rect(self.window_surface, (75, 75, 75), status_rect, 2)

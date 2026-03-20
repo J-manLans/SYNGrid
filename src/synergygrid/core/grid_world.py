@@ -12,7 +12,7 @@ from typing import Final
 
 
 class GridWorld:
-    _ALL_RESOURCES: Final[list[BaseResource]]
+    ALL_RESOURCES: Final[list[BaseResource]]
     _inactive_resources: list[BaseResource] = []
     _active_resources: list[BaseResource] = []
 
@@ -38,21 +38,21 @@ class GridWorld:
         self.grid_rows = grid_rows
         self.grid_cols = grid_cols
         self.max_tier = max_tier
-        self._agent = SynergyAgent(grid_rows, grid_cols)
+        self.agent = SynergyAgent(grid_rows, grid_cols)
 
-        self._ALL_RESOURCES = self._create_resources(self.max_tier)
+        self.ALL_RESOURCES = self._create_resources(self.max_tier)
 
     def reset(self, rng: Generator | None = None) -> None:
         """
         Reset the agent to its starting position and re-spawns the resource at a random location
         """
 
-        self._agent.reset()  # Initialize Agents starting position
+        self.agent.reset()  # Initialize Agents starting position
 
         self._active_resources.clear()
         self._inactive_resources.clear()
-        self._inactive_resources = list(self._ALL_RESOURCES)
-        for resource in self._ALL_RESOURCES:
+        self._inactive_resources = list(self.ALL_RESOURCES)
+        for resource in self.ALL_RESOURCES:
             resource.reset()
 
         if rng == None:
@@ -71,15 +71,15 @@ class GridWorld:
 
     def perform_agent_action(self, agent_action: AgentAction) -> int:
         reward = 0
-        self._agent.perform_action(agent_action)
+        self.agent.perform_action(agent_action)
 
-        for resource in self._ALL_RESOURCES:
+        for resource in self.ALL_RESOURCES:
             if resource.is_active:
                 if self._update_timer_and_return_is_completed(resource):
                     resource.deplete_resource()
                     self._remove_resource(resource)
-                elif self._agent.position == resource.position:
-                    reward = self._agent.consume_resource(resource)
+                elif self.agent.position == resource.position:
+                    reward = self.agent.consume_resource(resource)
                     self._remove_resource(resource)
             else:
                 if self._update_timer_and_return_is_completed(resource):
@@ -93,31 +93,31 @@ class GridWorld:
         if only_active:
             return [r.position for r in self._active_resources]
 
-        return [r.position for r in self._ALL_RESOURCES]
+        return [r.position for r in self.ALL_RESOURCES]
 
     def get_resource_is_active_status(self, only_active: bool) -> list[bool]:
         if only_active:
             return [r.is_active for r in self._active_resources]
 
-        return [r.is_active for r in self._ALL_RESOURCES]
+        return [r.is_active for r in self.ALL_RESOURCES]
 
     def get_resource_meta(self, only_active: bool) -> list[ResourceMeta]:
         if only_active:
             return [r.meta for r in self._active_resources]
 
-        return [r.meta for r in self._ALL_RESOURCES]
+        return [r.meta for r in self.ALL_RESOURCES]
 
     def get_resource_categories(self) -> list[int]:
-        return [r.meta.category.value for r in self._ALL_RESOURCES]
+        return [r.meta.category.value for r in self.ALL_RESOURCES]
 
     def get_resource_types(self) -> list[int]:
-        return [r.meta.type.value for r in self._ALL_RESOURCES]
+        return [r.meta.type.value for r in self.ALL_RESOURCES]
 
     def get_resource_life(self) -> list[int]:
-        return [r.timer.remaining for r in self._ALL_RESOURCES]
+        return [r.timer.remaining for r in self.ALL_RESOURCES]
 
     def get_resource_tiers(self) -> list[int]:
-        return [r.meta.tier for r in self._ALL_RESOURCES]
+        return [r.meta.tier for r in self.ALL_RESOURCES]
 
     # ================= #
     #      Helpers      #
@@ -195,7 +195,7 @@ class GridWorld:
 
     def _empty_spawn_cell(self, position: list[np.int64]) -> bool:
         # Check against agent
-        if position == self._agent.position:
+        if position == self.agent.position:
             return False
 
         # If there are no active resources we can spawn right away

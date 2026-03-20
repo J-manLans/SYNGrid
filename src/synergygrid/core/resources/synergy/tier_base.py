@@ -22,7 +22,7 @@ class TierBase(BaseTierResource):
             world_boundaries,
             cool_down,
             ResourceMeta(
-                category=ResourceCategory.SYNERGY, type=SynergyType.TierBase, tier=tier
+                category=ResourceCategory.SYNERGY, type=SynergyType.TIER_BASE, tier=tier
             ),
         )
 
@@ -32,16 +32,5 @@ class TierBase(BaseTierResource):
 
     def consume(self) -> int:
         super()._consume()
-        if not super()._resolve_tier_progression():
-            self._is_restart_needed()
+        super()._resolve_tier_progression()
         return self._TIER_BASE_REWARD
-
-    # ================= #
-    #      Helpers      #
-    # ================= #
-
-    def _is_restart_needed(self):
-        """If we just broke the chain, restart it since this is the base for the tier resources"""
-
-        if len(self._chained_tiers) == 0:
-            super()._chain_tier()

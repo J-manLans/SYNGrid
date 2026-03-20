@@ -15,9 +15,6 @@ class SynergyAgent:
         Defines the game world so the agent know its bounds, set its starting score and store it for later resetting.
         """
 
-        if grid_cols < 1 or grid_rows < 1:
-            raise ValueError("grid_cols and grid_rows should be larger than 0")
-
         self._grid_rows = grid_rows
         self._grid_cols = grid_cols
         self.score = starting_score

@@ -4,6 +4,7 @@ from synergygrid.core.resources import (
     ResourceCategory,
     SynergyType,
 )
+from typing import Final
 
 
 class TierResource(BaseTierResource):
@@ -16,6 +17,7 @@ class TierResource(BaseTierResource):
 
     _linear_reward_growth: bool = True
     _step_wise_scoring_type: bool = True
+    GROWTH_FACTOR: Final[float] = 1.5
 
     # ================= #
     #       Init        #
@@ -66,6 +68,8 @@ class TierResource(BaseTierResource):
         # TODO: just for testing if incentive structure for the agent changes if we power up the
         # reward, remove if not necessary
         else:
-            reward = int((self._TIER_BASE_REWARD * (1.5**multiplier)) + 0.5)
+            reward = int(
+                (self._TIER_BASE_REWARD * (self.GROWTH_FACTOR**multiplier)) + 0.5
+            )
 
         return reward

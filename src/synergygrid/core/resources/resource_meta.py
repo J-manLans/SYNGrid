@@ -7,7 +7,7 @@ class ResourceCategory(Enum):
 
 
 class SynergyType(Enum):
-    TierBase = 0
+    TIER_BASE = 0
     TIER = 1
 
 

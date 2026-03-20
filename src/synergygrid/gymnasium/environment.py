@@ -87,7 +87,7 @@ class SYNGridEnv(gym.Env):
         reward = self._world.perform_agent_action(AgentAction(action))
         self._observation_handler.step_count_down -= 1
         truncated = self._observation_handler.step_count_down <= 0
-        terminated = self._world._agent.score <= 0
+        terminated = self._world.agent.score <= 0
 
         if self.render_mode == "human":
             self.render()
@@ -106,7 +106,7 @@ class SYNGridEnv(gym.Env):
 
     def render(self) -> None | str:
         return self._renderer.render(
-            self._world._agent.position,
+            self._world.agent.position,
             self._world.get_resource_is_active_status(True),
             self._world.get_resource_positions(True),
             self._world.get_resource_meta(True),
@@ -151,7 +151,7 @@ class SYNGridEnv(gym.Env):
 
     def _get_hud_data(self) -> dict[str, int]:
         hud_data: dict[str, int] = {}
-        hud_data["score"] = self._world._agent.score
+        hud_data["score"] = self._world.agent.score
         if self.human_control:
             hud_data["moves"] = self._step_count_down
         else:
@@ -180,7 +180,7 @@ class SYNGridEnv(gym.Env):
                 self._world.perform_agent_action(agent_action)
                 self._step_count_down -= 1
                 truncated = self._step_count_down <= 0
-                terminated = self._world._agent.score <= 0
+                terminated = self._world.agent.score <= 0
 
                 if terminated or truncated:
                     break

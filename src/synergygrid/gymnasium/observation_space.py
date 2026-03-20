@@ -79,14 +79,14 @@ class ObservationHandler:
         return spaces.Dict(self.observation_space)
 
     def get_observation(self) -> dict[str, Any]:
-        agent_row, agent_col = self._world._agent.position
+        agent_row, agent_col = self._world.agent.position
 
         # NOTE: change here
         # ---- Agent ---- #
         self._agent_data[0] = agent_row
         self._agent_data[1] = agent_col
         self._agent_data[2] = self.step_count_down
-        self._agent_data[3] = self._world._agent.score
+        self._agent_data[3] = self._world.agent.score
         self._agent_data[4] = len(BaseResource._chained_tiers)
 
         # NOTE: change here
@@ -98,7 +98,7 @@ class ObservationHandler:
         types = self._world.get_resource_types()
         tiers = self._world.get_resource_tiers()
 
-        for i in range(len(self._world._ALL_RESOURCES)):
+        for i in range(len(self._world.ALL_RESOURCES)):
             if active[i]:
                 # NOTE: change here
                 pos = positions[i]
@@ -213,7 +213,7 @@ class ObservationHandler:
             max_r_cat = len(ResourceCategory) - 1
             max_r_type = max(len(DirectType) - 1, len(SynergyType) - 1)
 
-        N = len(self._world._ALL_RESOURCES)
+        N = len(self._world.ALL_RESOURCES)
         # NOTE: change here
         low = np.tile(
             [

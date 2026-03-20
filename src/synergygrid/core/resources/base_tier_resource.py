@@ -29,8 +29,10 @@ class BaseTierResource(BaseResource, ABC):
                 self._chain_tier()
             return True
 
-        # If it wasn't, break the chain and return False
+        # If it wasn't, break the chain, check if the resource is a tier 1, if so — restart the chain, then return False
         super()._break_tier_chain()
+        if current_tier == 1:
+            self._chain_tier()
         return False
 
     def _chain_tier(self) -> None:
