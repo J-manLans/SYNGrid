@@ -14,17 +14,17 @@ def main():
         agent = True
         # If we want to test the game our selves
         # Choose to train or run the agent
-        training = False
+        training = True
         # Human control to test hte game
         human_control = False
         # Continue training from a saved model
         continue_training = False
         # Model that we shall continue to train
-        agent_steps = "921600"
+        agent_steps = "12288"
         # Num of timesteps for training or model selection when running
-        timesteps = 50000
+        timesteps = 5000
         # Number of training iterations
-        iterations = 40
+        iterations = 2
     else:
         args = parse_args()  # python -m experiments -h for info
         algorithm = args.alg
@@ -36,7 +36,7 @@ def main():
         timesteps = args.timesteps
         iterations = args.iterations
 
-    runner = AgentRunner(algorithm, "tight_loop_")
+    runner = AgentRunner(algorithm, "test")
 
     if human_control:
         SYNGridEnv(render_mode="human", human_control=human_control)

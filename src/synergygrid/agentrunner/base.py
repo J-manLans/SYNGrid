@@ -1,7 +1,8 @@
-import sys
-from pathlib import Path
 from synergygrid.config.configs import algorithms
 from synergygrid.gymnasium.env_factory import register_env
+from synergygrid.utils.paths import get_project_path
+import sys
+from pathlib import Path
 from stable_baselines3.common.base_class import BaseAlgorithm
 
 
@@ -21,6 +22,6 @@ class AgentRunner:
         if agent_steps == "":
             sys.exit("You forgot to specify the models steps")
 
-        base_dir = Path("results/models")
+        base_dir = Path(get_project_path('results', 'models'))
         file_name = f"{self.identifier}_{self.algorithm}_{agent_steps}*"
         return self.AlgorithmClass.load(list(base_dir.glob(file_name))[-1], env=env)

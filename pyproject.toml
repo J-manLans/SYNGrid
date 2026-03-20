@@ -62,3 +62,10 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools]
+# ensure non-Python files like assets are included
+include-package-data = true
+
+[tool.setuptools.package-data]
+"synergygrid" = ["assets/**/*"]
