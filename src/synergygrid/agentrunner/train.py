@@ -33,8 +33,8 @@ def train_agent(
     date = datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
 
     # Create directories for saving models and logs
-    model_dir = Path(get_project_path('results', 'models'))
-    log_dir = Path(get_project_path('results', 'logs'))
+    model_dir = Path(get_project_path("results", "models"))
+    log_dir = Path(get_project_path("results", "logs"))
 
     Path(model_dir).mkdir(parents=True, exist_ok=True)
     Path(log_dir).mkdir(parents=True, exist_ok=True)

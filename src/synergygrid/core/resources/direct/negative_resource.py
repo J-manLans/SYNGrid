@@ -12,7 +12,7 @@ class NegativeResource(BaseResource):
     A resource that gives the agent a negative score.
     """
 
-    _REWARD: Final[int] = -3
+    REWARD: Final[int] = -3
 
     # ================= #
     #       Init        #
@@ -20,6 +20,7 @@ class NegativeResource(BaseResource):
 
     def __init__(self, cool_down: int = 7):
         super().__init__(
+            self.REWARD,
             cool_down,
             ResourceMeta(category=ResourceCategory.DIRECT, type=DirectType.NEGATIVE),
         )
@@ -28,7 +29,6 @@ class NegativeResource(BaseResource):
     #        API        #
     # ================= #
 
-    def consume(self) -> int:
+    def consume(self) -> "NegativeResource":
         super()._consume()
-        super()._break_tier_chain()
-        return self._REWARD
+        return self

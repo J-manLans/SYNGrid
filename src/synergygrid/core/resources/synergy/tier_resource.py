@@ -1,5 +1,5 @@
-from synergygrid.core.resources import (
-    BaseTierResource,
+from synergygrid.core.resources.base_resource import BaseResource
+from synergygrid.core.resources.resource_meta import (
     ResourceMeta,
     ResourceCategory,
     SynergyType,
@@ -7,7 +7,7 @@ from synergygrid.core.resources import (
 from typing import Final
 
 
-class TierResource(BaseTierResource):
+class TierResource(BaseResource):
     """
     A resource that needs to be collected in tier order to give a reward.
 
@@ -16,56 +16,56 @@ class TierResource(BaseTierResource):
     """
 
     _linear_reward_growth: bool = True
-    _step_wise_scoring_type: bool = True
+    _TIER_BASE_REWARD: Final[int] = 2
+    step_wise_scoring_type: bool = True
     GROWTH_FACTOR: Final[float] = 1.5
 
     # ================= #
     #       Init        #
     # ================= #
 
-    def __init__(
-        self, tier: int, cool_down: int = 10
-    ):
-        self._REWARD = self._calculate_reward(tier)
+    def __init__(self, tier: int, cool_down: int = 10):
+
 
         super().__init__(
+            self._calculate_reward(tier + 1),
             cool_down,
             ResourceMeta(
                 category=ResourceCategory.SYNERGY, type=SynergyType.TIER, tier=tier
             ),
         )
 
+    @classmethod
+    def set_max_tier(cls, max_tier) -> None:
+        """
+        Set the maximum tier for the episode.
+
+        :param max_tier: Decides the maximum tier of the tier resources
+        """
+
+        cls.MAX_TIER = max_tier
+
     # ================= #
     #        API        #
     # ================= #
 
-    def consume(self) -> int:
+    def consume(self) -> "TierResource":
         super()._consume()
-
-        # Two types of scoring:
-        # Reward at every correct collected tier resource
-        if self._step_wise_scoring_type:
-            if super()._resolve_tier_progression():
-                return self._REWARD
-            return 0
-
-        # Or reward only when the current chain is broken
-        if super()._resolve_tier_progression():
-            if len(self._chained_tiers) > 0:
-                return 0
-        return self._REWARD
+        return self
 
     # ================= #
     #      Helpers      #
     # ================= #
 
     def _calculate_reward(self, multiplier: int) -> int:
-        reward = 0
+        """
+        Calculate the reward based on the tier base and growth setting.
+
+        :param multiplier: The factor by which the base reward is scaled.
+        """
 
         if self._linear_reward_growth:
             reward = self._TIER_BASE_REWARD * multiplier
-        # TODO: just for testing if incentive structure for the agent changes if we power up the
-        # reward, remove if not necessary
         else:
             reward = int(
                 (self._TIER_BASE_REWARD * (self.GROWTH_FACTOR**multiplier)) + 0.5

@@ -7,7 +7,6 @@ from typing import Final
 class BaseResource(ABC):
     position = [np.int64(-1), np.int64(-1)]
     is_active = False
-    _chained_tiers: Final[list[int]] = []
 
     class Timer:
         def __init__(self):
@@ -29,15 +28,17 @@ class BaseResource(ABC):
 
     def __init__(
         self,
+        reward: int,
         cool_down: int,
         meta: ResourceMeta,
     ):
+        self.REWARD = reward
         self._cool_down = cool_down
         self.meta = meta
         self.timer = self.Timer()
 
     @classmethod
-    def set_life_span(cls, grid_rows:int, grid_cols:int) -> None:
+    def set_life_span(cls, grid_rows: int, grid_cols: int) -> None:
         """
         Set the maximum lifespan based on the grid size.
 
@@ -52,7 +53,6 @@ class BaseResource(ABC):
     def reset(self) -> None:
         self.is_active = False
         self.timer.set(0)
-        self._chained_tiers.clear()
 
     # ================= #
     #        API        #
@@ -76,20 +76,15 @@ class BaseResource(ABC):
     # ================= #
 
     @abstractmethod
-    def consume(self) -> int:
-        """Defines how an agent interacts with the resource."""
+    def consume(self) -> "BaseResource":
+        """Let's the agent consume the resource."""
 
     # ================= #
     #      Helpers      #
     # ================= #
 
-    def _consume(self):
+    def _consume(self) -> None:
         """Sets up the consume() method."""
 
         self.is_active = False
         self.timer.set(self._cool_down)
-
-    def _break_tier_chain(self) -> None:
-        """Clears the tier list and return the given reward."""
-
-        self._chained_tiers.clear()

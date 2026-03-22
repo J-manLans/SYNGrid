@@ -1,5 +1,11 @@
-from synergygrid.core import ResourceMeta, ResourceCategory, DirectType, SynergyType
+from synergygrid.core.resources.resource_meta import (
+    ResourceMeta,
+    ResourceCategory,
+    DirectType,
+    SynergyType,
+)
 from synergygrid.utils.paths import get_package_path, get_package_root
+
 import pygame
 import json
 from os import path
@@ -35,8 +41,12 @@ class PygameRenderer:
         self._step_fps = fps
 
         # Default font
-        self.tier_font = pygame.font.Font(get_package_path('assets', 'fonts', 'Minecraft.ttf'), 20)
-        self.hud_font = pygame.font.Font(get_package_path('assets', 'fonts', 'Minecraft.ttf'), 30)
+        self.tier_font = pygame.font.Font(
+            get_package_path("assets", "fonts", "Minecraft.ttf"), 20
+        )
+        self.hud_font = pygame.font.Font(
+            get_package_path("assets", "fonts", "Minecraft.ttf"), 30
+        )
 
         self._init_colors()
         self._init_vars()
@@ -193,7 +203,7 @@ class PygameRenderer:
     def _load_graphics(self) -> None:
         """Load graphics via JSON file"""
 
-        json_file = get_package_path('assets', 'paths.json')
+        json_file = get_package_path("assets", "paths.json")
 
         with open(json_file, "r") as f:
             graphics_paths = json.load(f)
@@ -237,13 +247,13 @@ class PygameRenderer:
             if resource_meta.type == DirectType.NEGATIVE:
                 self.window_surface.blit(self.graphics["negative_resource"], pos)
         else:
-            if resource_meta.type == SynergyType.TIER_BASE:
-                self._draw_tier_resource(resource_meta, pos)
-            elif resource_meta.type == SynergyType.TIER:
-                self._draw_tier_resource(resource_meta, pos)
+            if (
+                resource_meta.type == SynergyType.TIER
+                and resource_meta.tier is not None
+            ):
+                self._draw_tier_resource(resource_meta.tier, pos)
 
-    def _draw_tier_resource(self, resource_meta: ResourceMeta, pos: tuple[int, int]):
-        tier = resource_meta.tier
+    def _draw_tier_resource(self, tier: int, pos: tuple[int, int]):
         base_img = self.graphics["positive_resource"]
         # create (or fetch cached) combined surface with number
         tier_surf = self._make_tier_surface(tier, base_img)
@@ -301,16 +311,19 @@ class PygameRenderer:
         self._draw_moves_bar(hud_data["moves"], hud_rect)
 
         # --- Current tier chain --- #
-        tier_surf = self.hud_font.render(
-            str(hud_data["current tier chain"]), True, self._hud_text_clr
-        )
 
-        tier_rect = pygame.Rect(
-            hud_rect.x + 33, hud_rect.y + (hud_rect.height - 68), 64, 52
-        )
+        chained_tiers = hud_data["current tier chain"]
+        if chained_tiers > -1:
+            tier_surf = self.hud_font.render(
+                str(chained_tiers), True, self._hud_text_clr
+            )
 
-        rect = tier_surf.get_rect(center=tier_rect.center)
-        self.window_surface.blit(tier_surf, rect)
+            tier_rect = pygame.Rect(
+                hud_rect.x + 33, hud_rect.y + (hud_rect.height - 68), 64, 52
+            )
+
+            rect = tier_surf.get_rect(center=tier_rect.center)
+            self.window_surface.blit(tier_surf, rect)
 
     def _draw_life_bar(self, current_score: int, hud_rect: pygame.Rect):
         """

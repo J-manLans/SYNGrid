@@ -1,6 +1,6 @@
 import pytest
 from synergygrid.core.resources.synergy.tier_base import TierBase
-from synergygrid.core.resources.synergy.tier import TierResource
+from synergygrid.core.resources.synergy.tier_resource import TierResource
 from synergygrid.core.resources.base_resource import BaseResource
 from synergygrid.core.resources.base_tier_resource import BaseTierResource
 

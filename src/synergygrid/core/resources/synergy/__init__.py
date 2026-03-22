@@ -1,4 +1,3 @@
-from .tier_base import TierBase
-from .tier import TierResource
+from .tier_resource import TierResource
 
-__all__ = ["TierBase", "TierResource"]
+__all__ = ["TierResource"]

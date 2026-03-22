@@ -7,7 +7,6 @@ class ResourceCategory(Enum):
 
 
 class SynergyType(Enum):
-    TIER_BASE = 0
     TIER = 1
 
 
@@ -16,6 +15,10 @@ class DirectType(Enum):
 
 
 class ResourceMeta:
+    # ================= #
+    #       Init        #
+    # ================= #
+
     def __init__(
         self,
         category: ResourceCategory,
@@ -27,12 +30,17 @@ class ResourceMeta:
         self.category = category
         self.type = type  # Same as above
 
-        if not tier == None and tier < 1:
-            raise ValueError("Tier can't be less than 1")
+        if not tier == None and tier < 0:
+            raise ValueError("Tier can't be less than 0")
         # Resources tier.
         # 0 if not applicable
         # ...n for rest of the tier resources
-        self.tier = 0 if tier == None else tier
+        # this is so the observation stays consistent
+        self.tier = tier if tier is not None else -1
+
+    # ================= #
+    #      Helpers      #
+    # ================= #
 
     def _assert_type_matches_category(
         self, category: ResourceCategory, type: DirectType | SynergyType

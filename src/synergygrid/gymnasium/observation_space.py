@@ -1,13 +1,13 @@
+from synergygrid.core.grid_world import GridWorld
+from synergygrid.core.resources.resource_meta import ResourceCategory
+from synergygrid.core.resources.resource_meta import DirectType
+from synergygrid.core.resources.resource_meta import SynergyType
+
 from numpy.typing import NDArray
 import numpy as np
 from typing import Any
 from gymnasium import spaces
 from gymnasium.spaces import Dict
-from synergygrid.core.grid_world import GridWorld
-from synergygrid.core.resources.base_resource import BaseResource
-from synergygrid.core.resources.resource_meta import ResourceCategory
-from synergygrid.core.resources.resource_meta import DirectType
-from synergygrid.core.resources.resource_meta import SynergyType
 
 
 class ObservationHandler:
@@ -46,13 +46,13 @@ class ObservationHandler:
         (0..1 for active features, -1 for absent fields)
         """
         # original raw bounds — match _get_observation()
-        raw_low, self._agent_raw_high = self._build_agent_box_bounds(False, np.float16)
-        raw_high, self._resource_raw_high = self._build_resource_box_bounds(
+        agent_raw_low, self._agent_raw_high = self._build_agent_box_bounds(False, np.float16)
+        resource_raw_low, self._resource_raw_high = self._build_resource_box_bounds(
             False, np.float16
         )
 
-        self._agent_data = np.zeros_like(raw_low, dtype=np.int16)
-        self._resource_data = np.zeros_like(raw_high, dtype=np.int16)
+        self._agent_data = np.zeros_like(agent_raw_low, dtype=np.int16)
+        self._resource_data = np.zeros_like(resource_raw_low, dtype=np.int16)
 
         # normalized bounds — match _normalize_obs()
         # inactive resources keep -1 as a valid "low" value; active features map to 0..1
@@ -87,7 +87,7 @@ class ObservationHandler:
         self._agent_data[1] = agent_col
         self._agent_data[2] = self.step_count_down
         self._agent_data[3] = self._world.agent.score
-        self._agent_data[4] = len(BaseResource._chained_tiers)
+        self._agent_data[4] = self._world.agent.digestion_engine.chained_tiers
 
         # NOTE: change here
         # ---- Resources ---- #
@@ -158,11 +158,13 @@ class ObservationHandler:
         self, normalized: bool, arr_type
     ) -> tuple[NDArray[Any], NDArray[Any]]:
         if normalized:
-            min_row = min_col = min_steps = min_score = min_tier_chain = 0.0
+            min_row = min_col = min_steps = min_score = 0.0
+            min_tier_chain = -1.0
 
             max_steps = max_row = max_col = max_score = max_tier_chain = 1.0
         else:
-            min_row = min_col = min_steps = min_score = min_tier_chain = 0
+            min_row = min_col = min_steps = min_score = 0
+            min_tier_chain = -1
 
             max_row = self._grid_rows - 1
             max_col = self._grid_cols - 1
@@ -201,17 +203,17 @@ class ObservationHandler:
         else:
             no_resource_yx = -1
             min_r_life_span = -1
-            min_r_tier = -1
             min_r_cat = -1
             min_r_type = -1
+            min_r_tier = -1
 
             max_row = self._grid_rows - 1
             max_col = self._grid_cols - 1
             max_r_life_span = (self._grid_rows - 1) + (self._grid_cols - 1)
+            max_r_cat = len(ResourceCategory) - 1
+            max_r_type = max(1, max(len(DirectType) - 1, len(SynergyType) - 1))
             # guards against div / 0 when just using direct rewards
             max_r_tier = max(1, self._world.max_tier)
-            max_r_cat = len(ResourceCategory) - 1
-            max_r_type = max(len(DirectType) - 1, len(SynergyType) - 1)
 
         N = len(self._world.ALL_RESOURCES)
         # NOTE: change here

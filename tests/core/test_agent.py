@@ -1,5 +1,5 @@
 import pytest
-from synergygrid.core.agent import AgentAction, SynergyAgent
+from synergygrid.core.agent.synergy_agent import AgentAction, SynergyAgent
 
 
 class DummyPositiveResource:

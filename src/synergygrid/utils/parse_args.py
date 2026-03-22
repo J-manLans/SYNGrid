@@ -3,6 +3,7 @@ import argparse
 from argparse import Namespace
 import re
 
+
 def parse_args() -> Namespace:
     parser = argparse.ArgumentParser(description="Run agent experiments.")
 

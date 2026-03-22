@@ -1,9 +1,9 @@
 from synergygrid.core.resources.base_resource import BaseResource
 from synergygrid.gymnasium.action_space import AgentAction
+from synergygrid.core.agent.digestion_engine import DigestionEngine
 
 
 class SynergyAgent:
-
     # ================= #
     #       Init        #
     # ================= #
@@ -19,6 +19,7 @@ class SynergyAgent:
         self._grid_cols = grid_cols
         self.score = starting_score
         self._starting_score = starting_score
+        self.digestion_engine = DigestionEngine()
 
     def reset(self) -> None:
         """Initialize Agents starting position at the center of the grid and reset its score"""
@@ -30,7 +31,7 @@ class SynergyAgent:
     #        API        #
     # ================= #
 
-    def perform_action(self, agent_action: AgentAction) -> None:
+    def perform_action(self, agent_action: AgentAction) -> int:
         """Performs current action"""
 
         # Move Agent to the next cell
@@ -47,11 +48,12 @@ class SynergyAgent:
                 raise TypeError("This action isn't implemented")
 
         self.score -= 1
+        return -1
 
     def consume_resource(self, resource: BaseResource) -> int:
         """Consumes the resource, add its reward to its score and returns the reward"""
 
-        reward = resource.consume()
+        reward = self.digestion_engine.digest(resource.consume())
         self.score += reward
         return reward
 

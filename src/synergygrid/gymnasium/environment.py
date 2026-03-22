@@ -1,5 +1,6 @@
 import gymnasium as gym
 from gymnasium import spaces
+
 from synergygrid.core.grid_world import GridWorld
 from synergygrid.core.resources.base_resource import BaseResource
 from synergygrid.gymnasium.action_space import AgentAction
@@ -152,17 +153,14 @@ class SYNGridEnv(gym.Env):
     def _get_hud_data(self) -> dict[str, int]:
         hud_data: dict[str, int] = {}
         hud_data["score"] = self._world.agent.score
+        hud_data["current tier chain"] = (
+            self._world.agent.digestion_engine.chained_tiers
+        )
+
         if self.human_control:
             hud_data["moves"] = self._step_count_down
         else:
             hud_data["moves"] = self._observation_handler.step_count_down
-        if len(BaseResource._chained_tiers) > 0:
-            if BaseResource._chained_tiers[-1] == self._world.max_tier:
-                hud_data["current tier chain"] = 0
-            else:
-                hud_data["current tier chain"] = BaseResource._chained_tiers[-1]
-        else:
-            hud_data["current tier chain"] = 0
 
         return hud_data
 
