@@ -5,6 +5,7 @@ from synergygrid.core.resources.resource_meta import (
     SynergyType,
 )
 from synergygrid.utils.paths import get_package_path, get_package_root
+from synergygrid.gymnasium.action_space import AgentAction
 
 import pygame
 import json
@@ -103,7 +104,8 @@ class PygameRenderer:
         self._update(
             self._step_fps
         )  # TODO: also remove self._step_fps when approach is chosen
-        return self._process_quit_events()
+
+        self._process_quit_events()
 
     def render_with_animation(
         self,
@@ -403,10 +405,8 @@ class PygameRenderer:
         pygame.display.update()
         self.clock.tick(render_fps)
 
-    def _process_quit_events(self) -> None | str:
+    def _process_quit_events(self) -> None:
         """Handle quitting / ESC"""
-
-        action = None
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -416,13 +416,19 @@ class PygameRenderer:
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+
+    def get_player_action(self) -> AgentAction | None:
+        action = None
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    action = "left"
+                    action = AgentAction(0)
                 if event.key == pygame.K_DOWN:
-                    action = "down"
+                    action = AgentAction(1)
                 if event.key == pygame.K_RIGHT:
-                    action = "right"
+                    action = AgentAction(2)
                 if event.key == pygame.K_UP:
-                    action = "up"
+                    action = AgentAction(3)
 
         return action

@@ -20,12 +20,12 @@ class ObservationHandler:
         world: GridWorld,
         grid_rows: int,
         grid_cols: int,
-        _max_steps: int,
+        max_steps: int,
     ):
         self._world = world
         self._grid_rows = grid_rows
         self._grid_cols = grid_cols
-        self._max_steps = _max_steps
+        self._max_steps = max_steps
 
     def reset(self):
         self.step_count_down = self._max_steps
@@ -46,11 +46,14 @@ class ObservationHandler:
         (0..1 for active features, -1 for absent fields)
         """
         # original raw bounds — match _get_observation()
-        agent_raw_low, self._agent_raw_high = self._build_agent_box_bounds(False, np.float16)
+        agent_raw_low, self._agent_raw_high = self._build_agent_box_bounds(
+            False, np.float16
+        )
         resource_raw_low, self._resource_raw_high = self._build_resource_box_bounds(
             False, np.float16
         )
 
+        # reusable buffers for get_observation() to avoid per-step allocations
         self._agent_data = np.zeros_like(agent_raw_low, dtype=np.int16)
         self._resource_data = np.zeros_like(resource_raw_low, dtype=np.int16)
 
@@ -78,7 +81,7 @@ class ObservationHandler:
 
         return spaces.Dict(self.observation_space)
 
-    def get_observation(self) -> dict[str, Any]:
+    def get_observation(self) -> dict[str, NDArray]:
         agent_row, agent_col = self._world.agent.position
 
         # NOTE: change here

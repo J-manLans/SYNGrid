@@ -39,7 +39,10 @@ class DigestionEngine:
             # - If max tier is consumed, flush and return the max reward
             # If the chain breaks, flush the pending reward and return it.
             if self._resolve_tier_progression(consumed_resource):
-                if consumed_resource.meta.tier == self._BASE_TIER and self._pending_reward is not 0:
+                if (
+                    consumed_resource.meta.tier == self._BASE_TIER
+                    and self._pending_reward is not 0
+                ):
                     return self._flush_pending_reward()
 
                 if consumed_resource.meta.tier == consumed_resource.MAX_TIER:

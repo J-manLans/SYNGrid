@@ -1,9 +1,11 @@
 from synergygrid.gymnasium.action_space import AgentAction
+from synergygrid.rendering.pygame_renderer import PygameRenderer
 from synergygrid.core.agent.synergy_agent import SynergyAgent
 from synergygrid.core.resources.resource_meta import ResourceMeta
 from synergygrid.core.resources.base_resource import BaseResource
 from synergygrid.core.resources.direct.negative_resource import NegativeResource
 from synergygrid.core.resources.synergy.tier_resource import TierResource
+
 import numpy as np
 from numpy.random import Generator, default_rng
 from typing import Final
@@ -23,7 +25,9 @@ class GridWorld:
         max_active_resources: int,
         grid_rows: int,
         grid_cols: int,
-        max_tier: int = 4,
+        max_tier: int = 1,
+        renderer: PygameRenderer | None = None,
+        steps_left: int = 0
     ):
         """
         Initializes the grid world. Defines the game world's size and initializes the agent and resources.
@@ -36,9 +40,15 @@ class GridWorld:
         self.grid_rows = grid_rows
         self.grid_cols = grid_cols
         self.max_tier = max_tier
+
         self.agent = SynergyAgent(grid_rows, grid_cols)
 
         self.ALL_RESOURCES = self._create_resources(self.max_tier)
+
+        if isinstance(renderer, PygameRenderer):
+            self._renderer = renderer
+            self._steps_left = steps_left
+            self.reset()
 
     def reset(self, rng: Generator | None = None) -> None:
         """
@@ -60,6 +70,9 @@ class GridWorld:
 
         # Initialize the resource's position
         self._spawn_random_resource()
+
+        if self._renderer:
+            self._human_player_loop()
 
     # ================= #
     #        API        #
@@ -193,3 +206,39 @@ class GridWorld:
                 return False
 
         return True
+
+    # === Human player loop === #
+
+    def _human_player_loop(self) -> None:
+        self._render()
+        action = None
+
+        while True:
+            if action is not None:
+                self.perform_agent_action(action)
+                self._steps_left -= 1
+                truncated = self._steps_left <= 0
+                terminated = self.agent.score <= 0
+                self._render()
+
+                if terminated or truncated:
+                    break
+
+            action = self._renderer.get_player_action()
+
+    def _render(self):
+        self._renderer.render(
+            self.agent.position,
+            self.get_resource_is_active_status(True),
+            self.get_resource_positions(True),
+            self.get_resource_meta(True),
+            self._get_hud_data(),
+        )
+
+    def _get_hud_data(self) -> dict[str, int]:
+        hud_data: dict[str, int] = {}
+        hud_data["score"] = self.agent.score
+        hud_data["moves"] = self._steps_left
+        hud_data["current tier chain"] = self.agent.digestion_engine.chained_tiers
+
+        return hud_data

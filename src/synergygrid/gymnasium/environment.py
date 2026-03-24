@@ -37,17 +37,20 @@ class SYNGridEnv(gym.Env):
     ):
         # Set up bench environment;
 
-        self._init_vars(
-            max_active_resources, grid_rows, grid_cols, render_mode, human_control
+        self._init_vars(max_active_resources, grid_rows, grid_cols, render_mode)
+        self._init_world(
+            human_control, max_steps, max_active_resources, grid_rows, grid_cols
         )
-        self._init_world(max_active_resources, grid_rows, grid_cols)
-        if self.render_mode == "human":
-            self._init_renderer(grid_rows, grid_cols)
-
         if human_control:
-            self._max_steps = max_steps
-            self._human_play_loop()
             return
+
+        if self.render_mode == "human":
+            self._init_renderer(grid_rows, grid_cols, self.metadata["render_fps"])
+
+        # if human_control:
+        #     self._max_steps = max_steps
+        #     self._human_play_loop()
+        #     return
 
         # Set up Gymnasium environment:
 
@@ -58,7 +61,7 @@ class SYNGridEnv(gym.Env):
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.
         self._observation_handler = ObservationHandler(
-            self._world, grid_rows, grid_cols, max_steps
+            self.world, grid_rows, grid_cols, max_steps
         )
         self.observation_space = self._observation_handler.setup_obs_space()
 
@@ -72,29 +75,29 @@ class SYNGridEnv(gym.Env):
 
         # Reset the environment.
         self._observation_handler.reset()
-        self._world.reset(self.np_random)
+        self.world.reset(self.np_random)
+
+        self._obs = self._observation_handler.get_observation()
+        norm_obs = self._observation_handler.normalize_obs(self._obs)
 
         if self.render_mode == "human":
             self.render()
-
-        obs = self._observation_handler.get_observation()
-        norm_obs = self._observation_handler.normalize_obs(obs)
 
         # Return observation and info (not used)
         return norm_obs, {}
 
     def step(self, action: AgentAction):
         # Perform action and adjust variables affected by it
-        reward = self._world.perform_agent_action(AgentAction(action))
+        reward = self.world.perform_agent_action(AgentAction(action))
         self._observation_handler.step_count_down -= 1
         truncated = self._observation_handler.step_count_down <= 0
-        terminated = self._world.agent.score <= 0
+        terminated = self.world.agent.score <= 0
+
+        self._obs = self._observation_handler.get_observation()
+        norm_obs = self._observation_handler.normalize_obs(self._obs)
 
         if self.render_mode == "human":
             self.render()
-
-        obs = self._observation_handler.get_observation()
-        norm_obs = self._observation_handler.normalize_obs(obs)
 
         # Return observation, reward, terminated, truncated and info (TODO: not used now, but add it at termination or truncation so result can be persisted in the evaluate_agent() method)
         return (
@@ -105,12 +108,12 @@ class SYNGridEnv(gym.Env):
             {},
         )
 
-    def render(self) -> None | str:
-        return self._renderer.render(
-            self._world.agent.position,
-            self._world.get_resource_is_active_status(True),
-            self._world.get_resource_positions(True),
-            self._world.get_resource_meta(True),
+    def render(self) -> None:
+        self.renderer.render(
+            self.world.agent.position,
+            self.world.get_resource_is_active_status(True),
+            self.world.get_resource_positions(True),
+            self.world.get_resource_meta(True),
             self._get_hud_data(),
         )
 
@@ -126,61 +129,41 @@ class SYNGridEnv(gym.Env):
         grid_rows: int,
         grid_cols: int,
         render_mode: str | None,
-        human_control: bool,
     ) -> None:
         self.max_active_resources = max_active_resources
         self.grid_rows = grid_rows
         self.grid_cols = grid_cols
         self.render_mode = render_mode
-        self.human_control = human_control
 
     def _init_world(
-        self, max_active_resources: int, grid_rows: int, grid_cols: int
+        self,
+        human_control: bool,
+        max_steps: int,
+        max_active_resources: int,
+        grid_rows: int,
+        grid_cols: int,
     ) -> None:
-        self._world = GridWorld(
-            max_active_resources, grid_rows=grid_rows, grid_cols=grid_cols
-        )
+        if human_control:
+            self._init_renderer(self.grid_rows, self.grid_rows, 60)
+            self.world = GridWorld(
+                max_active_resources,
+                grid_rows,
+                grid_cols,
+                renderer=self.renderer,
+                steps_left=max_steps,
+            )
+        else:
+            self.world = GridWorld(max_active_resources, grid_rows, grid_cols)
 
-    def _init_renderer(self, grid_rows: int, grid_cols: int) -> None:
-        self._renderer = PygameRenderer(
-            grid_rows=grid_rows,
-            grid_cols=grid_cols,
-            fps=self.metadata["render_fps"],
-        )
+    def _init_renderer(self, grid_rows: int, grid_cols: int, fps: int) -> None:
+        self.renderer = PygameRenderer(grid_rows, grid_cols, fps)
 
     # === Gymnasium contract === #
 
     def _get_hud_data(self) -> dict[str, int]:
         hud_data: dict[str, int] = {}
-        hud_data["score"] = self._world.agent.score
-        hud_data["current tier chain"] = (
-            self._world.agent.digestion_engine.chained_tiers
-        )
-
-        if self.human_control:
-            hud_data["moves"] = self._step_count_down
-        else:
-            hud_data["moves"] = self._observation_handler.step_count_down
+        hud_data["score"] = self._obs["agent data"][3]
+        hud_data["moves"] = self._obs["agent data"][2]
+        hud_data["current tier chain"] = self._obs["agent data"][4]
 
         return hud_data
-
-    # === Human control === #
-
-    def _human_play_loop(self):
-        self._step_count_down = 100
-        self._renderer._step_fps = 60
-        self._world.reset()
-        action = str(self.render()).upper()
-
-        while True:
-            if not action == "NONE":
-                agent_action = AgentAction[action]
-                self._world.perform_agent_action(agent_action)
-                self._step_count_down -= 1
-                truncated = self._step_count_down <= 0
-                terminated = self._world.agent.score <= 0
-
-                if terminated or truncated:
-                    break
-
-            action = str(self.render()).upper()

@@ -27,14 +27,12 @@ class TierResource(BaseResource):
 
     def __init__(self, tier: int, cool_down: int = 10):
         if tier > self.MAX_TIER:
-            raise ValueError('Tier is higher than the allowed max')
+            raise ValueError("Tier is higher than the allowed max")
 
         super().__init__(
             self._calculate_reward(tier + 1),
             cool_down,
-            ResourceMeta(
-                ResourceCategory.SYNERGY, SynergyType.TIER, tier
-            ),
+            ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER, tier),
         )
 
     # ================= #
