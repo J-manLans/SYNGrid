@@ -22,10 +22,13 @@ class SynergyAgent:
         self.digestion_engine = DigestionEngine()
 
     def reset(self) -> None:
-        """Initialize Agents starting position at the center of the grid and reset its score"""
+        """
+        Initialize Agents starting position at the center of the grid and reset its score and the digestion engine.
+        """
 
         self.position = [self._grid_rows // 2, self._grid_cols // 2]
         self.score = self._starting_score
+        self.digestion_engine.reset()
 
     # ================= #
     #        API        #

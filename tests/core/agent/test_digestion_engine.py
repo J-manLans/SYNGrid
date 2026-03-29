@@ -29,7 +29,9 @@ class TestDigestionEngine:
     @pytest.fixture
     def digestion_engine(self) -> DigestionEngine:
         BaseResource.set_life_span(5, 5)
-        return DigestionEngine()
+        d = DigestionEngine()
+        d.reset()
+        return d
 
     @pytest.fixture
     def reset_resource(self):

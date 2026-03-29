@@ -5,8 +5,14 @@ from syn_grid.core.resources.synergy.tier_resource import TierResource
 class DigestionEngine:
     _NO_CHAIN = -1
     _BASE_TIER = 0
-    _pending_reward: int = 0
-    chained_tiers: int = _NO_CHAIN
+
+    # ================= #
+    #        Init       #
+    # ================= #
+
+    def reset(self):
+        self.chained_tiers: int = self._NO_CHAIN
+        self._pending_reward: int = 0
 
     # ================= #
     #        API        #
