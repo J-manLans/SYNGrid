@@ -17,9 +17,9 @@ class SynergyAgent:
 
         self._grid_rows = grid_rows
         self._grid_cols = grid_cols
-        self.score = starting_score
         self._starting_score = starting_score
         self.digestion_engine = DigestionEngine()
+        self.reset()
 
     def reset(self) -> None:
         """

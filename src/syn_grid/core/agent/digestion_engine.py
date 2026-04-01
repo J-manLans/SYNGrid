@@ -10,6 +10,9 @@ class DigestionEngine:
     #        Init       #
     # ================= #
 
+    def __init__(self):
+        self.reset()
+
     def reset(self):
         self.chained_tiers: int = self._NO_CHAIN
         self._pending_reward: int = 0
