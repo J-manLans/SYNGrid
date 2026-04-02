@@ -1,0 +1,40 @@
+agent:
+  eval_agent_conf:
+    trained_model: true
+  global_agent_conf:
+    agent_steps: '1484800'
+    algorithm_index: 0
+    human_control: false
+    identifier: -1_reward_tier_1
+    training: false
+  train_agent_conf:
+    continue_training: false
+    iterations: 30
+    timesteps: 50000
+obs:
+  observation_handler:
+    grid_cols: 5
+    grid_rows: 5
+    max_steps: 100
+run:
+  droid_conf:
+    grid_cols: 5
+    grid_rows: 5
+    starting_score: 40
+  grid_world_conf:
+    grid_cols: 5
+    grid_rows: 5
+    max_active_resources: 3
+    max_tier: 1
+  negative_resource_conf:
+    cool_down: 7
+    reward: -3.0
+  renderer_conf:
+    grid_cols: 5
+    grid_rows: 5
+  tier_resource_conf:
+    base_reward: 3.0
+    cool_down: 10
+    growth_factor: 1.5
+    linear_reward_growth: true
+    step_wise_scoring: true

@@ -1,5 +1,5 @@
 import pytest
-from syn_grid.runners.agent_runner.agent_runner import AgentRunner
+from syn_grid.runners.agent_runners.agent_runner import AgentRunner
 from stable_baselines3 import A2C
 from unittest.mock import patch
 

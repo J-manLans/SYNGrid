@@ -1,8 +1,9 @@
-from syn_grid.runners.agent_runner.agent_runner import AgentRunner
+from syn_grid.config.models import EvalAgentConf
+from syn_grid.runners.agent_runners.agent_runner import AgentRunner
 from syn_grid.gymnasium.env_factory import make
 
 
-def evaluate_agent(runner: AgentRunner, agent_steps: str, trained_model: bool):
+def evaluate_agent(runner: AgentRunner, conf: EvalAgentConf):
     """
     Run the benchmark with the specified model.
 
@@ -13,8 +14,8 @@ def evaluate_agent(runner: AgentRunner, agent_steps: str, trained_model: bool):
     env = make("human", runner.run_conf, runner.obs_conf)
 
     # Define get_action() depending on type of model
-    if trained_model:
-        model = runner.get_model(agent_steps, env)
+    if conf.trained_model:
+        model = runner.get_model(env)
 
         def get_action_model(obs):
             # Predict action from the model

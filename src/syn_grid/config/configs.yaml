@@ -1,63 +1,105 @@
 ###########################
+#   Experiment Settings   #
+###########################
+
+snapshot:
+  # Snapshot settings:
+  # - enabled: whether to save a snapshot of the full config
+  # - id: optional identifier used as part of the snapshot filename
+  enabled: true
+  id: ""
+
+###########################
 #    Run Configuration    #
 ###########################
 
-grid_world_conf:
-  # GridWorld settings:
-  # - number of rows and columns
-  # - max active resources on grid
-  # - max tier of the tier type resources
-  grid_rows: &grid_rows 5
-  grid_cols: &grid_cols 5
-  max_active_resources: 3
-  max_tier: 1
+run:
+  grid_world_conf:
+    # GridWorld settings:
+    # - number of rows and columns
+    # - max active resources on grid
+    # - max tier of the tier type resources
+    grid_rows: &grid_rows 5
+    grid_cols: &grid_cols 5
+    max_active_resources: 3
+    max_tier: 1
 
-renderer_conf:
-  # Renderer settings:
-  # - grid_rows / grid_cols: used to calculate display size and layout
-  grid_rows: *grid_rows
-  grid_cols: *grid_cols
+  renderer_conf:
+    # Renderer settings:
+    # - grid_rows / grid_cols: used to calculate display size and layout
+    grid_rows: *grid_rows
+    grid_cols: *grid_cols
 
-droid_conf:
-  # Droid settings:
-  # - grid_rows / grid_cols: defines the grid the agent can move in
-  # - starting_score: initial score of the agent
-  grid_rows: *grid_rows
-  grid_cols: *grid_cols
-  starting_score: 40
+  droid_conf:
+    # Droid settings:
+    # - grid_rows / grid_cols: defines the grid the agent can move in
+    # - starting_score: initial score of the agent
+    grid_rows: *grid_rows
+    grid_cols: *grid_cols
+    starting_score: 40
 
-negative_resource_conf:
-  # Negative resource behavior:
-  # - reward: penalty applied when interacting with the resource
-  # - cool_down: number of steps before the resource can be reused
-  reward: -3
-  cool_down: 7
+  negative_resource_conf:
+    # Negative resource behavior:
+    # - reward: penalty applied when interacting with the resource
+    # - cool_down: number of steps before the resource can be reused
+    reward: -3.0
+    cool_down: 7
 
-tier_resource_conf:
-  # Tiered resource behavior:
-  # - linear_reward_growth: if true, reward scales linearly instead of exponentially
-  # - step_wise_scoring: if true, reward is given per correctly consumed tier instead of on chain break
-  # - growth_factor: multiplier applied per tier increase
-  # - base_reward: starting reward value at tier 0
-  # - cool_down: number of steps before the resource can be reused
-  linear_reward_growth: True
-  step_wise_scoring: True
-  growth_factor: 1.5
-  base_reward: 3
-  cool_down: 10
+  tier_resource_conf:
+    # Tiered resource behavior:
+    # - linear_reward_growth: if true, reward scales linearly instead of exponentially
+    # - step_wise_scoring: if true, reward is given per correctly consumed tier instead of on chain break
+    # - growth_factor: multiplier applied per tier increase
+    # - base_reward: starting reward value at tier 0
+    # - cool_down: number of steps before the resource can be reused
+    linear_reward_growth: true
+    step_wise_scoring: true
+    growth_factor: 1.5
+    base_reward: 3.0
+    cool_down: 10
 
 ###########################
 #    Obs Configuration    #
 ###########################
 
-observation_handler:
-  # Observation handler settings:
-  # - grid_rows / grid_cols: fix the maximum observation space size for those variables
-  # - max_steps: number of steps in an episode until truncated
-  grid_rows: *grid_rows
-  grid_cols: *grid_cols
-  max_steps: 100
+obs:
+  observation_handler:
+    # Observation handler settings:
+    # - grid_rows / grid_cols: fix the maximum observation space size for those variables
+    # - max_steps: number of steps in an episode until truncated
+    grid_rows: *grid_rows
+    grid_cols: *grid_cols
+    max_steps: 100
 
 ###########################
 #   Agent Configuration   #
 ###########################
+
+agent:
+  global_agent_conf:
+    # Global settings:
+    # - algorithm: which algorithm the agent will use
+    # - human_control: allow human to control the game manually
+    # - training: choose whether to train the agent or just run it
+    # - agent_steps: identifier for the model to continue training or evaluate
+    algorithm_index: 0
+    agent_steps: "1484800"
+    identifier: "-1_reward_tier_1"
+    human_control: false
+    training: false
+
+    # Pick algorithm to train or evaluate
+  train_agent_conf:
+    # Train settings:
+    # - continue_training: continue from a previously saved model
+    # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
+    # - iterations: total number of training iterations
+    continue_training: false
+    timesteps: 50000
+    iterations: 30
+
+    # Pick algorithm to train or evaluate
+  eval_agent_conf:
+    # Eval settings:
+    # - trained_model: enable agent or use random sampling for debugging
+    trained_model: true

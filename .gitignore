@@ -209,7 +209,7 @@ __marimo__/
 ###################
 # Our own ignores #
 ###################
-results/
+output/
 
 .vscode/
 !.vscode/launch.json
