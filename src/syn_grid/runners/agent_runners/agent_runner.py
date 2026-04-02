@@ -41,6 +41,6 @@ class AgentRunner:
         if self.agent_steps == "":
             sys.exit("You forgot to specify the models steps")
 
-        base_dir = Path(get_project_path("results", "models"))
+        base_dir = Path(get_project_path("output", "models"))
         file_name = f"{self.identifier}_{self.algorithm}_{self.agent_steps}*"
         return self.AlgorithmClass.load(list(base_dir.glob(file_name))[-1], env=env)

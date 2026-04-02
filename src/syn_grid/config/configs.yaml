@@ -6,7 +6,7 @@ snapshot:
   # Snapshot settings:
   # - enabled: whether to save a snapshot of the full config
   # - id: optional identifier used as part of the snapshot filename
-  enabled: true
+  enabled: false
   id: ""
 
 ###########################
