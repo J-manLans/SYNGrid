@@ -36,9 +36,10 @@ class SYNGridEnv(gym.Env):
         self.render_mode = render_mode
         self.world = GridWorld(
             run_conf.grid_world_conf,
+            run_conf.orb_manager_conf,
             run_conf.droid_conf,
-            run_conf.negative_resource_conf,
-            run_conf.tier_resource_conf,
+            run_conf.negative_orb_conf,
+            run_conf.tier_orb_conf,
         )
 
         if self.render_mode == "human":
@@ -85,7 +86,7 @@ class SYNGridEnv(gym.Env):
         reward = self.world.perform_agent_action(DroidAction(action))
         self._observation_handler.step_count_down -= 1
         truncated = self._observation_handler.step_count_down <= 0
-        terminated = self.world.agent.score <= 0
+        terminated = self.world.droid.score <= 0
 
         self._obs = self._observation_handler.get_observation()
         norm_obs = self._observation_handler.normalize_obs(self._obs)
@@ -104,10 +105,10 @@ class SYNGridEnv(gym.Env):
 
     def render(self) -> None:
         self.renderer.render(
-            self.world.agent.position,
-            self.world.get_resource_is_active_status(True),
-            self.world.get_resource_positions(True),
-            self.world.get_resource_meta(True),
+            self.world.droid.position,
+            self.world.get_orb_is_active_status(True),
+            self.world.get_orb_positions(True),
+            self.world.get_orb_meta(True),
             self._get_hud_data(),
         )
         self.renderer.get_user_action()

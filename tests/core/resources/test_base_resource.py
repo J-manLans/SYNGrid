@@ -1,17 +1,17 @@
 import pytest
 import numpy as np
-from syn_grid.core.resources.base_resource import BaseResource
-from syn_grid.core.resources.resource_meta import (
+from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.orb_meta import (
     SynergyType,
-    ResourceMeta,
-    ResourceCategory,
+    OrbMeta,
+    OrbCategory,
 )
 
 
-class DummyResource(BaseResource):
+class DummyOrb(BaseOrb):
     """
-    Minimal concrete implementation of BaseResource
-    used to isolate and test BaseResource behavior.
+    Minimal concrete implementation of BaseOrb
+    used to isolate and test BaseOrb behavior.
     """
 
     def consume(self):
@@ -19,9 +19,9 @@ class DummyResource(BaseResource):
         return self
 
 
-class TestBaseResource:
+class TestBaseOrb:
     """
-    Unit tests for BaseResource.
+    Unit tests for BaseOrb.
 
     Tests cover:
     - Initialization validation
@@ -35,12 +35,12 @@ class TestBaseResource:
 
     @pytest.fixture
     def meta(self):
-        return ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER, 1)
+        return OrbMeta(OrbCategory.SYNERGY, SynergyType.TIER, 1)
 
     @pytest.fixture
-    def resource(self, meta):
-        BaseResource.set_life_span(5, 5)
-        return DummyResource(3, 10, meta)
+    def orb(self, meta):
+        BaseOrb.set_life_span(5, 5)
+        return DummyOrb(3, 10, meta)
 
     @pytest.mark.parametrize(
         "rows, cols",
@@ -52,79 +52,79 @@ class TestBaseResource:
     )
     def test_valid_initialization(self, meta, rows, cols):
         """
-        Verify that BaseResource initializes correctly for valid grid sizes.
+        Verify that BaseOrb initializes correctly for valid grid sizes.
 
         Ensures that:
-        - The resource starts inactive.
+        - The orb starts inactive.
         - The internal timer starts at zero.
         - No exception is raised for valid grid dimensions.
         """
 
-        BaseResource.set_life_span(5, 5)
-        resource = DummyResource(3, 10, meta)
+        BaseOrb.set_life_span(5, 5)
+        orb = DummyOrb(3, 10, meta)
 
-        assert resource.is_active is False
-        assert resource.timer.remaining == 0
+        assert orb.is_active is False
+        assert orb.timer.remaining == 0
 
-    def test_spawn_activates_resource(self, resource):
+    def test_spawn_activates_orb(self, orb):
         """
         Verify that calling spawn():
 
-        - Activates the resource.
-        - Sets the resource position correctly.
+        - Activates the orb.
+        - Sets the orb position correctly.
         - Initializes the timer with a positive lifespan value.
         """
-        resource.spawn([np.int64(2), np.int64(3)])
+        orb.spawn([np.int64(2), np.int64(3)])
 
-        assert resource.is_active is True
-        assert resource.position == [np.int64(2), np.int64(3)]
-        assert resource.timer.remaining > 0
+        assert orb.is_active is True
+        assert orb.position == [np.int64(2), np.int64(3)]
+        assert orb.timer.remaining > 0
 
-    def test_deplete_deactivates_and_sets_cooldown(self, resource: DummyResource):
+    def test_deplete_deactivates_and_sets_cool_down(self, orb: DummyOrb):
         """
-        Ensure that deplete_resource():
+        Ensure that deplete_orb():
 
-        - Deactivates the resource.
+        - Deactivates the orb.
         - Sets the timer to the configured cooldown value.
-        - Does not leave the resource active.
+        - Does not leave the orb active.
         """
-        resource.spawn([np.int64(1), np.int64(1)])
+        orb.spawn([np.int64(1), np.int64(1)])
 
-        resource.deplete_resource()
+        orb.deplete_orb()
 
-        assert resource.is_active is False
-        assert resource.timer.remaining == 10
+        assert orb.is_active is False
+        assert orb.timer.remaining == 10
 
-    def test_reset_restores_default_state(self, resource):
+    def test_reset_restores_default_state(self, orb):
         """
         Verify that reset():
 
-        - Deactivates the resource.
+        - Deactivates the orb.
         - Clears the timer (remaining == 0).
-        - Restores the resource to its initial inactive state.
+        - Restores the orb to its initial inactive state.
         """
-        resource.spawn([np.int64(1), np.int64(1)])
+        orb.spawn([np.int64(1), np.int64(1)])
 
-        resource.reset()
+        orb.reset()
 
-        assert resource.is_active is False
-        assert resource.timer.remaining == 0
+        assert orb.is_active is False
+        assert orb.timer.remaining == 0
 
-    def test_consume_returns_reward_and_sets_cool_down(self, resource: DummyResource):
+    def test_consume_returns_reward_and_sets_cool_down(self, orb: DummyOrb):
         """
-        Ensure that consuming a resource:
+        Ensure that consuming a orb:
 
         - Returns the expected reward value.
-        - Deactivates the resource.
-        - Sets the timer to the configured cooldown.
+        - Deactivates the orb.
+        - Sets the timer to the configured cool-down.
         """
-        resource.spawn([np.int64(0), np.int64(0)])
+        orb.spawn([np.int64(0), np.int64(0)])
 
-        reward = resource.consume().REWARD
+        reward = orb.consume().REWARD
 
         assert reward == 3
-        assert resource.is_active is False
-        assert resource.timer.remaining == 10
+        assert orb.is_active is False
+        assert orb.timer.remaining == 10
 
     def test_timer_set_and_tick(self):
         """
@@ -134,7 +134,7 @@ class TestBaseResource:
         - tick() decrements the timer correctly.
         - is_completed() returns True when remaining reaches zero.
         """
-        timer = BaseResource.Timer()
+        timer = BaseOrb.Timer()
 
         timer.set(3)
         assert timer.remaining == 3
@@ -153,7 +153,7 @@ class TestBaseResource:
         Ensure that repeated calls to tick() do not cause
         the timer to drop below zero.
         """
-        timer = BaseResource.Timer()
+        timer = BaseOrb.Timer()
 
         timer.set(1)
 

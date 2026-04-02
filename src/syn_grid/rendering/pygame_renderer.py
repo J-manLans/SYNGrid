@@ -1,7 +1,7 @@
 from syn_grid.config.models import RendererConf
-from syn_grid.core.resources.resource_meta import (
-    ResourceMeta,
-    ResourceCategory,
+from syn_grid.core.orbs.orb_meta import (
+    OrbMeta,
+    OrbCategory,
     DirectType,
     SynergyType,
 )
@@ -70,10 +70,10 @@ class PygameRenderer:
 
     def render(
         self,
-        agent_pos: list[int],
+        droid_pos: list[int],
         is_active_statuses: list[bool],
-        resource_positions: list[list[np.int64]],
-        resource_meta: list[ResourceMeta],
+        orb_positions: list[list[np.int64]],
+        orb_meta: list[OrbMeta],
         hud_data: dict[str, int | float],
     ) -> None | str:
         """
@@ -82,17 +82,15 @@ class PygameRenderer:
 
         self.window_surface.fill(self._background_clr)
 
-        col = agent_pos[1] * self._cell_width
-        row = agent_pos[0] * self._cell_height
+        col = droid_pos[1] * self._cell_width
+        row = droid_pos[0] * self._cell_height
 
         self.window_surface.fill(self._background_clr)
 
         # Draw the graphics with pygame. blit() draws things in order, so we need to stack elements
         # in the order we want them to be drawn
-        self._draw_floor_and_resources(
-            resource_positions, resource_meta, is_active_statuses
-        )
-        self._draw_agent((col + self._grid_offset, row + self._grid_offset))
+        self._draw_floor_and_orbs(orb_positions, orb_meta, is_active_statuses)
+        self._draw_droid((col + self._grid_offset, row + self._grid_offset))
         self._draw_hud(hud_data)
 
         self._update()
@@ -114,7 +112,7 @@ class PygameRenderer:
         self._cell_width = 64
         self._cell_height = 64
 
-        # Used for created tier surfaces in draw_resources()
+        # Used for created tier surfaces in draw_orbs()
         self._tier_text_cache: dict[int, pygame.Surface] = {}
 
         self._grid_offset = self._cell_width // 4
@@ -140,10 +138,8 @@ class PygameRenderer:
 
     # === API ===#
 
-    def _draw_floor_and_resources(
-        self, resource_positions, resource_meta, is_active_statuses
-    ):
-        """Draw floor tiles and resources"""
+    def _draw_floor_and_orbs(self, orb_positions, orb_meta, is_active_statuses):
+        """Draw floor tiles and orbs"""
 
         for r in range(self._grid_rows):
             for c in range(self._grid_cols):
@@ -155,25 +151,22 @@ class PygameRenderer:
 
                 for i in range(len(is_active_statuses)):
                     if is_active_statuses[i]:
-                        res_r, res_c = resource_positions[i]
+                        res_r, res_c = orb_positions[i]
                         if (r, c) == (res_r, res_c):
-                            self._draw_resource(resource_meta[i], pos)
+                            self._draw_orb(orb_meta[i], pos)
 
-    def _draw_resource(self, resource_meta: ResourceMeta, pos: tuple[int, int]):
-        """Draw resource at pixel position `pos` (top-left)"""
+    def _draw_orb(self, orb_meta: OrbMeta, pos: tuple[int, int]):
+        """Draw orb at pixel position `pos` (top-left)"""
 
-        if resource_meta.category == ResourceCategory.DIRECT:
-            if resource_meta.type == DirectType.NEGATIVE:
-                self.window_surface.blit(self.graphics["negative_resource"], pos)
+        if orb_meta.category == OrbCategory.DIRECT:
+            if orb_meta.type == DirectType.NEGATIVE:
+                self.window_surface.blit(self.graphics["negative_orb"], pos)
         else:
-            if (
-                resource_meta.type == SynergyType.TIER
-                and resource_meta.tier is not None
-            ):
-                self._draw_tier_resource(resource_meta.tier, pos)
+            if orb_meta.type == SynergyType.TIER and orb_meta.tier is not None:
+                self._draw_tier_orb(orb_meta.tier, pos)
 
-    def _draw_tier_resource(self, tier: int, pos: tuple[int, int]):
-        base_img = self.graphics["positive_resource"]
+    def _draw_tier_orb(self, tier: int, pos: tuple[int, int]):
+        base_img = self.graphics["positive_orb"]
         # create (or fetch cached) combined surface with number
         tier_surf = self._make_tier_surface(tier, base_img)
         self.window_surface.blit(tier_surf, pos)
@@ -207,10 +200,10 @@ class PygameRenderer:
         self._tier_text_cache[tier] = surf
         return surf
 
-    def _draw_agent(self, pos: tuple[int, int]):
-        """Draw agent at a specific pixel position"""
+    def _draw_droid(self, pos: tuple[int, int]):
+        """Draw droid at a specific pixel position"""
 
-        self.window_surface.blit(self.graphics["agent_img"], pos)
+        self.window_surface.blit(self.graphics["droid_img"], pos)
 
     def _draw_hud(self, hud_data: dict[str, int | float]):
         """Draw HUD / score with background rectangle for multiple data"""

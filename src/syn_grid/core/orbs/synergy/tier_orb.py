@@ -1,19 +1,19 @@
 from syn_grid.config.models import TierConf
-from syn_grid.core.resources.base_resource import BaseResource
-from syn_grid.core.resources.resource_meta import (
-    ResourceMeta,
-    ResourceCategory,
+from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.orb_meta import (
+    OrbMeta,
+    OrbCategory,
     SynergyType,
 )
 from typing import Final
 
 
-class TierResource(BaseResource):
+class TierOrb(BaseOrb):
     """
-    A resource that needs to be collected in tier order to give a reward.
+    An orb that needs to be collected in tier order to give a reward.
 
     Example:
-    To get reward for a tier 3 resource a tier 0, tier 1 and tier 2 must have first been collected on that order without breaking the chain.
+    To get reward for a tier 3 orb a tier 0, tier 1 and tier 2 must have first been collected on that order without breaking the chain.
     """
 
     _linear_reward_growth: bool
@@ -38,14 +38,14 @@ class TierResource(BaseResource):
         super().__init__(
             self._calculate_reward(tier + 1),
             conf.cool_down,
-            ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER, tier),
+            OrbMeta(OrbCategory.SYNERGY, SynergyType.TIER, tier),
         )
 
     # ================= #
     #        API        #
     # ================= #
 
-    def consume(self) -> "TierResource":
+    def consume(self) -> "TierOrb":
         super()._consume()
         return self
 

@@ -1,15 +1,15 @@
 import pytest
-from syn_grid.core.resources.resource_meta import (
+from syn_grid.core.orbs.orb_meta import (
     DirectType,
-    ResourceCategory,
-    ResourceMeta,
+    OrbCategory,
+    OrbMeta,
     SynergyType,
 )
 
 
-class TestResourceMeta:
+class TestOrbMeta:
     """
-    Unit tests for ResourceMeta.
+    Unit tests for OrbMeta.
 
     These tests validate:
     - Correct enum assignments
@@ -20,30 +20,30 @@ class TestResourceMeta:
 
     def test_direct_positive_initialization(self):
         """
-        Verify that a SYNERGY TIER resource initializes correctly.
+        Verify that a SYNERGY TIER orb initializes correctly.
 
         Expected behavior:
-        - category is ResourceCategory.SYNERGY
+        - category is OrbCategory.SYNERGY
         - type is SynergyType.TIER
         - tier defaults to -1 when not provided
         """
-        meta = ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER, 0)
+        meta = OrbMeta(OrbCategory.SYNERGY, SynergyType.TIER, 0)
 
-        assert meta.category == ResourceCategory.SYNERGY
+        assert meta.category == OrbCategory.SYNERGY
         assert meta.type == SynergyType.TIER
         assert meta.tier == 0
 
     def test_direct_negative_initialization(self):
         """
-        Verify that a DIRECT NEGATIVE resource initializes correctly.
+        Verify that a DIRECT NEGATIVE orb initializes correctly.
 
         Ensures:
         - category and type are stored correctly
         - tier defaults to 0
         """
-        meta = ResourceMeta(ResourceCategory.DIRECT, DirectType.NEGATIVE)
+        meta = OrbMeta(OrbCategory.DIRECT, DirectType.NEGATIVE)
 
-        assert meta.category == ResourceCategory.DIRECT
+        assert meta.category == OrbCategory.DIRECT
         assert meta.type == DirectType.NEGATIVE
         assert meta.tier == -1
 
@@ -56,7 +56,7 @@ class TestResourceMeta:
         Expected behavior:
         - tier equals the explicitly provided value
         """
-        meta = ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER, tier)
+        meta = OrbMeta(OrbCategory.SYNERGY, SynergyType.TIER, tier)
 
         assert meta.tier == tier
 
@@ -67,7 +67,7 @@ class TestResourceMeta:
 
         This confirms consistent default handling.
         """
-        meta = ResourceMeta(ResourceCategory.DIRECT, DirectType.NEGATIVE, None)
+        meta = OrbMeta(OrbCategory.DIRECT, DirectType.NEGATIVE, None)
 
         assert meta.tier == -1
 
@@ -79,7 +79,7 @@ class TestResourceMeta:
         Negative tiers are considered invalid domain input.
         """
         with pytest.raises(ValueError):
-            ResourceMeta(ResourceCategory.SYNERGY, SynergyType.TIER, -1)
+            OrbMeta(OrbCategory.SYNERGY, SynergyType.TIER, -1)
 
     def test_mismatch_category_and_type_raises(self):
         """
@@ -91,4 +91,4 @@ class TestResourceMeta:
         - SYNERGY category must use SynergyType
         """
         with pytest.raises(TypeError):
-            ResourceMeta(ResourceCategory.DIRECT, SynergyType.TIER)
+            OrbMeta(OrbCategory.DIRECT, SynergyType.TIER)

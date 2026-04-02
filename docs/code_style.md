@@ -6,7 +6,7 @@ This document outlines the coding conventions and best practices for the Synergy
 - **Function Arguments & Returns**: All functions and methods should include type annotations for arguments and return values.
 
 ```python
-def get_resource_meta(self, only_active: bool) -> list[ResourceMeta]:
+def get_orb_meta(self, only_active: bool) -> list[OrbMeta]:
 ```
 
 - **Variable Annotations**: Variables should be annotated when the type is not immediately obvious or for clarity in complex data structures.
@@ -72,12 +72,12 @@ def _empty_spawn_cell(self, position: list[np.int64]) -> bool:
         if position == self._agent.position:
             return False
 
-        # If there are no active resources we can spawn right away
-        if len(self._active_resources) == 0:
+        # If there are no active orbs we can spawn right away
+        if len(self._active_orbs) == 0:
             return True
 
-        # Else check against all active resources
-        for r in self._active_resources:
+        # Else check against all active orbs
+        for r in self._active_orbs:
             if position == r.position:
                 return False
 

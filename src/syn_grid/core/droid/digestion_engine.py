@@ -1,5 +1,5 @@
-from syn_grid.core.resources.base_resource import BaseResource
-from syn_grid.core.resources.synergy.tier_resource import TierResource
+from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 
 
 class DigestionEngine:
@@ -21,62 +21,62 @@ class DigestionEngine:
     #        API        #
     # ================= #
 
-    def digest(self, consumed_resource: BaseResource) -> float:
+    def digest(self, consumed_orb: BaseOrb) -> float:
         """
-        Process a consumed resource and return the resulting reward.
+        Process a consumed orb and return the resulting reward.
 
-        - Tiered resources follow progression rules:
+        - Tiered orbs follow progression rules:
             * Step-wise scoring: reward is given only on correct progression.
             * Non-step-wise scoring: reward is given only on incorrect progression.
-        - Non-tiered resources always return their base reward.
+        - Non-tiered orbs always return their base reward.
 
-        :param consumed_resource: The resource being processed.
+        :param consumed_orb: The orb being processed.
         :return: The calculated reward.
         """
 
-        # Handle tier-based resources with progression logic
-        if isinstance(consumed_resource, TierResource):
+        # Handle tier-based orbs with progression logic
+        if isinstance(consumed_orb, TierOrb):
 
             # Step-wise scoring: reward only if progression is correct
-            if consumed_resource.step_wise_scoring:
-                if self._resolve_tier_progression(consumed_resource):
-                    return consumed_resource.REWARD
+            if consumed_orb.step_wise_scoring:
+                if self._resolve_tier_progression(consumed_orb):
+                    return consumed_orb.REWARD
                 return 0
 
             # Non-step-wise scoring: accumulate reward silently on correct progression.
             # - If base tier is consumed, flush and return the last correct reward
             # - If max tier is consumed, flush and return the max reward
             # If the chain breaks, flush the pending reward and return it.
-            if self._resolve_tier_progression(consumed_resource):
+            if self._resolve_tier_progression(consumed_orb):
                 if (
-                    consumed_resource.meta.tier == self._BASE_TIER
+                    consumed_orb.meta.tier == self._BASE_TIER
                     and self._pending_reward is not 0
                 ):
                     return self._flush_pending_reward()
 
-                if consumed_resource.meta.tier == consumed_resource.MAX_TIER:
-                    self._pending_reward = consumed_resource.REWARD
+                if consumed_orb.meta.tier == consumed_orb.MAX_TIER:
+                    self._pending_reward = consumed_orb.REWARD
                     return self._flush_pending_reward()
 
-                self._pending_reward = consumed_resource.REWARD
+                self._pending_reward = consumed_orb.REWARD
                 return 0
 
             return self._flush_pending_reward()
 
-        # Non-tier resources: always return base reward and resets the tier chain
+        # Non-tier orbs: always return base reward and resets the tier chain
         self.chained_tiers = self._NO_CHAIN
-        return consumed_resource.REWARD
+        return consumed_orb.REWARD
 
     # ================= #
     #      Helpers      #
     # ================= #
 
-    def _resolve_tier_progression(self, consumed_resource: TierResource) -> bool:
-        current_tier = consumed_resource.meta.tier
+    def _resolve_tier_progression(self, consumed_orb: TierOrb) -> bool:
+        current_tier = consumed_orb.meta.tier
 
         # Correct progression (starting tier or previous tier + 1)
         if self.chained_tiers == current_tier - 1:
-            if current_tier == consumed_resource.MAX_TIER:
+            if current_tier == consumed_orb.MAX_TIER:
                 # If max tier is reached, reset chain
                 self.chained_tiers = self._NO_CHAIN
             else:

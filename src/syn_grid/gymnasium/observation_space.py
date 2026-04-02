@@ -1,8 +1,8 @@
 from syn_grid.config.models import ObservationConf
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.core.resources.resource_meta import ResourceCategory
-from syn_grid.core.resources.resource_meta import DirectType
-from syn_grid.core.resources.resource_meta import SynergyType
+from syn_grid.core.orbs.orb_meta import OrbCategory
+from syn_grid.core.orbs.orb_meta import DirectType
+from syn_grid.core.orbs.orb_meta import SynergyType
 
 from numpy.typing import NDArray
 import numpy as np
@@ -36,7 +36,7 @@ class ObservationHandler:
 
         Set up:
         - self._raw_low / self._raw_high: the original raw ranges (used for normalization)
-        - self.*_mask: boolean mask that indicates "absent" resources
+        - self.*_mask: boolean mask that indicates "absent" orbs
         - self.observation_space: the normalized observation space that agents will see
         (0..1 for active features, -1 for absent fields)
         """
@@ -44,21 +44,17 @@ class ObservationHandler:
         agent_raw_low, self._agent_raw_high = self._build_agent_box_bounds(
             False, np.float16
         )
-        resource_raw_low, self._resource_raw_high = self._build_resource_box_bounds(
-            False, np.float16
-        )
+        orb_raw_low, self._orb_raw_high = self._build_orb_box_bounds(False, np.float16)
 
         # reusable buffers for get_observation() to avoid per-step allocations
         # TODO: think I need to switch this to something else, because reward is now float
         self._agent_data = np.zeros_like(agent_raw_low, dtype=np.int16)
-        self._resource_data = np.zeros_like(resource_raw_low, dtype=np.int16)
+        self._orb_data = np.zeros_like(orb_raw_low, dtype=np.int16)
 
         # normalized bounds — match _normalize_obs()
-        # inactive resources keep -1 as a valid "low" value; active features map to 0..1
+        # inactive orbs keep -1 as a valid "low" value; active features map to 0..1
         agent_low_norm, agent_high_norm = self._build_agent_box_bounds(True, np.float16)
-        resource_low_norm, resource_high_norm = self._build_resource_box_bounds(
-            True, np.float16
-        )
+        orb_low_norm, orb_high_norm = self._build_orb_box_bounds(True, np.float16)
 
         self.observation_space: dict[str, spaces.Space] = {
             "agent data": spaces.Box(
@@ -67,10 +63,10 @@ class ObservationHandler:
                 high=agent_high_norm,
                 dtype=np.float16,
             ),
-            "resources data": spaces.Box(
+            "orbs data": spaces.Box(
                 # row, col, timer, tier
-                low=resource_low_norm,
-                high=resource_high_norm,
+                low=orb_low_norm,
+                high=orb_high_norm,
                 dtype=np.float16,
             ),
         }
@@ -78,26 +74,26 @@ class ObservationHandler:
         return spaces.Dict(self.observation_space)
 
     def get_observation(self) -> dict[str, NDArray]:
-        agent_row, agent_col = self._world.agent.position
+        agent_row, agent_col = self._world.droid.position
 
         # NOTE: change here
         # ---- Agent ---- #
         self._agent_data[0] = agent_row
         self._agent_data[1] = agent_col
         self._agent_data[2] = self.step_count_down
-        self._agent_data[3] = self._world.agent.score
-        self._agent_data[4] = self._world.agent.digestion_engine.chained_tiers
+        self._agent_data[3] = self._world.droid.score
+        self._agent_data[4] = self._world.droid.digestion_engine.chained_tiers
 
         # NOTE: change here
-        # ---- Resources ---- #
-        active = self._world.get_resource_is_active_status(False)
-        positions = self._world.get_resource_positions(False)
-        remaining = self._world.get_resource_life()
-        categories = self._world.get_resource_categories()
-        types = self._world.get_resource_types()
-        tiers = self._world.get_resource_tiers()
+        # ---- Orbs ---- #
+        active = self._world.get_orb_is_active_status(False)
+        positions = self._world.get_orb_positions(False)
+        remaining = self._world.get_orb_life()
+        categories = self._world.get_orb_categories()
+        types = self._world.get_orb_types()
+        tiers = self._world.get_orb_tiers()
 
-        for i in range(len(self._world.ALL_RESOURCES)):
+        for i in range(len(self._world.ALL_ORBS)):
             if active[i]:
                 # NOTE: change here
                 pos = positions[i]
@@ -107,7 +103,7 @@ class ObservationHandler:
                 r_tier = tiers[i]
 
                 # NOTE: change here
-                self._resource_data[i] = [
+                self._orb_data[i] = [
                     pos[0],
                     pos[1],
                     r_timer,
@@ -117,9 +113,9 @@ class ObservationHandler:
                 ]
             else:
                 # NOTE: change here
-                self._resource_data[i] = [-1, -1, -1, -1, -1, -1]
+                self._orb_data[i] = [-1, -1, -1, -1, -1, -1]
 
-        return {"agent data": self._agent_data, "resources data": self._resource_data}
+        return {"agent data": self._agent_data, "orbs data": self._orb_data}
 
     def normalize_obs(self, obs: dict[str, Any]) -> dict[str, Any]:
         # --- Agent --- #
@@ -130,28 +126,28 @@ class ObservationHandler:
             agent, absent_mask, self._agent_raw_high
         )
 
-        # --- Resources --- #
-        norm_res = obs["resources data"].astype(np.float16)
+        # --- Orbs --- #
+        norm_res = obs["orbs data"].astype(np.float16)
         for i in range(norm_res.shape[0]):
             row = norm_res[i]
             absent_mask = row == -1.0
 
             norm_row = self._normalize_obs_fields(
-                row, absent_mask, self._resource_raw_high[i]
+                row, absent_mask, self._orb_raw_high[i]
             )
             norm_res[i] = norm_row
 
         return {
             "agent data": norm_agent,
-            "resources data": norm_res,
+            "orbs data": norm_res,
         }
 
     # ================== #
     #       Helpers      #
     # ================== #
 
-    # TODO: Go over these. They work well for direct resources. Thinking a subclass for different
-    # resource types would be needed so constant flipping back and forth when testing different
+    # TODO: Go over these. They work well for direct orbs. Thinking a subclass for different
+    # orb types would be needed so constant flipping back and forth when testing different
     # things which introduce bugs can be avoided.
     def _build_agent_box_bounds(
         self, normalized: bool, arr_type
@@ -183,11 +179,11 @@ class ObservationHandler:
 
         return low_arr, high_arr
 
-    def _build_resource_box_bounds(
+    def _build_orb_box_bounds(
         self, normalized: bool, arr_type
     ) -> tuple[NDArray[Any], NDArray[Any]]:
         if normalized:
-            no_resource_yx = -1.0
+            no_orb_yx = -1.0
             min_r_life_span = -1.0
             min_r_tier = -1.0
             min_r_cat = -1.0
@@ -200,7 +196,7 @@ class ObservationHandler:
             max_r_cat = 1.0
             max_r_type = 1.0
         else:
-            no_resource_yx = -1
+            no_orb_yx = -1
             min_r_life_span = -1
             min_r_cat = -1
             min_r_type = -1
@@ -209,17 +205,17 @@ class ObservationHandler:
             max_row = self._grid_rows - 1
             max_col = self._grid_cols - 1
             max_r_life_span = (self._grid_rows - 1) + (self._grid_cols - 1)
-            max_r_cat = len(ResourceCategory) - 1
+            max_r_cat = len(OrbCategory) - 1
             max_r_type = max(1, max(len(DirectType) - 1, len(SynergyType) - 1))
             # guards against div / 0 when just using direct rewards
             max_r_tier = max(1, self._world.max_tier)
 
-        N = len(self._world.ALL_RESOURCES)
+        N = len(self._world.ALL_ORBS)
         # NOTE: change here
         low = np.tile(
             [
-                no_resource_yx,
-                no_resource_yx,
+                no_orb_yx,
+                no_orb_yx,
                 min_r_life_span,
                 min_r_cat,
                 min_r_type,
@@ -254,7 +250,7 @@ class ObservationHandler:
         self, array: NDArray[np.float16], mask, scale: NDArray[np.float16]
     ) -> NDArray[np.float16]:
         """
-        Normalize observation to 0..1 while preserving sentinel values (-1) for absent resources.
+        Normalize observation to 0..1 while preserving sentinel values (-1) for absent orbs.
         """
 
         # Prepare output array

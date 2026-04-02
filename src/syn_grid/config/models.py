@@ -18,8 +18,18 @@ class SnapshotConf(BaseModel, frozen=True):
 class GridWorldConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
-    max_active_resources: int
+    max_active_orbs: int
     max_tier: int
+
+
+class OrbConf(BaseModel, frozen=True):
+    enabled: bool
+    weight: int
+
+
+class OrbManagerConf(BaseModel, frozen=True):
+    negative: OrbConf
+    tier: OrbConf
 
 
 class RendererConf(BaseModel, frozen=True):
@@ -91,10 +101,11 @@ class ExperimentConfig(BaseModel, frozen=True):
 
 class RunConfig(BaseModel, frozen=True):
     grid_world_conf: GridWorldConf
+    orb_manager_conf: OrbManagerConf
     renderer_conf: RendererConf
     droid_conf: DroidConf
-    negative_resource_conf: NegativeConf
-    tier_resource_conf: TierConf
+    negative_orb_conf: NegativeConf
+    tier_orb_conf: TierConf
 
 
 class ObsConfig(BaseModel, frozen=True):

@@ -49,7 +49,10 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
     else:
         # Initialize a fresh model
         model = runner.AlgorithmClass(
-            env=env, verbose=1, tensorboard_log=str(log_dir), **runner.agent_hyper_parameters
+            env=env,
+            verbose=1,
+            tensorboard_log=str(log_dir),
+            **runner.agent_hyper_parameters,
         )
 
     try:
