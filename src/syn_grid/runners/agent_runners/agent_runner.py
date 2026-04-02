@@ -1,0 +1,46 @@
+from syn_grid.config.models import GlobalAgentConf
+from syn_grid.config.models import RunConfig, ObsConfig
+from syn_grid.gymnasium.env_factory import register_env
+from syn_grid.utils.paths_util import get_project_path
+
+import sys
+from pathlib import Path
+from stable_baselines3 import PPO, DQN, A2C
+from stable_baselines3.common.base_class import BaseAlgorithm
+
+
+class AgentRunner:
+    agent_hyper_parameters = {
+        "policy": "MultiInputPolicy",
+        "device": "cpu",
+        "ent_coef": 0.02,  # exploration
+    }
+    algorithms = {"PPO": PPO, "DQN": DQN, "A2C": A2C}
+
+    def __init__(
+        self,
+        conf: GlobalAgentConf,
+        run_conf: RunConfig,
+        obs_conf: ObsConfig,
+    ):
+        register_env()
+
+        algorithm_names = list(self.algorithms.keys())
+        self.algorithm = algorithm_names[conf.algorithm_index]
+        self.AlgorithmClass: type[BaseAlgorithm] = self.algorithms[self.algorithm]
+
+        self.agent_steps = conf.agent_steps
+        self.identifier = conf.identifier
+
+        self.run_conf = run_conf
+        self.obs_conf = obs_conf
+
+    def get_model(self, env) -> BaseAlgorithm:
+        """Create a path to match the latest model of the specified timesteps and load it"""
+
+        if self.agent_steps == "":
+            sys.exit("You forgot to specify the models steps")
+
+        base_dir = Path(get_project_path("results", "models"))
+        file_name = f"{self.identifier}_{self.algorithm}_{self.agent_steps}*"
+        return self.AlgorithmClass.load(list(base_dir.glob(file_name))[-1], env=env)

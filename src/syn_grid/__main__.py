@@ -1,65 +1,50 @@
-from syn_grid.config.configs import load_config
-from syn_grid.config.models import RunConfig, ObsConfig
-from syn_grid.runners.agent_runner.agent_runner import AgentRunner
-from syn_grid.runners.agent_runner.train_agent import train_agent
-from syn_grid.runners.agent_runner.evaluate_agent import evaluate_agent
-from syn_grid.utils.parse_args import parse_args
+from syn_grid.config.experiment_config import ConfigManager
+from syn_grid.config.models import ExperimentConfig, FullConf
+from syn_grid.runners.agent_runners.agent_runner import AgentRunner
+from syn_grid.runners.agent_runners.train_agent import train_agent
+from syn_grid.runners.agent_runners.evaluate_agent import evaluate_agent
+from syn_grid.utils.args_utils import parse_args, update_agent_conf_from_args
 from syn_grid.runners.human_runner.human_runner import HumanRunner
 
 import sys
 
 
 def main():
-    run_conf = load_config(RunConfig)
-    obs_conf = load_config(ObsConfig)
+    # Load full experiment configuration and snapshot settings
+    config_manager = ConfigManager()
+    full_conf = config_manager.load_config(FullConf)
+    experiments_conf = config_manager.load_config(ExperimentConfig)
 
-    if len(sys.argv) == 1:
-        # Pick algorithm to train or evaluate
-        algorithm = 0
-        # Choose to use an agent or just random sampling (for debugging the environment)
-        agent = True
-        # If we want to test the game our selves
-        # Choose to train or run the agent
-        training = False
-        # Human control to test the game
-        human_control = True
-        # Continue training from a saved model
-        continue_training = False
-        # Model that we shall continue to train
-        agent_steps = "1484800"
-        # Num of timesteps for training or model selection when running
-        timesteps = 50000
-        # Number of training iterations
-        iterations = 30
-    else:
-        args = parse_args()  # python -m experiments -h for info
-        algorithm = args.alg
-        agent = args.agent
-        training = args.train
-        human_control = args.human_controls
-        continue_training = args.cont
-        agent_steps = args.steps
-        timesteps = args.timesteps
-        iterations = args.iterations
+    # Save a snapshot if snapshot is enabled
+    if experiments_conf.snapshot.enabled:
+        config_manager.save_snapshot(full_conf, experiments_conf.snapshot.id)
+        print(f"Config snapshot saved. Exiting.")
+        return
 
-    if human_control:
+    # Extract individual configs for use
+    run_conf = full_conf.run
+    obs_conf = full_conf.obs
+    agent_conf = full_conf.agent
+
+    # Parse command-line arguments and update agent config for any overrides
+    if len(sys.argv) > 1:
+        args = parse_args()
+        update_agent_conf_from_args(args, agent_conf)
+
+    # Initialize the appropriate runner:
+    # - HumanRunner if manual control is enabled
+    # - AgentRunner otherwise
+    if agent_conf.global_agent_conf.human_control:
         runner = HumanRunner(run_conf, obs_conf.observation_handler.max_steps)
         runner.human_player_loop()
     else:
-        runner = AgentRunner(algorithm, "-1_reward_tier_1", run_conf, obs_conf)
+        runner = AgentRunner(agent_conf.global_agent_conf, run_conf, obs_conf)
 
-        if training:
-            # Train agent
-            train_agent(
-                runner,
-                continue_training=continue_training,
-                agent_steps=agent_steps,
-                timesteps=timesteps,
-                iterations=iterations,
-            )
+        # Decide between training or evaluating the agent based on config
+        if agent_conf.global_agent_conf.training:
+            train_agent(runner, agent_conf.train_agent_conf)
         else:
-            # Run environment with agent
-            evaluate_agent(runner, agent_steps, agent)
+            evaluate_agent(runner, agent_conf.eval_agent_conf)
 
 
 if __name__ == "__main__":

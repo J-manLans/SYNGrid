@@ -1,6 +1,16 @@
 from pydantic import BaseModel
 
 ###########################
+#   Experiment Settings   #
+###########################
+
+
+class SnapshotConf(BaseModel, frozen=True):
+    enabled: bool
+    id: str
+
+
+###########################
 #    Run Configuration    #
 ###########################
 
@@ -48,8 +58,35 @@ class ObservationConf(BaseModel, frozen=True):
 
 
 ###########################
+#   Agent Configuration   #
+###########################
+
+
+class GlobalAgentConf(BaseModel, frozen=False):
+    algorithm_index: int
+    agent_steps: str
+    identifier: str
+    human_control: bool
+    training: bool
+
+
+class TrainAgentConf(BaseModel, frozen=False):
+    continue_training: bool
+    timesteps: int
+    iterations: int
+
+
+class EvalAgentConf(BaseModel, frozen=False):
+    trained_model: bool
+
+
+###########################
 #    Top Configurations   #
 ###########################
+
+
+class ExperimentConfig(BaseModel, frozen=True):
+    snapshot: SnapshotConf
 
 
 class RunConfig(BaseModel, frozen=True):
@@ -64,4 +101,13 @@ class ObsConfig(BaseModel, frozen=True):
     observation_handler: ObservationConf
 
 
-class AgentConfig(BaseModel, frozen=True): ...
+class AgentConfig(BaseModel, frozen=False):
+    global_agent_conf: GlobalAgentConf
+    train_agent_conf: TrainAgentConf
+    eval_agent_conf: EvalAgentConf
+
+
+class FullConf(BaseModel):
+    run: RunConfig
+    obs: ObsConfig
+    agent: AgentConfig

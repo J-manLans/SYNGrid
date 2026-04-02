@@ -1,21 +1,16 @@
+from syn_grid.config.models import TrainAgentConf
+from syn_grid.runners.agent_runners.agent_runner import AgentRunner
+from syn_grid.gymnasium.env_factory import make
+from syn_grid.utils.paths_util import get_project_path
+
 import datetime
 from pathlib import Path
 from stable_baselines3.common.monitor import Monitor
-from syn_grid.runners.agent_runner.agent_runner import AgentRunner
-from syn_grid.config.configs import agent_config
-from syn_grid.gymnasium.env_factory import make
-from syn_grid.utils.paths import get_project_path
 
 
 # TODO: this only accompanies the stable baselines3 models as of now. We need to crete a more
 # modular agent base class that can accompany many different models
-def train_agent(
-    runner: AgentRunner,
-    continue_training=False,
-    agent_steps="",
-    timesteps=20000,
-    iterations=10,
-) -> None:
+def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
     """
     Train an agent, either from scratch or by continuing from a saved checkpoint.
 
@@ -33,8 +28,8 @@ def train_agent(
     date = datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
 
     # Create directories for saving models and logs
-    model_dir = Path(get_project_path("results", "models"))
-    log_dir = Path(get_project_path("results", "logs"))
+    model_dir = Path(get_project_path("output", "models"))
+    log_dir = Path(get_project_path("output", "results", "logs"))
 
     Path(model_dir).mkdir(parents=True, exist_ok=True)
     Path(log_dir).mkdir(parents=True, exist_ok=True)
@@ -47,14 +42,14 @@ def train_agent(
     env = Monitor(env, filename=str(monitor_file))
 
     model = None
-    if continue_training:
+    if conf.continue_training:
         print("Loading existing training data")
         # Get the model with the desired steps to continue its training
-        model = runner.get_model(agent_steps, env)
+        model = runner.get_model(env)
     else:
         # Initialize a fresh model
         model = runner.AlgorithmClass(
-            env=env, verbose=1, tensorboard_log=str(log_dir), **agent_config
+            env=env, verbose=1, tensorboard_log=str(log_dir), **runner.agent_hyper_parameters
         )
 
     try:
@@ -65,12 +60,12 @@ def train_agent(
         # tensorboard --logdir results/logs/<env_name>
         # Once Tensorboard is loaded, it will print a URL. Follow the URL to see
         # the status of the training.
-        for i in range(1, iterations + 1):
+        for i in range(1, conf.iterations + 1):
             print(f"\nTraining starting for iteration: {i}\n")
 
             # Train the model
             model.learn(
-                total_timesteps=timesteps,
+                total_timesteps=conf.timesteps,
                 tb_log_name=f"{runner.identifier}_{runner.algorithm}_{date}",
                 reset_num_timesteps=False,
             )

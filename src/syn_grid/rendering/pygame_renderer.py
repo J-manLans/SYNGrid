@@ -5,7 +5,7 @@ from syn_grid.core.resources.resource_meta import (
     DirectType,
     SynergyType,
 )
-from syn_grid.utils.paths import get_package_path, get_package_root
+from syn_grid.utils.paths_util import get_package_path
 from syn_grid.gymnasium.action_space import DroidAction
 
 import pygame
@@ -134,8 +134,8 @@ class PygameRenderer:
             graphics_paths = json.load(f)
 
         self.graphics = {}
-        for attr, rel_path in graphics_paths.items():
-            full_path = path.join(get_package_root(), rel_path)
+        for attr, relative_path in graphics_paths.items():
+            full_path = get_package_path(relative_path)
             self.graphics[attr] = pygame.image.load(full_path)
 
     # === API ===#
