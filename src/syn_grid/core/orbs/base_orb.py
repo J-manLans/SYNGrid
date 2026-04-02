@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from syn_grid.core.resources.resource_meta import ResourceMeta
+from syn_grid.core.orbs.orb_meta import OrbMeta
 
 
-class BaseResource(ABC):
+class BaseOrb(ABC):
     position = [np.int64(-1), np.int64(-1)]
     is_active = False
 
@@ -29,7 +29,7 @@ class BaseResource(ABC):
         self,
         reward: float,
         cool_down: int,
-        meta: ResourceMeta,
+        meta: OrbMeta,
     ):
         self.REWARD = reward
         self._cool_down = cool_down
@@ -57,14 +57,14 @@ class BaseResource(ABC):
     #        API        #
     # ================= #
 
-    def deplete_resource(self) -> None:
-        """Removes the resource without giving any reward."""
+    def deplete_orb(self) -> None:
+        """Removes the orb without giving any reward."""
 
         self.is_active = False
         self.timer.set(self._cool_down)
 
     def spawn(self, position: list[np.int64]):
-        """Spawns the resource."""
+        """Spawns the orb."""
 
         self.position = position
         self.is_active = True
@@ -75,8 +75,8 @@ class BaseResource(ABC):
     # ================= #
 
     @abstractmethod
-    def consume(self) -> "BaseResource":
-        """Let's the agent consume the resource."""
+    def consume(self) -> "BaseOrb":
+        """Let's the droid consume the orb."""
 
     # ================= #
     #      Helpers      #

@@ -17,12 +17,23 @@ run:
   grid_world_conf:
     # GridWorld settings:
     # - number of rows and columns
-    # - max active resources on grid
-    # - max tier of the tier type resources
+    # - max active orbs on grid
+    # - max tier of the tier type orbs
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
-    max_active_resources: 3
+    max_active_orbs: 3
     max_tier: 1
+
+  orb_manager_conf:
+    # Orbs manager settings:
+    # - each orb type can be enabled/disabled
+    # - weight defines relative spawn frequency when multiple orbs are active
+    negative:
+      enabled: true
+      weight: 1
+    tier:
+      enabled: true
+      weight: 2
 
   renderer_conf:
     # Renderer settings:
@@ -32,26 +43,26 @@ run:
 
   droid_conf:
     # Droid settings:
-    # - grid_rows / grid_cols: defines the grid the agent can move in
-    # - starting_score: initial score of the agent
+    # - grid_rows / grid_cols: defines the grid the droid can move in
+    # - starting_score: initial score of the droid
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 40
 
-  negative_resource_conf:
-    # Negative resource behavior:
-    # - reward: penalty applied when interacting with the resource
-    # - cool_down: number of steps before the resource can be reused
+  negative_orb_conf:
+    # Negative orb behavior:
+    # - reward: penalty applied when interacting with the orb
+    # - cool_down: number of steps before the orb can be reused
     reward: -3.0
     cool_down: 7
 
-  tier_resource_conf:
-    # Tiered resource behavior:
+  tier_orb_conf:
+    # Tiered orb behavior:
     # - linear_reward_growth: if true, reward scales linearly instead of exponentially
     # - step_wise_scoring: if true, reward is given per correctly consumed tier instead of on chain break
     # - growth_factor: multiplier applied per tier increase
     # - base_reward: starting reward value at tier 0
-    # - cool_down: number of steps before the resource can be reused
+    # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: true
     step_wise_scoring: true
     growth_factor: 1.5
@@ -85,7 +96,7 @@ agent:
     algorithm_index: 0
     agent_steps: "1484800"
     identifier: "-1_reward_tier_1"
-    human_control: false
+    human_control: true
     training: false
 
     # Pick algorithm to train or evaluate

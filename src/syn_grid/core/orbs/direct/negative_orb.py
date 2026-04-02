@@ -1,16 +1,15 @@
 from syn_grid.config.models import NegativeConf
-from syn_grid.core.resources.base_resource import BaseResource
-from syn_grid.core.resources.resource_meta import (
-    ResourceMeta,
-    ResourceCategory,
+from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.orb_meta import (
+    OrbMeta,
+    OrbCategory,
     DirectType,
 )
-from typing import Final
 
 
-class NegativeResource(BaseResource):
+class NegativeOrb(BaseOrb):
     """
-    A resource that gives the agent a negative score.
+    An orb that gives the agent a negative score.
     """
 
     # ================= #
@@ -21,13 +20,13 @@ class NegativeResource(BaseResource):
         super().__init__(
             conf.reward,
             conf.cool_down,
-            ResourceMeta(category=ResourceCategory.DIRECT, type=DirectType.NEGATIVE),
+            OrbMeta(category=OrbCategory.DIRECT, type=DirectType.NEGATIVE),
         )
 
     # ================= #
     #        API        #
     # ================= #
 
-    def consume(self) -> "NegativeResource":
+    def consume(self) -> "NegativeOrb":
         super()._consume()
         return self

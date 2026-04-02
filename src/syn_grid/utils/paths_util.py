@@ -3,7 +3,7 @@ import os
 
 def get_package_path(*relative_path_parts: str) -> str:
     """
-    Returns an absolute path to a resource inside the package,
+    Returns an absolute path to a orb inside the package,
     works whether installed editable or normally.
     """
 

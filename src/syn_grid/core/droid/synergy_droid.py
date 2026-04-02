@@ -1,5 +1,5 @@
 from syn_grid.config.models import DroidConf
-from syn_grid.core.resources.base_resource import BaseResource
+from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.core.droid.digestion_engine import DigestionEngine
 
@@ -11,9 +11,9 @@ class SynergyDroid:
 
     def __init__(self, conf: DroidConf):
         """
-        Initializes the agent.
+        Initializes the droid.
 
-        Defines the game world so the agent know its bounds, set its starting score and store it for later resetting.
+        Defines the game world so the droid know its bounds, set its starting score and store it for later resetting.
         """
 
         self._grid_rows = conf.grid_rows
@@ -24,7 +24,7 @@ class SynergyDroid:
 
     def reset(self) -> None:
         """
-        Initialize Agents starting position at the center of the grid and reset its score and the digestion engine.
+        Initialize Droids starting position at the center of the grid and reset its score and the digestion engine.
         """
 
         self.position = [self._grid_rows // 2, self._grid_cols // 2]
@@ -38,7 +38,7 @@ class SynergyDroid:
     def perform_action(self, agent_action: DroidAction) -> int:
         """Performs current action"""
 
-        # Move Agent to the next cell
+        # Move droid to the next cell
         match agent_action:
             case DroidAction.LEFT:
                 self._moveTowardsMinBound(1)
@@ -54,10 +54,10 @@ class SynergyDroid:
         self.score -= 1
         return -1
 
-    def consume_resource(self, resource: BaseResource) -> float:
-        """Consumes the resource, add its reward to its score and returns the reward"""
+    def consume_orb(self, orb: BaseOrb) -> float:
+        """Consumes the orb, add its reward to its score and returns the reward"""
 
-        reward = self.digestion_engine.digest(resource.consume())
+        reward = self.digestion_engine.digest(orb.consume())
         self.score += reward
         return reward
 

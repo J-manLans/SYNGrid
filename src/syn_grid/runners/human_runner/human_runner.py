@@ -12,9 +12,10 @@ class HumanRunner:
         self._renderer = PygameRenderer(run_conf.renderer_conf, 60)
         self._world = GridWorld(
             run_conf.grid_world_conf,
+            run_conf.orb_manager_conf,
             run_conf.droid_conf,
-            run_conf.negative_resource_conf,
-            run_conf.tier_resource_conf,
+            run_conf.negative_orb_conf,
+            run_conf.tier_orb_conf,
         )
         self._steps_left = steps_left
 
@@ -32,7 +33,7 @@ class HumanRunner:
                 self._world.perform_agent_action(action)
                 self._steps_left -= 1
                 truncated = self._steps_left <= 0
-                terminated = self._world.agent.score <= 0
+                terminated = self._world.droid.score <= 0
                 self._render()
 
                 if terminated or truncated:
@@ -46,20 +47,20 @@ class HumanRunner:
 
     def _render(self):
         self._renderer.render(
-            self._world.agent.position,
-            self._world.get_resource_is_active_status(True),
-            self._world.get_resource_positions(True),
-            self._world.get_resource_meta(True),
+            self._world.droid.position,
+            self._world.get_orb_is_active_status(True),
+            self._world.get_orb_positions(True),
+            self._world.get_orb_meta(True),
             self._get_hud_data(),
         )
 
     def _get_hud_data(self) -> dict[str, int | float]:
         hud_data: dict[str, int | float] = {}
 
-        hud_data["score"] = self._world.agent.score
+        hud_data["score"] = self._world.droid.score
         hud_data["moves"] = self._steps_left
         hud_data["current tier chain"] = (
-            self._world.agent.digestion_engine.chained_tiers
+            self._world.droid.digestion_engine.chained_tiers
         )
 
         return hud_data

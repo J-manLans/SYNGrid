@@ -8,7 +8,7 @@
 - **Pygame** — optional live grid visualization
 
 ## Development:
-- **Dataclasses** — clean resource/config definitions for data-holding classes
+- **Dataclasses** — clean orb/config definitions for data-holding classes
 - **Type hints** — throughout codebase
 - **pytest** — testing
 
@@ -21,16 +21,16 @@
 
 ```python
 # Without type hints
-def add_resource(x, y):
+def add_orb(x, y):
     return x + y
 
 # With type hints (much clearer!)
-def add_resource(x: int, y: int) -> int:
+def add_orb(x: int, y: int) -> int:
     return x + y
 
 # For variables too
 lives: int = 20
-resources: list[str] = ["green", "red"]
+orbs: list[str] = ["green", "red"]
 ```
 
 ### Dataclasses
@@ -39,18 +39,18 @@ resources: list[str] = ["green", "red"]
 from dataclasses import dataclass
 
 # Without dataclass
-class Resource:
+class Orb:
     def __init__(self, name, value, duration):
         self.name = name
         self.value = value
         self.duration = duration
 
     def __repr__(self):
-        return f"Resource({self.name}, {self.value}, {self.duration})"
+        return f"Orb({self.name}, {self.value}, {self.duration})"
 
 # With dataclass (same thing, auto-generated!)
 @dataclass
-class Resource:
+class Orb:
     name: str
     value: int
     duration: int

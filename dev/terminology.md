@@ -54,7 +54,7 @@ Gymnasium method that visualizes/displays the environment state based on the ren
 Sets the random seed for reproducibility. Ensures same sequence of random events across runs.
 
 ## close()
-Cleans up the environment (release resources, close windows). Good practice to call at the end.
+Cleans up the environment (release orbs, close windows). Good practice to call at the end.
 
 ## Space
 Gymnasium abstraction for defining valid observations/actions. Common types: `Discrete`, `Box`, `MultiBinary`, `MultiDiscrete`.
