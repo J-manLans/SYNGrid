@@ -23,7 +23,7 @@ class TestEnvironment:
 
         conf = get_test_config()
 
-        return SYNGridEnv(conf.run, conf.obs)
+        return SYNGridEnv(conf.world, conf.obs)
 
     def test_initialization(self, env: SYNGridEnv):
         """
@@ -55,8 +55,8 @@ class TestEnvironment:
 
         conf = get_test_config()
 
-        env1 = SYNGridEnv(conf.run, conf.obs)
-        env2 = SYNGridEnv(conf.run, conf.obs)
+        env1 = SYNGridEnv(conf.world, conf.obs)
+        env2 = SYNGridEnv(conf.world, conf.obs)
 
         obs1, _ = env1.reset(seed=42)
         obs2, _ = env2.reset(seed=42)
@@ -116,7 +116,7 @@ class TestEnvironment:
         conf = get_test_config()
         obs_conf = update_conf(conf.obs, {"observation_handler": {"max_steps": 5}})
 
-        env = SYNGridEnv(conf.run, obs_conf)
+        env = SYNGridEnv(conf.world, obs_conf)
         env.reset()
 
         truncated = False
@@ -157,7 +157,7 @@ class TestEnvironment:
         """
         conf = get_test_config()
 
-        env = SYNGridEnv(conf.run, conf.obs, render_mode="human")
+        env = SYNGridEnv(conf.world, conf.obs, render_mode="human")
         env.reset()
 
         result = env.render()

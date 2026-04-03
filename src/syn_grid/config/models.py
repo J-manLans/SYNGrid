@@ -22,17 +22,6 @@ class GridWorldConf(BaseModel, frozen=True):
     max_active_orbs: int
 
 
-class OrbConf(BaseModel, frozen=True):
-    enabled: bool
-    weight: int
-
-
-class OrbFactoryConf(BaseModel, frozen=True):
-    max_active_orbs: int
-    max_tier: int
-    types: dict[str, OrbConf]
-
-
 class RendererConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
@@ -42,6 +31,17 @@ class DroidConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
     starting_score: int
+
+
+class OrbConf(BaseModel, frozen=True):
+    enabled: bool
+    weight: int
+
+
+class OrbFactoryConf(BaseModel, frozen=True):
+    max_active_orbs: int
+    max_tier: int
+    types: dict[str, OrbConf]
 
 
 class NegativeConf(BaseModel, frozen=True):
@@ -97,7 +97,7 @@ class EvalAgentConf(BaseModel, frozen=False):
 # ======================= #
 
 
-class RunConfig(BaseModel, frozen=True):
+class WorldConfig(BaseModel, frozen=True):
     grid_world_conf: GridWorldConf
     orb_factory_conf: OrbFactoryConf
     renderer_conf: RendererConf
@@ -126,6 +126,6 @@ class ExperimentConfig(BaseModel, frozen=True):
 
 
 class FullConf(BaseModel):
-    run: RunConfig
+    world: WorldConfig
     obs: ObsConfig
     agent: AgentConfig

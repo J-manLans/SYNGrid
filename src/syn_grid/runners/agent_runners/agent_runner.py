@@ -1,5 +1,5 @@
 from syn_grid.config.models import GlobalAgentConf
-from syn_grid.config.models import RunConfig, ObsConfig
+from syn_grid.config.models import WorldConfig, ObsConfig
 from syn_grid.gymnasium.env_factory import register_env
 from syn_grid.utils.paths_util import get_project_path
 
@@ -25,7 +25,7 @@ class AgentRunner:
     def __init__(
         self,
         conf: GlobalAgentConf,
-        run_conf: RunConfig,
+        run_conf: WorldConfig,
         obs_conf: ObsConfig,
     ):
         register_env()

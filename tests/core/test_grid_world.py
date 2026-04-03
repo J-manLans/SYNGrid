@@ -18,7 +18,7 @@ class TestGridWorld:
 
         config_manager = ConfigManager("test_configs.yaml")
 
-        run_conf = get_test_config().run
+        run_conf = get_test_config().world
         grid_world_conf = run_conf.grid_world_conf
         orb_manager_conf = run_conf.orb_factory_conf
         droid_conf = run_conf.droid_conf

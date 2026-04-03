@@ -22,7 +22,7 @@ def main():
         return
 
     # Extract individual configs for use
-    run_conf = full_conf.run
+    run_conf = full_conf.world
     obs_conf = full_conf.obs
     agent_conf = full_conf.agent
 
