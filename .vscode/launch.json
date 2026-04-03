@@ -22,6 +22,17 @@
       "justMyCode": true
     },
     {
+      "name": "Debug specific testfile",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+          "tests/runners/agent_runner/test_agent_runner.py",
+          "-v"
+      ],
+      "justMyCode": true
+    },
+    {
       "name": "Attach VS Code debugger to running the python packages above",
       "type": "debugpy",
       "request": "attach",

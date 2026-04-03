@@ -1,4 +1,4 @@
-from syn_grid.config.experiment_config import ConfigManager
+from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models import ExperimentConfig, FullConf
 from syn_grid.runners.agent_runners.agent_runner import AgentRunner
 from syn_grid.runners.agent_runners.train_agent import train_agent
@@ -11,7 +11,7 @@ import sys
 
 def main():
     # Load full experiment configuration and snapshot settings
-    config_manager = ConfigManager()
+    config_manager = ConfigManager("configs.yaml")
     full_conf = config_manager.load_config(FullConf)
     experiments_conf = config_manager.load_config(ExperimentConfig)
 

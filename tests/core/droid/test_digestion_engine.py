@@ -1,8 +1,10 @@
-import pytest
-
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 from syn_grid.core.droid.digestion_engine import DigestionEngine
+
+from tests.utils.config_helpers import get_test_config
+
+import pytest
 
 
 class TestDigestionEngine:
@@ -15,7 +17,7 @@ class TestDigestionEngine:
 
     @staticmethod
     def _tier_params(max_tier=_MAX_TIER) -> list[TierOrb]:
-        tierOrbs = [(TierOrb(t)) for t in range(0, max_tier + 1)]
+        tierOrbs = [(TierOrb(t, get_test_config().run.tier_orb_conf)) for t in range(0, max_tier + 1)]
 
         for t in tierOrbs:
             t.reset()
@@ -69,7 +71,7 @@ class TestDigestionEngine:
     def test_max_tier_consumption_rewards_and_resets_chain(
         self, reset_orb, digestion_engine: DigestionEngine
     ):
-        max_orb = TierOrb(self._MAX_TIER)
+        max_orb = TierOrb(self._MAX_TIER, get_test_config().run.tier_orb_conf)
 
         # prep the "chain" by giving it a tier value 1 lower than max_orb
         digestion_engine.chained_tiers = max_orb.meta.tier - 1
@@ -80,7 +82,7 @@ class TestDigestionEngine:
     def test_out_of_order_consumption_returns_zero_and_resets_chain(
         self, reset_orb, digestion_engine: DigestionEngine
     ):
-        orb = TierOrb(self._MAX_TIER - 2)
+        orb = TierOrb(self._MAX_TIER - 2, get_test_config().run.tier_orb_conf)
 
         # force out-of-order consumption for orb
         digestion_engine.chained_tiers = self._MAX_TIER - 1
@@ -91,7 +93,7 @@ class TestDigestionEngine:
     def test_base_tier_consumption_rewards_and_starts_chain(
         self, reset_orb, digestion_engine: DigestionEngine
     ):
-        base_orb = TierOrb(0)
+        base_orb = TierOrb(0, get_test_config().run.tier_orb_conf)
 
         # force out-of-order consumption for base tier
         digestion_engine.chained_tiers = self._MAX_TIER - 1
@@ -120,10 +122,9 @@ class TestDigestionEngine:
     def test_delayed_scoring_max_tier_consumption_rewards_and_resets_chain(
         self, reset_orb, digestion_engine: DigestionEngine
     ):
+        max_orb = TierOrb(self._MAX_TIER, get_test_config().run.tier_orb_conf)
         # set correct scoring type
-        TierOrb.step_wise_scoring = False
-
-        max_orb = TierOrb(self._MAX_TIER)
+        max_orb.step_wise_scoring = False
 
         # prep the "chain" by giving it a tier value 1 lower than max_orb
         digestion_engine.chained_tiers = max_orb.meta.tier - 1
@@ -134,11 +135,11 @@ class TestDigestionEngine:
     def test_out_of_order_consumption_rewards_and_resets_chain(
         self, reset_orb, digestion_engine: DigestionEngine
     ):
+        out_of_order_orb = TierOrb(self._MAX_TIER - 3, get_test_config().run.tier_orb_conf)
+        in_order_orb = TierOrb(self._MAX_TIER - 2, get_test_config().run.tier_orb_conf)
         # set correct scoring type
-        TierOrb.step_wise_scoring = False
-
-        out_of_order_orb = TierOrb(self._MAX_TIER - 3)
-        in_order_orb = TierOrb(self._MAX_TIER - 2)
+        out_of_order_orb.step_wise_scoring = False
+        in_order_orb.step_wise_scoring = False
 
         # force out-of-order consumption for out_of_order_orb and prep the reward
         digestion_engine.chained_tiers = in_order_orb.meta.tier
@@ -150,11 +151,11 @@ class TestDigestionEngine:
     def test_base_tier_consumption_returns_pending_reward_and_starts_chain(
         self, reset_orb, digestion_engine: DigestionEngine
     ):
+        base_orb = TierOrb(0, get_test_config().run.tier_orb_conf)
+        in_order_orb = TierOrb(self._MAX_TIER - 1, get_test_config().run.tier_orb_conf)
         # set correct scoring type
-        TierOrb.step_wise_scoring = False
-
-        base_orb = TierOrb(0)
-        in_order_orb = TierOrb(self._MAX_TIER - 1)
+        base_orb.step_wise_scoring = False
+        in_order_orb.step_wise_scoring = False
 
         # force out-of-order consumption for base_orb and prep the reward
         digestion_engine.chained_tiers = in_order_orb.meta.tier

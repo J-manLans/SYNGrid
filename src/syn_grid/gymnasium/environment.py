@@ -15,16 +15,16 @@ class SYNGridEnv(gym.Env):
     A discrete grid-world environment for benchmarking single-agent RL.
     """
 
+    # ================= #
+    #       Init        #
+    # ================= #
+
     # Metadata required by Gym.
     # "human" for Pygame visualization.
     # render_fps caps the update rate of render(); each call corresponds to one logic step, not the
     # full game framerate. Simply put: render_fps controls the speed of the environment’s logic,
     # while a sub-loop in the renderer would handle smooth animation between steps.
     metadata = {"render_modes": ["human"], "render_fps": 4}
-
-    # ================= #
-    #       Init        #
-    # ================= #
 
     def __init__(
         self,
@@ -36,7 +36,7 @@ class SYNGridEnv(gym.Env):
         self.render_mode = render_mode
         self.world = GridWorld(
             run_conf.grid_world_conf,
-            run_conf.orb_manager_conf,
+            run_conf.orb_factory_conf,
             run_conf.droid_conf,
             run_conf.negative_orb_conf,
             run_conf.tier_orb_conf,
@@ -81,7 +81,7 @@ class SYNGridEnv(gym.Env):
         # Return observation and info (not used)
         return norm_obs, {}
 
-    def step(self, action: DroidAction):
+    def step(self, action: int):
         # Perform action and adjust variables affected by it
         reward = self.world.perform_agent_action(DroidAction(action))
         self._observation_handler.step_count_down -= 1

@@ -16,15 +16,15 @@ class TierOrb(BaseOrb):
     To get reward for a tier 3 orb a tier 0, tier 1 and tier 2 must have first been collected on that order without breaking the chain.
     """
 
+    # ================= #
+    #       Init        #
+    # ================= #
+
     _linear_reward_growth: bool
     _TIER_BASE_REWARD: Final[float]
     _GROWTH_FACTOR: Final[float]
     MAX_TIER: int
     step_wise_scoring: bool
-
-    # ================= #
-    #       Init        #
-    # ================= #
 
     def __init__(self, tier: int, conf: TierConf):
         if tier > self.MAX_TIER:

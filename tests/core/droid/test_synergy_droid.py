@@ -1,4 +1,3 @@
-import pytest
 from syn_grid.core.droid.synergy_droid import DroidAction, SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
@@ -7,6 +6,10 @@ from syn_grid.core.orbs.orb_meta import (
     DirectType,
     SynergyType,
 )
+
+from tests.utils.config_helpers import get_test_config
+
+import pytest
 
 
 class DummyPositiveOrb(BaseOrb):
@@ -51,10 +54,10 @@ class TestSynergyDroid:
     @pytest.fixture
     def droid(self):
         """
-        Returns a SynergyDroid instance on a 6x6 grid with a starting score of 10,
-        reset to its initial state. Used as a reusable fixture for most tests.
+        Returns a SynergyDroid instance reset to its initial state. Used as a reusable fixture for most tests.
         """
-        droid = SynergyDroid(grid_rows=6, grid_cols=6, starting_score=10)
+
+        droid = SynergyDroid(get_test_config().run.droid_conf)
         droid.reset()
 
         return droid
@@ -72,7 +75,10 @@ class TestSynergyDroid:
         Check that the droid starts at the center of the grid when reset,
         for various grid sizes.
         """
-        droid = SynergyDroid(grid_rows=y, grid_cols=x)
+
+        conf = get_test_config().run.droid_conf.model_copy(update={"grid_rows": y, "grid_cols": x})
+
+        droid = SynergyDroid(conf)
         droid.reset()
 
         assert droid.position == expected_position
@@ -83,24 +89,30 @@ class TestSynergyDroid:
         Ensure that the droid's score is initialized to the starting value
         after creation.
         """
-        droid = SynergyDroid(1, 1, score)
+
+        conf = get_test_config().run.droid_conf.model_copy(update={"starting_score": score})
+
+        droid = SynergyDroid(conf)
 
         assert droid.score == score
 
     @pytest.mark.parametrize(
         "action, expected_position",
         [
-            (DroidAction.RIGHT, [3, 4]),
-            (DroidAction.LEFT, [3, 2]),
-            (DroidAction.UP, [2, 3]),
-            (DroidAction.DOWN, [4, 3]),
+            (DroidAction.RIGHT, [2, 3]),
+            (DroidAction.LEFT, [2, 1]),
+            (DroidAction.UP, [1, 2]),
+            (DroidAction.DOWN, [3, 2]),
         ],
     )
-    def test_movement(self, droid, action, expected_position):
+    def test_movement(
+        self, droid: SynergyDroid, action: DroidAction, expected_position: list[int]
+    ):
         """
         Verify that each movement action correctly updates the droid's position
         when not at a boundary.
         """
+
         initial_score = droid.score
         droid.perform_action(action)
 
@@ -108,11 +120,12 @@ class TestSynergyDroid:
         assert initial_score == droid.score + 1
 
     @pytest.mark.parametrize("action", [None, "LEFT"])
-    def test_invalid_movement(self, droid, action):
+    def test_invalid_movement(self, droid: SynergyDroid, action: DroidAction):
         """
         Ensure that passing an invalid value to perform_action
         (anything other than an DroidAction enum) raises a TypeError.
         """
+
         with pytest.raises(TypeError):
             droid.perform_action(action)
 
@@ -120,16 +133,23 @@ class TestSynergyDroid:
         "position, action, expected_position",
         [
             ([0, 0], DroidAction.LEFT, [0, 0]),
-            ([0, 5], DroidAction.RIGHT, [0, 5]),
+            ([0, 4], DroidAction.RIGHT, [0, 4]),
             ([0, 0], DroidAction.UP, [0, 0]),
-            ([5, 0], DroidAction.DOWN, [5, 0]),
+            ([4, 0], DroidAction.DOWN, [4, 0]),
         ],
     )
-    def test_boundaries(self, droid, position, action, expected_position):
+    def test_boundaries(
+        self,
+        droid: SynergyDroid,
+        position: list[int],
+        action: DroidAction,
+        expected_position: list[int],
+    ):
         """
         Ensure the droid does not move outside the grid boundaries
         when attempting moves at edges.
         """
+
         droid.position = position.copy()
         droid.perform_action(action)
 
@@ -139,12 +159,15 @@ class TestSynergyDroid:
         "action",
         [DroidAction.LEFT, DroidAction.RIGHT, DroidAction.UP, DroidAction.DOWN],
     )
-    def test_edge_case_boundaries(self, action):
+    def test_edge_case_boundaries(self, action: DroidAction):
         """
         Verify that on a minimal 1x1 grid, the droid cannot move
         in any direction and remains at [0, 0].
         """
-        droid = SynergyDroid(1, 1)
+
+        conf = get_test_config().run.droid_conf.model_copy(update={"grid_rows": 1, "grid_cols": 1})
+
+        droid = SynergyDroid(conf)
         droid.reset()
         droid.perform_action(action)
 
@@ -155,17 +178,19 @@ class TestSynergyDroid:
         Ensure that calling reset() restores the droid's position
         to the center of the grid.
         """
+
         starting_position = droid.position.copy()
         droid.position = [0, 0]
         droid.reset()
 
         assert droid.position == starting_position
 
-    def test_reset_restores_score(self, droid):
+    def test_reset_restores_score(self, droid: SynergyDroid):
         """
         Ensure that calling reset() restores the droid's score
         to its original starting value.
         """
+
         starting_score = droid.score
         droid.score += 10
         droid.reset()
@@ -182,7 +207,7 @@ class TestSynergyDroid:
         reward = droid.consume_orb(orb)
 
         assert reward == 3
-        assert droid.score == 13
+        assert droid.score == 43
 
     def test_consume_negative_orb_reduces_score(self, droid: SynergyDroid):
         """
@@ -194,4 +219,4 @@ class TestSynergyDroid:
         reward = droid.consume_orb(orb)
 
         assert reward == -3
-        assert droid.score == 7
+        assert droid.score == 37

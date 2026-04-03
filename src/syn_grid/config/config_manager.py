@@ -14,8 +14,8 @@ class ConfigManager:
     #       Init        #
     # ================= #
 
-    def __init__(self):
-        self.yaml_path = Path(get_package_path("config", "configs.yaml"))
+    def __init__(self, config_file: str):
+        self.yaml_path = Path(get_package_path("config", config_file))
         self.save_conf_path = Path(get_project_path("output", "saved_configs"))
         if not self.yaml_path.exists():
             raise FileNotFoundError(f"Config file not found: {self.yaml_path}")

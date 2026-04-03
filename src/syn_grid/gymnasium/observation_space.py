@@ -20,6 +20,7 @@ class ObservationHandler:
         self._world = world
         self._grid_rows = obs_conf.grid_rows
         self._grid_cols = obs_conf.grid_cols
+        self._max_tier = obs_conf.max_tier
         self._max_steps = obs_conf.max_steps
 
     def reset(self):
@@ -166,7 +167,7 @@ class ObservationHandler:
             max_steps = self._max_steps
             max_score = 50
             # guards against div / 0 when just using direct rewards
-            max_tier_chain = max(1, self._world.max_tier)
+            max_tier_chain = max(1, self._max_tier)
 
         # NOTE: change here
         low = [min_row, min_col, min_steps, min_score, min_tier_chain]
@@ -208,7 +209,7 @@ class ObservationHandler:
             max_r_cat = len(OrbCategory) - 1
             max_r_type = max(1, max(len(DirectType) - 1, len(SynergyType) - 1))
             # guards against div / 0 when just using direct rewards
-            max_r_tier = max(1, self._world.max_tier)
+            max_r_tier = max(1, self._max_tier)
 
         N = len(self._world.ALL_ORBS)
         # NOTE: change here

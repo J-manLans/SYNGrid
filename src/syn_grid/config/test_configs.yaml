@@ -98,9 +98,9 @@ agent:
     # - training: choose whether to train the agent or just run it
     # - agent_steps: identifier for the model to continue training or evaluate
     algorithm_index: 0
-    agent_steps: "1484800"
-    identifier: "-1_reward_tier_1"
-    human_control: false
+    agent_steps: "0"
+    identifier: "pytest"
+    human_control: False
     training: false
 
     # Pick algorithm to train or evaluate
@@ -110,11 +110,11 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    timesteps: 50000
-    iterations: 30
+    timesteps: 0
+    iterations: 0
 
     # Pick algorithm to train or evaluate
   eval_agent_conf:
     # Eval settings:
     # - trained_model: enable agent or use random sampling for debugging
-    trained_model: true
+    trained_model: false

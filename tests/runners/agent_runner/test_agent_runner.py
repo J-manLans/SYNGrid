@@ -1,8 +1,10 @@
-import pytest
 from syn_grid.runners.agent_runners.agent_runner import AgentRunner
+
+from tests.utils.config_helpers import get_test_config, update_conf
+
 from stable_baselines3 import A2C
 from unittest.mock import patch
-
+import pytest
 
 class TestAgentRunner:
     """
@@ -24,9 +26,17 @@ class TestAgentRunner:
             AgentRunner: A configured `AgentRunner` instance with a specified environment ("synergy_grid-v0")
                          and algorithm ("A2C").
         """
-        return AgentRunner(2, "test")
 
-    def test_initialization(self, agent_runner):
+        full_conf = get_test_config()
+
+        agent_conf = update_conf(full_conf.agent.global_agent_conf, {"algorithm_index": 2})
+        run_conf = full_conf.run
+        obs_conf = full_conf.obs
+
+
+        return AgentRunner(agent_conf, run_conf, obs_conf)
+
+    def test_initialization(self, agent_runner: AgentRunner):
         """
         Tests the correct initialization of the `AgentRunner` object.
 
@@ -39,6 +49,7 @@ class TestAgentRunner:
         Args:
             agent_runner (AgentRunner): The `AgentRunner` instance to test.
         """
+
         assert agent_runner.algorithm == "A2C"
         assert agent_runner.AlgorithmClass == A2C
 
@@ -53,10 +64,18 @@ class TestAgentRunner:
         Raises:
             ValueError: If the algorithm is invalid (e.g., "invalid_algorithm").
         """
-        with pytest.raises(IndexError):
-            AgentRunner(4, "test")
 
-    def test_get_model_with_no_agent_steps(self, agent_runner):
+        full_conf = get_test_config()
+
+        agent_conf = update_conf(full_conf.agent.global_agent_conf, {"algorithm_index": 4})
+        run_conf = full_conf.run
+        obs_conf = full_conf.obs
+
+
+        with pytest.raises(IndexError):
+            AgentRunner(agent_conf, run_conf, obs_conf)
+
+    def test_get_model_with_no_agent_steps(self, agent_runner: AgentRunner):
         """
         Tests the behavior when no agent steps are provided to the `get_model` method.
 
@@ -67,25 +86,26 @@ class TestAgentRunner:
         Raises:
             SystemExit: If no agent steps are provided.
         """
-        with pytest.raises(SystemExit):
-            agent_runner.get_model("", "env")
 
-    def test_get_model_with_no_matching_model(self, agent_runner):
+        agent_runner.agent_steps = ""
+
+        with pytest.raises(SystemExit):
+            agent_runner.get_model(None)
+
+    def test_get_model_with_no_matching_model(self, agent_runner: AgentRunner):
         """
         Tests the behavior when the `get_model` method is called with valid agent steps but no matching model is found.
 
-        Verifies that an `IndexError` is raised when the `glob` method returns an empty list (indicating no matching models).
+        Verifies that an `FileNotFoundError` is raised when the `glob` method returns an empty list (indicating no matching models).
 
         This ensures that the system correctly handles cases where no models match the specified agent steps.
 
         Raises:
-            IndexError: If no matching model is found for the specified agent steps.
+            FileNotFoundError: If no matching model is found for the specified agent steps.
         """
-        valid_agent_steps = "1000"
-        mock_env = "some_env"
 
         with patch("pathlib.Path.glob") as mock_glob:
             mock_glob.return_value = []
 
-            with pytest.raises(IndexError):
-                agent_runner.get_model(valid_agent_steps, mock_env)
+            with pytest.raises(FileNotFoundError):
+                agent_runner.get_model(None)

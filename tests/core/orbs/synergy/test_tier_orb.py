@@ -1,11 +1,13 @@
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 from syn_grid.core.orbs.base_orb import BaseOrb
 
+from tests.utils.config_helpers import get_test_config
+
 import pytest
 import numpy as np
 
 
-class TestTier:
+class TestTierOrb:
     _GRID_ROWS = 5
     _GRID_COLS = 5
     _MAX_TIER = 5
@@ -35,7 +37,7 @@ class TestTier:
 
         BaseOrb.set_life_span(self._GRID_ROWS, self._GRID_COLS)
         TierOrb.MAX_TIER = self._MAX_TIER
-        t = TierOrb(self._TIER, self._COOL_DOWN)
+        t = TierOrb(self._TIER, get_test_config().run.tier_orb_conf)
         t.reset()
 
         return t
@@ -76,11 +78,11 @@ class TestTier:
 
     def test_creating_orb_with_negative_tier(self):
         with pytest.raises(ValueError):
-            TierOrb(-1)
+            TierOrb(-1, get_test_config().run.tier_orb_conf)
 
     def test_creating_orb_with_high_tier(self):
         TierOrb.MAX_TIER = 999
-        orb = TierOrb(666)
+        orb = TierOrb(666, get_test_config().run.tier_orb_conf)
 
         orb.step_wise_scoring = True
         assert (orb.meta.tier + 1) * orb._TIER_BASE_REWARD == orb.REWARD
@@ -92,4 +94,4 @@ class TestTier:
         TierOrb.MAX_TIER = self._MAX_TIER
 
         with pytest.raises(ValueError):
-            TierOrb(666)
+            TierOrb(666, get_test_config().run.tier_orb_conf)

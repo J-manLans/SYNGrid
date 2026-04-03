@@ -1,6 +1,9 @@
+from syn_grid.gymnasium.environment import SYNGridEnv
+
+from tests.utils.config_helpers import get_test_config, update_conf
+
 import numpy as np
 import pytest
-from syn_grid.gymnasium.environment import SYNGridEnv
 
 
 class TestEnvironment:
@@ -15,40 +18,27 @@ class TestEnvironment:
     @pytest.fixture
     def env(self):
         """
-        Pytest fixture that provides a fresh environment instance
-        for tests that require a default configuration.
+        Pytest fixture that provides a fresh environment instance for tests that require a default configuration.
         """
-        return SYNGridEnv()
 
-    def test_initialization(self, env):
+        conf = get_test_config()
+
+        return SYNGridEnv(conf.run, conf.obs)
+
+    def test_initialization(self, env: SYNGridEnv):
         """
-        Verify that the environment initializes correctly and defines
-        the required Gymnasium spaces.
+        Verify that the default headless environment initializes correctly and defines the required Gymnasium spaces.
         """
+
+        assert not hasattr(env, "renderer")
         assert env.action_space is not None
         assert env.observation_space is not None
 
-    def test_custom_initialization(self):
+    def test_reset_returns_valid_observation(self, env: SYNGridEnv):
         """
-        Verify that custom initialization parameters are correctly
-        applied to the environment.
+        Verify that reset() returns a valid observation and info dictionary as required by the Gymnasium API.
         """
-        env = SYNGridEnv(max_active_resources=5, grid_rows=7, grid_cols=6, max_steps=50)
 
-        # Check that configuration parameters were stored correctly
-        assert env.max_active_resources == 5
-        assert env.grid_rows == 7
-        assert env.grid_cols == 6
-
-        # Ensure required Gym spaces exist
-        assert env.action_space is not None
-        assert env.observation_space is not None
-
-    def test_reset_returns_valid_observation(self, env):
-        """
-        Verify that reset() returns a valid observation and info dictionary
-        as required by the Gymnasium API.
-        """
         obs, info = env.reset()
 
         # Observation must conform to the defined observation space
@@ -62,8 +52,11 @@ class TestEnvironment:
         Verify that resetting two environments with the same seed
         produces identical observations.
         """
-        env1 = SYNGridEnv()
-        env2 = SYNGridEnv()
+
+        conf = get_test_config()
+
+        env1 = SYNGridEnv(conf.run, conf.obs)
+        env2 = SYNGridEnv(conf.run, conf.obs)
 
         obs1, _ = env1.reset(seed=42)
         obs2, _ = env2.reset(seed=42)
@@ -75,11 +68,12 @@ class TestEnvironment:
         for key in obs1:
             assert np.array_equal(obs1[key], obs2[key])
 
-    def test_step_returns_gym_contract(self, env):
+    def test_step_returns_gym_contract(self, env: SYNGridEnv):
         """
         Verify that step() returns values that follow the Gymnasium API:
         (observation, reward, terminated, truncated, info).
         """
+
         env.reset()
 
         action = env.action_space.sample()
@@ -98,10 +92,11 @@ class TestEnvironment:
         # Info must be a dictionary
         assert isinstance(info, dict)
 
-    def test_invalid_action_raises(self, env):
+    def test_invalid_action_raises(self, env: SYNGridEnv):
         """
         Verify that invalid actions raise an exception.
         """
+
         env.reset()
 
         # Negative action index
@@ -117,7 +112,11 @@ class TestEnvironment:
         Verify that the environment eventually returns truncated=True
         when the maximum number of steps is exceeded.
         """
-        env = SYNGridEnv(max_steps=5)
+
+        conf = get_test_config()
+        obs_conf = update_conf(conf.obs, {"observation_handler": {"max_steps": 5}})
+
+        env = SYNGridEnv(conf.run, obs_conf)
         env.reset()
 
         truncated = False
@@ -136,6 +135,7 @@ class TestEnvironment:
         Verify that the environment eventually reaches either a terminated
         or truncated state during normal operation.
         """
+
         env.reset()
 
         terminated = False
@@ -150,12 +150,14 @@ class TestEnvironment:
 
         assert terminated or truncated
 
-    def test_reder_without_human_mode_returns_none_or_str(self):
+    def test_render_without_human_mode_returns_none_or_str(self):
         """
         Verify that render() returns either None or a string when rendering
         is enabled with human mode.
         """
-        env = SYNGridEnv(render_mode="human")
+        conf = get_test_config()
+
+        env = SYNGridEnv(conf.run, conf.obs, render_mode="human")
         env.reset()
 
         result = env.render()

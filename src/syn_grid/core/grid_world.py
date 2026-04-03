@@ -1,7 +1,7 @@
 from syn_grid.config.models import (
     GridWorldConf,
     OrbConf,
-    OrbManagerConf,
+    OrbFactoryConf,
     DroidConf,
     NegativeConf,
     TierConf,
@@ -9,9 +9,8 @@ from syn_grid.config.models import (
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.orb_meta import OrbMeta
+from syn_grid.core.orbs.orb_factory import OrbFactory
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
-from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 
 import numpy as np
 from numpy.random import Generator, default_rng
@@ -19,18 +18,18 @@ from typing import Final
 
 
 class GridWorld:
-    ALL_ORBS: Final[list[BaseOrb]]
-    _inactive_orbs: list[BaseOrb] = []
-    _active_orbs: list[BaseOrb] = []
-
     # ================= #
     #       Init        #
     # ================= #
 
+    ALL_ORBS: Final[list[BaseOrb]]
+    _inactive_orbs: list[BaseOrb] = []
+    _active_orbs: list[BaseOrb] = []
+
     def __init__(
         self,
         conf: GridWorldConf,
-        orb_manager_conf: OrbManagerConf,
+        orb_manager_conf: OrbFactoryConf,
         droid_conf: DroidConf,
         negative_orb_conf: NegativeConf,
         tier_orb_conf: TierConf,
@@ -43,15 +42,16 @@ class GridWorld:
             raise ValueError("grid_cols and grid_rows should be larger than 0")
 
         self._max_active_orbs = conf.max_active_orbs
-        self.grid_rows = conf.grid_rows
-        self.grid_cols = conf.grid_cols
-        self.max_tier = conf.max_tier
+        self._grid_rows = conf.grid_rows
+        self._grid_cols = conf.grid_cols
 
         self.droid = SynergyDroid(droid_conf)
 
-        self.ALL_ORBS = self._create_orbs(
-            orb_manager_conf, negative_orb_conf, tier_orb_conf
-        )
+        self.ALL_ORBS = OrbFactory(
+            orb_manager_conf,
+            negative_orb_conf,
+            tier_orb_conf
+        ).create_orbs()
 
     def reset(self, rng: Generator | None = None) -> None:
         """
@@ -133,57 +133,6 @@ class GridWorld:
     #      Helpers      #
     # ================= #
 
-    # === Init === #
-
-    def _create_orbs(
-        self,
-        orb_manager_conf: OrbManagerConf,
-        negative_orb_conf: NegativeConf,
-        tier_orb_conf: TierConf,
-    ) -> list[BaseOrb]:
-        orbs: list[BaseOrb] = []
-
-        # Extract enabled orbs and their weights
-        enabled_orbs = self._get_enabled_orbs(orb_manager_conf)
-
-        # Normalize weights
-        total_weight = sum(enabled_orbs.values())
-
-        # Shared setup
-        BaseOrb.set_life_span(self.grid_rows, self.grid_cols)
-        TierOrb.MAX_TIER = self.max_tier
-
-        # Spawn orbs based on normalized weight
-        for orb_type, weight in enabled_orbs.items():
-            ratio = weight / total_weight
-            count = self._compute_spawn_count(ratio)
-
-            if orb_type == "negative":
-                for _ in range(count):
-                    orbs.append(NegativeOrb(negative_orb_conf))
-            elif orb_type == "tier":
-                for tier in range(0, self.max_tier + 1):
-                    for _ in range(count):
-                        orbs.append(TierOrb(tier, tier_orb_conf))
-
-        return orbs
-
-    def _get_enabled_orbs(self, orb_manager_conf: OrbManagerConf) -> dict[str, int]:
-        enabled_orbs = {}
-
-        for orb_type in orb_manager_conf.model_dump().keys():
-            orb_conf: OrbConf = getattr(orb_manager_conf, orb_type)
-            if orb_conf.enabled:
-                enabled_orbs[orb_type] = orb_conf.weight
-
-        if not enabled_orbs:
-            raise ValueError("At least one orb must be enabled")
-
-        return enabled_orbs
-
-    def _compute_spawn_count(self, ratio: float) -> int:
-        return max(1, int((self._max_active_orbs * ratio) + 0.5))
-
     # === API === #
 
     def _update_timer_and_return_is_completed(self, orb: BaseOrb) -> bool:
@@ -206,8 +155,8 @@ class GridWorld:
 
             while True:
                 position = [
-                    self.rng.integers(0, self.grid_rows),
-                    self.rng.integers(0, self.grid_cols),
+                    self.rng.integers(0, self._grid_rows),
+                    self.rng.integers(0, self._grid_cols),
                 ]
 
                 if self._empty_spawn_cell(position):

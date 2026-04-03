@@ -12,7 +12,7 @@ class HumanRunner:
         self._renderer = PygameRenderer(run_conf.renderer_conf, 60)
         self._world = GridWorld(
             run_conf.grid_world_conf,
-            run_conf.orb_manager_conf,
+            run_conf.orb_factory_conf,
             run_conf.droid_conf,
             run_conf.negative_orb_conf,
             run_conf.tier_orb_conf,
