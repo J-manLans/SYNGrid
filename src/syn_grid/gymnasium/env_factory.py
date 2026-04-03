@@ -1,7 +1,7 @@
 import gymnasium as gym
 from gymnasium import Env
 from gymnasium.envs.registration import registry, register
-from syn_grid.config.models import RunConfig, ObsConfig
+from syn_grid.config.models import WorldConfig, ObsConfig
 
 
 def register_env() -> None:
@@ -14,7 +14,7 @@ def register_env() -> None:
         )
 
 
-def make(render_mode: str | None, run_conf: RunConfig, obs_conf: ObsConfig) -> Env:
+def make(render_mode: str | None, run_conf: WorldConfig, obs_conf: ObsConfig) -> Env:
     """Creates the registered environment, used when training or evaluating the agent."""
 
     return gym.make(

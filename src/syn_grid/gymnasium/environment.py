@@ -1,7 +1,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 
-from syn_grid.config.models import RunConfig, ObsConfig
+from syn_grid.config.models import WorldConfig, ObsConfig
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space import ObservationHandler
@@ -28,7 +28,7 @@ class SYNGridEnv(gym.Env):
 
     def __init__(
         self,
-        run_conf: RunConfig,
+        run_conf: WorldConfig,
         obs_conf: ObsConfig,
         render_mode: str | None = None,
     ):

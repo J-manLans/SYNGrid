@@ -1,4 +1,4 @@
-from syn_grid.config.models import RunConfig
+from syn_grid.config.models import WorldConfig
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.core.grid_world import GridWorld
 
@@ -8,7 +8,7 @@ class HumanRunner:
     #       Init        #
     # ================= #
 
-    def __init__(self, run_conf: RunConfig, steps_left: int):
+    def __init__(self, run_conf: WorldConfig, steps_left: int):
         self._renderer = PygameRenderer(run_conf.renderer_conf, 60)
         self._world = GridWorld(
             run_conf.grid_world_conf,

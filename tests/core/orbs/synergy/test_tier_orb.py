@@ -37,7 +37,7 @@ class TestTierOrb:
 
         BaseOrb.set_life_span(self._GRID_ROWS, self._GRID_COLS)
         TierOrb.MAX_TIER = self._MAX_TIER
-        t = TierOrb(self._TIER, get_test_config().run.tier_orb_conf)
+        t = TierOrb(self._TIER, get_test_config().world.tier_orb_conf)
         t.reset()
 
         return t
@@ -78,11 +78,11 @@ class TestTierOrb:
 
     def test_creating_orb_with_negative_tier(self):
         with pytest.raises(ValueError):
-            TierOrb(-1, get_test_config().run.tier_orb_conf)
+            TierOrb(-1, get_test_config().world.tier_orb_conf)
 
     def test_creating_orb_with_high_tier(self):
         TierOrb.MAX_TIER = 999
-        orb = TierOrb(666, get_test_config().run.tier_orb_conf)
+        orb = TierOrb(666, get_test_config().world.tier_orb_conf)
 
         orb.step_wise_scoring = True
         assert (orb.meta.tier + 1) * orb._TIER_BASE_REWARD == orb.REWARD
@@ -94,4 +94,4 @@ class TestTierOrb:
         TierOrb.MAX_TIER = self._MAX_TIER
 
         with pytest.raises(ValueError):
-            TierOrb(666, get_test_config().run.tier_orb_conf)
+            TierOrb(666, get_test_config().world.tier_orb_conf)

@@ -30,7 +30,7 @@ class TestAgentRunner:
         full_conf = get_test_config()
 
         agent_conf = update_conf(full_conf.agent.global_agent_conf, {"algorithm_index": 2})
-        run_conf = full_conf.run
+        run_conf = full_conf.world
         obs_conf = full_conf.obs
 
 
@@ -68,7 +68,7 @@ class TestAgentRunner:
         full_conf = get_test_config()
 
         agent_conf = update_conf(full_conf.agent.global_agent_conf, {"algorithm_index": 4})
-        run_conf = full_conf.run
+        run_conf = full_conf.world
         obs_conf = full_conf.obs
 
 

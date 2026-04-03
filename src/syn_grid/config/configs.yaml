@@ -10,10 +10,10 @@ snapshot:
   id: ""
 
 ###########################
-#    Run Configuration    #
+#   World Configuration   #
 ###########################
 
-run:
+world:
   grid_world_conf:
     # GridWorld settings:
     # - number of rows and columns

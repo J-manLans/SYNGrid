@@ -57,7 +57,7 @@ class TestSynergyDroid:
         Returns a SynergyDroid instance reset to its initial state. Used as a reusable fixture for most tests.
         """
 
-        droid = SynergyDroid(get_test_config().run.droid_conf)
+        droid = SynergyDroid(get_test_config().world.droid_conf)
         droid.reset()
 
         return droid
@@ -76,7 +76,7 @@ class TestSynergyDroid:
         for various grid sizes.
         """
 
-        conf = get_test_config().run.droid_conf.model_copy(update={"grid_rows": y, "grid_cols": x})
+        conf = get_test_config().world.droid_conf.model_copy(update={"grid_rows": y, "grid_cols": x})
 
         droid = SynergyDroid(conf)
         droid.reset()
@@ -90,7 +90,7 @@ class TestSynergyDroid:
         after creation.
         """
 
-        conf = get_test_config().run.droid_conf.model_copy(update={"starting_score": score})
+        conf = get_test_config().world.droid_conf.model_copy(update={"starting_score": score})
 
         droid = SynergyDroid(conf)
 
@@ -165,7 +165,7 @@ class TestSynergyDroid:
         in any direction and remains at [0, 0].
         """
 
-        conf = get_test_config().run.droid_conf.model_copy(update={"grid_rows": 1, "grid_cols": 1})
+        conf = get_test_config().world.droid_conf.model_copy(update={"grid_rows": 1, "grid_cols": 1})
 
         droid = SynergyDroid(conf)
         droid.reset()

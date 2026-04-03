@@ -27,7 +27,7 @@
       "request": "launch",
       "module": "pytest",
       "args": [
-          "tests/runners/agent_runner/test_agent_runner.py",
+          "tests/core/orbs/test_orbFactory.py",
           "-v"
       ],
       "justMyCode": true
