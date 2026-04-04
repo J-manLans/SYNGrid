@@ -38,8 +38,8 @@ world:
 
   orb_factory_conf:
     # Orbs manager settings:
-    # - max active orbs on grid
-    # - max tier of the tier type orbs
+    # - max_active_orbs: max active orbs on grid (set in grid_world_conf)
+    # - max_tier: max tier of the tier type orbs
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
     max_active_orbs: *max_active_orbs

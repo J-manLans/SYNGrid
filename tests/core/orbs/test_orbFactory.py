@@ -4,6 +4,7 @@ from syn_grid.core.orbs.base_orb import BaseOrb
 from tests.utils.config_helpers import get_test_config, update_conf
 
 import pytest
+from collections import Counter
 
 
 class TestOrbFactory:
@@ -25,38 +26,66 @@ class TestOrbFactory:
     #       Tests       #
     # ================= #
 
-    @pytest.mark.parametrize("tier", [0, 1, 2, 3, 4, 5])
+    @pytest.mark.parametrize("max_tier", [0, 1, 2, 3, 4, 5])
     def test_create_orbs_fills_to_min_pool_size_with_limited_active_orbs(
-        self, tier: int
+        self, max_tier: int
     ):
-        factory = self._make_adjusted_factory(tier, 3)
+        factory = self._make_tier_and_max_active_adjusted_factory(max_tier, 3)
         orbs = factory.create_orbs()
+
+        tier_counts = Counter(orb.meta.tier for orb in orbs)
+        expected_counts = self._expected_tier_counts(max_tier, factory._MIN_POOL_SIZE)
+        for t, expected in expected_counts.items():
+            assert tier_counts.get(t, 0) == expected
 
         assert len(orbs) == factory._MIN_POOL_SIZE
 
     @pytest.mark.parametrize("tier", [i for i in range(100, 120)])
     def test_orbs_one_per_tier_after_min_pool_with_limited_active_orbs(self, tier: int):
-        factory = self._make_adjusted_factory(tier, 3)
+        factory = self._make_tier_and_max_active_adjusted_factory(tier, 3)
         orbs = factory.create_orbs()
 
         assert len(orbs) == factory._max_tier + 4
 
-    @pytest.mark.parametrize("max_active_orbs", [0, 1, 2, 3, 4, 5])
-    def test_create_orbs_respects_different_max_active_orbs(
-        self, max_active_orbs:int
-    ):
-        factory = self._make_adjusted_factory(1, max_active_orbs)
+    @pytest.mark.parametrize("max_active_orbs", [i for i in range(1, 10)])
+    def test_create_orbs_respects_different_max_active_orbs(self, max_active_orbs: int):
+        factory = self._make_tier_and_max_active_adjusted_factory(1, max_active_orbs)
         orbs = factory.create_orbs()
 
+        assert len(orbs) == factory._max_active_orbs * 3
+
+    def test_create_orbs_respects_different_weights(
+        self, factory_tuple: tuple[OrbFactory, OrbFactoryConf]
+    ):
+        factory, conf = factory_tuple
+
+        orb_factory_conf = update_conf(
+            conf,
+            {
+                "max_tier": 1,
+                "max_active_orbs": 3,
+                "types": {
+                    "negative": {"enabled": True, "weight": 1},
+                    "tier": {"enabled": True, "weight": 11},
+                },
+            },
+        )
+
+        orbs = factory.create_orbs()
+
+        assert len(orbs) == factory._max_active_orbs * 3
 
     # ================= #
     #     Helpers       #
     # ================= #
 
-    def _make_adjusted_factory(self, tier: int, max_active_orbs: int) -> OrbFactory:
+    def _make_tier_and_max_active_adjusted_factory(
+        self, tier: int, max_active_orbs: int
+    ) -> OrbFactory:
         conf = get_test_config().world
         orb_factory_conf = update_conf(
-            conf.orb_factory_conf, {"max_tier": tier, "max_active_orbs": max_active_orbs}
+            conf.orb_factory_conf,
+            {"max_tier": tier, "max_active_orbs": max_active_orbs},
         )
 
         factory = OrbFactory(
@@ -64,3 +93,19 @@ class TestOrbFactory:
         )
 
         return factory
+
+    def _expected_tier_counts(
+        self, max_tier: int, min_pool_size: int = 9, negative_count: int = 3
+    ) -> dict[int, int]:
+        """
+        Return expected count per tier orb, assuming negative orbs take negative_count.
+        """
+
+        remaining = min_pool_size - negative_count
+        tiers = max_tier + 1
+        base_count, extra = divmod(remaining, tiers)
+
+        counts = {}
+        for tier in range(tiers):
+            counts[tier] = base_count + (1 if tier < extra else 0)
+        return counts
