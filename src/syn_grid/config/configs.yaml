@@ -22,22 +22,6 @@ world:
     grid_cols: &grid_cols 5
     max_active_orbs: &max_active_orbs 3
 
-  orb_factory_conf:
-    # Orbs manager settings:
-    # - max active orbs on grid (set in grid_world_conf)
-    # - max_tier: max tier of the tier type orbs
-    # - each orb type can be enabled/disabled
-    # - weight defines relative spawn frequency when multiple orbs are active
-    max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 1
-    types:
-      negative:
-        enabled: true
-        weight: 1
-      tier:
-        enabled: true
-        weight: 2
-
   renderer_conf:
     # Renderer settings:
     # - grid_rows / grid_cols (set in grid_world_conf): used to calculate display size and layout
@@ -51,6 +35,22 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 40
+
+  orb_factory_conf:
+    # Orbs manager settings:
+    # - max_active_orbs: max active orbs on grid (set in grid_world_conf)
+    # - max_tier: max tier of the tier type orbs
+    # - each orb type can be enabled/disabled
+    # - weight defines relative spawn frequency when multiple orbs are active
+    max_active_orbs: *max_active_orbs
+    max_tier: &max_tier 1
+    types:
+      negative:
+        enabled: true
+        weight: 1
+      tier:
+        enabled: true
+        weight: 2
 
   negative_orb_conf:
     # Negative orb behavior:

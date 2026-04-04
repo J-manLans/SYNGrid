@@ -38,8 +38,11 @@ class GridWorld:
         Initializes the grid world. Defines the game world's size and initializes the droid and orbs.
         """
 
-        if conf.grid_rows < 1 or conf.grid_cols < 1:
+        if conf.grid_rows <= 0 or conf.grid_cols <= 0:
             raise ValueError("grid_cols and grid_rows should be larger than 0")
+
+        if conf.max_active_orbs <= 0:
+            raise ValueError("max_active_orbs should be larger than 0")
 
         self._max_active_orbs = conf.max_active_orbs
         self._grid_rows = conf.grid_rows
