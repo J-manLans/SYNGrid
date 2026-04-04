@@ -11,7 +11,7 @@ class SnapshotConf(BaseModel, frozen=True):
 
 
 # ----------------------- #
-#    Run Configuration    #
+#   World Configuration   #
 # ----------------------- #
 
 
@@ -32,15 +32,29 @@ class DroidConf(BaseModel, frozen=True):
     starting_score: int
 
 
+# === OrbFactory START === #
+
+
 class OrbConf(BaseModel, frozen=True):
     enabled: bool
     weight: int
 
 
+class TypesConf(BaseModel, frozen=True):
+    negative: OrbConf
+    tier: OrbConf
+
+    class Config:
+        extra = 'allow'
+
+
 class OrbFactoryConf(BaseModel, frozen=True):
     max_active_orbs: int
     max_tier: int
-    types: dict[str, OrbConf]
+    types: TypesConf
+
+
+# === OrbFactory END === #
 
 
 class NegativeConf(BaseModel, frozen=True):
