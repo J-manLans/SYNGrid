@@ -33,27 +33,26 @@ class OrbFactory:
         """Create all orbs according to the config and weights"""
 
         enabled_orbs = self._get_conf_enabled_orbs()
-        num_enabled_orbs = len(enabled_orbs)
         total_weight = sum(enabled_orbs.values())
 
         # Shared setup
         BaseOrb.set_life_span(self._max_active_orbs, self._max_active_orbs)
         TierOrb.MAX_TIER = self._max_tier
 
-        orbs: list[BaseOrb] = []
-        for orb_type, orb_weight in enabled_orbs.items():
-            ratio = orb_weight / total_weight
-            count = self._compute_spawn_count(orb_type, num_enabled_orbs, ratio)
+        ratios = [orb_weight / total_weight for orb_weight in enabled_orbs.values()]
+        counts = self._scale_ratios_to_counts(ratios)
+        if sum(counts) < self._MIN_POOL_SIZE:
+            counts = [self._MIN_POOL_SIZE * ratio for ratio in ratios]
+            counts = self._normalize_counts(counts)
 
+        orbs: list[BaseOrb] = []
+        for i, orb_type in enumerate(enabled_orbs):
             if orb_type == "negative":
                 orbs.extend(
-                    [NegativeOrb(self._negative_orb_conf) for _ in range(count)]
+                    [NegativeOrb(self._negative_orb_conf) for _ in range(counts[i])]
                 )
             elif orb_type == "tier":
-                for tier in range(self._max_tier + 1):
-                    orbs.extend(
-                        [TierOrb(tier, self._tier_orb_conf) for _ in range(count)]
-                    )
+                self._initialize_tier_orbs(orbs, counts[i])
 
         return orbs
 
@@ -65,25 +64,47 @@ class OrbFactory:
         """Return enabled orb types and their weights from orb_manager_conf"""
 
         enabled_orbs = {}
-        for orb_type, orb_conf in self._orb_manager_conf.types.items():
+        for orb_type, orb_conf in self._orb_manager_conf.types:
             if orb_conf.enabled:
                 enabled_orbs[orb_type] = orb_conf.weight
         if not enabled_orbs:
             raise ValueError("At least one orb must be enabled")
         return enabled_orbs
 
-    def _compute_spawn_count(
-        self, orb_type: str, num_enabled_orbs: int, ratio: float
-    ) -> int:
-        """Compute how many orbs to spawn based on weight ratio"""
+    def _scale_ratios_to_counts(self, ratios: list[float]) -> list[int]:
+        scaling_factor = 1 / min(ratios)
+        counts = [int(ratio * scaling_factor) for ratio in ratios]
+        return counts
 
-        if orb_type == 'tier':
-            return self._compute_tier_spawn_count(num_enabled_orbs, ratio)
+    def _normalize_counts(self, counts: list[float]) -> list[int]:
+        counts_int = [int(c) for c in counts]
+        diff = self._MIN_POOL_SIZE - sum(counts_int)
 
-        count = self._MIN_POOL_SIZE * ratio
+        if diff == 0:
+            return counts_int
 
-        # Change to correct return type
-        return 0
+        counts_int.sort()
+        for i in range(diff):
+            # Distribute +1 starting from the largest counts,
+            # wrapping around if diff > len(counts)
+            counts_int[-(i % len(counts_int) + 1)] += 1
 
-    def _compute_tier_spawn_count(self, num_enabled_orbs: int, ratio: float) -> int:
-        ...
+        return counts_int
+
+    def _initialize_tier_orbs(self, orbs: list[BaseOrb], count: int):
+        if self._max_tier >= count:
+            for tier in range(self._max_tier + 1):
+                orbs.append(TierOrb(tier, self._tier_orb_conf))
+            return
+
+        new_count = count / (self._max_tier + 1)
+
+        if new_count.is_integer():
+            for tier in range(self._max_tier + 1):
+                orbs.extend(
+                    [TierOrb(tier, self._tier_orb_conf) for _ in range(int(new_count))]
+                )
+        else:
+            for i in range(count):
+                tier = i % (self._max_tier + 1)
+                orbs.append(TierOrb(tier, self._tier_orb_conf))
