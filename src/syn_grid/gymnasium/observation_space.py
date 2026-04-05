@@ -48,14 +48,13 @@ class ObservationHandler:
         orb_raw_low, self._orb_raw_high = self._build_orb_box_bounds(False, np.float16)
 
         # reusable buffers for get_observation() to avoid per-step allocations
-        # TODO: think I need to switch this to something else, because reward is now float
-        self._agent_data = np.zeros_like(agent_raw_low, dtype=np.int16)
-        self._orb_data = np.zeros_like(orb_raw_low, dtype=np.int16)
+        self._agent_data = np.zeros_like(agent_raw_low)
+        self._orb_data = np.zeros_like(orb_raw_low)
 
         # normalized bounds — match _normalize_obs()
         # inactive orbs keep -1 as a valid "low" value; active features map to 0..1
-        agent_low_norm, agent_high_norm = self._build_agent_box_bounds(True, np.float16)
-        orb_low_norm, orb_high_norm = self._build_orb_box_bounds(True, np.float16)
+        agent_low_norm, agent_high_norm = self._build_agent_box_bounds(True, np.float32)
+        orb_low_norm, orb_high_norm = self._build_orb_box_bounds(True, np.float32)
 
         self.observation_space: dict[str, spaces.Space] = {
             "agent data": spaces.Box(
@@ -150,9 +149,7 @@ class ObservationHandler:
     # TODO: Go over these. They work well for direct orbs. Thinking a subclass for different
     # orb types would be needed so constant flipping back and forth when testing different
     # things which introduce bugs can be avoided.
-    def _build_agent_box_bounds(
-        self, normalized: bool, arr_type
-    ) -> tuple[NDArray[Any], NDArray[Any]]:
+    def _build_agent_box_bounds(self, normalized: bool, dtype) -> tuple[NDArray[Any], NDArray[Any]]:
         if normalized:
             min_row = min_col = min_steps = min_score = 0.0
             min_tier_chain = -1.0
@@ -173,8 +170,8 @@ class ObservationHandler:
         low = [min_row, min_col, min_steps, min_score, min_tier_chain]
         high = [max_row, max_col, max_steps, max_score, max_tier_chain]
 
-        low_arr = np.asarray(low, dtype=arr_type)
-        high_arr = np.asarray(high, dtype=arr_type)
+        low_arr = np.asarray(low, dtype=dtype)
+        high_arr = np.asarray(high, dtype=dtype)
 
         self._control_arrays(low_arr, high_arr)
 
