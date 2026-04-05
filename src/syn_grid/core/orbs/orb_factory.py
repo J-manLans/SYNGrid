@@ -32,6 +32,7 @@ class OrbFactory:
     def create_orbs(self) -> list[BaseOrb]:
         """Create all orbs according to the config and weights"""
 
+        # Gets the ena—bed orbs and calculate their total weight
         enabled_orbs = self._get_conf_enabled_orbs()
         total_weight = sum(enabled_orbs.values())
 
@@ -39,12 +40,12 @@ class OrbFactory:
         BaseOrb.set_life_span(self._max_active_orbs, self._max_active_orbs)
         TierOrb.MAX_TIER = self._max_tier
 
-        ratios = [orb_weight / total_weight for orb_weight in enabled_orbs.values()]
+        # Calculate counts through ratios via orb weights
+        ratios = [(orb_weight / total_weight) for orb_weight in enabled_orbs.values()]
         counts = self._scale_ratios_to_counts(ratios)
-        if sum(counts) < self._MIN_POOL_SIZE:
-            counts = [self._MIN_POOL_SIZE * ratio for ratio in ratios]
-            counts = self._normalize_counts(counts)
+        counts = self._ensure_min_pool_size(counts, ratios)
 
+        # Initialize orbs based on count per orb type
         orbs: list[BaseOrb] = []
         for i, orb_type in enumerate(enabled_orbs):
             if orb_type == "negative":
@@ -73,8 +74,17 @@ class OrbFactory:
 
     def _scale_ratios_to_counts(self, ratios: list[float]) -> list[int]:
         scaling_factor = 1 / min(ratios)
-        counts = [int(ratio * scaling_factor) for ratio in ratios]
+        counts = [max(1, int(ratio * scaling_factor)) for ratio in ratios]
         return counts
+
+    def _ensure_min_pool_size(self, counts: list[int], ratios: list[float]) -> list[int]:
+        """Ensure total orb count meets minimum pool size by rescaling if needed."""
+
+        if sum(counts) >= self._MIN_POOL_SIZE:
+            return counts
+
+        scaled = [self._MIN_POOL_SIZE * ratio for ratio in ratios]
+        return self._normalize_counts(scaled)
 
     def _normalize_counts(self, counts: list[float]) -> list[int]:
         counts_int = [int(c) for c in counts]
@@ -92,18 +102,21 @@ class OrbFactory:
         return counts_int
 
     def _initialize_tier_orbs(self, orbs: list[BaseOrb], count: int):
+        # Default behavior when the projected total orb pool exceeds the minimum:
+        # spawn one orb per tier and return early.
         if self._max_tier >= count:
             for tier in range(self._max_tier + 1):
                 orbs.append(TierOrb(tier, self._tier_orb_conf))
             return
 
-        new_count = count / (self._max_tier + 1)
-
-        if new_count.is_integer():
+        # If total count can be evenly divided across tiers, spawn exactly that many orbs per tier.
+        # Else, if total orbs cannot be evenly divided, distribute them one by one across tiers,
+        # looping back to the first tier as needed.
+        orbs_per_tier = count / (self._max_tier + 1)
+        if orbs_per_tier.is_integer():
             for tier in range(self._max_tier + 1):
-                orbs.extend(
-                    [TierOrb(tier, self._tier_orb_conf) for _ in range(int(new_count))]
-                )
+                for _ in range(int(orbs_per_tier)):
+                    orbs.append(TierOrb(tier, self._tier_orb_conf))
         else:
             for i in range(count):
                 tier = i % (self._max_tier + 1)
