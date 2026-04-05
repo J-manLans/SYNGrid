@@ -11,6 +11,7 @@ class TestOrbFactory:
     # ================= #
     #       Init        #
     # ================= #
+
     @pytest.fixture
     def factory_tuple(self) -> tuple[OrbFactory, OrbFactoryConf]:
         conf = get_test_config().world
@@ -33,10 +34,8 @@ class TestOrbFactory:
         factory = self._make_tier_and_max_active_adjusted_factory(max_tier, 3)
         orbs = factory.create_orbs()
 
-        tier_counts = Counter(orb.meta.tier for orb in orbs)
-        expected_counts = self._expected_tier_counts(max_tier, factory._MIN_POOL_SIZE)
-        for t, expected in expected_counts.items():
-            assert tier_counts.get(t, 0) == expected
+        tier_counts = Counter(orb.meta.tier for orb in orbs if orb.meta.tier > -1)
+        assert tier_counts == self._expected_tier_counts(max_tier + 1, factory._MIN_POOL_SIZE - 3)
 
         assert len(orbs) == factory._MIN_POOL_SIZE
 
@@ -95,17 +94,14 @@ class TestOrbFactory:
         return factory
 
     def _expected_tier_counts(
-        self, max_tier: int, min_pool_size: int = 9, negative_count: int = 3
+        self, num_tiers: int, total_tier_orbs
     ) -> dict[int, int]:
-        """
-        Return expected count per tier orb, assuming negative orbs take negative_count.
-        """
+        # gives both quotient and remainder
+        base_per_tier, tiers_with_extra = divmod(total_tier_orbs, num_tiers)
 
-        remaining = min_pool_size - negative_count
-        tiers = max_tier + 1
-        base_count, extra = divmod(remaining, tiers)
+        counts = {
+            tier: base_per_tier + (1 if tier < tiers_with_extra else 0)
+            for tier in range(num_tiers)
+        }
 
-        counts = {}
-        for tier in range(tiers):
-            counts[tier] = base_count + (1 if tier < extra else 0)
         return counts
