@@ -77,7 +77,9 @@ class OrbFactory:
         counts = [max(1, int(ratio * scaling_factor)) for ratio in ratios]
         return counts
 
-    def _ensure_min_pool_size(self, counts: list[int], ratios: list[float]) -> list[int]:
+    def _ensure_min_pool_size(
+        self, counts: list[int], ratios: list[float]
+    ) -> list[int]:
         """Ensure total orb count meets minimum pool size by rescaling if needed."""
 
         if sum(counts) >= self._MIN_POOL_SIZE:

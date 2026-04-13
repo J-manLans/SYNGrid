@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 # ======================= #
 #   Experiment Settings   #
@@ -45,7 +45,7 @@ class TypesConf(BaseModel, frozen=True):
     tier: OrbConf
 
     class Config:
-        extra = 'allow'
+        extra = "allow"
 
 
 class OrbFactoryConf(BaseModel, frozen=True):
@@ -79,7 +79,20 @@ class ObservationConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
     max_tier: int
+    max_curriculum_tier: int
     max_steps: int
+    modality: str
+    difficulty: str
+
+
+    @model_validator(mode="after")
+    def clamp_curriculum(self):
+        if self.max_curriculum_tier < self.max_tier:
+            raise ValueError(
+                f"max_curriculum_tier ({self.max_curriculum_tier}) "
+                f"must be equal to or exceed max_tier ({self.max_tier})"
+            )
+        return self
 
 
 # ----------------------- #

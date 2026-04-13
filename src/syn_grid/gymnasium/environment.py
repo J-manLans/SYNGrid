@@ -5,6 +5,9 @@ from syn_grid.config.models import WorldConfig, ObsConfig
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space import ObservationHandler
+from syn_grid.gymnasium.observation_space_developing.observation_handler import (
+    ObservationHandlerDeveloping,
+)
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 
 
@@ -52,6 +55,11 @@ class SYNGridEnv(gym.Env):
         # Gymnasium also requires us to define action_space — which is the agent's possible
         # actions. Training code can call action_space.sample() to randomly select an action.
         self.action_space = spaces.Discrete(len(DroidAction))
+
+        obsHandler = ObservationHandlerDeveloping(
+            self.world, run_conf.orb_factory_conf, obs_conf.observation_handler
+        )
+        obsHandler.setup_obs_space()
 
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.

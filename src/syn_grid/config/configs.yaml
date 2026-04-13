@@ -39,7 +39,7 @@ world:
   orb_factory_conf:
     # Orbs manager settings:
     # - max_active_orbs: max active orbs on grid (set in grid_world_conf)
-    # - max_tier: max tier of the tier type orbs
+    # - max_tier: this is the highest tier that orbs can reach in this environment.
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
     max_active_orbs: *max_active_orbs
@@ -81,11 +81,17 @@ obs:
     # Observation handler settings:
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
     # - max_tier (set in orb_factory_conf): max tier of the tier type orbs
+    # - max_curriculum_tier: defines how many tier channels are preallocated. Must be fixed per run to keep observation shape stable during training.
     # - max_steps: number of steps in an episode until truncated
+    # - modality: decides what type of observation the agent get. vector, spatial and pixel will be the options
+    # - difficulty: decides how much information to pack into the agents observation. hard, medium and easy are the options
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_tier: *max_tier
+    max_curriculum_tier: 10
     max_steps: 100
+    modality: "spatial"
+    difficulty: "medium"
 
 ###########################
 #   Agent Configuration   #
