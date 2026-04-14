@@ -92,10 +92,6 @@ obs:
     # - max_score: set per scenario based on expected achievable score in this setup
     # - max and min tier (set in orb_factory_conf): max tier of the tier type orbs
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
-    # TODO: look over these min values, don't think I need them
-    min_steps: &min_steps 0
-    min_score: &min_score 0
-    min_tier: &min_tier 0
     max_score: &max_score 100
     max_steps: &max_steps 100
     max_tier: *max_tier
@@ -123,9 +119,9 @@ agent:
     # - training: choose whether to train the agent or just run it
     # - agent_steps: identifier for the model to continue training or evaluate
     algorithm_index: 0
-    agent_steps: "1484800"
+    agent_steps: "1126400"
     identifier: "-1_reward_tier_1"
-    human_control: true
+    human_control: false
     training: true
 
   # Pick algorithm to train or evaluate
@@ -134,8 +130,8 @@ agent:
     # - continue_training: continue from a previously saved model
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: false
-    timesteps: 50000
+    continue_training: true
+    timesteps: 1126400
     iterations: 30
 
   eval_agent_conf:

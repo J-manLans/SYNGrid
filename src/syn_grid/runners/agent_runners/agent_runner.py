@@ -16,7 +16,7 @@ class AgentRunner:
     # ================= #
 
     agent_hyper_parameters = {
-        "policy": "MultiInputPolicy",
+        "policy": "CnnPolicy",
         "device": "cpu",
         "ent_coef": 0.02,  # exploration
     }

@@ -146,9 +146,6 @@ class ObservationHandlerOld:
     #       Helpers      #
     # ================== #
 
-    # TODO: Go over these. They work well for direct orbs. Thinking a subclass for different
-    # orb types would be needed so constant flipping back and forth when testing different
-    # things which introduce bugs can be avoided.
     def _build_agent_box_bounds(
         self, normalized: bool, dtype
     ) -> tuple[NDArray[Any], NDArray[Any]]:

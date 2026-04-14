@@ -48,10 +48,17 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
         model = runner.get_model(env)
     else:
         # Initialize a fresh model
+        policy_kwargs = {
+            "features_extractor_class": TinyGridCNN,
+            "features_extractor_kwargs": {"features_dim": 64},
+            "normalize_images": False
+        }
+
         model = runner.AlgorithmClass(
             env=env,
             verbose=1,
             tensorboard_log=str(log_dir),
+            policy_kwargs = policy_kwargs,
             **runner.agent_hyper_parameters,
         )
 
@@ -82,3 +89,34 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
             print(f"\nModel saved with {model.num_timesteps} time steps")
     finally:
         env.close()
+
+import torch
+import torch.nn as nn
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+
+class TinyGridCNN(BaseFeaturesExtractor):
+    def __init__(self, observation_space, features_dim=64):
+        super().__init__(observation_space, features_dim)
+        n_input_channels = observation_space.shape[-1]  # channels last: (H, W, C)
+        self.cnn = nn.Sequential(
+            nn.Conv2d(n_input_channels, 16, kernel_size=2, stride=1, padding=0),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=2, stride=1, padding=0),
+            nn.ReLU(),
+            nn.Flatten(),
+        )
+        # Compute shape after conv layers
+        with torch.no_grad():
+            sample = torch.as_tensor(observation_space.sample()[None]).float()
+            # SB3 expects channels last, but Conv2d expects channels first
+            sample = sample.permute(0, 3, 1, 2)  # (B, H, W, C) -> (B, C, H, W)
+            n_flatten = self.cnn(sample).shape[1]
+        self.linear = nn.Sequential(
+            nn.Linear(n_flatten, features_dim),
+            nn.ReLU(),
+        )
+
+    def forward(self, observations):
+        # Convert from channels-last (H, W, C) to channels-first (C, H, W)
+        x = observations.permute(0, 3, 1, 2)
+        return self.linear(self.cnn(x))

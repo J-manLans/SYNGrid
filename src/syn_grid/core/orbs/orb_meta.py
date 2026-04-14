@@ -1,7 +1,6 @@
 from enum import Enum
 
 
-# TODO: have added a NONE value here, need to check where this affect my design
 class OrbCategory(Enum):
     NONE = 0
     DIRECT = 1
