@@ -1,17 +1,21 @@
 from enum import Enum
 
 
+# TODO: have added a NONE value here, need to check where this affect my design
 class OrbCategory(Enum):
-    DIRECT = 0
-    SYNERGY = 1
+    NONE = 0
+    DIRECT = 1
+    SYNERGY = 2
 
 
 class SynergyType(Enum):
-    TIER = 0
+    NONE = 0
+    TIER = 1
 
 
 class DirectType(Enum):
-    NEGATIVE = 0
+    NONE = 0
+    NEGATIVE = 1
 
 
 class OrbMeta:
@@ -30,13 +34,13 @@ class OrbMeta:
         self.category = category
         self.type = type  # Same as above
 
-        if not tier == None and tier < 0:
-            raise ValueError("Tier can't be less than 0")
+        if (not tier == None) and tier < 1:
+            raise ValueError("Tier orbs can't have tiers less than 1")
         # Orbs tier.
         # 0 if not applicable
         # ...n for rest of the tier orbs
         # this is so the observation stays consistent
-        self.tier = tier if tier is not None else -1
+        self.tier = tier if tier is not None else 0
 
     # ================= #
     #      Helpers      #

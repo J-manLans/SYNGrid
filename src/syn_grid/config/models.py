@@ -75,18 +75,31 @@ class TierConf(BaseModel, frozen=True):
 # ----------------------- #
 
 
-class ObservationConf(BaseModel, frozen=True):
-    grid_rows: int
-    grid_cols: int
-    max_tier: int
-    max_curriculum_tier: int
-    max_steps: int
+class ObservationHandlerConf(BaseModel, frozen=True):
     modality: str
     difficulty: str
 
 
+class MediumDifficultyConf(BaseModel, frozen=True):
+    # TODO: look over these min values, don't think I need them
+    min_steps: int
+    min_score: int
+    min_tier: int
+    max_score: int
+    max_steps: int
+    max_tier: int
+    grid_rows: int
+    grid_cols: int
+
+
+class HardDifficultyConf(BaseModel, frozen=True):
+    max_curriculum_tier: int
+    max_tier: int
+    grid_rows: int
+    grid_cols: int
+
     @model_validator(mode="after")
-    def clamp_curriculum(self):
+    def validate_curriculum_tier(self):
         if self.max_curriculum_tier < self.max_tier:
             raise ValueError(
                 f"max_curriculum_tier ({self.max_curriculum_tier}) "
@@ -133,7 +146,9 @@ class WorldConfig(BaseModel, frozen=True):
 
 
 class ObsConfig(BaseModel, frozen=True):
-    observation_handler: ObservationConf
+    observation_handler: ObservationHandlerConf
+    medium_difficulty: MediumDifficultyConf
+    hard_difficulty: HardDifficultyConf
 
 
 class AgentConfig(BaseModel, frozen=False):

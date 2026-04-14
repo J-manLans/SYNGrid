@@ -1,4 +1,4 @@
-from syn_grid.config.models import ObservationConf
+from syn_grid.config.models import ObservationHandlerConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.core.orbs.orb_meta import OrbCategory
 from syn_grid.core.orbs.orb_meta import DirectType
@@ -11,12 +11,12 @@ from gymnasium import spaces
 from gymnasium.spaces import Dict
 
 
-class ObservationHandler:
+class ObservationHandlerOld:
     # ================= #
     #       Init        #
     # ================= #
 
-    def __init__(self, world: GridWorld, obs_conf: ObservationConf):
+    def __init__(self, world: GridWorld, obs_conf: ObservationHandlerConf):
         self._world = world
         self._grid_rows = obs_conf.grid_rows
         self._grid_cols = obs_conf.grid_cols

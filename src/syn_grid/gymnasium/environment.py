@@ -4,9 +4,9 @@ from gymnasium import spaces
 from syn_grid.config.models import WorldConfig, ObsConfig
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
-from syn_grid.gymnasium.observation_space import ObservationHandler
-from syn_grid.gymnasium.observation_space_developing.observation_handler import (
-    ObservationHandlerDeveloping,
+from syn_grid.gymnasium.observation_space_old import ObservationHandlerOld
+from syn_grid.gymnasium.observation_space.observation_handler import (
+    ObservationHandler,
 )
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 
@@ -56,16 +56,10 @@ class SYNGridEnv(gym.Env):
         # actions. Training code can call action_space.sample() to randomly select an action.
         self.action_space = spaces.Discrete(len(DroidAction))
 
-        # TODO: remember to change this when new obs space is implemented
-        obsHandler = ObservationHandlerDeveloping(
-            self.world, run_conf.orb_factory_conf, obs_conf.observation_handler
-        )
-        obsHandler.setup_obs_space()
-
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.
         self._observation_handler = ObservationHandler(
-            self.world, obs_conf.observation_handler
+            self.world, run_conf.orb_factory_conf, obs_conf
         )
         self.observation_space = self._observation_handler.setup_obs_space()
 
@@ -81,14 +75,13 @@ class SYNGridEnv(gym.Env):
         self._observation_handler.reset()
         self.world.reset(self.np_random)
 
-        self._obs = self._observation_handler.get_observation()
-        norm_obs = self._observation_handler.normalize_obs(self._obs)
+        self._obs = self._observation_handler.get_observation(self.world)
 
         if self.render_mode == "human":
             self.render()
 
         # Return observation and info (not used)
-        return norm_obs, {}
+        return self._obs, {}
 
     def step(self, action: int):
         # Perform action and adjust variables affected by it
@@ -97,15 +90,16 @@ class SYNGridEnv(gym.Env):
         truncated = self._observation_handler.step_count_down <= 0
         terminated = self.world.droid.score <= 0
 
-        self._obs = self._observation_handler.get_observation()
-        norm_obs = self._observation_handler.normalize_obs(self._obs)
+        self._obs = self._observation_handler.get_observation(self.world)
 
         if self.render_mode == "human":
             self.render()
 
-        # Return observation, reward, terminated, truncated and info (TODO: not used now, but add it at termination or truncation so result can be persisted in the evaluate_agent() method)
+        # Return observation, reward, terminated, truncated and info (TODO: info is not used now,
+        # but add it at termination or truncation so result can be persisted in the evaluate_agent
+        # () method)
         return (
-            norm_obs,
+            self._obs,
             reward,
             terminated,
             truncated,
