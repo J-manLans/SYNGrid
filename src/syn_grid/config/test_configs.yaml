@@ -48,7 +48,7 @@ world:
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 1
+    max_tier: &max_tier 2
     types:
       negative:
         enabled: true

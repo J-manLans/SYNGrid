@@ -44,9 +44,13 @@ class MediumDifficulty(BaseDifficulty):
 
     def _setup_spatial_obs(self, hard_obs_high: NDArray) -> spaces.Box:
         max_orb_lifespan = (self._medium_conf.grid_rows - 1) + (self._medium_conf.grid_cols - 1)
-        high = np.append(hard_obs_high, max_orb_lifespan)
+        high = np.asarray([*hard_obs_high, max_orb_lifespan],dtype=np.float32)
 
+        ROWS = self._medium_conf.grid_rows
+        COLS = self._medium_conf.grid_cols
         CHANNELS = len(high)
+
+        high = np.tile(high, (ROWS, COLS, 1))
 
         return spaces.Box(
             low=0,

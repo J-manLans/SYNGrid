@@ -117,7 +117,7 @@ class OrbFactory:
         # looping back to the first tier as needed.
         orbs_per_tier = count / (self._max_tier + 1)
         if orbs_per_tier.is_integer():
-            for tier in range(self._max_tier + 1):
+            for tier in range(1, self._max_tier + 1):
                 for _ in range(int(orbs_per_tier)):
                     orbs.append(TierOrb(tier, self._tier_orb_conf))
         else:
