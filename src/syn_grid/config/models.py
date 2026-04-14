@@ -83,10 +83,6 @@ class ObservationHandlerConf(BaseModel, frozen=True):
 
 
 class MediumDifficultyConf(BaseModel, frozen=True):
-    # TODO: look over these min values, don't think I need them
-    min_steps: int
-    min_score: int
-    min_tier: int
     max_score: int
     max_steps: int
     max_tier: int

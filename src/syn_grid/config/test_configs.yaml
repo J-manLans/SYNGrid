@@ -97,10 +97,6 @@ obs:
     # - max_score: set per scenario based on expected achievable score in this setup
     # - max and min tier (set in orb_factory_conf): max tier of the tier type orbs
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
-    # TODO: look over these min values, don't think I need them
-    min_steps: &min_steps 0
-    min_score: &min_score 0
-    min_tier: &min_tier 0
     max_score: &max_score 100
     max_steps: &max_steps 100
     max_tier: *max_tier

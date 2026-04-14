@@ -53,7 +53,6 @@ class OrbFactory:
                     [NegativeOrb(self._negative_orb_conf) for _ in range(counts[i])]
                 )
             elif orb_type == "tier":
-                # TODO: here I need to make sure my new tier system works. Should start at 1, not 0
                 self._initialize_tier_orbs(orbs, counts[i])
 
         return orbs

@@ -1,8 +1,9 @@
+from syn_grid.core.orbs.orb_meta import OrbCategory, DirectType, SynergyType
 from syn_grid.gymnasium.observation_space.difficulty.base_difficulty import (
     BaseDifficulty,
 )
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.config.models import MediumDifficultyConf
+from syn_grid.config.models import ObsConfig, MediumDifficultyConf
 
 from gymnasium import spaces
 import numpy as np
@@ -14,9 +15,8 @@ class MediumDifficulty(BaseDifficulty):
     #        Init       #
     # ================= #
 
-    def __init__(self, world: GridWorld, medium_conf: MediumDifficultyConf):
-        self._world = world
-        self._medium_conf = medium_conf
+    def __init__(self, obs_conf: ObsConfig):
+        self._medium_conf = obs_conf.medium_difficulty
 
     # ================= #
     #        API        #
@@ -24,35 +24,11 @@ class MediumDifficulty(BaseDifficulty):
 
     def setup_obs_space(self, hard_obs_high: NDArray) -> spaces.Space:
         spatial_obs = self._setup_spatial_obs(hard_obs_high)
-        episode_meta = self._setup_episode_meta()
-        droid_meta = self._setup_droid_meta()
 
-        return spaces.Dict({
-            "grid": spatial_obs,
-            "episode_meta": episode_meta,
-            "droid_meta": droid_meta
-        })
+        return self._setup_spatial_obs(hard_obs_high)
 
-    def reset(self):
-        self._steps_left = self._medium_conf.max_steps
-
-    def get_observation(self, state: GridWorld)-> dict[str, np.ndarray]:
-        self._steps_left -= 1 # So we mirror the state in the gymnasium wrapper TODO: don't work because reset shouldn't make a move, so need to find a way to find one point of truth for this value...
-
-        spatial_obs = self._get_spatial_obs()
-        episode_meta = self._get_episode_meta()
-        droid_meta = self._get_droid_meta()
-
-        return {
-            "grid": spatial_obs,
-            "episode_meta": episode_meta,
-            "droid_meta": droid_meta
-        }
-
-    # === Getters === #
-
-    def get_steps_left(self):
-        return self._steps_left
+    def get_observation(self, state: GridWorld, steps_left: int)-> np.ndarray:
+        return self._get_spatial_obs(state, steps_left)
 
     # ================= #
     #      Helpers      #
@@ -61,71 +37,91 @@ class MediumDifficulty(BaseDifficulty):
     # === Setup obs === #
 
     def _setup_spatial_obs(self, hard_obs_high: NDArray) -> spaces.Box:
+        max_agent_present = 1
+        max_steps = self._medium_conf.max_steps
+        max_score = self._medium_conf.max_score
+        max_tier_chain = self._medium_conf.max_tier
+        max_category = len(OrbCategory) - 1
+        max_type = max(len(DirectType) - 1, len(SynergyType) - 1)
+        max_tier = self._medium_conf.max_tier
         max_orb_lifespan = (self._medium_conf.grid_rows - 1) + (self._medium_conf.grid_cols - 1)
-        high = np.asarray([*hard_obs_high, max_orb_lifespan],dtype=np.float32)
+
+        self._max_vals = [
+            # agent values
+            max_agent_present,
+            max_steps,
+            max_score,
+            max_tier_chain,
+            # orb values
+            max_category,
+            max_type,
+            max_tier,
+            max_orb_lifespan
+        ]
 
         self._ROWS = self._medium_conf.grid_rows
         self._COLS = self._medium_conf.grid_cols
-        self._CHANNELS = len(high)
-
-        high = np.tile(high, (self._ROWS, self._COLS, 1))
+        self._CHANNELS = len(self._max_vals)
 
         return spaces.Box(
-            low=0,
-            high=high,
+            low=0.0,
+            high=1.0,
             shape=(self._medium_conf.grid_rows, self._medium_conf.grid_cols, self._CHANNELS),
             dtype=np.float32,
         )
 
-    def _setup_episode_meta(self) -> spaces.Box:
-        return spaces.Box(
-            low=0,
-            high=self._medium_conf.max_steps,
-            shape=(1,),
-            dtype=np.float32,
-        )
+    # def _setup_episode_meta(self) -> spaces.Box:
+    #     return spaces.Box(
+    #         low=0,
+    #         high=self._medium_conf.max_steps,
+    #         shape=(1,),
+    #         dtype=np.float32,
+    #     )
 
-    def _setup_droid_meta(self) -> spaces.Box:
-        max_score = self._medium_conf.max_score
-        max_tier_chain = self._medium_conf.max_tier
+    # def _setup_droid_meta(self) -> spaces.Box:
+    #     max_score = self._medium_conf.max_score
+    #     max_tier_chain = self._medium_conf.max_tier
 
-        high = np.asarray([max_score, max_tier_chain], dtype=np.float32)
+    #     high = np.asarray([max_score, max_tier_chain], dtype=np.float32)
 
-        return spaces.Box(
-            low=0,
-            high=high,
-            shape=(2,),
-            dtype=np.float32,
-        )
+    #     return spaces.Box(
+    #         low=0,
+    #         high=high,
+    #         shape=(2,),
+    #         dtype=np.float32,
+    #     )
 
     # === Get obs === #
 
-    def _get_spatial_obs(self) -> np.ndarray:
+    def _get_spatial_obs(self, state: GridWorld, steps_left: int) -> np.ndarray:
         grid = np.zeros((self._ROWS, self._COLS, self._CHANNELS), dtype=np.float32)
 
         # Droid data
-        droid_y, droid_x = self._world.droid.position
+        droid_y, droid_x = state.droid.position
         grid[droid_y, droid_x, 0] = 1
+        grid[droid_y, droid_x, 1] = steps_left / self._max_vals[1]
+        grid[droid_y, droid_x, 2] = state.droid.score / self._max_vals[2]
+        grid[droid_y, droid_x, 3] = state.droid.digestion_engine.chained_tiers / self._max_vals[3]
 
         # Orb data
-        for orb in self._world.ALL_ORBS:
+        for orb in state.ALL_ORBS:
             if not orb.is_active:
                 continue
 
             y, x = orb.position
 
-            grid[y, x, 1] = orb.meta.category.value
-            grid[y, x, 2] = orb.meta.type.value
-            grid[y, x, 3] = orb.meta.tier
-            grid[y, x, 4] = orb.timer.remaining
+            grid[y, x, 4] = orb.meta.category.value / self._max_vals[4]
+            grid[y, x, 5] = orb.meta.type.value / self._max_vals[5]
+            grid[y, x, 6] = orb.meta.tier / self._max_vals[6]
+            grid[y, x, 7] = orb.timer.remaining / self._max_vals[7]
 
         return grid
 
-    def _get_episode_meta(self) -> np.ndarray:
-        return np.asarray([self._steps_left], dtype=np.float32)
+    # def _get_episode_meta(self, steps_left: int) -> np.ndarray:
+    #     return np.asarray([steps_left], dtype=np.float32)
 
-    def _get_droid_meta(self) -> np.ndarray:
-        score = self._world.droid.score
-        current_tier_chain = self._world.droid.digestion_engine.chained_tiers
+    # def _get_droid_meta(self, state: GridWorld) -> np.ndarray:
+    #     score = state.droid.score
+    #     current_tier_chain = state.droid.digestion_engine.chained_tiers
 
-        return np.asarray([score, current_tier_chain], dtype=np.float32)
+    #     return np.asarray([score, current_tier_chain], dtype=np.float32)

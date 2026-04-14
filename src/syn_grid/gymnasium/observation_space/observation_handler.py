@@ -24,14 +24,14 @@ class ObservationHandler:
     modality: Final[BaseModality]
     difficulty: Final[BaseDifficulty]
 
-    def __init__(self, world: GridWorld, orb_conf: OrbFactoryConf, obs_conf: ObsConfig):
+    def __init__(self, orb_conf: OrbFactoryConf, obs_conf: ObsConfig):
+        self._max_steps = obs_conf.medium_difficulty.max_steps
         self.modality = MODALITIES[obs_conf.observation_handler.modality](
             orb_conf, obs_conf.hard_difficulty
         )
         self.difficulty = DIFFICULTIES[obs_conf.observation_handler.difficulty](
-            world, obs_conf.medium_difficulty
+            obs_conf
         )
-        self._obs_conf = obs_conf
 
     # ================= #
     #        API        #
@@ -41,10 +41,7 @@ class ObservationHandler:
         return self.modality.setup_obs_space(self.difficulty)
 
     def reset(self):
-        self.difficulty.reset()
+        self.steps_left = self._max_steps
 
-    def get_observation(self, state: GridWorld) -> dict[str, np.ndarray]:
-        return self.difficulty.get_observation(state)
-
-
-
+    def get_observation(self, state: GridWorld) -> np.ndarray:
+        return self.difficulty.get_observation(state, self.steps_left)

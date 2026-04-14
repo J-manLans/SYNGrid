@@ -29,9 +29,6 @@ class SpatialModality(BaseModality):
     def setup_obs_space(self, difficulty: BaseDifficulty) -> spaces.Space:
         return difficulty.setup_obs_space(self.hard_obs_high)
 
-    def encode(self, difficulty: dict[str, NDArray]) -> NDArray:
-        ...
-
     # ================= #
     #      Helpers      #
     # ================= #

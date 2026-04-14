@@ -4,7 +4,6 @@ from gymnasium import spaces
 from syn_grid.config.models import WorldConfig, ObsConfig
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
-from syn_grid.gymnasium.observation_space_old import ObservationHandlerOld
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
@@ -59,7 +58,7 @@ class SYNGridEnv(gym.Env):
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.
         self._observation_handler = ObservationHandler(
-            self.world, run_conf.orb_factory_conf, obs_conf
+            run_conf.orb_factory_conf, obs_conf
         )
         self.observation_space = self._observation_handler.setup_obs_space()
 
@@ -86,8 +85,8 @@ class SYNGridEnv(gym.Env):
     def step(self, action: int):
         # Perform action and adjust variables affected by it
         reward = self.world.perform_agent_action(DroidAction(action))
-        self._steps_left -= 1
-        truncated = self._steps_left <= 0
+        self._observation_handler.steps_left -= 1
+        truncated = self._observation_handler.steps_left <= 0
         terminated = self.world.droid.score <= 0
 
         self._obs = self._observation_handler.get_observation(self.world)
@@ -125,8 +124,8 @@ class SYNGridEnv(gym.Env):
     def _get_hud_data(self) -> dict[str, int | float]:
         hud_data: dict[str, int | float] = {}
 
-        hud_data["score"] = self._obs["agent data"][3]
-        hud_data["moves"] = self._obs["agent data"][2]
-        hud_data["current tier chain"] = self._obs["agent data"][4]
+        hud_data["score"] = self.world.droid.score
+        hud_data["moves"] = self._observation_handler.steps_left
+        hud_data["current tier chain"] = self.world.droid.digestion_engine.chained_tiers
 
         return hud_data
