@@ -78,20 +78,35 @@ world:
 
 obs:
   observation_handler:
-    # Observation handler settings:
-    # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
-    # - max_tier (set in orb_factory_conf): max tier of the tier type orbs
-    # - max_curriculum_tier: defines how many tier channels are preallocated. Must be fixed per run to keep observation shape stable during training.
-    # - max_steps: number of steps in an episode until truncated
-    # - modality: decides what type of observation the agent get. vector, spatial and pixel will be the options
-    # - difficulty: decides how much information to pack into the agents observation. hard, medium and easy are the options
-    grid_rows: *grid_rows
-    grid_cols: *grid_cols
-    max_tier: *max_tier
-    max_curriculum_tier: 10
-    max_steps: 100
+    # - modality: decides what type of observation the agent get. Vector, spatial and pixel will be the options
+    # - difficulty: decides how much information to pack into the agents observation. Hard, medium and easy are the options
     modality: "spatial"
     difficulty: "medium"
+
+  medium_difficulty:
+    # - max and min steps: number of steps in an episode until truncated
+    # - min_score: minimum number of score, if it drops down here, the episode will terminate
+    # - max_score: set per scenario based on expected achievable score in this setup
+    # - max and min tier (set in orb_factory_conf): max tier of the tier type orbs
+    # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
+    # TODO: look over these min values, don't think I need them
+    min_steps: &min_steps 0
+    min_score: &min_score 0
+    min_tier: &min_tier 0
+    max_score: &max_score 100
+    max_steps: &max_steps 100
+    max_tier: *max_tier
+    grid_rows: *grid_rows
+    grid_cols: *grid_cols
+
+  hard_difficulty:
+    # - max_curriculum_tier: defines how many tier channels are preallocated. Must be fixed per run to keep observation shape stable during training.
+    # - max_tier (set in orb_factory_conf): max tier of the tier type orbs, used to make sure max_curriculum_tier isn't to low
+    # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
+    max_curriculum_tier: 10
+    max_tier: *max_tier
+    grid_rows: *grid_rows
+    grid_cols: *grid_cols
 
 ###########################
 #   Agent Configuration   #
@@ -110,7 +125,7 @@ agent:
     human_control: false
     training: false
 
-    # Pick algorithm to train or evaluate
+  # Pick algorithm to train or evaluate
   train_agent_conf:
     # Train settings:
     # - continue_training: continue from a previously saved model
@@ -120,7 +135,6 @@ agent:
     timesteps: 50000
     iterations: 30
 
-    # Pick algorithm to train or evaluate
   eval_agent_conf:
     # Eval settings:
     # - trained_model: enable agent or use random sampling for debugging
