@@ -15,11 +15,6 @@ class AgentRunner:
     #       Init        #
     # ================= #
 
-    agent_hyper_parameters = {
-        "policy": "CnnPolicy",
-        "device": "cpu",
-        "ent_coef": 0.02,  # exploration
-    }
     algorithms = {"PPO": PPO, "DQN": DQN, "A2C": A2C}
 
     def __init__(
