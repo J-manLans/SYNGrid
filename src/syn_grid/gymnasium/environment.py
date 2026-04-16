@@ -57,9 +57,7 @@ class SYNGridEnv(gym.Env):
 
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.
-        self._observation_handler = ObservationHandler(
-            run_conf.orb_factory_conf, obs_conf
-        )
+        self._observation_handler = ObservationHandler(obs_conf)
         self.observation_space = self._observation_handler.setup_obs_space()
 
     # ======================== #
@@ -74,10 +72,10 @@ class SYNGridEnv(gym.Env):
         self._observation_handler.reset()
         self.world.reset(self.np_random)
 
-        self._obs = self._observation_handler.get_observation(self.world)
-
         if self.render_mode == "human":
             self.render()
+
+        self._obs = self._observation_handler.get_observation(self.world)
 
         # Return observation and info (not used)
         return self._obs, {}
@@ -89,10 +87,10 @@ class SYNGridEnv(gym.Env):
         truncated = self._observation_handler.steps_left <= 0
         terminated = self.world.droid.score <= 0
 
-        self._obs = self._observation_handler.get_observation(self.world)
-
         if self.render_mode == "human":
             self.render()
+
+        self._obs = self._observation_handler.get_observation(self.world)
 
         # Return observation, reward, terminated, truncated and info (TODO: info is not used now,
         # but add it at termination or truncation so result can be persisted in the evaluate_agent

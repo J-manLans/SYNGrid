@@ -29,13 +29,13 @@ world:
 
   renderer_conf:
     # Renderer settings:
-    # - grid_rows / grid_cols: used to calculate display size and layout
+    # - grid_rows / grid_cols (set in grid_world_conf): used to calculate display size and layout
     grid_rows: *grid_rows
     grid_cols: *grid_cols
 
   droid_conf:
     # Droid settings:
-    # - grid_rows / grid_cols: defines the grid the droid can move in
+    # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
     grid_rows: *grid_rows
     grid_cols: *grid_cols
@@ -86,19 +86,27 @@ world:
 
 obs:
   observation_handler:
-    # - modality: decides what type of observation the agent get. Vector, spatial and pixel will be the options
+    # - modality: decides what type of observation the agent get. vector, composite and spatial are the options
     # - difficulty: decides how much information to pack into the agents observation. Hard, medium and easy are the options
-    modality: "spatial"
+    # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
+    modality: "vector"
     difficulty: "medium"
+    max_steps: &max_steps 100
+
+  modality_conf:
+    # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
+    grid_rows: *grid_rows
+    grid_cols: *grid_cols
+    max_active_orbs: *max_active_orbs
+
 
   medium_difficulty:
-    # - max and min steps: number of steps in an episode until truncated
-    # - min_score: minimum number of score, if it drops down here, the episode will terminate
     # - max_score: set per scenario based on expected achievable score in this setup
-    # - max and min tier (set in orb_factory_conf): max tier of the tier type orbs
+    # - max_steps (set in orb_factory_conf): number of steps in an episode until truncated
+    # - max_tier (set in observation_handler): max tier of the tier type orbs
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
     max_score: &max_score 100
-    max_steps: &max_steps 100
+    max_steps: *max_steps
     max_tier: *max_tier
     grid_rows: *grid_rows
     grid_cols: *grid_cols

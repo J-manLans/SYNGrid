@@ -37,7 +37,9 @@ class OrbFactory:
         total_weight = sum(enabled_orbs.values())
 
         # Shared setup
-        BaseOrb.set_life_span(self._orb_factory_conf.grid_rows, self._orb_factory_conf.grid_cols)
+        BaseOrb.set_life_span(
+            self._orb_factory_conf.grid_rows, self._orb_factory_conf.grid_cols
+        )
         TierOrb.MAX_TIER = self._max_tier
 
         # Calculate counts through ratios via orb weights
@@ -120,6 +122,7 @@ class OrbFactory:
                 for _ in range(int(orbs_per_tier)):
                     orbs.append(TierOrb(tier, self._tier_orb_conf))
         else:
-            for i in range(count):
-                tier = i % (self._max_tier + 1)
+            for i in range(1, count):
+                #TODO: fix this shit. logic changed when i went from 0 as min tier to 1
+                tier = i % (self._max_tier + 1) + 1
                 orbs.append(TierOrb(tier, self._tier_orb_conf))

@@ -2,11 +2,15 @@ from syn_grid.config.models import TrainAgentConf
 from syn_grid.runners.agent_runners.agent_runner import AgentRunner
 from syn_grid.gymnasium.env_factory import make
 from syn_grid.utils.paths_util import get_project_path
-from syn_grid.runners.agent_runners.utils.extractors import GroupedMetaExtractor, TinyGridCNN
+from syn_grid.runners.agent_runners.utils.extractors import (
+    GroupedMetaExtractor,
+    TinyGridCNN,
+)
 
 import datetime
 from pathlib import Path
 from stable_baselines3.common.monitor import Monitor
+import os
 
 
 # TODO: this only accompanies the stable baselines3 models as of now. We need to crete a more
@@ -48,8 +52,9 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
         # Get the model with the desired steps to continue its training
         model = runner.get_model(env)
     else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
         # Initialize a fresh model TODO: don't forget to solve this in some neat manner
-        hyperparameters = TinyGridCNN.get_agent_hyperparameters()
+        hyperparameters = runner.hyper_parameters
 
         model = runner.AlgorithmClass(
             env=env,

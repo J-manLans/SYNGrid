@@ -1,4 +1,4 @@
-from syn_grid.config.models import OrbFactoryConf, ObsConfig, ObservationHandlerConf
+from syn_grid.config.models import OrbFactoryConf, ObsConfig
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.observation_space.observation_registry import (
     MODALITIES,
@@ -24,10 +24,10 @@ class ObservationHandler:
     modality: Final[BaseModality]
     difficulty: Final[BaseDifficulty]
 
-    def __init__(self, orb_conf: OrbFactoryConf, obs_conf: ObsConfig):
-        self._max_steps = obs_conf.medium_difficulty.max_steps
+    def __init__(self, obs_conf: ObsConfig):
+        self._max_steps = obs_conf.observation_handler.max_steps
         self.modality = MODALITIES[obs_conf.observation_handler.modality](
-            orb_conf, obs_conf.hard_difficulty
+            obs_conf.modality_conf
         )
         self.difficulty = DIFFICULTIES[obs_conf.observation_handler.difficulty](
             obs_conf
@@ -44,4 +44,4 @@ class ObservationHandler:
         self.steps_left = self._max_steps
 
     def get_observation(self, state: GridWorld) -> np.ndarray:
-        return self.difficulty.get_observation(state, self.steps_left)
+        return self.modality.get_observation(state, self.steps_left)

@@ -35,7 +35,7 @@ def main():
     # - HumanRunner if manual control is enabled
     # - AgentRunner otherwise
     if agent_conf.global_agent_conf.human_control:
-        runner = HumanRunner(run_conf, obs_conf.medium_difficulty.max_steps)
+        runner = HumanRunner(run_conf, obs_conf.observation_handler.max_steps)
         runner.human_player_loop()
     else:
         runner = AgentRunner(agent_conf.global_agent_conf, run_conf, obs_conf)

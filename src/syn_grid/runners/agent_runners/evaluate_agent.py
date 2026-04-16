@@ -17,20 +17,20 @@ def evaluate_agent(runner: AgentRunner, conf: EvalAgentConf):
     if conf.trained_model:
         model = runner.get_model(env)
 
-        def get_action_model(obs):
+        def predict_action_from_model(obs):
             # Predict action from the model
             action, _ = model.predict(obs)
             return action
 
-        get_action = get_action_model
+        get_action = predict_action_from_model
     else:
 
-        def get_action_random(obs):
+        def sample_random_action(obs):
             # Sample a random action
             action = env.action_space.sample()
             return action
 
-        get_action = get_action_random
+        get_action = sample_random_action
 
     # Reset the environment
     obs, _ = env.reset(seed=42)
