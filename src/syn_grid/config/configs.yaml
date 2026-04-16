@@ -46,10 +46,10 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 2
+    max_tier: &max_tier 1
     types:
       negative:
-        enabled: true
+        enabled: false
         weight: 1
       tier:
         enabled: true
@@ -60,7 +60,7 @@ world:
     # - reward: penalty applied when interacting with the orb
     # - cool_down: number of steps before the orb can be reused
     reward: -3.0
-    cool_down: 7
+    cool_down: 10
 
   tier_orb_conf:
     # Tiered orb behavior:
@@ -73,7 +73,7 @@ world:
     step_wise_scoring: true
     growth_factor: 1.5
     base_reward: 3.0
-    cool_down: 10
+    cool_down: 7
 
 ###########################
 #    Obs Configuration    #
@@ -81,19 +81,27 @@ world:
 
 obs:
   observation_handler:
-    # - modality: decides what type of observation the agent get. Vector, spatial and pixel will be the options
+    # - modality: decides what type of observation the agent get. vector, composite and spatial are the options
     # - difficulty: decides how much information to pack into the agents observation. Hard, medium and easy are the options
-    modality: "spatial"
+    # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
+    modality: "vector"
     difficulty: "medium"
+    max_steps: &max_steps 100
+
+  modality_conf:
+    # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
+    grid_rows: *grid_rows
+    grid_cols: *grid_cols
+    max_active_orbs: *max_active_orbs
+
 
   medium_difficulty:
-    # - max and min steps: number of steps in an episode until truncated
-    # - min_score: minimum number of score, if it drops down here, the episode will terminate
     # - max_score: set per scenario based on expected achievable score in this setup
-    # - max and min tier (set in orb_factory_conf): max tier of the tier type orbs
+    # - max_steps (set in orb_factory_conf): number of steps in an episode until truncated
+    # - max_tier (set in observation_handler): max tier of the tier type orbs
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
     max_score: &max_score 100
-    max_steps: &max_steps 100
+    max_steps: *max_steps
     max_tier: *max_tier
     grid_rows: *grid_rows
     grid_cols: *grid_cols
@@ -115,13 +123,14 @@ agent:
   global_agent_conf:
     # Global settings:
     # - algorithm: which algorithm the agent will use
+    # - agent_steps: identifier for the model to continue training or evaluate
+    # - identifier: name of the model checkpoints that will be saved
     # - human_control: allow human to control the game manually
     # - training: choose whether to train the agent or just run it
-    # - agent_steps: identifier for the model to continue training or evaluate
     algorithm_index: 0
-    agent_steps: "1126400"
-    identifier: "-1_reward_tier_1"
-    human_control: false
+    agent_steps: "3010560"
+    identifier: "vector_trial"
+    human_control: true
     training: true
 
   # Pick algorithm to train or evaluate
@@ -131,7 +140,7 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: true
-    timesteps: 1126400
+    timesteps: 100000
     iterations: 30
 
   eval_agent_conf:

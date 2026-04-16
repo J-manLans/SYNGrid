@@ -14,7 +14,7 @@ class AgentRunner:
     # ================= #
     #       Init        #
     # ================= #
-
+    hyper_parameters = {"policy": "MlpPolicy", "device": "cpu", "ent_coef": 0.02}
     algorithms = {"PPO": PPO, "DQN": DQN, "A2C": A2C}
 
     def __init__(

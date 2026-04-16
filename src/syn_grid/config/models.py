@@ -80,6 +80,13 @@ class TierConf(BaseModel, frozen=True):
 class ObservationHandlerConf(BaseModel, frozen=True):
     modality: str
     difficulty: str
+    max_steps: int
+
+
+class ModalityConf(BaseModel, frozen=True):
+    grid_rows: int
+    grid_cols: int
+    max_active_orbs: int
 
 
 class MediumDifficultyConf(BaseModel, frozen=True):
@@ -145,6 +152,7 @@ class WorldConfig(BaseModel, frozen=True):
 
 class ObsConfig(BaseModel, frozen=True):
     observation_handler: ObservationHandlerConf
+    modality_conf: ModalityConf
     medium_difficulty: MediumDifficultyConf
     hard_difficulty: HardDifficultyConf
 
