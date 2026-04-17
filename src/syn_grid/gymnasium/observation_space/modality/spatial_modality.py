@@ -46,8 +46,11 @@ class SpatialModality(BaseModality):
         # TODO: Think about if this is worth it:
         #
         # But I want my obs's to be very much plug and play. So this was a good suggestion:
-        # You could handle global info by either dedicating separate channels entirely (full 5x5
-        # filled with the same normalized value)
+        # You could handle global info by dedicating separate channels entirely (full 5x5
+        # filled with the same normalized value) instead of grouping global values like score,
+        # steps left and chained tiers with the droid, sort of letting the agent understand they
+        # aren't tied to a specific cell. This way I don't need to add more spaces for them and put
+        # them in a dict, since I don't think most agents handle those observations out of the box.
 
         grid = np.zeros((self._ROWS, self._COLS, self._CHANNELS), dtype=np.float32)
 

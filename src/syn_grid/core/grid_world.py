@@ -85,15 +85,16 @@ class GridWorld:
         reward = self.droid.perform_action(agent_action)
 
         for orb in self.ALL_ORBS:
+            orb.timer.tick()
             if orb.is_active:
-                if self._update_timer_and_return_is_completed(orb):
+                if orb.timer.is_completed():
                     orb.deplete_orb()
                     self._remove_orb(orb)
                 elif self.droid.position == orb.position:
-                    reward = self.droid.consume_orb(orb)
+                    reward += self.droid.consume_orb(orb)
                     self._remove_orb(orb)
             else:
-                if self._update_timer_and_return_is_completed(orb):
+                if orb.timer.is_completed():
                     self._spawn_random_orb()
 
         return reward
@@ -136,10 +137,6 @@ class GridWorld:
 
     # === API === #
 
-    def _update_timer_and_return_is_completed(self, orb: BaseOrb) -> bool:
-        orb.timer.tick()
-        return orb.timer.is_completed()
-
     def _remove_orb(self, orb: BaseOrb):
         idx = self._active_orbs.index(orb)
         depleted = self._active_orbs.pop(idx)
@@ -148,7 +145,12 @@ class GridWorld:
     # === Global === #
 
     def _spawn_random_orb(self):
-        available_orbs = [r for r in self._inactive_orbs if r.timer.is_completed()]
+        # TODO: Here I spawn a random orb, and if this is an orb later than current orb in the
+        # perform action method, I will remove a tick from it prematurely, it will spawn, and a
+        # tick will be lost right away. Also, if this is happening later and an earlier orb is
+        # chosen, the tick will not happen, which will cause some inconsistency in the game
+        # mechanics.
+        available_orbs = [o for o in self._inactive_orbs if o.timer.is_completed()]
 
         if len(available_orbs) > 0 and len(self._active_orbs) < self._max_active_orbs:
             orb_idx = self.rng.integers(0, len(available_orbs))

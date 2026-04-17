@@ -3,11 +3,15 @@ from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.core.droid.digestion_engine import DigestionEngine
 
+from typing import Final
+
 
 class SynergyDroid:
     # ================= #
     #       Init        #
     # ================= #
+
+    _STEP_PENALTY: Final[float] = -1.0
 
     def __init__(self, conf: DroidConf):
         """
@@ -35,7 +39,7 @@ class SynergyDroid:
     #        API        #
     # ================= #
 
-    def perform_action(self, agent_action: DroidAction) -> int:
+    def perform_action(self, agent_action: DroidAction) -> float:
         """Performs current action"""
 
         # Move droid to the next cell
@@ -51,15 +55,13 @@ class SynergyDroid:
             case _:
                 raise TypeError("This action isn't implemented")
 
-        self.score -= 1
-        return -1
+        return self._apply_reward(self._STEP_PENALTY)
 
     def consume_orb(self, orb: BaseOrb) -> float:
         """Consumes the orb, add its reward to its score and returns the reward"""
 
         reward = self.digestion_engine.digest(orb.consume())
-        self.score += reward
-        return reward
+        return self._apply_reward(reward)
 
     # ================= #
     #      Helpers      #
@@ -70,3 +72,7 @@ class SynergyDroid:
 
     def _moveTowardsMaxBound(self, axis: int, bound: int) -> None:
         self.position[axis] = min(self.position[axis] + 1, bound)
+
+    def _apply_reward(self, reward: float):
+        self.score += reward
+        return reward

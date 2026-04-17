@@ -52,4 +52,4 @@ class AgentRunner:
         if not matches:
             raise FileNotFoundError(f"No model found for path: {file_name}")
 
-        return self.AlgorithmClass.load(matches[-1], env=env)
+        return self.AlgorithmClass.load(matches[-1], env=env, device=self.hyper_parameters["device"])

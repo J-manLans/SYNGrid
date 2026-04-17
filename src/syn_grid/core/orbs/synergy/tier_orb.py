@@ -36,7 +36,7 @@ class TierOrb(BaseOrb):
         self.step_wise_scoring = conf.step_wise_scoring
 
         super().__init__(
-            self._calculate_reward(tier + 1),
+            self._calculate_reward(tier),
             conf.cool_down,
             OrbMeta(OrbCategory.SYNERGY, SynergyType.TIER, tier),
         )

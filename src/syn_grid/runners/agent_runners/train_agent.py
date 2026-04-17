@@ -41,10 +41,11 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
 
     # Create and wrap the training environment
     env = make(None, runner.run_conf, runner.obs_conf)
-    # Wrap the environment with a Monitor for logging.
-    # The created csv is needed for plotting our own graphs with matplotlib later.
-    monitor_file = Path(log_dir) / f"{runner.identifier}_{runner.algorithm}_{date}.csv"
-    env = Monitor(env, filename=str(monitor_file))
+    if conf.enable_output:
+        # Wrap the environment with a Monitor for logging.
+        # The created csv is needed for plotting our own graphs with matplotlib later.
+        monitor_file = Path(log_dir) / f"{runner.identifier}_{runner.algorithm}_{date}.csv"
+        env = Monitor(env, filename=str(monitor_file))
 
     model = None
     if conf.continue_training:
@@ -59,7 +60,7 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
         model = runner.AlgorithmClass(
             env=env,
             verbose=1,
-            tensorboard_log=str(log_dir),
+            tensorboard_log=str(log_dir) if conf.enable_output else None,
             **hyperparameters,
         )
 
@@ -81,12 +82,13 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
                 reset_num_timesteps=False,
             )
 
-            # Save the model
-            save_path = (
-                Path(model_dir)
-                / f"{runner.identifier}_{runner.algorithm}_{model.num_timesteps}_{date}"
-            )
-            model.save(save_path)
-            print(f"\nModel saved with {model.num_timesteps} time steps")
+            if conf.enable_output:
+                # Save the model
+                save_path = (
+                    Path(model_dir)
+                    / f"{runner.identifier}_{runner.algorithm}_{model.num_timesteps}_{date}"
+                )
+                model.save(save_path)
+                print(f"\nModel saved with {model.num_timesteps} time steps")
     finally:
         env.close()

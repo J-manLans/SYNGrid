@@ -73,12 +73,10 @@ class VectorModality(BaseModality):
         self._prune_orb_slot_map(state)
 
         # Orb data
-        slot = 5
-        # TODO: think my rule of 9 orbs min changed when I switched from having min tier 1 instead
-        # of 0, so check that in the digestion engine
         for orb_index, orb in enumerate(state.ALL_ORBS):
             if orb.is_active:
                 # TODO: tier orbs seem to start with 7 as remaining and negative orbs with 8
+                # update: every orb except the first one seem to have a timer of lifespan -1
                 self._orb_timers[orb_index] = orb.timer.remaining
 
                 # Assign a permanent grid slot if this orb is new

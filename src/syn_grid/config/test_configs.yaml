@@ -141,11 +141,13 @@ agent:
   train_agent_conf:
     # Train settings:
     # - continue_training: continue from a previously saved model
+    # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    timesteps: 0
-    iterations: 0
+    enable_output: false
+    timesteps: 10000
+    iterations: 50
 
   eval_agent_conf:
     # Eval settings:

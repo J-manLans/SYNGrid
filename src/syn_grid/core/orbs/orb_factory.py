@@ -44,18 +44,18 @@ class OrbFactory:
 
         # Calculate counts through ratios via orb weights
         ratios = [(orb_weight / total_weight) for orb_weight in enabled_orbs.values()]
-        counts = self._scale_ratios_to_counts(ratios)
-        counts = self._ensure_min_pool_size(counts, ratios)
+        orb_counts = self._scale_ratios_to_counts(ratios)
+        orb_counts = self._ensure_min_pool_size(orb_counts, ratios)
 
         # Initialize orbs based on count per orb type
         orbs: list[BaseOrb] = []
         for i, orb_type in enumerate(enabled_orbs):
             if orb_type == "negative":
                 orbs.extend(
-                    [NegativeOrb(self._negative_orb_conf) for _ in range(counts[i])]
+                    [NegativeOrb(self._negative_orb_conf) for _ in range(orb_counts[i])]
                 )
             elif orb_type == "tier":
-                self._initialize_tier_orbs(orbs, counts[i])
+                self._initialize_tier_orbs(orbs, orb_counts[i])
 
         return orbs
 
@@ -105,24 +105,23 @@ class OrbFactory:
 
         return counts_int
 
-    def _initialize_tier_orbs(self, orbs: list[BaseOrb], count: int):
+    def _initialize_tier_orbs(self, orbs: list[BaseOrb], orb_count: int):
         # Default behavior when the projected total orb pool exceeds the minimum:
         # spawn one orb per tier and return early.
-        if self._max_tier >= count:
-            for tier in range(self._max_tier + 1):
+        if self._max_tier >= orb_count:
+            for tier in range(1, self._max_tier + 1):
                 orbs.append(TierOrb(tier, self._tier_orb_conf))
             return
 
         # If total count can be evenly divided across tiers, spawn exactly that many orbs per tier.
         # Else, if total orbs cannot be evenly divided, distribute them one by one across tiers,
         # looping back to the first tier as needed.
-        orbs_per_tier = count / (self._max_tier + 1)
+        orbs_per_tier = orb_count / (self._max_tier)
         if orbs_per_tier.is_integer():
             for tier in range(1, self._max_tier + 1):
                 for _ in range(int(orbs_per_tier)):
                     orbs.append(TierOrb(tier, self._tier_orb_conf))
         else:
-            for i in range(1, count):
-                #TODO: fix this shit. logic changed when i went from 0 as min tier to 1
-                tier = i % (self._max_tier + 1) + 1
+            for i in range(orb_count):
+                tier = (i  % self._max_tier) + 1
                 orbs.append(TierOrb(tier, self._tier_orb_conf))

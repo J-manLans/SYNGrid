@@ -84,6 +84,7 @@ obs:
     # - modality: decides what type of observation the agent get. vector, composite and spatial are the options
     # - difficulty: decides how much information to pack into the agents observation. Hard, medium and easy are the options
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
+    # - max_steps: number of steps in an episode until truncated
     modality: "vector"
     difficulty: "medium"
     max_steps: &max_steps 100
@@ -128,20 +129,22 @@ agent:
     # - human_control: allow human to control the game manually
     # - training: choose whether to train the agent or just run it
     algorithm_index: 0
-    agent_steps: "3010560"
-    identifier: "vector_trial"
-    human_control: true
+    agent_steps: "512000"
+    identifier: "vector_curriculum"
+    human_control: false
     training: true
 
   # Pick algorithm to train or evaluate
   train_agent_conf:
     # Train settings:
     # - continue_training: continue from a previously saved model
+    # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: true
-    timesteps: 100000
-    iterations: 30
+    continue_training: false
+    enable_output: false
+    timesteps: 10000
+    iterations: 50
 
   eval_agent_conf:
     # Eval settings:

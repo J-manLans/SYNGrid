@@ -128,6 +128,7 @@ class GlobalAgentConf(BaseModel, frozen=False):
 
 class TrainAgentConf(BaseModel, frozen=False):
     continue_training: bool
+    enable_output: bool
     timesteps: int
     iterations: int
 
