@@ -30,6 +30,7 @@ class DroidConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
     starting_score: int
+    step_penalty: float
 
 
 # === OrbFactory START === #
@@ -129,6 +130,7 @@ class GlobalAgentConf(BaseModel, frozen=False):
 class TrainAgentConf(BaseModel, frozen=False):
     continue_training: bool
     enable_output: bool
+    render_mode: str | None
     timesteps: int
     iterations: int
 

@@ -37,9 +37,11 @@ world:
     # Droid settings:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
+    # - step_penalty: the cost of moving around for the agent
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 40
+    starting_score: 30
+    step_penalty: -1
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -139,13 +141,16 @@ agent:
 
   # Pick algorithm to train or evaluate
   train_agent_conf:
+  train_agent_conf:
     # Train settings:
     # - continue_training: continue from a previously saved model
     # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
+    # - render_mode (None or human): None is default, change to human if you want visual feedback during debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
     enable_output: false
+    render_mode: null
     timesteps: 10000
     iterations: 50
 

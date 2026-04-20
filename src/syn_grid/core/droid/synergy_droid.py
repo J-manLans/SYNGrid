@@ -11,7 +11,7 @@ class SynergyDroid:
     #       Init        #
     # ================= #
 
-    _STEP_PENALTY: Final[float] = -1.0
+    _STEP_PENALTY: Final[float]
 
     def __init__(self, conf: DroidConf):
         """
@@ -23,6 +23,7 @@ class SynergyDroid:
         self._grid_rows = conf.grid_rows
         self._grid_cols = conf.grid_cols
         self._starting_score = conf.starting_score
+        self._STEP_PENALTY = conf.step_penalty
         self.digestion_engine = DigestionEngine()
         self.reset()
 

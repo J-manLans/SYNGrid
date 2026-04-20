@@ -32,9 +32,11 @@ world:
     # Droid settings:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
+    # - step_penalty: the cost of moving around for the agent
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 40
+    starting_score: 50
+    step_penalty: -0.5
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -46,7 +48,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 1
+    max_tier: &max_tier 3
     types:
       negative:
         enabled: false
@@ -69,10 +71,10 @@ world:
     # - growth_factor: multiplier applied per tier increase
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
-    linear_reward_growth: true
+    linear_reward_growth: false
     step_wise_scoring: true
-    growth_factor: 1.5
-    base_reward: 3.0
+    growth_factor: 1.7
+    base_reward: 1.5
     cool_down: 7
 
 ###########################
@@ -129,22 +131,24 @@ agent:
     # - human_control: allow human to control the game manually
     # - training: choose whether to train the agent or just run it
     algorithm_index: 0
-    agent_steps: "512000"
-    identifier: "vector_curriculum"
+    agent_steps: "2048000"
+    identifier: "vector_tier_3"
     human_control: false
-    training: true
+    training: false
 
   # Pick algorithm to train or evaluate
   train_agent_conf:
     # Train settings:
     # - continue_training: continue from a previously saved model
     # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
+    # - render_mode (null or "human"): null is default, change to human if you want visual feedback during debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    enable_output: false
-    timesteps: 10000
-    iterations: 50
+    enable_output: true
+    render_mode: null
+    timesteps: 20000
+    iterations: 100
 
   eval_agent_conf:
     # Eval settings:

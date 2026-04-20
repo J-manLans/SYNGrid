@@ -53,18 +53,18 @@ class TierOrb(BaseOrb):
     #      Helpers      #
     # ================= #
 
-    def _calculate_reward(self, multiplier: int) -> float:
+    def _calculate_reward(self, tier_multiplier: int) -> float:
         """
         Calculate the reward based on the tier base and growth setting.
 
         :param multiplier: The factor by which the base reward is scaled.
         """
 
-        if self._linear_reward_growth:
-            reward = self._TIER_BASE_REWARD * multiplier
+        if self._linear_reward_growth or tier_multiplier == 1:
+            reward = self._TIER_BASE_REWARD * tier_multiplier
         else:
             reward = int(
-                (self._TIER_BASE_REWARD * (self._GROWTH_FACTOR**multiplier)) + 0.5
+                (self._TIER_BASE_REWARD * (self._GROWTH_FACTOR**tier_multiplier)) + 0.5
             )
 
         return reward

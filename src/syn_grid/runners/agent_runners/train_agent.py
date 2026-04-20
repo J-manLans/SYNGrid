@@ -40,7 +40,7 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
     Path(log_dir).mkdir(parents=True, exist_ok=True)
 
     # Create and wrap the training environment
-    env = make(None, runner.run_conf, runner.obs_conf)
+    env = make(conf.render_mode, runner.run_conf, runner.obs_conf)
     if conf.enable_output:
         # Wrap the environment with a Monitor for logging.
         # The created csv is needed for plotting our own graphs with matplotlib later.

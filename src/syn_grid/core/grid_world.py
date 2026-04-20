@@ -59,8 +59,10 @@ class GridWorld:
         Reset the droid to its starting position and re-spawns the orb at a random location
         """
 
-        self.droid.reset()  # Initialize Droids starting position
+        # Initialize Droid
+        self.droid.reset()
 
+        # Reset the orb arrays
         self._active_orbs.clear()
         self._inactive_orbs.clear()
         self._inactive_orbs = list(self.ALL_ORBS)
@@ -72,8 +74,8 @@ class GridWorld:
 
         self.rng = rng
 
-        # Initialize the orb's position
-        self._spawn_random_orb()
+        # Initialize the first orb
+        self._spawn_random_ready_orb()
 
     # ================= #
     #        API        #
@@ -85,6 +87,7 @@ class GridWorld:
         reward = self.droid.perform_action(agent_action)
 
         for orb in self.ALL_ORBS:
+            # decrease timer both for active orbs and orbs on cooldown
             orb.timer.tick()
             if orb.is_active:
                 if orb.timer.is_completed():
@@ -93,9 +96,9 @@ class GridWorld:
                 elif self.droid.position == orb.position:
                     reward += self.droid.consume_orb(orb)
                     self._remove_orb(orb)
-            else:
-                if orb.timer.is_completed():
-                    self._spawn_random_orb()
+
+        if len(self._active_orbs) < self._max_active_orbs:
+            self._spawn_random_ready_orb()
 
         return reward
 
@@ -144,28 +147,24 @@ class GridWorld:
 
     # === Global === #
 
-    def _spawn_random_orb(self):
-        # TODO: Here I spawn a random orb, and if this is an orb later than current orb in the
-        # perform action method, I will remove a tick from it prematurely, it will spawn, and a
-        # tick will be lost right away. Also, if this is happening later and an earlier orb is
-        # chosen, the tick will not happen, which will cause some inconsistency in the game
-        # mechanics.
-        available_orbs = [o for o in self._inactive_orbs if o.timer.is_completed()]
+    def _spawn_random_ready_orb(self):
+        ready_orbs = [o for o in self._inactive_orbs if o.timer.is_completed()]
+        if not ready_orbs:
+            return
 
-        if len(available_orbs) > 0 and len(self._active_orbs) < self._max_active_orbs:
-            orb_idx = self.rng.integers(0, len(available_orbs))
-            orb = self._inactive_orbs.pop(orb_idx)
+        orb = self.rng.choice(ready_orbs) # type: ignore[arg-type]
+        self._inactive_orbs.remove(orb)
 
-            while True:
-                position = [
-                    self.rng.integers(0, self._grid_rows),
-                    self.rng.integers(0, self._grid_cols),
-                ]
+        while True:
+            position = [
+                self.rng.integers(0, self._grid_rows),
+                self.rng.integers(0, self._grid_cols),
+            ]
 
-                if self._empty_spawn_cell(position):
-                    orb.spawn(position)
-                    self._active_orbs.append(orb)
-                    break
+            if self._empty_spawn_cell(position):
+                orb.spawn(position)
+                self._active_orbs.append(orb)
+                break
 
     def _empty_spawn_cell(self, position: list[np.int64]) -> bool:
         # Check against droid

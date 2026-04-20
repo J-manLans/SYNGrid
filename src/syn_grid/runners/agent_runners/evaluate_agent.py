@@ -36,17 +36,19 @@ def evaluate_agent(runner: AgentRunner, conf: EvalAgentConf):
     obs, _ = env.reset(seed=42)
 
     done = False
+    total_rew = 0.0
     while not done:
         try:
-            obs, reward, terminated, truncated, _ = env.step(get_action(obs))
+            obs, rew, terminated, truncated, _ = env.step(get_action(obs))
+            total_rew += float(rew)
         except Exception as e:
             print(f"System crashed: {e}")
             return  # exit function gracefully
         finally:
             env.close()  # cleanup
 
-        print(reward)
         # Exit environment if terminated or truncated.
         done = truncated or terminated
 
+    print(total_rew)
     env.close()

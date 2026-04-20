@@ -75,9 +75,6 @@ class VectorModality(BaseModality):
         # Orb data
         for orb_index, orb in enumerate(state.ALL_ORBS):
             if orb.is_active:
-                # TODO: tier orbs seem to start with 7 as remaining and negative orbs with 8
-                # update: every orb except the first one seem to have a timer of lifespan -1
-                self._orb_timers[orb_index] = orb.timer.remaining
 
                 # Assign a permanent grid slot if this orb is new
                 if orb_index not in self._orb_slot_map:
@@ -106,7 +103,6 @@ class VectorModality(BaseModality):
         for orb_index in list(self._orb_slot_map.keys()):
             if orb_index not in active_indices:
                 del self._orb_slot_map[orb_index]
-                del self._orb_timers[orb_index]
 
     def _add_orb_data(self, orb: BaseOrb, grid: np.ndarray, index: int) -> None:
         orb_y, orb_x = orb.position
