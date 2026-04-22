@@ -133,7 +133,7 @@ agent:
     # - human_control: allow human to control the game manually
     # - training: choose whether to train the agent or just run it
     # - agent_steps: identifier for the model to continue training or evaluate
-    algorithm_index: 0
+    algorithm: "PPO"
     agent_steps: "0"
     identifier: "pytest"
     human_control: False

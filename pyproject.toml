@@ -58,6 +58,7 @@ extra = [
 dev = [
     "pytest>=9.0.2",
     "stable-baselines3>=2.7.1",
+    "sb3-contrib>=2.7.1",
     "tensorboard>=2.20.0",
     "black>=26.1" # For automatic code formatting. Usage: black path/to/file.py or black src/syn_grid for the whole module
 ]

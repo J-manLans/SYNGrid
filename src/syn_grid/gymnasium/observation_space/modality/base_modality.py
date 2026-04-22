@@ -10,6 +10,9 @@ import numpy as np
 
 class BaseModality(ABC):
     @abstractmethod
+    def reset(self) -> None: ...
+
+    @abstractmethod
     def setup_obs_space(self, difficulty: BaseDifficulty) -> spaces.Space: ...
 
     @abstractmethod

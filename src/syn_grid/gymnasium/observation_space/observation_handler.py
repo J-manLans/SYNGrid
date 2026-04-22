@@ -42,6 +42,7 @@ class ObservationHandler:
 
     def reset(self):
         self.steps_left = self._max_steps
+        self.modality.reset()
 
     def get_observation(self, state: GridWorld) -> np.ndarray:
         return self.modality.get_observation(state, self.steps_left)

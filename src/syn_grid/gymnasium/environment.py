@@ -84,8 +84,8 @@ class SYNGridEnv(gym.Env):
         # Perform action and adjust variables affected by it
         reward = self.world.perform_agent_action(DroidAction(action))
         self._observation_handler.steps_left -= 1
-        truncated = self._observation_handler.steps_left <= 0
         terminated = self.world.droid.score <= 0
+        truncated = (self._observation_handler.steps_left <= 0) and not terminated
 
         if self.render_mode == "human":
             self.render()

@@ -24,8 +24,8 @@ class MediumDifficulty(BaseDifficulty):
         max_category = len(OrbCategory) - 1
         max_type = max(len(DirectType) - 1, len(SynergyType) - 1)
         max_tier = self._medium_conf.max_tier
-        max_orb_lifespan = (
-            (self._medium_conf.grid_rows - 1) + (self._medium_conf.grid_cols - 1)
+        max_orb_lifespan = (self._medium_conf.grid_rows - 1) + (
+            self._medium_conf.grid_cols - 1
         )
 
         return [

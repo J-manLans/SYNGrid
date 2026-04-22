@@ -120,7 +120,7 @@ class HardDifficultyConf(BaseModel, frozen=True):
 
 
 class GlobalAgentConf(BaseModel, frozen=False):
-    algorithm_index: int
+    algorithm: str
     agent_steps: str
     identifier: str
     human_control: bool
@@ -137,6 +137,7 @@ class TrainAgentConf(BaseModel, frozen=False):
 
 class EvalAgentConf(BaseModel, frozen=False):
     trained_model: bool
+    time_env: bool
 
 
 # ======================= #
