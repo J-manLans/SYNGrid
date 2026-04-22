@@ -8,6 +8,7 @@ from syn_grid.gymnasium.observation_space.modality.base_modality import BaseModa
 
 from gymnasium import spaces
 import numpy as np
+from typing import Final
 
 
 class VectorModality(BaseModality):
@@ -15,15 +16,17 @@ class VectorModality(BaseModality):
     #       Init        #
     # ================= #
 
+    _AVAILABLE_SLOTS: Final[list[int]] = [5, 11, 17]
+
     def __init__(self, modality_conf: ModalityConf):
-        self._orb_timers = {}
-        self._orb_slot_map: dict[int, int] = {}
-        self._available_slots = [5, 11, 17]
         self._modality_conf = modality_conf
 
     # ================= #
     #        API        #
     # ================= #
+
+    def reset(self) -> None:
+        self._orb_slot_map: dict[int, int] = {}
 
     def setup_obs_space(self, difficulty: BaseDifficulty) -> spaces.Space:
         self._max_vals = difficulty.get_max_values()
@@ -72,13 +75,13 @@ class VectorModality(BaseModality):
 
         self._prune_orb_slot_map(state)
 
-        # Orb data
+        # Available orb data
         for orb_index, orb in enumerate(state.ALL_ORBS):
             if orb.is_active:
 
                 # Assign a permanent grid slot if this orb is new
                 if orb_index not in self._orb_slot_map:
-                    for grid_idx in [5, 11, 17]:
+                    for grid_idx in self._AVAILABLE_SLOTS:
                         if grid_idx not in self._orb_slot_map.values():
                             self._orb_slot_map[orb_index] = grid_idx
                             break

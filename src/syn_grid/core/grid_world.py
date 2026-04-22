@@ -152,7 +152,7 @@ class GridWorld:
         if not ready_orbs:
             return
 
-        orb = self.rng.choice(ready_orbs) # type: ignore[arg-type]
+        orb = self.rng.choice(ready_orbs)  # type: ignore[arg-type]
         self._inactive_orbs.remove(orb)
 
         while True:

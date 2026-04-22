@@ -44,7 +44,9 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
     if conf.enable_output:
         # Wrap the environment with a Monitor for logging.
         # The created csv is needed for plotting our own graphs with matplotlib later.
-        monitor_file = Path(log_dir) / f"{runner.identifier}_{runner.algorithm}_{date}.csv"
+        monitor_file = (
+            Path(log_dir) / f"{runner.identifier}_{runner.algorithm}_{date}.csv"
+        )
         env = Monitor(env, filename=str(monitor_file))
 
     model = None
@@ -55,7 +57,7 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
         # Initialize a fresh model TODO: don't forget to solve this in some neat manner
-        hyperparameters = runner.hyper_parameters
+        hyperparameters = runner.hyper_parameters[runner.algorithm]
 
         model = runner.AlgorithmClass(
             env=env,
@@ -73,8 +75,6 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
         # Once Tensorboard is loaded, it will print a URL. Follow the URL to see
         # the status of the training.
         for i in range(1, conf.iterations + 1):
-            print(f"\nTraining starting for iteration: {i}\n")
-
             # Train the model
             model.learn(
                 total_timesteps=conf.timesteps,

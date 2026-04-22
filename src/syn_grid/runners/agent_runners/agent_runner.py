@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from stable_baselines3 import PPO, DQN, A2C
 from stable_baselines3.common.base_class import BaseAlgorithm
+from sb3_contrib import RecurrentPPO
 from gymnasium import Env
 
 
@@ -14,8 +15,23 @@ class AgentRunner:
     # ================= #
     #       Init        #
     # ================= #
-    hyper_parameters = {"policy": "MlpPolicy", "device": "cpu", "ent_coef": 0.02}
-    algorithms = {"PPO": PPO, "DQN": DQN, "A2C": A2C}
+    hyper_parameters = {
+        "PPO": {"policy": "MlpPolicy", "device": "cpu", "ent_coef": 0.02},
+        "RPPO": {
+            "policy": "MlpLstmPolicy",
+            "device": "cuda",
+            "ent_coef": 0.01,
+            "n_steps": 128,
+            "batch_size": 32,
+            "n_epochs": 5,
+            "policy_kwargs": {
+                "lstm_hidden_size": 128,
+                "n_lstm_layers": 1,
+                "shared_lstm": False
+            },
+        },
+    }
+    algorithms = {"PPO": PPO, "RPPO": RecurrentPPO, "DQN": DQN, "A2C": A2C}
 
     def __init__(
         self,
@@ -25,8 +41,7 @@ class AgentRunner:
     ):
         register_env()
 
-        algorithm_names = list(self.algorithms.keys())
-        self.algorithm = algorithm_names[conf.algorithm_index]
+        self.algorithm = conf.algorithm
         self.AlgorithmClass: type[BaseAlgorithm] = self.algorithms[self.algorithm]
 
         self.agent_steps = conf.agent_steps
@@ -52,4 +67,6 @@ class AgentRunner:
         if not matches:
             raise FileNotFoundError(f"No model found for path: {file_name}")
 
-        return self.AlgorithmClass.load(matches[-1], env=env, device=self.hyper_parameters["device"])
+        return self.AlgorithmClass.load(
+            matches[-1], env=env, device=self.hyper_parameters[self.algorithm]["device"]
+        )

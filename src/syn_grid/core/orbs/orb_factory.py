@@ -123,5 +123,5 @@ class OrbFactory:
                     orbs.append(TierOrb(tier, self._tier_orb_conf))
         else:
             for i in range(orb_count):
-                tier = (i  % self._max_tier) + 1
+                tier = (i % self._max_tier) + 1
                 orbs.append(TierOrb(tier, self._tier_orb_conf))
