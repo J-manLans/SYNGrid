@@ -16,7 +16,7 @@ class VectorModality(BaseModality):
     #       Init        #
     # ================= #
 
-    _AVAILABLE_SLOTS: Final[list[int]] = [5, 11, 17]
+    _AVAILABLE_SLOTS: Final[list[int]] = [2, 7, 12]
 
     def __init__(self, modality_conf: ModalityConf):
         self._MODALITY_CONF = modality_conf
@@ -38,19 +38,19 @@ class VectorModality(BaseModality):
         max_orb_x = self._MODALITY_CONF.grid_cols - 1
 
         # Add the orb values
-        self._max_vals[3:3] = [max_orb_y, max_orb_x]
-        self._max_vals[3:3] = self._max_vals[3:] * (
+        self._max_vals[0:0] = [max_orb_y, max_orb_x]
+        self._max_vals[0:0] = self._max_vals[0:] * (
             self._MODALITY_CONF.max_active_orbs - 1
         )
 
         # Add the droid values
-        self._max_vals[1:1] = [max_droid_y, max_droid_x]
+        self._max_vals[0:0] = [max_droid_y, max_droid_x]
 
         # Let the shape be the length of the list
         self._SHAPE = len(self._max_vals)
 
         low = np.zeros(self._SHAPE, dtype=np.float32)
-        low[5:] = -1.0
+        low[2:] = -1.0
 
         return spaces.Box(
             low=low,
@@ -63,15 +63,15 @@ class VectorModality(BaseModality):
         obs = np.full(self._SHAPE, -1.0, dtype=np.float32)
 
         # Episode data
-        obs[0] = steps_left / self._max_vals[0]
+        # obs[0] = steps_left / self._max_vals[0]
 
         # Droid data
         droid_y, droid_x = state.DROID.position
 
-        obs[1] = droid_y / self._max_vals[1]
-        obs[2] = droid_x / self._max_vals[2]
-        obs[3] = state.DROID.score / self._max_vals[3]
-        obs[4] = state.DROID.DIGESTION_ENGINE.chained_tiers / self._max_vals[4]
+        obs[0] = droid_y / self._max_vals[0]
+        obs[1] = droid_x / self._max_vals[1]
+        # obs[2] = state.DROID.score / self._max_vals[2]
+        # obs[4] = state.DROID.DIGESTION_ENGINE.chained_tiers / self._max_vals[4]
 
         self._prune_orb_slot_map(state)
 
@@ -120,5 +120,5 @@ class VectorModality(BaseModality):
         grid_index += 1
         grid[grid_index] = orb.META.TIER / self._max_vals[grid_index]
         grid_index += 1
-        grid[grid_index] = orb.TIMER.remaining / self._max_vals[grid_index]
-        grid_index += 1
+        # grid[grid_index] = orb.TIMER.remaining / self._max_vals[grid_index]
+        # grid_index += 1

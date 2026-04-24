@@ -29,12 +29,12 @@ class MediumDifficulty(BaseDifficulty):
 
         return [
             # agent values
-            max_steps,
-            max_score,
-            max_tier_chain,
+            # max_steps,
+            # max_score,
+            # max_tier_chain,
             # orb values
             max_category,
             max_type,
             max_tier,
-            max_orb_lifespan,
+            # max_orb_lifespan,
         ]

@@ -95,7 +95,7 @@ class TestBaseOrb:
 
         orb.spawn([np.int64(1), np.int64(1)])
 
-        orb.deplete_orb()
+        orb.de_spawn()
 
         assert orb.is_active is False
         assert orb.TIMER.remaining == 10

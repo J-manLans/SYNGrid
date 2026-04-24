@@ -11,8 +11,6 @@ class SynergyDroid:
     #       Init        #
     # ================= #
 
-    DIGESTION_ENGINE: Final[DigestionEngine] = DigestionEngine()
-
     def __init__(self, conf: DroidConf):
         """
         Initializes the droid.
@@ -24,14 +22,16 @@ class SynergyDroid:
         self._GRID_COLS: Final[int] = conf.grid_cols
         self._STARTING_SCORE: Final[float] = conf.starting_score
         self._STEP_PENALTY: Final[float] = conf.step_penalty
+        self.DIGESTION_ENGINE: Final[DigestionEngine] = DigestionEngine()
+
 
     def reset(self) -> None:
         """
         Initialize Droids starting position at the center of the grid and reset its score and the digestion engine.
         """
 
-        self.position = [self._GRID_ROWS // 2, self._GRID_COLS // 2]
-        self.score = self._STARTING_SCORE
+        self.position: list[int] = [self._GRID_ROWS // 2, self._GRID_COLS // 2]
+        self.score: float = self._STARTING_SCORE
         self.DIGESTION_ENGINE.reset()
 
     # ================= #

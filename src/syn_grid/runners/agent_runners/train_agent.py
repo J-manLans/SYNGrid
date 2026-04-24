@@ -10,6 +10,7 @@ from syn_grid.runners.agent_runners.utils.extractors import (
 import datetime
 from pathlib import Path
 from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.vec_env import DummyVecEnv
 import os
 
 
@@ -40,14 +41,16 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
     Path(log_dir).mkdir(parents=True, exist_ok=True)
 
     # Create and wrap the training environment
-    env = make(conf.render_mode, runner.run_conf, runner.obs_conf)
+    raw_env = make(conf.render_mode, runner.run_conf, runner.obs_conf)
     if conf.enable_output:
         # Wrap the environment with a Monitor for logging.
         # The created csv is needed for plotting our own graphs with matplotlib later.
         monitor_file = (
             Path(log_dir) / f"{runner.identifier}_{runner.algorithm}_{date}.csv"
         )
-        env = Monitor(env, filename=str(monitor_file))
+        raw_env = Monitor(raw_env, filename=str(monitor_file))
+
+    env = DummyVecEnv([lambda: raw_env])
 
     model = None
     if conf.continue_training:
@@ -86,7 +89,7 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
                 # Save the model
                 save_path = (
                     Path(model_dir)
-                    / f"{runner.identifier}_{runner.algorithm}_{model.num_timesteps}_{date}"
+                    / f"{runner.identifier}_{runner.algorithm}_{model.num_timesteps}_{date}.zip"
                 )
                 model.save(save_path)
                 print(f"\nModel saved with {model.num_timesteps} time steps")

@@ -35,20 +35,22 @@ world:
     # - step_penalty: the cost of moving around for the agent
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 30.0
-    step_penalty: -1
+    starting_score: 50.0
+    step_penalty: -0.5
 
   orb_factory_conf:
     # Orbs manager settings:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span
     # - max_active_orbs: max active orbs on grid (set in grid_world_conf)
-    # - max_tier: this is the highest tier that orbs can reach in this environment.
+    # - max_tier: this is the highest tier that orbs can reach in this environment
+    # - de_spawn_tiers: decides if tiers should de spawn as the non tier orbs
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 2
+    max_tier: &max_tier 3
+    de_spawn_tiers: false
     types:
       negative:
         enabled: false
@@ -73,7 +75,7 @@ world:
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
     step_wise_scoring: true
-    growth_factor: 1.7
+    growth_factor: 2.2
     base_reward: 1.5
     cool_down: 7
 
@@ -130,8 +132,8 @@ agent:
     # - human_control: allow human to control the game manually
     # - training: choose whether to train the agent or just run it
     algorithm: "RPPO"
-    agent_steps: "300288"
-    identifier: "vector_tier_2_hidden_256"
+    agent_steps: "802816"
+    identifier: "vectorTier3_noChain_noSteps_noTimer_noScore_1.5rew_2.2growth_50score_0.5penalty_128"
     human_control: false
     training: true
 
@@ -144,8 +146,8 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    enable_output: false
-    render_mode: 'human'
+    enable_output: true
+    render_mode: null
     timesteps: 100000
     iterations: 8
 

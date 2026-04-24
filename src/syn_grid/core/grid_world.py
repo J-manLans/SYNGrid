@@ -22,10 +22,6 @@ class GridWorld:
     #       Init        #
     # ================= #
 
-    ALL_ORBS: Final[list[BaseOrb]]
-    _ACTIVE_ORBS: Final[list[BaseOrb]] = []
-    _inactive_orbs: list[BaseOrb] = []
-
     def __init__(
         self,
         conf: GridWorldConf,
@@ -38,13 +34,14 @@ class GridWorld:
         Initializes the grid world. Defines the game world's size and initializes the droid and orbs.
         """
 
-        self._MAX_ACTIVE_ORBS = conf.max_active_orbs
-        self._GRID_ROWS = conf.grid_rows
-        self._GRID_COLS = conf.grid_cols
+        self._CONF: Final[GridWorldConf] = conf
+        self._DE_SPAWN_TIERS = orb_manager_conf.de_spawn_tiers
 
-        self.DROID = SynergyDroid(droid_conf)
+        self.DROID: Final[SynergyDroid] = SynergyDroid(droid_conf)
 
-        self.ALL_ORBS = OrbFactory(
+        self._ACTIVE_ORBS: Final[list[BaseOrb]] = []
+        self._inactive_orbs: list[BaseOrb] = []
+        self.ALL_ORBS: Final[list[BaseOrb]] = OrbFactory(
             orb_manager_conf, negative_orb_conf, tier_orb_conf
         ).create_orbs()
 
@@ -59,7 +56,7 @@ class GridWorld:
         # Reset the orb arrays
         self._ACTIVE_ORBS.clear()
         self._inactive_orbs.clear()
-        self._inactive_orbs = list(self.ALL_ORBS)
+        self._inactive_orbs = self.ALL_ORBS.copy()
         for orb in self.ALL_ORBS:
             orb.reset()
 
@@ -84,21 +81,22 @@ class GridWorld:
             # decrease timer both for active orbs and orbs on cooldown
             orb.TIMER.tick()
             if orb.is_active:
-                if orb.TIMER.is_completed():
-                    orb.deplete_orb()
+                # only de-spawn non-tier orbs
+                if orb.TIMER.is_completed() and (orb.META.TIER == 0 or self._DE_SPAWN_TIERS):
+                    orb.de_spawn()
                     self._remove_orb(orb)
                 elif self.DROID.position == orb.position:
                     reward += self.DROID.consume_orb(orb)
                     self._remove_orb(orb)
 
-        if len(self._ACTIVE_ORBS) < self._MAX_ACTIVE_ORBS:
+        if len(self._ACTIVE_ORBS) < self._CONF.max_active_orbs:
             self._spawn_random_ready_orb()
 
         return reward
 
     # === Getters === #
 
-    def get_orb_positions(self, only_active: bool) -> list[list[np.int64]]:
+    def get_orb_positions(self, only_active: bool) -> list[list[int]]:
         if only_active:
             return [o.position for o in self._ACTIVE_ORBS]
 
@@ -151,8 +149,8 @@ class GridWorld:
 
         while True:
             position = [
-                self.rng.integers(0, self._GRID_ROWS),
-                self.rng.integers(0, self._GRID_COLS),
+                int(self.rng.integers(0, self._CONF.grid_rows)),
+                int(self.rng.integers(0, self._CONF.grid_cols)),
             ]
 
             if self._empty_spawn_cell(position):
@@ -160,7 +158,7 @@ class GridWorld:
                 self._ACTIVE_ORBS.append(orb)
                 break
 
-    def _empty_spawn_cell(self, position: list[np.int64]) -> bool:
+    def _empty_spawn_cell(self, position: list[int]) -> bool:
         # Check against droid
         if position == self.DROID.position:
             return False
