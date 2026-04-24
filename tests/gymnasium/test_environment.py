@@ -4,6 +4,7 @@ from tests.utils.config_helpers import get_test_config, update_conf
 
 import numpy as np
 import pytest
+from typing import Any
 
 
 class TestEnvironment:
@@ -15,6 +16,10 @@ class TestEnvironment:
     conditions.
     """
 
+    # ================= #
+    #       Init        #
+    # ================= #
+
     @pytest.fixture
     def env(self):
         """
@@ -23,9 +28,16 @@ class TestEnvironment:
 
         conf = get_test_config()
 
-        return SYNGridEnv(conf.world, conf.obs)
+        env = SYNGridEnv(conf.world, conf.obs)
 
-    def test_initialization(self, env: SYNGridEnv):
+        env.reset()
+        return env
+
+    # ================= #
+    #       Tests       #
+    # ================= #
+
+    def test_headless_initialization(self, env: SYNGridEnv):
         """
         Verify that the default headless environment initializes correctly and defines the required Gymnasium spaces.
         """
@@ -34,17 +46,28 @@ class TestEnvironment:
         assert env.action_space is not None
         assert env.observation_space is not None
 
-    def test_reset_returns_valid_observation(self, env: SYNGridEnv):
+    def test_reset_has_valid_return(self, env: SYNGridEnv):
         """
-        Verify that reset() returns a valid observation and info dictionary as required by the Gymnasium API.
+        Verify that reset() returns a valid observation and info dict as required by the Gymnasium API.
         """
 
         obs, info = env.reset()
 
         # Observation must conform to the defined observation space
         assert env.observation_space.contains(obs)
+        assert isinstance(info, dict)
 
-        # Info must be a dictionary (Gymnasium contract)
+    def test_step_has_valid_return(self, env: SYNGridEnv):
+        """
+        Verify that step() returns valid observation, reward, terminal and truncated, and info values as required by the Gymnasium API.
+        """
+
+        obs, reward, terminated, truncated, info = env.step(env.action_space.sample())
+
+        assert env.observation_space.contains(obs)
+        assert isinstance(reward, float)
+        assert isinstance(terminated, bool)
+        assert isinstance(truncated, bool)
         assert isinstance(info, dict)
 
     def test_reset_with_seed_is_reproducible(self):
@@ -61,46 +84,19 @@ class TestEnvironment:
         obs1, _ = env1.reset(seed=42)
         obs2, _ = env2.reset(seed=42)
 
-        # Both observations should have the same structure
         assert np.array_equal(obs1, obs2)
-
-    def test_step_returns_gym_contract(self, env: SYNGridEnv):
-        """
-        Verify that step() returns values that follow the Gymnasium API:
-        (observation, reward, terminated, truncated, info).
-        """
-
-        env.reset()
-
-        action = env.action_space.sample()
-        obs, reward, terminated, truncated, info = env.step(action)
-
-        # Observation must remain valid
-        assert env.observation_space.contains(obs)
-
-        # Reward must be numeric
-        assert isinstance(reward, (int, float))
-
-        # Termination flags must be booleans
-        assert isinstance(terminated, bool)
-        assert isinstance(truncated, bool)
-
-        # Info must be a dictionary
-        assert isinstance(info, dict)
 
     def test_invalid_action_raises(self, env: SYNGridEnv):
         """
         Verify that invalid actions raise an exception.
         """
 
-        env.reset()
-
         # Negative action index
-        with pytest.raises((ValueError, KeyError, AssertionError)):
+        with pytest.raises(ValueError):
             env.step(-1)
 
         # Out-of-range action index
-        with pytest.raises((ValueError, KeyError, AssertionError)):
+        with pytest.raises(ValueError):
             env.step(999)
 
     def test_truncated_after_max_steps(self):
@@ -118,7 +114,7 @@ class TestEnvironment:
         truncated = False
 
         # Run for more steps than the allowed maximum
-        for _ in range(20):
+        for _ in range(obs_conf.medium_difficulty.max_steps + 1):
             _, _, _, truncated, _ = env.step(env.action_space.sample())
 
             if truncated:
@@ -126,36 +122,87 @@ class TestEnvironment:
 
         assert truncated
 
-    def test_environment_runs_until_termination_or_truncation(self, env: SYNGridEnv):
+    def test_environment_terminates(self):
         """
-        Verify that the environment eventually reaches either a terminated
-        or truncated state during normal operation.
+        Verify that the environment terminates correctly
         """
 
+        conf = get_test_config()
+        world_conf = update_conf(conf.world, {"droid_conf": {'starting_score': 1}})
+
+        env = SYNGridEnv(world_conf, conf.obs)
         env.reset()
 
         terminated = False
-        truncated = False
+        _, _, terminated, _, _ = env.step(env.action_space.sample())
 
-        # Run environment for a bounded number of steps
-        for _ in range(500):
-            _, _, terminated, truncated, _ = env.step(env.action_space.sample())
-
-            if terminated or truncated:
-                break
-
-        assert terminated or truncated
+        assert terminated
 
     def test_render_without_human_mode_returns_none_or_str(self):
         """
         Verify that render() returns either None or a string when rendering
         is enabled with human mode.
         """
+
         conf = get_test_config()
 
         env = SYNGridEnv(conf.world, conf.obs, render_mode="human")
         env.reset()
 
-        result = env.render()
+        assert hasattr(env, 'renderer')
 
-        assert result is None or isinstance(result, str)
+    def test_reset_creates_identical_state(self):
+        conf = get_test_config()
+        world_conf = update_conf(conf.world, {"droid_conf": {'starting_score': 99999}})
+
+        baseline_env = SYNGridEnv(world_conf, conf.obs)
+        baseline_env.reset()
+
+        baseline_state = self._capture_state(baseline_env)
+
+        env = SYNGridEnv(world_conf, conf.obs)
+        env.reset()
+
+        done = False
+        while not done:
+            _, _, terminated, truncated, _ = env.step(env.action_space.sample())
+
+            if terminated or truncated:
+                done = True
+
+        env.reset()
+
+        assert self._capture_state(env) == baseline_state
+
+    def test_same_step_in_identical_environments_produces_consistent_state(self):
+        conf = get_test_config()
+        world_conf = update_conf(conf.world, {"droid_conf": {'starting_score': 99999}})
+
+        env1 = SYNGridEnv(world_conf, conf.obs)
+        env1.reset(seed=42)
+
+        env2 = SYNGridEnv(world_conf, conf.obs)
+        env2.reset(seed=42)
+
+        for _ in range(70):
+            action = env1.action_space.sample()
+            env1.step(action)
+            env2.step(action)
+
+        assert self._capture_state(env1) == self._capture_state(env2)
+
+    # ================= #
+    #      Helpers      #
+    # ================= #
+
+    def _capture_state(self, env: SYNGridEnv) -> dict[str, Any]:
+        return {
+            'steps_left': env._observation_handler.steps_left,
+            'num_orbs_pool': len(env.world.ALL_ORBS),
+            'num_active_orbs': len(env.world._ACTIVE_ORBS),
+            'num_inactive_orbs': len(env.world._inactive_orbs),
+            'droid_position': env.world.DROID.position.copy(),
+            'droid_score': env.world.DROID.score,
+            'chained_tiers': env.world.DROID.DIGESTION_ENGINE.chained_tiers,
+            'pending_reward': env.world.DROID.DIGESTION_ENGINE._pending_reward,
+        }

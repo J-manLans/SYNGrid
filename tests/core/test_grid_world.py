@@ -48,8 +48,8 @@ class TestGridWorld:
         assert (
             active_cnt == 1
         )  # There should be exactly one active orb after initialization.
-        assert grid_world._GRID_ROWS == 5  # The grid should have 5 row.
-        assert grid_world._GRID_COLS == 5  # The grid should have 5 columns.
+        assert grid_world._CONF.grid_rows == 5  # The grid should have 5 row.
+        assert grid_world._CONF.grid_cols == 5  # The grid should have 5 columns.
 
     def test_orb_positions(self, grid_world: GridWorld):
         """
@@ -60,11 +60,12 @@ class TestGridWorld:
         positions = grid_world.get_orb_positions(False)
 
         for pos in positions:
-            assert isinstance(pos, list)  # Each position should be a list.
-            assert len(pos) == 2  # Each list should contain two elements (x, y).
-            assert isinstance(pos[0], np.integer) and isinstance(
-                pos[1], np.integer
-            )  # Each coordinate should be an np.integer.
+            # Each position should be a list.
+            assert isinstance(pos, list)
+            # Each list should contain two elements (x, y).
+            assert len(pos) == 2
+            # Each coordinate should be an int.
+            assert isinstance(pos[0], int) and isinstance(pos[1], int)
 
     def test_get_orb_is_active_status(self, grid_world: GridWorld):
         """

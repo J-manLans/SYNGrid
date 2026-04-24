@@ -62,6 +62,7 @@ class OrbFactoryConf(BaseModel, frozen=True):
     grid_cols: int
     max_active_orbs: int
     max_tier: int
+    de_spawn_tiers: bool
     types: TypesConf
 
     @model_validator(mode="after")

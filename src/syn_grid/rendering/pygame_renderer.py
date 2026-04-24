@@ -72,7 +72,7 @@ class PygameRenderer:
         self,
         droid_pos: list[int],
         is_active_statuses: list[bool],
-        orb_positions: list[list[np.int64]],
+        orb_positions: list[list[int]],
         orb_meta: list[OrbMeta],
         hud_data: dict[str, int | float],
     ) -> None | str:

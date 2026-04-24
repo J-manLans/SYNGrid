@@ -47,13 +47,15 @@ world:
     # Orbs manager settings:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span
     # - max_active_orbs: max active orbs on grid (set in grid_world_conf)
-    # - max_tier: this is the highest tier that orbs can reach in this environment.
+    # - max_tier: this is the highest tier that orbs can reach in this environment
+    # - de_spawn_tiers: decides if tiers should de spawn as the non tier orbs
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 2
+    max_tier: &max_tier 3
+    de_spawn_tiers: false
     types:
       negative:
         enabled: false
@@ -151,8 +153,8 @@ agent:
     continue_training: false
     enable_output: false
     render_mode: null
-    timesteps: 10000
-    iterations: 50
+    timesteps: 1000
+    iterations: 1
 
   eval_agent_conf:
     # Eval settings:

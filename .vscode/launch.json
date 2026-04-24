@@ -27,7 +27,7 @@
       "request": "launch",
       "module": "pytest",
       "args": [
-          "tests/core/orbs/test_orbFactory.py",
+          "tests/gymnasium/test_environment.py",
           "-v"
       ],
       "justMyCode": true

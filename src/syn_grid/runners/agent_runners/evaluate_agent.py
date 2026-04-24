@@ -3,6 +3,7 @@ from syn_grid.runners.agent_runners.agent_runner import AgentRunner
 from syn_grid.gymnasium.env_factory import make
 
 import numpy as np
+from stable_baselines3.common.vec_env import DummyVecEnv
 
 
 def evaluate_agent(runner: AgentRunner, conf: EvalAgentConf):
@@ -13,7 +14,13 @@ def evaluate_agent(runner: AgentRunner, conf: EvalAgentConf):
     """
 
     # Create the environment with human rendering and load the model
-    env = make(None if conf.time_env else "human", runner.run_conf, runner.obs_conf)
+    raw_env = make(None if conf.time_env else "human", runner.run_conf, runner.obs_conf)
+
+    # Reset the environment
+    raw_env.reset(seed=42)
+
+    # Wrap it for lstm
+    env = DummyVecEnv([lambda: raw_env])
 
     # Define get_action() depending on type of model
     if conf.trained_model:
@@ -50,8 +57,7 @@ def evaluate_agent(runner: AgentRunner, conf: EvalAgentConf):
 
         get_action = sample_random_action
 
-    # Reset the environment
-    obs, _ = env.reset(seed=42)
+    obs = env.reset()
 
     # if I want to time the speed of my raw environment, to ensure its not the bottleneck.
     # TODO: remove this after project completion
@@ -73,12 +79,11 @@ def evaluate_agent(runner: AgentRunner, conf: EvalAgentConf):
             else:
                 action, _ = get_action(obs)
 
-            obs, _, terminated, truncated, _ = env.step(action)
+            obs, _, dones, _ = env.step(action)
 
             # Exit environment if terminated or truncated.
-            done = terminated or truncated
-            episode_starts = done
-            episode_starts = np.logical_or(terminated, truncated)
+            done = bool(dones[0])
+            episode_starts = dones
     except Exception as e:
         print(f"System crashed: {e}")
         raise  # exit function gracefully

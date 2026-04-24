@@ -6,6 +6,7 @@ from syn_grid.utils.paths_util import get_project_path
 import sys
 from pathlib import Path
 from stable_baselines3 import PPO, DQN, A2C
+from stable_baselines3.common.vec_env import VecEnv
 from stable_baselines3.common.base_class import BaseAlgorithm
 from sb3_contrib import RecurrentPPO
 from gymnasium import Env
@@ -16,20 +17,24 @@ class AgentRunner:
     #       Init        #
     # ================= #
     hyper_parameters = {
-        "PPO": {"policy": "MlpPolicy", "device": "cpu", "ent_coef": 0.02},
+        "PPO": {
+            "policy": "MlpPolicy",
+            "device": "cpu",
+            "ent_coef": 0.02
+        },
         "RPPO": {
             "policy": "MlpLstmPolicy",
-            "device": "cuda",
-            "ent_coef": 0.01,
+            "device": "cpu",
+            "ent_coef": 0.008,
             "n_steps": 128,
-            "batch_size": 32,
+            "batch_size": 64,
             "n_epochs": 5,
             "policy_kwargs": {
-                "lstm_hidden_size": 256,
+                "lstm_hidden_size": 128,
                 "n_lstm_layers": 1,
                 "shared_lstm": False,
             },
-        },
+        }
     }
     algorithms = {"PPO": PPO, "RPPO": RecurrentPPO, "DQN": DQN, "A2C": A2C}
 
@@ -54,7 +59,7 @@ class AgentRunner:
     #        API        #
     # ================= #
 
-    def get_model(self, env: Env | None) -> BaseAlgorithm:
+    def get_model(self, env: VecEnv | None) -> BaseAlgorithm:
         """Create a path to match the latest model of the specified timesteps and load it"""
 
         if self.agent_steps == "":

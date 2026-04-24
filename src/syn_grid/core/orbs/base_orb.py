@@ -2,7 +2,6 @@ from syn_grid.core.orbs.orb_meta import OrbMeta
 from syn_grid.core.utils.timer import Timer
 
 from abc import ABC
-import numpy as np
 from typing import Final
 
 class BaseOrb(ABC):
@@ -10,9 +9,7 @@ class BaseOrb(ABC):
     #       Init        #
     # ================= #
 
-    position = [np.int64(-1), np.int64(-1)]
     is_active = False
-    TIMER: Final[Timer] = Timer()
 
     def __init__(
         self,
@@ -20,9 +17,12 @@ class BaseOrb(ABC):
         cool_down: int,
         meta: OrbMeta,
     ):
-        self.REWARD = reward
-        self._COOL_DOWN = cool_down
-        self.META = meta
+        self.position: list[int] = [-1, -1]
+        self.REWARD: Final[float] = reward
+        self._COOL_DOWN: Final[int] = cool_down
+        self.META: Final[OrbMeta] = meta
+        self.TIMER: Final[Timer] = Timer()
+
 
     @classmethod
     def set_life_span(cls, grid_rows: int, grid_cols: int) -> None:
@@ -45,14 +45,14 @@ class BaseOrb(ABC):
     #        API        #
     # ================= #
 
-    def spawn(self, position: list[np.int64]) -> None:
+    def spawn(self, position: list[int]) -> None:
         """Spawns the orb."""
 
         self.position = position
         self.is_active = True
         self.TIMER.set(self._LIFE_SPAN)
 
-    def deplete_orb(self) -> None:
+    def de_spawn(self) -> None:
         """Removes the orb without giving any reward."""
 
         self.is_active = False
