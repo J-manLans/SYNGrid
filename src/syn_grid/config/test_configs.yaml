@@ -116,14 +116,17 @@ agent:
   global_agent_conf:
     # Global settings:
     # - algorithm: which algorithm the agent will use
+    # - agent_steps: identifier for the model to continue training or evaluate
+    # - identifier: name of the model checkpoints that will be saved
     # - human_control: allow human to control the game manually
     # - training: choose whether to train the agent or just run it
-    # - agent_steps: identifier for the model to continue training or evaluate
-    algorithm: "PPO"
-    agent_steps: "0"
-    identifier: "pytest"
-    human_control: False
+    # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
+    alg: "RPPO"
+    agent_steps: "100096"
+    id: "vectorHardTier1_3rew_50score_0.5penalty_64"
+    human_control: false
     training: false
+    check_env: false
 
   # Pick algorithm to train or evaluate
   train_agent_conf:

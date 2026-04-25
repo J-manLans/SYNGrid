@@ -82,19 +82,24 @@ class GridWorld:
         move_penalty = self.DROID.perform_action(agent_action)
 
         for orb in self.ALL_ORBS:
-            # decrease timer both for active orbs and orbs on cooldown
-            orb.TIMER.tick()
             if orb.is_active:
+                if orb.META.TIER == 0 or self._DE_SPAWN_TIERS:
+                    # only decrease timer for tier orbs if de-spawning them is activated in the
+                    # config file
+                    orb.TIMER.tick()
                 if orb.TIMER.is_completed() and (
                     orb.META.TIER == 0 or self._DE_SPAWN_TIERS
                 ):
-                    # only de-spawn non-tier orbs if it's activated via the config file
+                    # only de-spawn non-tier orbs if it's activated in the config file
                     orb.de_spawn()
-                    self._remove_orb(orb)
+                    self._toggle_orb_to_inactive(orb)
                 elif self.DROID.position == orb.position:
                     # consume orb
                     reward = self.DROID.consume_orb(orb)
-                    self._remove_orb(orb)
+                    self._toggle_orb_to_inactive(orb)
+            else:
+                # decrease the cooldown for inactive orbs
+                orb.TIMER.tick()
 
         if len(self._ACTIVE_ORBS) < self._CONF.max_active_orbs:
             self._spawn_random_orb_if_ready()
@@ -139,7 +144,7 @@ class GridWorld:
 
     # === API === #
 
-    def _remove_orb(self, orb: BaseOrb):
+    def _toggle_orb_to_inactive(self, orb: BaseOrb):
         idx = self._ACTIVE_ORBS.index(orb)
         depleted = self._ACTIVE_ORBS.pop(idx)
         self._inactive_orbs.append(depleted)

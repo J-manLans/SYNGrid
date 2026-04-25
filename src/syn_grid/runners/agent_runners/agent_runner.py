@@ -10,9 +10,10 @@ from stable_baselines3.common.vec_env import VecEnv
 from stable_baselines3.common.base_class import BaseAlgorithm
 from sb3_contrib import RecurrentPPO
 from gymnasium import Env
+from abc import ABC, abstractmethod
 
 
-class AgentRunner:
+class AgentRunner(ABC):
     # ================= #
     #       Init        #
     # ================= #
@@ -42,11 +43,11 @@ class AgentRunner:
     ):
         register_env()
 
-        self.algorithm = conf.algorithm
+        self.algorithm = conf.alg
         self.AlgorithmClass: type[BaseAlgorithm] = self.algorithms[self.algorithm]
 
         self.agent_steps = conf.agent_steps
-        self.identifier = conf.identifier
+        self.identifier = conf.id
 
         self.run_conf = run_conf
         self.obs_conf = obs_conf
@@ -55,7 +56,7 @@ class AgentRunner:
     #        API        #
     # ================= #
 
-    def get_model(self, env: VecEnv | None) -> BaseAlgorithm:
+    def load_model(self, env: VecEnv | None) -> BaseAlgorithm:
         """Create a path to match the latest model of the specified timesteps and load it"""
 
         if self.agent_steps == "":
@@ -71,3 +72,5 @@ class AgentRunner:
         return self.AlgorithmClass.load(
             matches[-1], env=env, device=self.hyper_parameters[self.algorithm]["device"]
         )
+
+    def save_model(self): ...

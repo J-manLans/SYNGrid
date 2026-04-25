@@ -24,7 +24,7 @@ def evaluate_agent(runner: AgentRunner, conf: EvalAgentConf):
 
     # Define get_action() depending on type of model
     if conf.trained_model:
-        model = runner.get_model(env)
+        model = runner.load_model(env)
 
         if runner.algorithm == "RPPO":
 

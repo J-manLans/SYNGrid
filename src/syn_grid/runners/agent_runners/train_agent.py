@@ -45,9 +45,7 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
     if conf.enable_output:
         # Wrap the environment with a Monitor for logging.
         # The created csv is needed for plotting our own graphs with matplotlib later.
-        monitor_file = (
-            Path(log_dir) / f"{runner.identifier}_{runner.algorithm}_{date}.csv"
-        )
+        monitor_file = Path(log_dir) / f"{runner.identifier}_{runner.algorithm}_{date}"
         raw_env = Monitor(raw_env, filename=str(monitor_file))
 
     env = DummyVecEnv([lambda: raw_env])
@@ -56,7 +54,7 @@ def train_agent(runner: AgentRunner, conf: TrainAgentConf) -> None:
     if conf.continue_training:
         print("Loading existing training data")
         # Get the model with the desired steps to continue its training
-        model = runner.get_model(env)
+        model = runner.load_model(env)
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
         # Initialize a fresh model TODO: don't forget to solve this in some neat manner

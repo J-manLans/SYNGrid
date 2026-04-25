@@ -5,11 +5,15 @@ from syn_grid.runners.agent_runners.train_agent import train_agent
 from syn_grid.runners.agent_runners.evaluate_agent import evaluate_agent
 from syn_grid.utils.args_utils import parse_args, update_agent_conf_from_args
 from syn_grid.runners.human_runner.human_runner import HumanRunner
+from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS
+from syn_grid.gymnasium.env_factory import register_env
 
 import sys
 
 
 def main():
+    register_env()
+
     # Load full experiment configuration and snapshot settings
     config_manager = ConfigManager("configs.yaml")
     full_conf = config_manager.load_config(FullConf)
@@ -33,18 +37,16 @@ def main():
 
     # Initialize the appropriate runner:
     # - HumanRunner if manual control is enabled
-    # - AgentRunner otherwise
+    # - BaseAgentRunner otherwise
     if agent_conf.global_agent_conf.human_control:
         runner = HumanRunner(run_conf, obs_conf.observation_handler.max_steps)
         runner.human_player_loop()
     else:
-        runner = AgentRunner(agent_conf.global_agent_conf, run_conf, obs_conf)
-
-        # Decide between training or evaluating the agent based on config
+        runner = ALGORITHMS[agent_conf.global_agent_conf.alg](agent_conf, obs_conf, run_conf)
         if agent_conf.global_agent_conf.training:
-            train_agent(runner, agent_conf.train_agent_conf)
+            runner.train()
         else:
-            evaluate_agent(runner, agent_conf.eval_agent_conf)
+            runner.eval()
 
 
 if __name__ == "__main__":

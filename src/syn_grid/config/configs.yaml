@@ -85,7 +85,7 @@ world:
 
 obs:
   observation_handler:
-    # - perception: decides how much information to pack into the agents observation. Hard, medium and easy are the options
+    # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
     perception: "vector_hard"
     max_steps: &max_steps 100
@@ -115,11 +115,13 @@ agent:
     # - identifier: name of the model checkpoints that will be saved
     # - human_control: allow human to control the game manually
     # - training: choose whether to train the agent or just run it
-    algorithm: "PPO"
+    # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
+    alg: "PPO"
     agent_steps: "200704"
-    identifier: "vectorHardTier1_3rew_50score_0.5penalty_64"
+    id: "REFACTORED_vectorHardTier1_3rew_50score_0.5penalty"
     human_control: false
     training: false
+    check_env: false
 
   # Pick algorithm to train or evaluate
   train_agent_conf:

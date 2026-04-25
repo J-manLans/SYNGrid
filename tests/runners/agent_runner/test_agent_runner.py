@@ -91,7 +91,7 @@ class TestAgentRunner:
         agent_runner.agent_steps = ""
 
         with pytest.raises(SystemExit):
-            agent_runner.get_model(None)
+            agent_runner.load_model(None)
 
     def test_get_model_with_no_matching_model(self, agent_runner: AgentRunner):
         """
@@ -109,4 +109,4 @@ class TestAgentRunner:
             mock_glob.return_value = []
 
             with pytest.raises(FileNotFoundError):
-                agent_runner.get_model(None)
+                agent_runner.load_model(None)

@@ -119,11 +119,12 @@ class PerceptionConf(BaseModel, frozen=True):
 
 
 class GlobalAgentConf(BaseModel, frozen=False):
-    algorithm: str
+    alg: str
     agent_steps: str
-    identifier: str
+    id: str
     human_control: bool
     training: bool
+    check_env: bool
 
 
 class TrainAgentConf(BaseModel, frozen=False):

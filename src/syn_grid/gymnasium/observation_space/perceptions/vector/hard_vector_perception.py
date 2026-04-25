@@ -56,7 +56,6 @@ class HardVectorPerception(BasePerception):
 
         # Droid data
         droid_y, droid_x = state.DROID.position
-
         obs[0] = droid_y / self._max_vals[0]
         obs[1] = droid_x / self._max_vals[1]
 

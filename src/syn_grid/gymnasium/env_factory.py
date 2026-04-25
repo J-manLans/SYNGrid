@@ -25,9 +25,8 @@ def make(render_mode: str | None, run_conf: WorldConfig, obs_conf: ObsConfig) ->
         "syn_grid-v0", render_mode=render_mode, run_conf=run_conf, obs_conf=obs_conf
     )
 
-    """
-    Use this if changes have been made to the env and you wan't to check it's still working correct
-    """
-    # check_env(env.unwrapped)
-
     return env
+
+
+def check_my_env(env: Env):
+    check_env(env.unwrapped)
