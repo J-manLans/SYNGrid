@@ -18,12 +18,15 @@ class BaseAgentRunner(ABC):
         conf: AgentConfig,
         obs_conf: ObsConfig,
         run_conf: WorldConfig,
+        lstm_hidden_size: int | None = None # TODO: turn into **kwargs?
     ):
         self.conf = conf.global_agent_conf
         self.train_conf = conf.train_agent_conf
         self.eval_conf = conf.eval_agent_conf
         self.obs_conf = obs_conf
         self.run_conf = run_conf
+
+        self._construct_model_id(lstm_hidden_size)
 
         # Get current date and time to us as an identifier for unique file naming
         self.date = datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")

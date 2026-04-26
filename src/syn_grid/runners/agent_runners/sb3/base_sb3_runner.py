@@ -25,10 +25,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         run_conf: WorldConfig,
         hyper_parameters: dict[str, Any],
         algorithm: Type[T],
-        lstm_hidden_size: int | None = None,
+        lstm_hidden_size: int | None = None
     ):
-        super().__init__(conf, obs_conf, run_conf)
-        super()._construct_model_id(lstm_hidden_size)
+        super().__init__(conf, obs_conf, run_conf, lstm_hidden_size)
         self._HYPER_PARAMETERS = hyper_parameters
         self._ALGORITHM = algorithm
 
