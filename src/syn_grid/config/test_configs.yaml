@@ -38,10 +38,12 @@ world:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
+    # - tier_consumption_penalty: punishment for consuming tier orbs in the wrong order
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 30.0
     step_penalty: -1
+    tier_consumption_penalty: -0.2
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -144,6 +146,7 @@ agent:
   eval_agent_conf:
     # Eval settings:
     # - trained_model: enable agent or use random sampling for debugging
-    # - render_mode (null or "human"): "human" is default, change to null if you don't want visual feedback during timing
-    trained_model: false
+    # - num_eval_episodes: how many episodes to evaluate
+    trained_model: true
     time_env: false
+    num_eval_episodes: 1

@@ -20,7 +20,7 @@ class DigestionEngine:
     #        API        #
     # ================= #
 
-    def digest(self, consumed_orb: BaseOrb) -> float:
+    def digest(self, consumed_orb: BaseOrb, tier_consumption_penalty: float) -> float:
         """
         Process a consumed orb and return the resulting reward.
 
@@ -39,7 +39,7 @@ class DigestionEngine:
             if consumed_orb.STEP_WISE_SCORING:
                 if self._resolve_tier_progression(consumed_orb):
                     return consumed_orb.REWARD
-                return -0.5  # small punishment for collecting in wrong order
+                return tier_consumption_penalty  # small punishment for consuming in wrong order
 
             # Non-step-wise scoring: accumulate reward silently on correct progression.
             # If the chain breaks, flush the pending reward and return it.

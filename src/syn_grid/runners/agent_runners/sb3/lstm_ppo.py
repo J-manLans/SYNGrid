@@ -14,14 +14,14 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         hyper_parameters = {
             "policy": "MlpLstmPolicy",
             "device": "cpu",
-            "ent_coef": 0.008,
+            "ent_coef": 0.05,
             "n_steps": 128,
             "batch_size": 64,
-            "n_epochs": 5,
-            "learning_rate": 3e-4,
-            "clip_range": 0.2,
+            "n_epochs": 4,
+            "learning_rate": 5e-4,
+            "clip_range": 0.25,
             "policy_kwargs": {
-                "lstm_hidden_size": 256,
+                "lstm_hidden_size": 128,
                 "n_lstm_layers": 1,
                 "shared_lstm": False,
             },
@@ -46,33 +46,59 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         self._train_model(model, env)
 
     def eval(self) -> None:
+        # prep model and env
         env = self._make_wrapped_dummy_vec_env("human")
         model = self._get_model(env)
-        model.set_env(env)
 
+        # prep lstm variables
         lstm_states = None
-        num_envs = len(env.envs)
-        # Episode start signals are used to reset the lstm states
+        num_envs = env.num_envs
         episode_starts = np.ones((num_envs,), dtype=bool)
 
+        # Each environment will have a list of rewards and lengths for completed episodes
+        all_rewards = []
+        all_lengths = []
+        current_rewards = np.zeros(num_envs)
+        current_lengths = np.zeros(num_envs, dtype=int)
+        episode_counts = np.zeros(num_envs, dtype=int)
+
+        # start the eval loop
         obs = env.reset()
-        done = False
+        total_episodes_to_collect = self.eval_conf.num_eval_episodes * num_envs
         try:
-            while not done:
+            while len(all_rewards) < total_episodes_to_collect:
                 action, lstm_states = model.predict(
                     obs,  # type: ignore[arg-type]
                     state=lstm_states,
                     episode_start=episode_starts,
                     deterministic=True,
                 )
+                obs, rewards, dones, infos = env.step(action)
 
-                obs, rewards, dones, info = env.step(action)
+                current_rewards += rewards
+                current_lengths += 1
 
-                # Exit environment if terminated or truncated.
-                done = dones.any()
+                for i in range(num_envs):
+                    if dones[i]:
+                        # Episode finished – store it
+                        all_rewards.append(current_rewards[i])
+                        all_lengths.append(current_lengths[i])
+                        episode_counts[i] += 1
+
+                        # Reset accumulators for this environment
+                        current_rewards[i] = 0.0
+                        current_lengths[i] = 0
+
                 episode_starts = dones
         except Exception as e:
             print(f"System crashed: {e}")
-            raise  # exit function gracefully
+            raise
+        finally:
+            env.close()
 
-        env.close()
+        # Compute averages
+        avg_reward = np.mean(all_rewards)
+        avg_length = np.mean(all_lengths)
+        print(
+            f"Eval over {len(all_rewards)} episodes: average reward = {avg_reward:.2f}, average length = {avg_length:.1f}"
+        )

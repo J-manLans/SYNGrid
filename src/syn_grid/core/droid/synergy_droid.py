@@ -18,10 +18,7 @@ class SynergyDroid:
         Defines the game world so the droid know its bounds, set its starting score and store it for later resetting.
         """
 
-        self._GRID_ROWS: Final[int] = conf.grid_rows
-        self._GRID_COLS: Final[int] = conf.grid_cols
-        self._STARTING_SCORE: Final[float] = conf.starting_score
-        self._STEP_PENALTY: Final[float] = conf.step_penalty
+        self._conf: Final[DroidConf] = conf
         self.DIGESTION_ENGINE: Final[DigestionEngine] = DigestionEngine()
 
     def reset(self) -> None:
@@ -29,8 +26,11 @@ class SynergyDroid:
         Initialize Droids starting position at the center of the grid and reset its score and the digestion engine.
         """
 
-        self.position: list[int] = [self._GRID_ROWS // 2, self._GRID_COLS // 2]
-        self.score: float = self._STARTING_SCORE
+        self.position: list[int] = [
+            self._conf.grid_rows // 2,
+            self._conf.grid_cols // 2,
+        ]
+        self.score: float = self._conf.starting_score
         self.DIGESTION_ENGINE.reset()
 
     # ================= #
@@ -45,20 +45,22 @@ class SynergyDroid:
             case DroidAction.LEFT:
                 self._moveTowardsMinBound(1)
             case DroidAction.RIGHT:
-                self._moveTowardsMaxBound(1, self._GRID_COLS - 1)
+                self._moveTowardsMaxBound(1, self._conf.grid_cols - 1)
             case DroidAction.UP:
                 self._moveTowardsMinBound(0)
             case DroidAction.DOWN:
-                self._moveTowardsMaxBound(0, self._GRID_ROWS - 1)
+                self._moveTowardsMaxBound(0, self._conf.grid_rows - 1)
             case _:
                 raise TypeError("This action isn't implemented")
 
-        return self._apply_reward(self._STEP_PENALTY)
+        return self._apply_reward(self._conf.step_penalty)
 
     def consume_orb(self, orb: BaseOrb) -> float:
         """Consumes the orb, add its reward to its score and returns the reward"""
 
-        reward = self.DIGESTION_ENGINE.digest(orb.consume())
+        reward = self.DIGESTION_ENGINE.digest(
+            orb.consume(), self._conf.tier_consumption_penalty
+        )
         return self._apply_reward(reward)
 
     # ================= #

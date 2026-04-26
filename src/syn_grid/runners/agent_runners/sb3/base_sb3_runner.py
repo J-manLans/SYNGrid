@@ -39,7 +39,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _make_env(self, render_mode: str | None) -> Env:
         env = self._make_raw_env(render_mode)
 
-        if self.train_conf.enable_output:
+        if self.train_conf.enable_output and self.conf.training:
             env = self._wrap_in_monitor(env)
 
         return env
@@ -60,7 +60,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     # === Model === #
 
     def _get_model(self, env: Env | DummyVecEnv) -> T:
-        if self.train_conf.continue_training:
+        if self.train_conf.continue_training or not self.conf.training:
             return self._load_model(env)
         else:
             return self._create_model(env)

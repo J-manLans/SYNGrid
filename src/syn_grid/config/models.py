@@ -39,6 +39,13 @@ class DroidConf(BaseModel, frozen=True):
     grid_cols: int
     starting_score: float
     step_penalty: float
+    tier_consumption_penalty: float
+
+    @model_validator(mode="after")
+    def validate_config(self):
+        if self.tier_consumption_penalty > 0:
+            raise ValueError("tier_consumption_penalty must be 0 or negative")
+        return self
 
 
 # === OrbFactory START === #
@@ -143,6 +150,7 @@ class TrainAgentConf(BaseModel, frozen=False):
 class EvalAgentConf(BaseModel, frozen=False):
     trained_model: bool
     time_env: bool
+    num_eval_episodes: int
 
 
 # ======================= #
