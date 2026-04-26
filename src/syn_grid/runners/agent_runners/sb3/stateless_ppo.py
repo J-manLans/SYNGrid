@@ -4,7 +4,7 @@ from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
 from stable_baselines3 import PPO
 
 
-class StatelessPPO(BaseSB3Runner):
+class StatelessPPO(BaseSB3Runner[PPO]):
     # ================= #
     #       Init        #
     # ================= #
@@ -18,7 +18,7 @@ class StatelessPPO(BaseSB3Runner):
     # ================= #
 
     def train(self) -> None:
-        env = self._make_env()
+        env = self._make_env(self.train_conf.render_mode)
         model = self._get_model(env)
 
         self._train_model(model, env)
@@ -32,7 +32,7 @@ class StatelessPPO(BaseSB3Runner):
         done = False
         try:
             while not done:
-                action = model.predict(obs, deterministic=True)
+                action, _ = model.predict(obs)
                 obs, reward, terminated, truncated, info = env.step(action)
 
                 done = truncated or terminated

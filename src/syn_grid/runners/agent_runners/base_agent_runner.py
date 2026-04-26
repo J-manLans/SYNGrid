@@ -49,10 +49,40 @@ class BaseAgentRunner(ABC):
     #      Helpers      #
     # ================= #
 
-    def _make_raw_env(
-        self,
-        render_mode: str | None,
-    ) -> Env:
+    def _construct_model_id(self, lstm_hidden_size: int | None = None) -> None:
+        perception = self.obs_conf.observation_handler.perception
+        tier = f"Tier{self.run_conf.orb_factory_conf.max_tier}"
+        reward = f"{self.run_conf.tier_orb_conf.base_reward}rew"
+        growth = f"{self.run_conf.tier_orb_conf.growth_factor}growth"
+        score = f"{self.run_conf.droid_conf.starting_score}score"
+        step_offset = f"{self.run_conf.droid_conf.step_penalty}step_offset"
+
+        # --- RecurrentPPO with tier orbs --- #
+        if (
+            self.conf.alg == "RPPO"
+            and self.run_conf.orb_factory_conf.types.tier.enabled
+        ):
+            self._id = f"{perception}_{tier}_{reward}_{growth}_{score}_{step_offset}_{lstm_hidden_size}_{self.conf.alg}"
+        # --- RecurrentPPO without tier orbs --- #
+        elif (
+            self.conf.alg == "RPPO"
+            and not self.run_conf.orb_factory_conf.types.tier.enabled
+        ):
+            self._id = f"{perception}_NoTier_{score}_{step_offset}_{lstm_hidden_size}_{self.conf.alg}"
+        # --- With tier orbs --- #
+        elif (
+            not self.conf.alg == "RPPO"
+            and self.run_conf.orb_factory_conf.types.tier.enabled
+        ):
+            self._id = f"{perception}_{tier}_{reward}_{growth}_{score}_{step_offset}_{self.conf.alg}"
+        # --- Without tier orbs --- #
+        elif (
+            not self.conf.alg == "RPPO"
+            and not self.run_conf.orb_factory_conf.types.tier.enabled
+        ):
+            self._id = f"{perception}_NoTier_{score}_{step_offset}_{self.conf.alg}"
+
+    def _make_raw_env(self, render_mode: str | None) -> Env:
         env = make(render_mode, self.run_conf, self.obs_conf)
 
         if self.conf.check_env:
@@ -69,7 +99,7 @@ class BaseAgentRunner(ABC):
         if self.conf.agent_steps == "":
             sys.exit("You forgot to specify the models steps")
 
-        file_name = f"{self.conf.agent_steps}_{self.conf.id}_{self.conf.alg}*"
+        file_name = f"{self.conf.agent_steps}_{self._id}*"
 
         # list all files
         matches = list(self.model_dir.glob(file_name))
@@ -80,4 +110,4 @@ class BaseAgentRunner(ABC):
         return max(matches, key=lambda p: p.stat().st_mtime)
 
     def _get_log_identifier(self) -> str:
-        return f"{self.conf.id}_{self.conf.alg}_{self.date}"
+        return f"{self._id}_{self.date}"

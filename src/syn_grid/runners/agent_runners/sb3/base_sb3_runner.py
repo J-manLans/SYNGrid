@@ -3,15 +3,17 @@ from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
 
 
 import os
-from typing import Type, Any
+from typing import Type, TypeVar, Any, Generic
 from pathlib import Path
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gymnasium import Env
 
+T = TypeVar("T", bound=BaseAlgorithm)
 
-class BaseSB3Runner(BaseAgentRunner):
+
+class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     # ================= #
     #       Init        #
     # ================= #
@@ -22,9 +24,11 @@ class BaseSB3Runner(BaseAgentRunner):
         obs_conf: ObsConfig,
         run_conf: WorldConfig,
         hyper_parameters: dict[str, Any],
-        algorithm: Type[BaseAlgorithm],
+        algorithm: Type[T],
+        lstm_hidden_size: int | None = None,
     ):
         super().__init__(conf, obs_conf, run_conf)
+        super()._construct_model_id(lstm_hidden_size)
         self._HYPER_PARAMETERS = hyper_parameters
         self._ALGORITHM = algorithm
 
@@ -32,8 +36,8 @@ class BaseSB3Runner(BaseAgentRunner):
     #      Helpers      #
     # ================= #
 
-    def _make_env(self) -> Env:
-        env = self._make_raw_env(self.train_conf.render_mode)
+    def _make_env(self, render_mode: str | None) -> Env:
+        env = self._make_raw_env(render_mode)
 
         if self.train_conf.enable_output:
             env = self._wrap_in_monitor(env)
@@ -50,24 +54,24 @@ class BaseSB3Runner(BaseAgentRunner):
 
         return Monitor(env=env, filename=str(self.log_dir / self._get_log_identifier()))
 
-    def _make_wrapped_dummy_vec_env(self) -> DummyVecEnv:
-        return DummyVecEnv([self._make_env])
+    def _make_wrapped_dummy_vec_env(self, render_mode: str | None) -> DummyVecEnv:
+        return DummyVecEnv([lambda: self._make_env(render_mode)])
 
     # === Model === #
 
-    def _get_model(self, env: Env | DummyVecEnv) -> BaseAlgorithm:
+    def _get_model(self, env: Env | DummyVecEnv) -> T:
         if self.train_conf.continue_training:
             return self._load_model(env)
         else:
             return self._create_model(env)
 
-    def _load_model(self, env: Env | DummyVecEnv) -> BaseAlgorithm:
+    def _load_model(self, env: Env | DummyVecEnv) -> T:
         model_path = self._get_model_path()
         return self._ALGORITHM.load(
             model_path, env=env, device=self._HYPER_PARAMETERS["device"]
         )
 
-    def _create_model(self, env: Env | DummyVecEnv) -> BaseAlgorithm:
+    def _create_model(self, env: Env | DummyVecEnv) -> T:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
         return self._ALGORITHM(
@@ -81,7 +85,7 @@ class BaseSB3Runner(BaseAgentRunner):
 
     # === Train === #
 
-    def _train_model(self, model: BaseAlgorithm, env: Env | DummyVecEnv):
+    def _train_model(self, model: T, env: Env | DummyVecEnv):
         try:
             # This loop will keep training based on timesteps and iterations.
             # After the timesteps are completed, the model is saved and training

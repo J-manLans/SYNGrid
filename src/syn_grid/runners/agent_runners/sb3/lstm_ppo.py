@@ -5,7 +5,7 @@ import numpy as np
 from sb3_contrib import RecurrentPPO
 
 
-class LstmPPO(BaseSB3Runner):
+class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     # ================= #
     #       Init        #
     # ================= #
@@ -18,26 +18,35 @@ class LstmPPO(BaseSB3Runner):
             "n_steps": 128,
             "batch_size": 64,
             "n_epochs": 5,
+            "learning_rate": 3e-4,
+            "clip_range": 0.2,
             "policy_kwargs": {
-                "lstm_hidden_size": 512,
+                "lstm_hidden_size": 256,
                 "n_lstm_layers": 1,
                 "shared_lstm": False,
             },
         }
-        super().__init__(conf, obs_conf, run_conf, hyper_parameters, RecurrentPPO)
+        super().__init__(
+            conf,
+            obs_conf,
+            run_conf,
+            hyper_parameters,
+            RecurrentPPO,
+            hyper_parameters["policy_kwargs"]["lstm_hidden_size"],
+        )
 
     # ================= #
     #        API        #
     # ================= #
 
     def train(self) -> None:
-        env = self._make_wrapped_dummy_vec_env()
+        env = self._make_wrapped_dummy_vec_env(self.train_conf.render_mode)
         model = self._get_model(env)
 
         self._train_model(model, env)
 
     def eval(self) -> None:
-        env = self._make_wrapped_dummy_vec_env()
+        env = self._make_wrapped_dummy_vec_env("human")
         model = self._get_model(env)
         model.set_env(env)
 

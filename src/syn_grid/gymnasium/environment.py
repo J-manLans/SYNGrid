@@ -26,7 +26,7 @@ class SYNGridEnv(gym.Env):
     # render_fps caps the update rate of render(); each call corresponds to one logic step, not the
     # full game framerate. Simply put: render_fps controls the speed of the environment’s logic,
     # while a sub-loop in the renderer would handle smooth animation between steps.
-    metadata = {"render_modes": ["human"], "render_fps": 15}
+    metadata = {"render_modes": ["human"], "render_fps": 4}
 
     def __init__(
         self,
@@ -86,8 +86,10 @@ class SYNGridEnv(gym.Env):
         # Perform action and adjust variables affected by it
         reward = self.world.perform_agent_action(DroidAction(action))
         self._observation_handler.steps_left -= 1
-        terminated = self.world.DROID.score <= 0
-        truncated = (self._observation_handler.steps_left <= 0) and not terminated
+
+        terminated, truncated, reward = self._calc_rew_based_on_state(
+            False, False, reward
+        )
 
         if self.render_mode == "human":
             self.render()
@@ -129,3 +131,16 @@ class SYNGridEnv(gym.Env):
         hud_data["current tier chain"] = self.world.DROID.DIGESTION_ENGINE.chained_tiers
 
         return hud_data
+
+    def _calc_rew_based_on_state(
+        self, terminated: bool, truncated: bool, reward: float
+    ) -> tuple[bool, bool, float]:
+        if self.world.DROID.score <= 0:
+            terminated = True
+            reward += 0.0
+
+        if (self._observation_handler.steps_left <= 0) and not terminated:
+            truncated = True
+            reward += 0.0
+
+        return terminated, truncated, reward

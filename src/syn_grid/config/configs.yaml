@@ -36,7 +36,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50.0
-    step_penalty: -0.5
+    step_penalty: -0.55
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -112,15 +112,13 @@ agent:
     # Global settings:
     # - algorithm: which algorithm the agent will use
     # - agent_steps: identifier for the model to continue training or evaluate
-    # - identifier: name of the model checkpoints that will be saved
-    # - human_control: allow human to control the game manually
+    # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "RPPO"
-    agent_steps: "401408"
-    id: "vectorHardTier3_1.5rew_2.2growth_50score_0.5penalty_512"
-    human_control: false
-    training: true
+    alg: "PPO"
+    agent_steps: "802816"
+    human_control: true
+    training: false
     check_env: false
 
   # Pick algorithm to train or evaluate
