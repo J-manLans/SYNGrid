@@ -87,23 +87,21 @@ class SYNGridEnv(gym.Env):
         reward = self.world.perform_agent_action(DroidAction(action))
         self._observation_handler.steps_left -= 1
 
-        terminated, truncated, reward = self._calc_rew_based_on_state(
-            False, False, reward
-        )
+        terminated, reward = self._check_episode_end(False, reward)
 
         if self.render_mode == "human":
             self.render()
 
         self.obs = self._observation_handler.get_observation(self.world)
 
-        # Return observation, reward, terminated, truncated and info (TODO: info is not used now,
-        # but add it at termination or truncation so result can be persisted in the evaluate_agent
-        # () method)
+        # Return observation, reward, terminated, truncated and info (TODO: truncated and info is
+        # not used now, but maybe add info at termination so result can be persisted in the eval()
+        # method)
         return (
             self.obs,
             reward,
             terminated,
-            truncated,
+            False,
             {},
         )
 
@@ -132,15 +130,15 @@ class SYNGridEnv(gym.Env):
 
         return hud_data
 
-    def _calc_rew_based_on_state(
-        self, terminated: bool, truncated: bool, reward: float
-    ) -> tuple[bool, bool, float]:
+    def _check_episode_end(
+        self, terminated: bool, reward: float
+    ) -> tuple[bool, float]:
         if self.world.DROID.score <= 0:
             terminated = True
-            reward += 0.0
+            reward -= self._observation_handler.steps_left
 
         if (self._observation_handler.steps_left <= 0) and not terminated:
-            truncated = True
-            reward += 0.0
+            terminated = True
+            reward += self.world.DROID.score
 
-        return terminated, truncated, reward
+        return terminated, reward

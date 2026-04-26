@@ -24,20 +24,39 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         self._train_model(model, env)
 
     def eval(self) -> None:
+        # prep model and env
         env = self._make_raw_env("human")
         model = self._load_model(env)
-        model.set_env(env)
 
-        obs, _ = env.reset()
-        done = False
+        # stores total reward and episode length for each evaluation episode
+        episode_rewards = []
+        episode_lengths = []
+
         try:
-            while not done:
-                action, _ = model.predict(obs)
-                obs, reward, terminated, truncated, info = env.step(action)
+            for _ in range(self.eval_conf.num_eval_episodes):
+                # start the eval loop
+                obs, _ = env.reset()
+                done = False
+                total_reward = 0.0
+                step_count = 0
+                while not done:
+                    action, _ = model.predict(obs, deterministic=True)
+                    obs, reward, terminated, truncated, info = env.step(action)
 
-                done = truncated or terminated
+                    total_reward += float(reward)
+                    step_count += 1
+                    done = truncated or terminated
+
+                episode_rewards.append(total_reward)
+                episode_lengths.append(step_count)
         except Exception as e:
             print(f"System crashed: {e}")
-            raise  # exit function gracefully
+            raise
+        finally:
+            env.close()
 
-        env.close()
+        avg_reward = sum(episode_rewards) / len(episode_rewards)
+        avg_length = sum(episode_lengths) / len(episode_lengths)
+        print(
+            f"Eval over {self.eval_conf.num_eval_episodes} episodes: average reward = {avg_reward:.2f}, average length = {avg_length:.1f}"
+        )

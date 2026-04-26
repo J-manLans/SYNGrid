@@ -4,7 +4,7 @@
 
 snapshot:
   # Snapshot settings:
-  # - enabled: whether to save a snapshot of the full config
+  # - enabled: whether to save a snapshot of the full config for replicating scenario
   # - id: optional identifier used as part of the snapshot filename
   enabled: false
   id: "tier_1_vector_RPPO_64_hidden"
@@ -33,10 +33,12 @@ world:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
+    # - tier_consumption_penalty: punishment for consuming tier orbs in the wrong order
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50.0
-    step_penalty: -0.55
+    step_penalty: -0.75
+    tier_consumption_penalty: -0.2
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -49,7 +51,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 3
+    max_tier: &max_tier 2
     de_spawn_tiers: false
     types:
       negative:
@@ -115,10 +117,10 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "PPO"
-    agent_steps: "802816"
-    human_control: true
-    training: false
+    alg: "RPPO"
+    agent_steps: "400000"
+    human_control: false
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -132,11 +134,13 @@ agent:
     continue_training: false
     enable_output: true
     render_mode: null
-    timesteps: 100000
-    iterations: 8
+    timesteps: 500000
+    iterations: 1
 
   eval_agent_conf:
     # Eval settings:
     # - trained_model: enable agent or use random sampling for debugging
+    # - num_eval_episodes: how many episodes to evaluate
     trained_model: true
     time_env: false
+    num_eval_episodes: 1
