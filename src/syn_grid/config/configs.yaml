@@ -120,7 +120,7 @@ agent:
     alg: "RPPO"
     agent_steps: "400000"
     human_control: false
-    training: true
+    training: false
     check_env: false
 
   # Pick algorithm to train or evaluate

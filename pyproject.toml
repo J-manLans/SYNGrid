@@ -32,7 +32,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "syn-grid"
-version = "0.2.0"
+version = "0.3.0"
 license = {file = "LICENSE"}
 description = "Benchmark for synergy reasoning in agents"
 readme = "README.md"
