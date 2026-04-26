@@ -111,16 +111,16 @@ class TestEnvironment:
         env = SYNGridEnv(conf.world, obs_conf)
         env.reset()
 
-        truncated = False
+        terminated = False
 
         # Run for more steps than the allowed maximum
         for _ in range(obs_conf.perception.max_steps + 1):
-            _, _, _, truncated, _ = env.step(env.action_space.sample())
+            _, _, terminated, _, _ = env.step(env.action_space.sample())
 
-            if truncated:
+            if terminated:
                 break
 
-        assert truncated
+        assert terminated
 
     def test_environment_terminates(self):
         """
