@@ -40,7 +40,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
                 total_reward = 0.0
                 step_count = 0
                 while not done:
-                    action, _ = model.predict(obs, deterministic=True)
+                    action, states = model.predict(obs, deterministic=True)
                     obs, reward, terminated, truncated, info = env.step(action)
 
                     total_reward += float(reward)

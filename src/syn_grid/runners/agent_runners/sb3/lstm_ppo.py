@@ -48,7 +48,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     def eval(self) -> None:
         # prep model and env
         env = self._make_wrapped_dummy_vec_env("human")
-        model = self._get_model(env)
+        model = self._load_model(env)
 
         # prep lstm variables
         lstm_states = None
