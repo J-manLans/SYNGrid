@@ -21,11 +21,9 @@ def make(render_mode: str | None, run_conf: WorldConfig, obs_conf: ObsConfig) ->
     Creates the registered environment and check it for correctness, used when training or evaluating the agent.
     """
 
-    env = gym.make(
+    return gym.make(
         "syn_grid-v0", render_mode=render_mode, run_conf=run_conf, obs_conf=obs_conf
     )
-
-    return env
 
 
 def check_my_env(env: Env):

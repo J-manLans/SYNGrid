@@ -37,7 +37,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50.0
-    step_penalty: -0.0
+    step_penalty: -1.0
     tier_consumption_penalty: -0.2
 
   orb_factory_conf:
@@ -118,9 +118,9 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "301056"
+    agent_steps: "602112"
     human_control: false
-    training: true
+    training: false
     check_env: false
 
   # Pick algorithm to train or evaluate

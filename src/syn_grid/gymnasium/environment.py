@@ -135,7 +135,7 @@ class SYNGridEnv(gym.Env):
     ) -> tuple[bool, float]:
         if self.world.DROID.score <= 0:
             terminated = True
-            reward -= self._observation_handler.steps_left
+            # reward -= self._observation_handler.steps_left
 
         if (self._observation_handler.steps_left <= 0) and not terminated:
             terminated = True
