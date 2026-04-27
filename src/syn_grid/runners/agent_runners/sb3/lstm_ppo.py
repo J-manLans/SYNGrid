@@ -17,9 +17,9 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
             "ent_coef": 0.05,
             "n_steps": 128,
             "batch_size": 64,
-            "n_epochs": 4,
-            "learning_rate": 5e-4,
-            "clip_range": 0.25,
+            "n_epochs": 5,
+            "learning_rate": 3e-4,
+            "clip_range": 0.2,
             "policy_kwargs": {
                 "lstm_hidden_size": 128,
                 "n_lstm_layers": 1,

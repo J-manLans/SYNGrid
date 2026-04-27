@@ -55,6 +55,7 @@ class BaseAgentRunner(ABC):
     def _construct_model_id(self, lstm_hidden_size: int | None = None) -> None:
         perception = self.obs_conf.observation_handler.perception
         tier = f"Tier{self.run_conf.orb_factory_conf.max_tier}"
+        neg = '_Neg' if self.run_conf.orb_factory_conf.types.negative.enabled else ''
         reward = f"{self.run_conf.tier_orb_conf.base_reward}rew"
         growth = f"{self.run_conf.tier_orb_conf.growth_factor}growth"
         score = f"{self.run_conf.droid_conf.starting_score}score"
@@ -65,25 +66,25 @@ class BaseAgentRunner(ABC):
             self.conf.alg == "RPPO"
             and self.run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_{tier}_{reward}_{growth}_{score}_{step_offset}_{lstm_hidden_size}_{self.conf.alg}"
+            self._id = f"{perception}_{tier}{neg}_{reward}_{growth}_{score}_{step_offset}_{lstm_hidden_size}_{self.conf.alg}"
         # --- RecurrentPPO without tier orbs --- #
         elif (
             self.conf.alg == "RPPO"
             and not self.run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_NoTier_{score}_{step_offset}_{lstm_hidden_size}_{self.conf.alg}"
+            self._id = f"{perception}_NoTier{neg}_{score}_{step_offset}_{lstm_hidden_size}_{self.conf.alg}"
         # --- With tier orbs --- #
         elif (
             not self.conf.alg == "RPPO"
             and self.run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_{tier}_{reward}_{growth}_{score}_{step_offset}_{self.conf.alg}"
+            self._id = f"{perception}_{tier}{neg}_{reward}_{growth}_{score}_{step_offset}_{self.conf.alg}"
         # --- Without tier orbs --- #
         elif (
             not self.conf.alg == "RPPO"
             and not self.run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_NoTier_{score}_{step_offset}_{self.conf.alg}"
+            self._id = f"{perception}_NoTier{neg}_{score}_{step_offset}_{self.conf.alg}"
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
         env = make(render_mode, self.run_conf, self.obs_conf)
