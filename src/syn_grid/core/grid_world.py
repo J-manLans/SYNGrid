@@ -75,7 +75,7 @@ class GridWorld:
 
     # === Logic === #
 
-    def perform_agent_action(self, agent_action: DroidAction) -> float:
+    def perform_droid_action(self, agent_action: DroidAction) -> float:
         reward = 0
         step_penalty = self.droid.perform_action(agent_action)
 

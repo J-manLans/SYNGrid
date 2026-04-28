@@ -30,7 +30,7 @@ class HumanRunner:
 
         while True:
             if action is not None:
-                self._world.perform_agent_action(action)
+                self._world.perform_droid_action(action)
                 self._steps_left -= 1
                 truncated = self._steps_left <= 0
                 terminated = self._world.droid.score <= 0
