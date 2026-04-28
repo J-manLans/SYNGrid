@@ -78,7 +78,7 @@ world:
     linear_reward_growth: true
     step_wise_scoring: true
     growth_factor: 2.2
-    base_reward: 3.0
+    base_reward: 8.0
     cool_down: 7
 
 ###########################
@@ -145,4 +145,4 @@ agent:
     trained_model: true
     time_env: false
     num_eval_episodes: 10
-    render_mode: null
+    render_mode: 'human'

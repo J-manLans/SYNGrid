@@ -28,7 +28,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
     def eval(self) -> None:
         # prep model and env
         env = self._make_wrapped_dummy_vec_env(self.eval_conf.render_mode)
-        env = self._load_normalize_wrapper(env, 'vec_normalize_stats.pkl')
+        env = self._load_normalize_wrapper(env, 'vec_normalize_stats.pkl') # TODO: fix this
         model = self._load_model(env)
 
         # stores total reward and episode length for each evaluation episode

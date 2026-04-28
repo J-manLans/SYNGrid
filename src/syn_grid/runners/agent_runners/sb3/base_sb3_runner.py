@@ -136,6 +136,6 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     model.save(Path(self.model_dir) / checkpoint)
                     print(f"\nModel saved with {model.num_timesteps} time steps")
                     if isinstance(env, VecNormalize):
-                        env.save("vec_normalize_stats.pkl")
+                        env.save("vec_normalize_stats.pkl") # TODO: fix this
         finally:
             env.close()
