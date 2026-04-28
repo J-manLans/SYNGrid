@@ -1,13 +1,13 @@
-import gymnasium as gym
-from gymnasium import spaces
-
 from syn_grid.config.models import WorldConfig, ObsConfig
 from syn_grid.core.grid_world import GridWorld
+from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
-from syn_grid.rendering.pygame_renderer import PygameRenderer
+
+import gymnasium as gym
+from gymnasium import spaces
 
 
 class SYNGridEnv(gym.Env):

@@ -19,20 +19,21 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     # ================= #
 
     _POLICY_MAP = {
-        'vector': 'MlpPolicy',
-        'composition': 'MultiInputPolicy',
-        'spatial': 'CnnPolicy'
+        'vector': 'Mlp',
+        'composite': 'MultiInput',
+        'spatial': 'Cnn'
     }
 
     @classmethod
-    def get_policy_from_perception(cls, perception_str: str) -> str:
+    def get_policy_from_perception(cls, perception_str: str, use_lstm: bool = False) -> str:
         """Extract SB3 policy string from perception configuration."""
 
         policy = ''
 
-        for perception_key, policy_value in cls._POLICY_MAP.items():
+        for perception_key, base_policy in cls._POLICY_MAP.items():
             if perception_key in perception_str:
-                policy = policy_value
+                suffix = 'LstmPolicy' if use_lstm else 'Policy'
+                policy = base_policy + suffix
 
         return policy
 
