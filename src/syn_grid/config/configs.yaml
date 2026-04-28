@@ -118,7 +118,7 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "1001472"
+    agent_steps: "1007616"
     human_control: false
     training: false
     check_env: false
@@ -134,8 +134,8 @@ agent:
     continue_training: false
     enable_output: true
     render_mode: null
-    timesteps: 1000000
-    iterations: 1
+    timesteps: 250000
+    iterations: 4
 
   eval_agent_conf:
     # Eval settings:
@@ -144,5 +144,5 @@ agent:
     # - render_mode (null or "human"): null is default, change to null if you don't want visual feedback during debugging
     trained_model: true
     time_env: false
-    num_eval_episodes: 100
+    num_eval_episodes: 10
     render_mode: null

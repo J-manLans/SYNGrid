@@ -7,7 +7,7 @@ from typing import Type, TypeVar, Any, Generic
 from pathlib import Path
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.base_class import BaseAlgorithm
-from stable_baselines3.common.vec_env import DummyVecEnv
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize, VecEnv
 from gymnasium import Env
 
 T = TypeVar("T", bound=BaseAlgorithm)
@@ -54,6 +54,8 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     #      Helpers      #
     # ================= #
 
+    # === Env === #
+
     def _make_env(self, render_mode: str | None) -> Env:
         env = self._make_raw_env(render_mode)
 
@@ -62,7 +64,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
         return env
 
-    # === Wrappers === #
+    # --- Wrappers --- #
 
     def _wrap_in_monitor(self, env: Env) -> Env:
         """
@@ -75,21 +77,29 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _make_wrapped_dummy_vec_env(self, render_mode: str | None) -> DummyVecEnv:
         return DummyVecEnv([lambda: self._make_env(render_mode)])
 
+    def _apply_normalize_wrapper(self, env) -> VecNormalize:
+        return VecNormalize(env, norm_obs=True, norm_reward=False)
+
+    def _load_normalize_wrapper(self, env: DummyVecEnv, stats_path: str) -> VecNormalize:
+        vec_env = VecNormalize.load(stats_path, env)
+        vec_env.training = False
+        return vec_env
+
     # === Model === #
 
-    def _get_model(self, env: Env | DummyVecEnv) -> T:
+    def _get_model(self, env: Env | VecEnv) -> T:
         if not self.conf.training or self.train_conf.continue_training:
             return self._load_model(env)
         else:
             return self._create_model(env)
 
-    def _load_model(self, env: Env | DummyVecEnv) -> T:
+    def _load_model(self, env: Env | VecEnv) -> T:
         model_path = self._get_model_path()
         return self._ALGORITHM.load(
             model_path, env=env, device=self._HYPER_PARAMETERS["device"]
         )
 
-    def _create_model(self, env: Env | DummyVecEnv) -> T:
+    def _create_model(self, env: Env | VecEnv) -> T:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
         return self._ALGORITHM(
@@ -103,7 +113,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Train === #
 
-    def _train_model(self, model: T, env: Env | DummyVecEnv):
+    def _train_model(self, model: T, env: Env | VecEnv):
         try:
             # This loop will keep training based on timesteps and iterations.
             # After the timesteps are completed, the model is saved and training
@@ -125,5 +135,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     checkpoint = f"{model.num_timesteps}_{self._get_model_id()}.zip"
                     model.save(Path(self.model_dir) / checkpoint)
                     print(f"\nModel saved with {model.num_timesteps} time steps")
+                    if isinstance(env, VecNormalize):
+                        env.save("vec_normalize_stats.pkl")
         finally:
             env.close()
