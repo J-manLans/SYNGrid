@@ -27,16 +27,19 @@ class MediumVectorPerception(BasePerception):
         orb_data = []
 
         # define observation layout
+        max_vals.extend(self._get_max_global_values())
         max_vals.extend(self._get_max_droid_positions())
+        max_vals.extend(self._get_max_droid_data())
         orb_data.extend(self._get_max_orb_positions())
         orb_data.extend(self._get_max_orb_identity())
+        orb_data.extend(self._get_max_orb_data())
         self._num_orb_slots = len(orb_data)
-        max_vals.extend(orb_data * self._ORBS_IN_ENV)
+        max_vals.extend(orb_data * self._orbs_in_env)
 
         # finalize observation space definition
         self._SHAPE = len(max_vals)
         low = np.full(self._SHAPE, -1.0, dtype=np.float32)
-        low[0:2] = 0.0
+        low[0:4] = 0.0
         high = np.asarray(max_vals, dtype=np.float32)
 
         return spaces.Box(
@@ -50,12 +53,20 @@ class MediumVectorPerception(BasePerception):
         obs = np.full(self._SHAPE, -1.0, dtype=np.float32)
         obs_index = 0
 
+        # Global data
+        obs[obs_index] = steps_left
+        obs_index += 1
+
         # Droid data
-        droid_y, droid_x = state.DROID.position
+        droid_y, droid_x = state.droid.position
 
         obs[obs_index] = droid_y
         obs_index += 1
         obs[obs_index] = droid_x
+        obs_index += 1
+        obs[obs_index] = state.droid.score
+        obs_index += 1
+        obs[obs_index] = state.droid.DIGESTION_ENGINE.chained_tiers
         obs_index += 1
 
         # Orb data
@@ -72,6 +83,8 @@ class MediumVectorPerception(BasePerception):
                 obs[obs_index] = orb.META.TYPE.value
                 obs_index += 1
                 obs[obs_index] = orb.META.TIER
+                obs_index += 1
+                obs[obs_index] = orb.TIMER.remaining
                 obs_index += 1
             else:
                 obs_index += self._num_orb_slots

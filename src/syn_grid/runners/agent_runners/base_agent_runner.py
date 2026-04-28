@@ -18,7 +18,7 @@ class BaseAgentRunner(ABC):
         conf: AgentConfig,
         obs_conf: ObsConfig,
         run_conf: WorldConfig,
-        lstm_hidden_size: int | None = None # TODO: turn into **kwargs?
+        lstm_hidden_size: int | None = None,  # TODO: turn into **kwargs?
     ):
         self.conf = conf.global_agent_conf
         self.train_conf = conf.train_agent_conf
@@ -55,7 +55,7 @@ class BaseAgentRunner(ABC):
     def _construct_model_id(self, lstm_hidden_size: int | None = None) -> None:
         perception = self.obs_conf.observation_handler.perception
         tier = f"Tier{self.run_conf.orb_factory_conf.max_tier}"
-        neg = '_Neg' if self.run_conf.orb_factory_conf.types.negative.enabled else ''
+        neg = "_Neg" if self.run_conf.orb_factory_conf.types.negative.enabled else ""
         reward = f"{self.run_conf.tier_orb_conf.base_reward}rew"
         growth = f"{self.run_conf.tier_orb_conf.growth_factor}growth"
         score = f"{self.run_conf.droid_conf.starting_score}score"
@@ -113,5 +113,5 @@ class BaseAgentRunner(ABC):
         # return the one with the highest value of the timestamp
         return max(matches, key=lambda p: p.stat().st_mtime)
 
-    def _get_log_identifier(self) -> str:
+    def _get_model_id(self) -> str:
         return f"{self._id}_{self.date}"

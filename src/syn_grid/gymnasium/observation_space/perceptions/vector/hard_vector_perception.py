@@ -58,7 +58,7 @@ class HardVectorPerception(BasePerception):
         obs = np.full(self._SHAPE, -1.0, dtype=np.float32)
 
         # Droid data
-        droid_y, droid_x = state.DROID.position
+        droid_y, droid_x = state.droid.position
         obs[0] = droid_y
         obs[1] = droid_x
 

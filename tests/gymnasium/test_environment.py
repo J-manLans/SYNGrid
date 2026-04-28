@@ -199,10 +199,10 @@ class TestEnvironment:
         return {
             "steps_left": env._observation_handler.steps_left,
             "num_orbs_pool": len(env.world.ALL_ORBS),
-            "num_active_orbs": len(env.world._ACTIVE_ORBS),
+            "num_active_orbs": len(env.world._active_orbs),
             "num_inactive_orbs": len(env.world._inactive_orbs),
-            "droid_position": env.world.DROID.position.copy(),
-            "droid_score": env.world.DROID.score,
-            "chained_tiers": env.world.DROID.DIGESTION_ENGINE.chained_tiers,
-            "pending_reward": env.world.DROID.DIGESTION_ENGINE._pending_reward,
+            "droid_position": env.world.droid.position.copy(),
+            "droid_score": env.world.droid.score,
+            "chained_tiers": env.world.droid.DIGESTION_ENGINE.chained_tiers,
+            "pending_reward": env.world.droid.DIGESTION_ENGINE._pending_reward,
         }

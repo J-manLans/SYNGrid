@@ -6,6 +6,11 @@ from syn_grid.gymnasium.observation_space.perceptions.vector import (
     MediumVectorPerception,
     HardVectorPerception,
 )
+from syn_grid.gymnasium.observation_space.perceptions.composite import (
+    EasyCompositePerception,
+    MediumCompositePerception,
+    HardCompositePerception,
+)
 from syn_grid.config.models import ObsConfig
 from syn_grid.core.grid_world import GridWorld
 
@@ -17,6 +22,9 @@ PERCEPTIONS = {
     "vector_easy": EasyVectorPerception,
     "vector_medium": MediumVectorPerception,
     "vector_hard": HardVectorPerception,
+    "composite_easy": EasyCompositePerception,
+    "composite_medium": MediumCompositePerception,
+    "composite_hard": HardCompositePerception,
 }
 
 

@@ -107,7 +107,7 @@ class SYNGridEnv(gym.Env):
 
     def render(self) -> None:
         self.renderer.render(
-            self.world.DROID.position,
+            self.world.droid.position,
             self.world.get_orb_is_active_status(True),
             self.world.get_orb_positions(True),
             self.world.get_orb_meta(True),
@@ -124,16 +124,14 @@ class SYNGridEnv(gym.Env):
     def _get_hud_data(self) -> dict[str, int | float]:
         hud_data: dict[str, int | float] = {}
 
-        hud_data["score"] = self.world.DROID.score
+        hud_data["score"] = self.world.droid.score
         hud_data["moves"] = self._observation_handler.steps_left
-        hud_data["current tier chain"] = self.world.DROID.DIGESTION_ENGINE.chained_tiers
+        hud_data["current tier chain"] = self.world.droid.DIGESTION_ENGINE.chained_tiers
 
         return hud_data
 
-    def _check_episode_end(
-        self, terminated: bool, reward: float
-    ) -> tuple[bool, float]:
-        if self.world.DROID.score <= 0:
+    def _check_episode_end(self, terminated: bool, reward: float) -> tuple[bool, float]:
+        if self.world.droid.score <= 0:
             terminated = True
             # reward -= self._observation_handler.steps_left
 

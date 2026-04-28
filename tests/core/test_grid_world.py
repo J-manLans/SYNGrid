@@ -44,8 +44,8 @@ class TestGridWorld:
         assert (
             active_cnt == 1
         )  # There should be exactly one active orb after initialization.
-        assert grid_world._CONF.grid_rows == 5  # The grid should have 5 row.
-        assert grid_world._CONF.grid_cols == 5  # The grid should have 5 columns.
+        assert grid_world._conf.grid_rows == 5  # The grid should have 5 row.
+        assert grid_world._conf.grid_cols == 5  # The grid should have 5 columns.
 
     def test_orb_positions(self, grid_world: GridWorld):
         """

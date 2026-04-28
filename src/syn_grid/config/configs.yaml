@@ -38,7 +38,7 @@ world:
     grid_cols: *grid_cols
     starting_score: 50.0
     step_penalty: -1.0
-    tier_consumption_penalty: -0.2
+    tier_consumption_penalty: -0.0
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -51,8 +51,8 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 1
-    de_spawn_tiers: false
+    max_tier: &max_tier 2
+    de_spawn_tiers: true
     types:
       negative:
         enabled: true
@@ -72,10 +72,10 @@ world:
     # Tiered orb behavior:
     # - linear_reward_growth: if true, reward scales linearly instead of exponentially
     # - step_wise_scoring: if true, reward is given per correctly consumed tier instead of on chain break
-    # - growth_factor: multiplier applied per tier increase
+    # - growth_factor: multiplier applied per tier increase if linear_reward_growth is false
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
-    linear_reward_growth: false
+    linear_reward_growth: true
     step_wise_scoring: true
     growth_factor: 2.2
     base_reward: 3.0
@@ -89,7 +89,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_medium"
+    perception: "composite_medium"
     max_steps: &max_steps 100
 
   perception:
@@ -120,7 +120,7 @@ agent:
     alg: "PPO"
     agent_steps: "602112"
     human_control: false
-    training: false
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -132,10 +132,10 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    enable_output: true
+    enable_output: false
     render_mode: null
-    timesteps: 300000
-    iterations: 2
+    timesteps: 1000000
+    iterations: 1
 
   eval_agent_conf:
     # Eval settings:

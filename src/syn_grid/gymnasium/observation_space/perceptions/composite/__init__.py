@@ -1,0 +1,3 @@
+from .easy_composite_perception import EasyCompositePerception
+from .medium_composite_perception import MediumCompositePerception
+from .hard_composite_perception import HardCompositePerception

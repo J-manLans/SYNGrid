@@ -33,7 +33,7 @@ class HumanRunner:
                 self._world.perform_agent_action(action)
                 self._steps_left -= 1
                 truncated = self._steps_left <= 0
-                terminated = self._world.DROID.score <= 0
+                terminated = self._world.droid.score <= 0
                 self._render()
 
                 if terminated or truncated:
@@ -47,7 +47,7 @@ class HumanRunner:
 
     def _render(self):
         self._renderer.render(
-            self._world.DROID.position,
+            self._world.droid.position,
             self._world.get_orb_is_active_status(True),
             self._world.get_orb_positions(True),
             self._world.get_orb_meta(True),
@@ -57,10 +57,10 @@ class HumanRunner:
     def _get_hud_data(self) -> dict[str, int | float]:
         hud_data: dict[str, int | float] = {}
 
-        hud_data["score"] = self._world.DROID.score
+        hud_data["score"] = self._world.droid.score
         hud_data["moves"] = self._steps_left
         hud_data["current tier chain"] = (
-            self._world.DROID.DIGESTION_ENGINE.chained_tiers
+            self._world.droid.DIGESTION_ENGINE.chained_tiers
         )
 
         return hud_data

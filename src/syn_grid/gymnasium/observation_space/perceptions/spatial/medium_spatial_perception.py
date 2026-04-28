@@ -55,13 +55,13 @@ class MediumSpatialPerception(BasePerception):
         grid = np.zeros((self._ROWS, self._COLS, self._CHANNELS), dtype=np.float32)
 
         # Droid data
-        droid_y, droid_x = state.DROID.position
+        droid_y, droid_x = state.droid.position
 
         grid[droid_y, droid_x, 0] = 1
         grid[droid_y, droid_x, 1] = steps_left / self._max_vals[1]
-        grid[droid_y, droid_x, 2] = state.DROID.score / self._max_vals[2]
+        grid[droid_y, droid_x, 2] = state.droid.score / self._max_vals[2]
         grid[droid_y, droid_x, 3] = (
-            state.DROID.DIGESTION_ENGINE.chained_tiers / self._max_vals[3]
+            state.droid.DIGESTION_ENGINE.chained_tiers / self._max_vals[3]
         )
 
         # Orb data

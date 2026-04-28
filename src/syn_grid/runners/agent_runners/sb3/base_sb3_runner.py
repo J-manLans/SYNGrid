@@ -18,6 +18,24 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     #       Init        #
     # ================= #
 
+    _POLICY_MAP = {
+        'vector': 'MlpPolicy',
+        'composition': 'MultiInputPolicy',
+        'spatial': 'CnnPolicy'
+    }
+
+    @classmethod
+    def get_policy_from_perception(cls, perception_str: str) -> str:
+        """Extract SB3 policy string from perception configuration."""
+
+        policy = ''
+
+        for perception_key, policy_value in cls._POLICY_MAP.items():
+            if perception_key in perception_str:
+                policy = policy_value
+
+        return policy
+
     def __init__(
         self,
         conf: AgentConfig,
@@ -25,7 +43,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         run_conf: WorldConfig,
         hyper_parameters: dict[str, Any],
         algorithm: Type[T],
-        lstm_hidden_size: int | None = None
+        lstm_hidden_size: int | None = None,
     ):
         super().__init__(conf, obs_conf, run_conf, lstm_hidden_size)
         self._HYPER_PARAMETERS = hyper_parameters
@@ -51,7 +69,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         The created csv is needed for plotting our own graphs with matplotlib later.
         """
 
-        return Monitor(env=env, filename=str(self.log_dir / self._get_log_identifier()))
+        return Monitor(env=env, filename=str(self.log_dir / self._get_model_id()))
 
     def _make_wrapped_dummy_vec_env(self, render_mode: str | None) -> DummyVecEnv:
         return DummyVecEnv([lambda: self._make_env(render_mode)])
@@ -97,16 +115,14 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                 # Train the model
                 model.learn(
                     total_timesteps=self.train_conf.timesteps,
-                    tb_log_name=self._get_log_identifier(),
+                    tb_log_name=self._get_model_id(),
                     reset_num_timesteps=False,
                 )
 
                 if self.train_conf.enable_output:
                     # Save the model
-                    save_identifier = (
-                        f"{model.num_timesteps}_{self._get_log_identifier()}.zip"
-                    )
-                    model.save(Path(self.model_dir) / save_identifier)
+                    checkpoint = f"{model.num_timesteps}_{self._get_model_id()}.zip"
+                    model.save(Path(self.model_dir) / checkpoint)
                     print(f"\nModel saved with {model.num_timesteps} time steps")
         finally:
             env.close()

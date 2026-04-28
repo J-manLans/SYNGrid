@@ -1,6 +1,114 @@
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
+from syn_grid.config.models import PerceptionConf
+from syn_grid.core.grid_world import GridWorld
+
+import numpy as np
+from gymnasium import spaces
+from typing import Final
 
 
-class MediumCompositePerception(BasePerception): ...
+class MediumCompositePerception(BasePerception):
+    # ================= #
+    #        Init       #
+    # ================= #
+
+    _MISSING_ORB: Final[float] = -1.0
+
+    def __init__(self, conf: PerceptionConf, orbs: int) -> None:
+        super().__init__(conf, orbs)
+
+    # ================= #
+    #        API        #
+    # ================= #
+
+    def reset(self) -> None:
+        self._global_data[:] = 0
+        self._droid_data[:] = 0
+        self._orb_data[:] = -1.0
+
+    def setup_obs_space(self) -> spaces.Space:
+        # define observation layout
+        global_high = self._get_max_global_values()
+
+        droid_high = np.concatenate(
+            [self._get_max_droid_positions(), self._get_max_droid_data()]
+        )
+
+        orb_high = np.tile(
+            np.concatenate(
+                [
+                    self._get_max_orb_positions(),
+                    self._get_max_orb_identity(),
+                    self._get_max_orb_data(),
+                ]
+            ),
+            (self._orbs_in_env, 1),
+        )
+        orb_features = orb_high.shape[1]
+
+        self._global_data = np.zeros_like(global_high, dtype=np.float32)
+        self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
+        self._orb_data = np.full(
+            (self._orbs_in_env, orb_features), self._MISSING_ORB, dtype=np.float32
+        )
+
+        return spaces.Dict(
+            {
+                "global_data": spaces.Box(
+                    low=0,
+                    high=global_high,
+                    shape=(len(global_high),),
+                    dtype=np.float32,
+                ),
+                "agent_data": spaces.Box(
+                    low=0,
+                    high=droid_high,
+                    shape=(len(droid_high),),
+                    dtype=np.float32,
+                ),
+                "orb_data": spaces.Box(
+                    low=-1,
+                    high=orb_high,
+                    shape=(self._orbs_in_env, orb_features),
+                    dtype=np.float32,
+                ),
+            }
+        )
+
+    def get_observation(
+        self, state: GridWorld, steps_left: int
+    ) -> dict[str, np.ndarray]:
+        # Global data
+        self._global_data[0] = steps_left
+
+        # Droid data
+        droid_y, droid_x = state.droid.position
+
+        self._droid_data[0] = droid_y
+        self._droid_data[1] = droid_x
+        self._droid_data[2] = state.droid.score
+        self._droid_data[3] = state.droid.DIGESTION_ENGINE.chained_tiers
+
+        # Orb data
+        for i, orb in enumerate(state.ALL_ORBS):
+            if orb.is_active:
+                orb_y, orb_x = orb.position
+
+                self._orb_data[i] = [
+                    orb_y,
+                    orb_x,
+                    orb.META.CATEGORY.value,
+                    orb.META.TYPE.value,
+                    orb.META.TIER,
+                    orb.TIMER.remaining,
+                ]
+            else:
+                self._orb_data[i] = self._MISSING_ORB
+
+        return {
+            "global_data": self._global_data,
+            "droid_data": self._droid_data,
+            "orb_data": self._orb_data,
+        }

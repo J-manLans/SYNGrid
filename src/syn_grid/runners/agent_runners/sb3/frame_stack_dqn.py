@@ -9,9 +9,7 @@ class FrameStackDQN(BaseSB3Runner):
     #       Init        #
     # ================= #
 
-    def __init__(
-        self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig
-    ):
+    def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
         hyper_parameters = {"policy": "MlpPolicy", "device": "cpu", "ent_coef": 0.02}
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, QRDQN)
 
