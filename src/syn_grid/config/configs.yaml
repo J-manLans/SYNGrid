@@ -118,9 +118,9 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "602112"
+    agent_steps: "1001472"
     human_control: false
-    training: true
+    training: false
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -132,7 +132,7 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    enable_output: false
+    enable_output: true
     render_mode: null
     timesteps: 1000000
     iterations: 1
@@ -141,6 +141,8 @@ agent:
     # Eval settings:
     # - trained_model: enable agent or use random sampling for debugging
     # - num_eval_episodes: how many episodes to evaluate
+    # - render_mode (null or "human"): null is default, change to null if you don't want visual feedback during debugging
     trained_model: true
     time_env: false
-    num_eval_episodes: 1
+    num_eval_episodes: 100
+    render_mode: null

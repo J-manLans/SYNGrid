@@ -158,6 +158,13 @@ class EvalAgentConf(BaseModel, frozen=False):
     trained_model: bool
     time_env: bool
     num_eval_episodes: int
+    render_mode: str | None
+
+    @model_validator(mode="after")
+    def validate_config(self):
+        if self.render_mode not in ["human", None]:
+            raise ValueError("The value of render mode is not allowed")
+        return self
 
 
 # ======================= #

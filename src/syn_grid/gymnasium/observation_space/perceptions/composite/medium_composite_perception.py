@@ -14,6 +14,10 @@ class MediumCompositePerception(BasePerception):
     #        Init       #
     # ================= #
 
+    _GLOBAL_KEY = 'global_data'
+    _DROID_KEY = 'droid_data'
+    _ORB_KEY = 'orb_data'
+
     _MISSING_ORB: Final[float] = -1.0
 
     def __init__(self, conf: PerceptionConf, orbs: int) -> None:
@@ -24,12 +28,13 @@ class MediumCompositePerception(BasePerception):
     # ================= #
 
     def reset(self) -> None:
+        # Reset the observation arrays
         self._global_data[:] = 0
         self._droid_data[:] = 0
         self._orb_data[:] = -1.0
 
     def setup_obs_space(self) -> spaces.Space:
-        # define observation layout
+        # Define observation layout
         global_high = self._get_max_global_values()
 
         droid_high = np.concatenate(
@@ -48,6 +53,7 @@ class MediumCompositePerception(BasePerception):
         )
         orb_features = orb_high.shape[1]
 
+        # Initialize the arrays used for giving the observation
         self._global_data = np.zeros_like(global_high, dtype=np.float32)
         self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
         self._orb_data = np.full(
@@ -56,19 +62,19 @@ class MediumCompositePerception(BasePerception):
 
         return spaces.Dict(
             {
-                "global_data": spaces.Box(
+                self._GLOBAL_KEY: spaces.Box(
                     low=0,
                     high=global_high,
                     shape=(len(global_high),),
                     dtype=np.float32,
                 ),
-                "agent_data": spaces.Box(
+                self._DROID_KEY: spaces.Box(
                     low=0,
                     high=droid_high,
                     shape=(len(droid_high),),
                     dtype=np.float32,
                 ),
-                "orb_data": spaces.Box(
+                self._ORB_KEY: spaces.Box(
                     low=-1,
                     high=orb_high,
                     shape=(self._orbs_in_env, orb_features),
@@ -108,7 +114,7 @@ class MediumCompositePerception(BasePerception):
                 self._orb_data[i] = self._MISSING_ORB
 
         return {
-            "global_data": self._global_data,
-            "droid_data": self._droid_data,
-            "orb_data": self._orb_data,
+            self._GLOBAL_KEY: self._global_data,
+            self._DROID_KEY: self._droid_data,
+            self._ORB_KEY: self._orb_data,
         }

@@ -16,7 +16,7 @@ from syn_grid.core.grid_world import GridWorld
 
 import numpy as np
 from gymnasium import spaces
-from typing import Final, Type
+from typing import Final, Type, Any
 
 PERCEPTIONS = {
     "vector_easy": EasyVectorPerception,
@@ -51,5 +51,5 @@ class ObservationHandler:
         self.steps_left: int = self._max_steps
         self.perception.reset()
 
-    def get_observation(self, state: GridWorld) -> np.ndarray:
+    def get_observation(self, state: GridWorld) -> Any:
         return self.perception.get_observation(state, self.steps_left)
