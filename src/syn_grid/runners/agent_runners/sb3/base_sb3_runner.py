@@ -1,6 +1,6 @@
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
-
+from syn_grid.utils.paths_util import get_project_path
 
 import os
 from typing import Type, TypeVar, Any, Generic
@@ -50,6 +50,11 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         self._HYPER_PARAMETERS = hyper_parameters
         self._ALGORITHM = algorithm
 
+        # Create directory for saving learned statistics for normalization
+        self._vec_norm_stats_dir = Path(get_project_path("output", "results", "saved_vec_norms"))
+        Path(self._vec_norm_stats_dir).mkdir(parents=True, exist_ok=True)
+
+
     # ================= #
     #      Helpers      #
     # ================= #
@@ -59,10 +64,16 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _make_env(self, render_mode: str | None) -> Env:
         env = self._make_raw_env(render_mode)
 
-        if self.conf.training and self.train_conf.enable_output:
+        if self._conf.training and self._train_conf.enable_output:
             env = self._wrap_in_monitor(env)
 
         return env
+
+    def _get_vec_env(self, env: DummyVecEnv) -> VecNormalize:
+        if self._conf.training and not self._train_conf.continue_training:
+            return self._apply_normalize_wrapper(env)
+        else:
+            return self._load_normalize_wrapper(env)
 
     # --- Wrappers --- #
 
@@ -77,24 +88,25 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _make_wrapped_dummy_vec_env(self, render_mode: str | None) -> DummyVecEnv:
         return DummyVecEnv([lambda: self._make_env(render_mode)])
 
-    def _apply_normalize_wrapper(self, env) -> VecNormalize:
-        return VecNormalize(env, norm_obs=True, norm_reward=False)
-
-    def _load_normalize_wrapper(self, env: DummyVecEnv, stats_path: str) -> VecNormalize:
-        vec_env = VecNormalize.load(stats_path, env)
+    def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
+        evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
+        vec_env = VecNormalize.load(str(evn_load_path), env)
         vec_env.training = False
         return vec_env
+
+    def _apply_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
+        return VecNormalize(env, norm_obs=True, norm_reward=False)
 
     # === Model === #
 
     def _get_model(self, env: Env | VecEnv) -> T:
-        if not self.conf.training or self.train_conf.continue_training:
-            return self._load_model(env)
-        else:
+        if self._conf.training and not self._train_conf.continue_training:
             return self._create_model(env)
+        else:
+            return self._load_model(env)
 
     def _load_model(self, env: Env | VecEnv) -> T:
-        model_path = self._get_model_path()
+        model_path = self._get_saved_path(self._model_dir)
         return self._ALGORITHM.load(
             model_path, env=env, device=self._HYPER_PARAMETERS["device"]
         )
@@ -106,7 +118,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             env=env,
             verbose=1,
             tensorboard_log=(
-                str(self.log_dir) if self.train_conf.enable_output else None
+                str(self.log_dir) if self._train_conf.enable_output else None
             ),
             **self._HYPER_PARAMETERS,
         )
@@ -122,20 +134,22 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             # tensorboard --logdir results/logs/<env_name>
             # Once Tensorboard is loaded, it will print a URL. Follow the URL to see
             # the status of the training.
-            for i in range(1, self.train_conf.iterations + 1):
+            for i in range(1, self._train_conf.iterations + 1):
                 # Train the model
                 model.learn(
-                    total_timesteps=self.train_conf.timesteps,
+                    total_timesteps=self._train_conf.timesteps,
                     tb_log_name=self._get_model_id(),
                     reset_num_timesteps=False,
                 )
 
-                if self.train_conf.enable_output:
+                if self._train_conf.enable_output:
                     # Save the model
                     checkpoint = f"{model.num_timesteps}_{self._get_model_id()}.zip"
-                    model.save(Path(self.model_dir) / checkpoint)
+                    model.save(self._model_dir / checkpoint)
                     print(f"\nModel saved with {model.num_timesteps} time steps")
+
                     if isinstance(env, VecNormalize):
-                        env.save("vec_normalize_stats.pkl") # TODO: fix this
+                        evn_save_path = f'{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl'
+                        env.save(evn_save_path)
         finally:
             env.close()

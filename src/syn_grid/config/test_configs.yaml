@@ -145,10 +145,7 @@ agent:
 
   eval_agent_conf:
     # Eval settings:
-    # - trained_model: enable agent or use random sampling for debugging
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): null is default, change to null if you don't want visual feedback during debugging
-    trained_model: true
-    time_env: false
     num_eval_episodes: 1
     render_mode: null

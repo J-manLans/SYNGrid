@@ -155,8 +155,6 @@ class TrainAgentConf(BaseModel, frozen=False):
 
 
 class EvalAgentConf(BaseModel, frozen=False):
-    trained_model: bool
-    time_env: bool
     num_eval_episodes: int
     render_mode: str | None
 
