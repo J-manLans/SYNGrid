@@ -11,7 +11,9 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     # ================= #
 
     def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
-        policy = self.get_policy_from_perception(obs_conf.observation_handler.perception, True)
+        policy = self._get_policy_from_perception(
+            obs_conf.observation_handler.perception, True
+        )
         hyper_parameters = {
             "policy": policy,
             "device": "cpu",

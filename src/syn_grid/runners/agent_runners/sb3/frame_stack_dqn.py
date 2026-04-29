@@ -10,7 +10,9 @@ class FrameStackDQN(BaseSB3Runner):
     # ================= #
 
     def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
-        policy = self.get_policy_from_perception(obs_conf.observation_handler.perception)
+        policy = self._get_policy_from_perception(
+            obs_conf.observation_handler.perception
+        )
         hyper_parameters = {"policy": policy, "device": "cpu", "ent_coef": 0.02}
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, QRDQN)
 

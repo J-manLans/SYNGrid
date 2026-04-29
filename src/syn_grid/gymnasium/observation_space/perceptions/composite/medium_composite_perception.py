@@ -14,9 +14,9 @@ class MediumCompositePerception(BasePerception):
     #        Init       #
     # ================= #
 
-    _GLOBAL_KEY = 'global_data'
-    _DROID_KEY = 'droid_data'
-    _ORB_KEY = 'orb_data'
+    _GLOBAL_KEY = "global_data"
+    _DROID_KEY = "droid_data"
+    _ORB_KEY = "orb_data"
 
     _MISSING_ORB: Final[float] = -1.0
 
