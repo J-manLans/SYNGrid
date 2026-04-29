@@ -9,84 +9,83 @@ from gymnasium import spaces
 
 
 class MediumVectorPerception(BasePerception):
-    # ================= #
-    #        Init       #
-    # ================= #
-
-    def __init__(self, conf: PerceptionConf, orbs: int) -> None:
-        super().__init__(conf, orbs)
 
     # ================= #
     #        API        #
     # ================= #
 
-    def reset(self) -> None: ...
+    def reset(self) -> None:
+        # Reset the observation arrays
+        self._obs_data[:] = self._MISSING_ORB_VALUE
 
     def setup_obs_space(self) -> spaces.Space:
-        max_vals = []
-        orb_data = []
+        # Define observation layout
+        world_high = np.concatenate(
+            [
+                self._get_max_global_values(),
+                self._get_max_droid_positions(),
+                self._get_max_droid_data(),
+            ]
+        )
+        orb_high = np.concatenate(
+            [
+                self._get_max_orb_positions(),
+                self._get_max_orb_identity(),
+                self._get_max_orb_data(),
+            ]
+        )
+        self._orb_features = orb_high.shape[0]
+        orb_high = np.tile(orb_high, self._orbs_in_env)
+        high = np.concatenate([world_high, orb_high])
 
-        # define observation layout
-        max_vals.extend(self._get_max_global_values())
-        max_vals.extend(self._get_max_droid_positions())
-        max_vals.extend(self._get_max_droid_data())
-        orb_data.extend(self._get_max_orb_positions())
-        orb_data.extend(self._get_max_orb_identity())
-        orb_data.extend(self._get_max_orb_data())
-        self._num_orb_slots = len(orb_data)
-        max_vals.extend(orb_data * self._orbs_in_env)
-
-        # finalize observation space definition
-        self._SHAPE = len(max_vals)
-        low = np.full(self._SHAPE, -1.0, dtype=np.float32)
-        low[0:4] = 0.0
-        high = np.asarray(max_vals, dtype=np.float32)
+        # Initialize the array used for giving the observation and finalize observation
+        # space definition
+        self._obs_data = np.full(
+            high.shape[0], self._MISSING_ORB_VALUE, dtype=np.float32
+        )
+        low = self._obs_data
+        low[0 : world_high.shape[0]] = 0.0
 
         return spaces.Box(
             low=low,
             high=high,
-            shape=(self._SHAPE,),
+            shape=(len(high),),
             dtype=np.float32,
         )
 
     def get_observation(self, state: GridWorld, steps_left: int) -> np.ndarray:
-        obs = np.full(self._SHAPE, -1.0, dtype=np.float32)
         obs_index = 0
 
         # Global data
-        obs[obs_index] = steps_left
+        self._obs_data[obs_index] = steps_left
         obs_index += 1
 
         # Droid data
         droid_y, droid_x = state.droid.position
-
-        obs[obs_index] = droid_y
-        obs_index += 1
-        obs[obs_index] = droid_x
-        obs_index += 1
-        obs[obs_index] = state.droid.score
-        obs_index += 1
-        obs[obs_index] = state.droid.digestion_engine.chained_tiers
-        obs_index += 1
+        self._obs_data[obs_index : obs_index + 4] = [
+            droid_y,
+            droid_x,
+            state.droid.score,
+            state.droid.digestion_engine.chained_tiers,
+        ]
+        obs_index += 4
 
         # Orb data
         for orb in state.ALL_ORBS:
             if orb.is_active:
                 orb_y, orb_x = orb.position
 
-                obs[obs_index] = orb_y
-                obs_index += 1
-                obs[obs_index] = orb_x
-                obs_index += 1
-                obs[obs_index] = orb.META.CATEGORY.value
-                obs_index += 1
-                obs[obs_index] = orb.META.TYPE.value
-                obs_index += 1
-                obs[obs_index] = orb.META.TIER
-                obs_index += 1
-                obs[obs_index] = orb.TIMER.remaining
-                obs_index += 1
+                self._obs_data[obs_index : obs_index + self._orb_features] = [
+                    orb_y,
+                    orb_x,
+                    orb.META.CATEGORY.value,
+                    orb.META.TYPE.value,
+                    orb.META.TIER,
+                    orb.TIMER.remaining,
+                ]
             else:
-                obs_index += self._num_orb_slots
+                self._obs_data[obs_index : obs_index + self._orb_features] = -1
 
-        return obs
+            obs_index += self._orb_features
+
+        return self._obs_data

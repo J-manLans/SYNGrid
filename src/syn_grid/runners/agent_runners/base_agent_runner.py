@@ -14,12 +14,7 @@ class BaseAgentRunner(ABC):
     #       Init        #
     # ================= #
 
-    def __init__(
-        self,
-        conf: AgentConfig,
-        obs_conf: ObsConfig,
-        run_conf: WorldConfig
-    ):
+    def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
         self._conf = conf.global_agent_conf
         self._train_conf = conf.train_agent_conf
         self._eval_conf = conf.eval_agent_conf

@@ -35,7 +35,7 @@ class BaseOrb(ABC):
         :param grid_cols: Number of columns
         """
 
-        cls._LIFE_SPAN = (grid_rows - 1) + (grid_cols - 1)
+        cls._life_span = (grid_rows - 1) + (grid_cols - 1)
 
     def reset(self) -> None:
         self.is_active = False
@@ -50,7 +50,7 @@ class BaseOrb(ABC):
 
         self.position = position
         self.is_active = True
-        self.TIMER.set(self._LIFE_SPAN)
+        self.TIMER.set(self._life_span)
 
     def de_spawn(self) -> None:
         """Removes the orb without giving any reward."""

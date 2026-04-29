@@ -11,10 +11,14 @@ from syn_grid.gymnasium.observation_space.perceptions.composite import (
     MediumCompositePerception,
     HardCompositePerception,
 )
+from syn_grid.gymnasium.observation_space.perceptions.spatial import (
+    EasySpatialPerception,
+    MediumSpatialPerception,
+    HardSpatialPerception,
+)
 from syn_grid.config.models import ObsConfig
 from syn_grid.core.grid_world import GridWorld
 
-import numpy as np
 from gymnasium import spaces
 from typing import Final, Type, Any
 
@@ -25,6 +29,9 @@ PERCEPTIONS = {
     "composite_easy": EasyCompositePerception,
     "composite_medium": MediumCompositePerception,
     "composite_hard": HardCompositePerception,
+    "spatial_easy": EasySpatialPerception,
+    "spatial_medium": MediumSpatialPerception,
+    "spatial_hard": HardSpatialPerception,
 }
 
 

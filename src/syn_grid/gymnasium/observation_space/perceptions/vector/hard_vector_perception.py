@@ -10,59 +10,50 @@ import numpy as np
 
 
 class HardVectorPerception(BasePerception):
-    # ================= #
-    #        Init       #
-    # ================= #
-
-    def __init__(self, conf: PerceptionConf, orbs: int) -> None:
-        super().__init__(conf, orbs)
 
     # ================= #
     #        API        #
     # ================= #
 
-    def setup_obs_space(self) -> spaces.Space:
-        max_vals = []
-        droid_data = []
-        orb_data = []
+    def reset(self) -> None:
+        self._orb_slot_map: dict[int, int] = {}
+        self._obs_data[:] = self._MISSING_ORB_VALUE
 
-        # define observation layout
-        droid_data.extend(self._get_max_droid_positions())
-        max_vals.extend(droid_data)
-        orb_data.extend(self._get_max_orb_positions())
-        orb_data.extend(self._get_max_orb_identity())
-        max_vals.extend(orb_data * self._MAX_ACTIVE_ORBS)
+    def setup_obs_space(self) -> spaces.Space:
+        # Define observation layout
+        droid_high = np.concatenate([self._get_max_droid_positions()])
+        orb_high = np.concatenate(
+            [self._get_max_orb_positions(), self._get_max_orb_identity()]
+        )
+        self._orb_features = orb_high.shape[0]
+        orb_high = np.tile(orb_high, self._max_active_orbs)
+        high = np.concatenate([droid_high, orb_high])
 
         # Configure slot mapping for runtime observation filling
-        num_orb_slots = len(orb_data)
-        num_droid_slots = len(droid_data)
-        self._initialize_available_slots_list(num_droid_slots, num_orb_slots)
+        num_droid_slots = droid_high.shape[0]
+        self._initialize_available_slots_list(num_droid_slots, self._orb_features)
 
-        # finalize observation space definition
-        self._SHAPE = len(max_vals)
-        low = np.full(self._SHAPE, -1.0, dtype=np.float32)
+        # Initialize the array used for giving the observation and finalize observation space
+        # definition
+        self._obs_data = np.full(
+            high.shape[0], self._MISSING_ORB_VALUE, dtype=np.float32
+        )
+        low = self._obs_data
         low[0:num_droid_slots] = 0.0
-        high = np.asarray(max_vals, dtype=np.float32)
 
         return spaces.Box(
             low=low,
             high=high,
-            shape=(self._SHAPE,),
+            shape=(high.shape[0],),
             dtype=np.float32,
         )
 
-    def reset(self) -> None:
-        self._orb_slot_map: dict[int, int] = {}
-
     def get_observation(self, state: GridWorld, steps_left: int) -> np.ndarray:
-        obs = np.full(self._SHAPE, -1.0, dtype=np.float32)
 
-        # Droid data
-        droid_y, droid_x = state.droid.position
-        obs[0] = droid_y
-        obs[1] = droid_x
+        # Droid positions [y, x]
+        self._obs_data[0], self._obs_data[1] = state.droid.position
 
-        self._prune_orb_slot_map(state)
+        self._cleanup_inactive_orbs(state)
 
         # Available orb data
         for orb_index_in_all_orbs_list, orb in enumerate(state.ALL_ORBS):
@@ -80,9 +71,9 @@ class HardVectorPerception(BasePerception):
                 # Write orb data to its assigned slot
                 obs_start_index = self._orb_slot_map.get(orb_index_in_all_orbs_list)
                 if obs_start_index is not None:
-                    self._add_orb_data(orb, obs, obs_start_index)
+                    self._add_orb_data(orb, obs_start_index)
 
-        return obs
+        return self._obs_data
 
     # ================= #
     #      Helpers      #
@@ -93,10 +84,12 @@ class HardVectorPerception(BasePerception):
     ) -> None:
         self._AVAILABLE_SLOTS = [orb_start_index]
 
-        for i in range(1, self._MAX_ACTIVE_ORBS):
+        for i in range(1, self._max_active_orbs):
             self._AVAILABLE_SLOTS.append(self._AVAILABLE_SLOTS[i - 1] + num_orb_slots)
 
-    def _prune_orb_slot_map(self, state: GridWorld):
+    def _cleanup_inactive_orbs(self, state: GridWorld):
+        """Remove mapping and reset observation slots for orbs that are no longer active."""
+
         if not self._orb_slot_map:
             return
 
@@ -104,18 +97,19 @@ class HardVectorPerception(BasePerception):
 
         for orb_index in list(self._orb_slot_map.keys()):
             if orb_index not in active_indices:
+                obs_start_index = self._orb_slot_map[orb_index]
+                # Reset the slot data in observation before removing mapping from the dict
+                self._obs_data[
+                    obs_start_index : obs_start_index + self._orb_features
+                ] = self._MISSING_ORB_VALUE
                 del self._orb_slot_map[orb_index]
 
-    def _add_orb_data(self, orb: BaseOrb, obs: np.ndarray, obs_index: int) -> None:
+    def _add_orb_data(self, orb: BaseOrb, obs_index: int) -> None:
         orb_y, orb_x = orb.position
-
-        obs[obs_index] = orb_y
-        obs_index += 1
-        obs[obs_index] = orb_x
-        obs_index += 1
-        obs[obs_index] = orb.META.CATEGORY.value
-        obs_index += 1
-        obs[obs_index] = orb.META.TYPE.value
-        obs_index += 1
-        obs[obs_index] = orb.META.TIER
-        obs_index += 1
+        self._obs_data[obs_index : obs_index + self._orb_features] = [
+            orb_y,
+            orb_x,
+            orb.META.CATEGORY.value,
+            orb.META.TYPE.value,
+            orb.META.TIER,
+        ]

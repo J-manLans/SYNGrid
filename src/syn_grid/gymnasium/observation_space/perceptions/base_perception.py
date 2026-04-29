@@ -14,23 +14,25 @@ class BasePerception(ABC):
     #        Init       #
     # ================= #
 
+    _MISSING_ORB_VALUE: Final[float] = -1.0
+
     def __init__(self, conf: PerceptionConf, orbs: int) -> None:
         # Global values
         self._orbs_in_env = orbs
-        self._MAX_ACTIVE_ORBS: Final[int] = conf.max_active_orbs
-        self._MAX_STEPS: Final[int] = conf.max_steps
-        self._MAX_GRID_Y: Final[int] = conf.grid_rows - 1
-        self._MAX_GRID_X: Final[int] = conf.grid_cols - 1
+        self._max_active_orbs: Final[int] = conf.max_active_orbs
+        self._max_steps: Final[int] = conf.max_steps
+        self._max_grid_y: Final[int] = conf.grid_rows - 1
+        self._max_grid_x: Final[int] = conf.grid_cols - 1
 
         # Droid data
-        self._MAX_SCORE: Final[int] = conf.max_score
-        self._MAX_TIER_CHAIN: Final[int] = conf.max_tier
+        self._max_score: Final[int] = conf.max_score
+        self._max_tier_chain: Final[int] = conf.max_tier
 
         # Orb data
-        self._MAX_CATEGORY: Final[int] = len(OrbCategory) - 1
-        self._MAX_TYPE: Final[int] = max(len(DirectType) - 1, len(SynergyType) - 1)
-        self._MAX_TIER: Final[int] = conf.max_tier
-        self._MAX_ORB_LIFESPAN: Final[int] = BaseOrb._LIFE_SPAN
+        self._max_category: Final[int] = len(OrbCategory) - 1
+        self._max_type: Final[int] = max(len(DirectType) - 1, len(SynergyType) - 1)
+        self._max_tier: Final[int] = conf.max_tier
+        self._max_orb_lifespan: Final[int] = BaseOrb._life_span
 
     # ================= #
     #      Helpers      #
@@ -38,26 +40,26 @@ class BasePerception(ABC):
 
     # === Global data getters === #
     def _get_max_global_values(self) -> np.ndarray:
-        return np.array([self._MAX_STEPS], dtype=np.float32)
+        return np.array([self._max_steps], dtype=np.float32)
 
     # === Droid data getters === #
     def _get_max_droid_positions(self) -> np.ndarray:
-        return np.array([self._MAX_GRID_Y, self._MAX_GRID_X], dtype=np.float32)
+        return np.array([self._max_grid_y, self._max_grid_x], dtype=np.float32)
 
     def _get_max_droid_data(self) -> np.ndarray:
-        return np.array([self._MAX_SCORE, self._MAX_TIER_CHAIN], dtype=np.float32)
+        return np.array([self._max_score, self._max_tier_chain], dtype=np.float32)
 
     # === Orb data getters === #
     def _get_max_orb_positions(self) -> np.ndarray:
-        return np.array([self._MAX_GRID_Y, self._MAX_GRID_X], dtype=np.float32)
+        return np.array([self._max_grid_y, self._max_grid_x], dtype=np.float32)
 
     def _get_max_orb_identity(self) -> np.ndarray:
         return np.array(
-            [self._MAX_CATEGORY, self._MAX_TYPE, self._MAX_TIER], dtype=np.float32
+            [self._max_category, self._max_type, self._max_tier], dtype=np.float32
         )
 
     def _get_max_orb_data(self) -> np.ndarray:
-        return np.array([self._MAX_ORB_LIFESPAN], dtype=np.float32)
+        return np.array([self._max_orb_lifespan], dtype=np.float32)
 
     # ================= #
     #  Abstract methods #

@@ -50,7 +50,7 @@ class TestTierOrb:
         assert orb._COOL_DOWN == self._COOL_DOWN
         assert orb.META.TIER == self._TIER
         assert orb.max_tier == self._MAX_TIER
-        assert orb._LIFE_SPAN == (self._GRID_ROWS - 1) + (self._GRID_COLS - 1)
+        assert orb._life_span == (self._GRID_ROWS - 1) + (self._GRID_COLS - 1)
 
     def test_consuming_orb_returns_the_orb(self, orb: TierOrb):
         assert orb.consume() is orb
@@ -70,7 +70,7 @@ class TestTierOrb:
         ]
         orb.spawn(position)
 
-        assert orb.TIMER.remaining == orb._LIFE_SPAN
+        assert orb.TIMER.remaining == orb._life_span
         assert orb.is_active
         assert orb.position == position
 

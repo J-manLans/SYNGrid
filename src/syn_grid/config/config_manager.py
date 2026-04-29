@@ -58,4 +58,3 @@ class ConfigManager:
         snapshot_file = self.save_conf_path / f"{save_conf_id}_{timestamp}.yaml"
 
         snapshot_file.write_bytes(self.yaml_path.read_bytes())
-

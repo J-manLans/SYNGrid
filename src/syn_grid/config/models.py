@@ -127,6 +127,9 @@ class ObservationHandlerConf(BaseModel, frozen=True):
             "composite_easy",
             "composite_medium",
             "composite_hard",
+            "spatial_easy",
+            "spatial_medium",
+            "spatial_hard",
         ]:
             raise ValueError("The value of difficulty is not allowed")
         return self
