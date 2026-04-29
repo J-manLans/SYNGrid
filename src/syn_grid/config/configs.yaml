@@ -7,7 +7,7 @@ snapshot:
   # - enabled: whether to save a snapshot of the full config for replicating scenario
   # - id: optional identifier used as part of the snapshot filename
   enabled: false
-  id: "tier_1_vector_RPPO_64_hidden"
+  id: "Remember to remove this"
 
 ###########################
 #   World Configuration   #
@@ -78,7 +78,7 @@ world:
     linear_reward_growth: true
     step_wise_scoring: true
     growth_factor: 2.2
-    base_reward: 8.0
+    base_reward: 3.0
     cool_down: 7
 
 ###########################
@@ -128,7 +128,7 @@ agent:
     # Train settings:
     # - continue_training: continue from a previously saved model
     # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
-    # - render_mode (null or "human"): null is default, change to human if you want visual feedback during debugging
+    # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
@@ -141,8 +141,8 @@ agent:
     # Eval settings:
     # - trained_model: enable agent or use random sampling for debugging
     # - num_eval_episodes: how many episodes to evaluate
-    # - render_mode (null or "human"): null is default, change to null if you don't want visual feedback during debugging
+    # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
     trained_model: true
     time_env: false
-    num_eval_episodes: 10
+    num_eval_episodes: 1
     render_mode: 'human'

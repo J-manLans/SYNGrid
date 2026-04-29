@@ -18,9 +18,8 @@ def main():
 
     # Save a snapshot if snapshot is enabled
     if experiments_conf.snapshot.enabled:
-        config_manager.save_snapshot(full_conf, experiments_conf.snapshot.id)
-        print(f"Config snapshot saved. Exiting.")
-        return
+        config_manager.save_snapshot(experiments_conf.snapshot.id)
+
 
     # Extract individual configs for use
     run_conf = full_conf.world

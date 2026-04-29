@@ -60,7 +60,7 @@ class HumanRunner:
         hud_data["score"] = self._world.droid.score
         hud_data["moves"] = self._steps_left
         hud_data["current tier chain"] = (
-            self._world.droid.DIGESTION_ENGINE.chained_tiers
+            self._world.droid.digestion_engine.chained_tiers
         )
 
         return hud_data

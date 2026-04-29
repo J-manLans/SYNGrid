@@ -203,6 +203,6 @@ class TestEnvironment:
             "num_inactive_orbs": len(env.world._inactive_orbs),
             "droid_position": env.world.droid.position.copy(),
             "droid_score": env.world.droid.score,
-            "chained_tiers": env.world.droid.DIGESTION_ENGINE.chained_tiers,
-            "pending_reward": env.world.droid.DIGESTION_ENGINE._pending_reward,
+            "chained_tiers": env.world.droid.digestion_engine.chained_tiers,
+            "pending_reward": env.world.droid.digestion_engine._pending_reward,
         }

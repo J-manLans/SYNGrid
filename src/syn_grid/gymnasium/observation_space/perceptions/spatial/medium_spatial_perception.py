@@ -61,7 +61,7 @@ class MediumSpatialPerception(BasePerception):
         grid[droid_y, droid_x, 1] = steps_left / self._max_vals[1]
         grid[droid_y, droid_x, 2] = state.droid.score / self._max_vals[2]
         grid[droid_y, droid_x, 3] = (
-            state.droid.DIGESTION_ENGINE.chained_tiers / self._max_vals[3]
+            state.droid.digestion_engine.chained_tiers / self._max_vals[3]
         )
 
         # Orb data

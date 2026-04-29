@@ -125,7 +125,7 @@ class SYNGridEnv(gym.Env):
 
         hud_data["score"] = self.world.droid.score
         hud_data["moves"] = self._observation_handler.steps_left
-        hud_data["current tier chain"] = self.world.droid.DIGESTION_ENGINE.chained_tiers
+        hud_data["current tier chain"] = self.world.droid.digestion_engine.chained_tiers
 
         return hud_data
 
@@ -138,6 +138,6 @@ class SYNGridEnv(gym.Env):
 
         if (self._observation_handler.steps_left <= 0) and not terminated:
             terminated = True
-            reward += self.world.droid.score
+            # reward += self.world.droid.score
 
         return terminated, reward

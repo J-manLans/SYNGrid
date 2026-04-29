@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Type, TypeVar
 from pydantic import BaseModel
 import datetime
+import sys
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -14,6 +15,7 @@ class ConfigManager:
     #       Init        #
     # ================= #
 
+    # TODO: do some changes here. Like add a config file for paths (or a part in the existing one). and passing the config file from main is weird, right now its because I pass a different path for the tests. And call the saved file from BaseAgentRunner, not main, because I have the model id there and it should reflect the saved config
     def __init__(self, config_file: str):
         self.yaml_path = Path(get_package_path("config", config_file))
         self.save_conf_path = Path(get_project_path("output", "saved_configs"))
@@ -42,19 +44,20 @@ class ConfigManager:
 
         return model_class(**raw)
 
-    def save_snapshot(self, config: BaseModel, save_conf_id: str) -> None:
+    def save_snapshot(self, save_conf_id: str) -> None:
         """
-        Save a timestamped snapshot of a config model to the saved_configs folder.
+        Save a timestamped snapshot of the config file to the saved_configs folder.
 
         Args:
-            config: Pydantic model instance to serialize and save.
             save_conf_id: Identifier used as prefix in the snapshot filename.
         """
 
         self.save_conf_path.mkdir(parents=True, exist_ok=True)
-
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
         snapshot_file = self.save_conf_path / f"{save_conf_id}_{timestamp}.yaml"
 
-        with snapshot_file.open("w") as f:
-            yaml.safe_dump(config.model_dump(), f)
+        # Binary copy (preserves content exactly)
+        snapshot_file.write_bytes(self.yaml_path.read_bytes())
+
+        sys.exit("Config snapshot saved. Exiting.")

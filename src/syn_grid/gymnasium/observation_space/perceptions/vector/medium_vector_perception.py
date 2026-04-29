@@ -66,7 +66,7 @@ class MediumVectorPerception(BasePerception):
         obs_index += 1
         obs[obs_index] = state.droid.score
         obs_index += 1
-        obs[obs_index] = state.droid.DIGESTION_ENGINE.chained_tiers
+        obs[obs_index] = state.droid.digestion_engine.chained_tiers
         obs_index += 1
 
         # Orb data
