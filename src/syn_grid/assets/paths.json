@@ -1,7 +1,0 @@
-{
-  "droid_img": "assets/sprites/droid.png",
-  "positive_orb": "assets/sprites/positive_orb.png",
-  "negative_orb": "assets/sprites/negative_orb.png",
-  "floor_img": "assets/tiles/floor.png",
-  "hud_img": "assets/sprites/hud.png"
-}

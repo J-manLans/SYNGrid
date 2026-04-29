@@ -106,7 +106,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         #   Debug
         # ==========================
 
-        num_max_tier_reached = sum(1 for r in rewards if r == 9)
+        num_max_tier_reached = sum(1 for r in rewards if r == 47)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
 
         print(f"Max tier reached: {num_max_tier_reached} times")

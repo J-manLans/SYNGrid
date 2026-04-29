@@ -1,5 +1,6 @@
 from syn_grid.utils.paths_util import get_package_path, get_project_path
 from syn_grid.utils.date_utils import get_date
+from syn_grid.config.models import ExperimentConfig
 
 import yaml
 from pathlib import Path
@@ -15,7 +16,6 @@ class ConfigManager:
     #       Init        #
     # ================= #
 
-    # TODO: do some changes here. Like add a config file for paths (or a part in the existing one). and passing the config file from main is weird, right now its because I pass a different path for the tests. And call the saved file from BaseAgentRunner, not main, because I have the model id there and it should reflect the saved config
     def __init__(self, config_file: str):
         self.yaml_path = Path(get_package_path("config", config_file))
         self.save_conf_path = Path(get_project_path("output", "saved_configs"))
@@ -55,10 +55,7 @@ class ConfigManager:
         self.save_conf_path.mkdir(parents=True, exist_ok=True)
 
         timestamp = get_date()
-
         snapshot_file = self.save_conf_path / f"{save_conf_id}_{timestamp}.yaml"
 
-        # Binary copy (preserves content exactly)
         snapshot_file.write_bytes(self.yaml_path.read_bytes())
 
-        sys.exit("Config snapshot saved. Exiting.")

@@ -1,4 +1,4 @@
-from syn_grid.config.models import RendererConf
+from syn_grid.config.models import RendererConf, AssetsConf
 from syn_grid.core.orbs.orb_meta import (
     OrbMeta,
     OrbCategory,
@@ -10,9 +10,7 @@ from syn_grid.gymnasium.action_space import DroidAction
 
 import pygame
 import json
-from os import path
 import sys
-import numpy as np
 
 
 class PygameRenderer:
@@ -32,12 +30,11 @@ class PygameRenderer:
         - Graphic elements
         """
 
+        self._conf = renderer_conf
+
         pygame.init()  # Initialize pygame
         pygame.display.init()  # initialize the display module
         self.clock = pygame.time.Clock()  # Game clock
-
-        self._grid_rows = renderer_conf.grid_rows
-        self._grid_cols = renderer_conf.grid_cols
         self._step_fps = fps
 
         # Default font
@@ -55,7 +52,7 @@ class PygameRenderer:
         # Define game window size (width, height)
         self.window_size = (
             self._window_width,
-            (self._cell_height * self._grid_rows)
+            (self._cell_height * self._conf.grid_rows)
             + (self._grid_offset * 3)
             + self._hud_height,
         )
@@ -117,37 +114,32 @@ class PygameRenderer:
 
         self._grid_offset = self._cell_width // 4
         self._window_width = (
-            self._cell_width * self._grid_cols
+            self._cell_width * self._conf.grid_cols
         ) + self._grid_offset * 2
         self._hud_height = self._cell_height * 4
         self._hud_width = self._cell_width * 5
         self._padding = 10
 
     def _load_graphics(self) -> None:
-        """Load graphics via JSON file"""
-
-        json_file = get_package_path("assets", "paths.json")
-
-        with open(json_file, "r") as f:
-            graphics_paths = json.load(f)
+        """Load graphics via the config file"""
 
         self.graphics = {}
-        for attr, relative_path in graphics_paths.items():
+        for field_name, relative_path in self._conf.img_assets.model_dump().items():
             full_path = get_package_path(relative_path)
-            self.graphics[attr] = pygame.image.load(full_path)
+            self.graphics[field_name] = pygame.image.load(full_path)
 
     # === API ===#
 
     def _draw_floor_and_orbs(self, orb_positions, orb_meta, is_active_statuses):
         """Draw floor tiles and orbs"""
 
-        for r in range(self._grid_rows):
-            for c in range(self._grid_cols):
+        for r in range(self._conf.grid_rows):
+            for c in range(self._conf.grid_cols):
                 pos = (
                     (c * self._cell_width) + self._grid_offset,
                     (r * self._cell_height) + self._grid_offset,
                 )
-                self.window_surface.blit(self.graphics["floor_img"], pos)
+                self.window_surface.blit(self.graphics['floor_img'], pos)
 
                 for i in range(len(is_active_statuses)):
                     if is_active_statuses[i]:
@@ -160,13 +152,13 @@ class PygameRenderer:
 
         if orb_meta.CATEGORY == OrbCategory.DIRECT:
             if orb_meta.TYPE == DirectType.NEGATIVE:
-                self.window_surface.blit(self.graphics["negative_orb"], pos)
+                self.window_surface.blit(self.graphics['negative_orb_img'], pos)
         else:
             if orb_meta.TYPE == SynergyType.TIER and orb_meta.TIER is not None:
                 self._draw_tier_orb(orb_meta.TIER, pos)
 
     def _draw_tier_orb(self, tier: int, pos: tuple[int, int]):
-        base_img = self.graphics["positive_orb"]
+        base_img = self.graphics['positive_orb_img']
         # create (or fetch cached) combined surface with number
         tier_surf = self._make_tier_surface(tier, base_img)
         self.window_surface.blit(tier_surf, pos)
@@ -203,17 +195,17 @@ class PygameRenderer:
     def _draw_droid(self, pos: tuple[int, int]):
         """Draw droid at a specific pixel position"""
 
-        self.window_surface.blit(self.graphics["droid_img"], pos)
+        self.window_surface.blit(self.graphics['droid_img'], pos)
 
     def _draw_hud(self, hud_data: dict[str, int | float]):
         """Draw HUD / score with background rectangle for multiple data"""
 
         # --- Hud element --- #
-        hud_img = self.graphics["hud_img"]
+        hud_img = self.graphics['hud_img']
         hud_rect = hud_img.get_rect(
             topleft=(
                 self._grid_offset,
-                (self._cell_height * self._grid_rows) + self._grid_offset * 2,
+                (self._cell_height * self._conf.grid_rows) + self._grid_offset * 2,
             )
         )
         self.window_surface.blit(hud_img, hud_rect)

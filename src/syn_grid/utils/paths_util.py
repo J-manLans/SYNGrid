@@ -19,9 +19,9 @@ def get_project_path(*relative_path_parts: str) -> str:
     return os.path.join(base_dir, *relative_path_parts)
 
 
-################
-#    Helpers   #
-################
+# ================= #
+#      Helpers      #
+# ================= #
 
 
 def _get_package_root() -> str:

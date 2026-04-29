@@ -5,9 +5,7 @@
 snapshot:
   # Snapshot settings:
   # - enabled: whether to save a snapshot of the full config for replicating scenario
-  # - id: optional identifier used as part of the snapshot filename
   enabled: false
-  id: "Remember to remove this when migrated to saving in the ConfigManager"
 
 ###########################
 #   World Configuration   #
@@ -25,8 +23,15 @@ world:
   renderer_conf:
     # Renderer settings:
     # - grid_rows / grid_cols (set in grid_world_conf): used to calculate display size and layout
+    # - img_assets: paths to graphic elements
     grid_rows: *grid_rows
     grid_cols: *grid_cols
+    img_assets:
+      droid_img: "assets/sprites/droid.png"
+      positive_orb_img: "assets/sprites/positive_orb.png"
+      negative_orb_img: "assets/sprites/negative_orb.png"
+      floor_img: "assets/tiles/floor.png"
+      hud_img: "assets/sprites/hud.png"
 
   droid_conf:
     # Droid settings:
@@ -75,10 +80,10 @@ world:
     # - growth_factor: multiplier applied per tier increase if linear_reward_growth is false
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
-    linear_reward_growth: true
+    linear_reward_growth: false
     step_wise_scoring: true
-    growth_factor: 2.2
-    base_reward: 6.0
+    growth_factor: 1.5
+    base_reward: 3.0
     cool_down: 7
 
 ###########################
@@ -120,7 +125,7 @@ agent:
     alg: "PPO"
     agent_steps: "1605632"
     human_control: false
-    training: true
+    training: false
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -141,5 +146,5 @@ agent:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 100
-    render_mode: null
+    num_eval_episodes: 1
+    render_mode: 'human'

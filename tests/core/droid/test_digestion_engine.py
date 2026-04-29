@@ -9,7 +9,7 @@ import pytest
 
 class TestDigestionEngine:
     _MAX_TIER = 10
-    TierOrb.MAX_TIER = _MAX_TIER
+    TierOrb.max_tier = _MAX_TIER
 
     # ================= #
     #      Helpers      #
@@ -41,16 +41,16 @@ class TestDigestionEngine:
     @pytest.fixture
     def reset_orb(self):
         # restore state
-        TierOrb.MAX_TIER = self._MAX_TIER
-        TierOrb.STEP_WISE_SCORING = True
-        TierOrb._LINEAR_REWARD_GROWTH = True
+        TierOrb.max_tier = self._MAX_TIER
+        TierOrb.step_wise_scoring = True
+        TierOrb._linear_reward_growth = True
 
     @pytest.fixture
     def parameterize_reset(self):
         # adjust max tier so we don't tap out
-        TierOrb.MAX_TIER = self._MAX_TIER + 1
-        TierOrb.STEP_WISE_SCORING = True
-        TierOrb._LINEAR_REWARD_GROWTH = True
+        TierOrb.max_tier = self._MAX_TIER + 1
+        TierOrb.step_wise_scoring = True
+        TierOrb._linear_reward_growth = True
 
     # ================= #
     #       Tests       #
@@ -114,7 +114,7 @@ class TestDigestionEngine:
         orb: TierOrb,
     ):
         # set correct scoring type
-        orb.STEP_WISE_SCORING = False
+        orb.step_wise_scoring = False
 
         # prep the "chain" by giving it a tier value 1 lower than current orb
         digestion_engine.chained_tiers = orb.META.TIER - 1
@@ -127,7 +127,7 @@ class TestDigestionEngine:
     ):
         max_orb = TierOrb(self._MAX_TIER, get_test_config().world.tier_orb_conf)
         # set correct scoring type
-        max_orb.STEP_WISE_SCORING = False
+        max_orb.step_wise_scoring = False
 
         # prep the "chain" by giving it a tier value 1 lower than max_orb
         digestion_engine.chained_tiers = max_orb.META.TIER - 1
@@ -145,8 +145,8 @@ class TestDigestionEngine:
             self._MAX_TIER - 2, get_test_config().world.tier_orb_conf
         )
         # set correct scoring type
-        out_of_order_orb.STEP_WISE_SCORING = False
-        in_order_orb.STEP_WISE_SCORING = False
+        out_of_order_orb.step_wise_scoring = False
+        in_order_orb.step_wise_scoring = False
 
         # force out-of-order consumption for out_of_order_orb and prep the reward
         digestion_engine.chained_tiers = in_order_orb.META.TIER
@@ -163,8 +163,8 @@ class TestDigestionEngine:
             self._MAX_TIER - 1, get_test_config().world.tier_orb_conf
         )
         # set correct scoring type
-        base_orb.STEP_WISE_SCORING = False
-        in_order_orb.STEP_WISE_SCORING = False
+        base_orb.step_wise_scoring = False
+        in_order_orb.step_wise_scoring = False
 
         # force out-of-order consumption for base_orb and prep the reward
         digestion_engine.chained_tiers = in_order_orb.META.TIER

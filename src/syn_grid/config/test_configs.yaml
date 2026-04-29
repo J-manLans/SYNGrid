@@ -30,8 +30,15 @@ world:
   renderer_conf:
     # Renderer settings:
     # - grid_rows / grid_cols (set in grid_world_conf): used to calculate display size and layout
+    # - img_assets: paths to graphic elements
     grid_rows: *grid_rows
     grid_cols: *grid_cols
+    img_assets:
+      droid_img: "assets/sprites/droid.png"
+      positive_orb_img: "assets/sprites/positive_orb.png"
+      negative_orb_img: "assets/sprites/negative_orb.png"
+      floor_img: "assets/tiles/floor.png"
+      hud_img: "assets/sprites/hud.png"
 
   droid_conf:
     # Droid settings:

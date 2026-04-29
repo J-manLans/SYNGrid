@@ -20,20 +20,20 @@ class TierOrb(BaseOrb):
     #       Init        #
     # ================= #
 
-    _LINEAR_REWARD_GROWTH: bool
-    _TIER_BASE_REWARD: Final[float]
-    _GROWTH_FACTOR: Final[float]
-    MAX_TIER: int
-    STEP_WISE_SCORING: bool
+    _linear_reward_growth: bool
+    _tier_base_reward: Final[float]
+    _growth_factor: Final[float]
+    max_tier: int
+    step_wise_scoring: bool
 
     def __init__(self, tier: int, conf: TierConf):
-        if tier > self.MAX_TIER:
+        if tier > self.max_tier:
             raise ValueError("Tier is higher than the allowed max")
 
-        self._LINEAR_REWARD_GROWTH = conf.linear_reward_growth
-        self._TIER_BASE_REWARD = conf.base_reward
-        self._GROWTH_FACTOR = conf.growth_factor
-        self.STEP_WISE_SCORING = conf.step_wise_scoring
+        self._linear_reward_growth = conf.linear_reward_growth
+        self._tier_base_reward = conf.base_reward
+        self._growth_factor = conf.growth_factor
+        self.step_wise_scoring = conf.step_wise_scoring
 
         super().__init__(
             self._calculate_reward(tier),
@@ -45,18 +45,14 @@ class TierOrb(BaseOrb):
     #      Helpers      #
     # ================= #
 
-    def _calculate_reward(self, tier_multiplier: int) -> float:
+    def _calculate_reward(self, tier: int) -> float:
         """
         Calculate the reward based on the tier base and growth setting.
 
         :param multiplier: The factor by which the base reward is scaled.
         """
 
-        if self._LINEAR_REWARD_GROWTH or tier_multiplier == 1:
-            reward = self._TIER_BASE_REWARD * tier_multiplier
+        if self._linear_reward_growth or tier == 1:
+            return self._tier_base_reward * tier
         else:
-            reward = int(
-                (self._TIER_BASE_REWARD * (self._GROWTH_FACTOR**tier_multiplier)) + 0.5
-            )
-
-        return reward
+            return round(self._tier_base_reward * (tier**self._growth_factor))

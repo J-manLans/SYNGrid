@@ -39,7 +39,7 @@ class OrbFactory:
         BaseOrb.set_life_span(
             self._ORB_FACTORY_CONF.grid_rows, self._ORB_FACTORY_CONF.grid_cols
         )
-        TierOrb.MAX_TIER = self._MAX_TIER
+        TierOrb.max_tier = self._MAX_TIER
 
         # Calculate counts through ratios via orb weights
         ratios = [(orb_weight / total_weight) for orb_weight in enabled_orbs.values()]

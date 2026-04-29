@@ -16,10 +16,6 @@ def main():
     full_conf = config_manager.load_config(FullConf)
     experiments_conf = config_manager.load_config(ExperimentConfig)
 
-    # Save a snapshot if snapshot is enabled
-    if experiments_conf.snapshot.enabled:
-        config_manager.save_snapshot(experiments_conf.snapshot.id)
-
     # Extract individual configs for use
     run_conf = full_conf.world
     obs_conf = full_conf.obs
@@ -40,6 +36,12 @@ def main():
         runner = ALGORITHMS[agent_conf.global_agent_conf.alg](
             agent_conf, obs_conf, run_conf
         )
+
+        # Save a config snapshot if snapshot is enabled
+        if experiments_conf.snapshot.enabled:
+            config_manager.save_snapshot(runner._get_model_id())
+            sys.exit("Config snapshot saved. Exiting.")
+
         if agent_conf.global_agent_conf.training:
             runner.train()
         else:

@@ -36,7 +36,7 @@ class DigestionEngine:
         # Handle tier-based orbs with progression logic
         if isinstance(consumed_orb, TierOrb):
             # Step-wise scoring: reward only if progression is correct
-            if consumed_orb.STEP_WISE_SCORING:
+            if consumed_orb.step_wise_scoring:
                 if self._resolve_tier_progression(consumed_orb):
                     return consumed_orb.REWARD
                 return tier_consumption_penalty  # small punishment for consuming in wrong order
@@ -57,7 +57,7 @@ class DigestionEngine:
 
                 # If the consumed orb is of max tier, add its reward to the pending one, then flush
                 # it and return it
-                if consumed_orb.META.TIER == consumed_orb.MAX_TIER:
+                if consumed_orb.META.TIER == consumed_orb.max_tier:
                     self._pending_reward = consumed_orb.REWARD
                     return self._flush_pending_reward()
 
@@ -81,7 +81,7 @@ class DigestionEngine:
 
         # Correct progression (starting tier or previous tier + 1)
         if self.chained_tiers == current_tier - 1:
-            if current_tier == consumed_orb.MAX_TIER:
+            if current_tier == consumed_orb.max_tier:
                 # If max tier is reached, reset chain
                 self.chained_tiers = self._NO_CHAIN
             else:
