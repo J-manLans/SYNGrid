@@ -7,7 +7,7 @@ snapshot:
   # - enabled: whether to save a snapshot of the full config for replicating scenario
   # - id: optional identifier used as part of the snapshot filename
   enabled: false
-  id: "Remember to remove this"
+  id: "Remember to remove this when migrated to saving in the ConfigManager"
 
 ###########################
 #   World Configuration   #
@@ -38,7 +38,7 @@ world:
     grid_cols: *grid_cols
     starting_score: 50.0
     step_penalty: -1.0
-    tier_consumption_penalty: -0.0
+    tier_consumption_penalty: -0.1
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -78,7 +78,7 @@ world:
     linear_reward_growth: true
     step_wise_scoring: true
     growth_factor: 2.2
-    base_reward: 3.0
+    base_reward: 5.0
     cool_down: 7
 
 ###########################
@@ -118,9 +118,9 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "1007616"
+    agent_steps: "1605632"
     human_control: false
-    training: train
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -134,12 +134,12 @@ agent:
     continue_training: false
     enable_output: true
     render_mode: null
-    timesteps: 10000
-    iterations: 1
+    timesteps: 400000
+    iterations: 4
 
   eval_agent_conf:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 1
-    render_mode: 'human'
+    num_eval_episodes: 33
+    render_mode: null

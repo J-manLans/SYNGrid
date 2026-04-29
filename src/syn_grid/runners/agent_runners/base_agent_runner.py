@@ -56,36 +56,53 @@ class BaseAgentRunner(ABC):
     def _construct_model_id(self, lstm_hidden_size: int | None = None) -> None:
         perception = self._obs_conf.observation_handler.perception
         tier = f"Tier{self._run_conf.orb_factory_conf.max_tier}"
-        neg = "_Neg" if self._run_conf.orb_factory_conf.types.negative.enabled else ""
         reward = f"{self._run_conf.tier_orb_conf.base_reward}rew"
-        growth = f"{self._run_conf.tier_orb_conf.growth_factor}growth"
+        growth = (
+            ""
+            if (
+                self._run_conf.orb_factory_conf.max_tier == 1
+                or self._run_conf.tier_orb_conf.linear_reward_growth
+            )
+            else f"_{self._run_conf.tier_orb_conf.growth_factor}growth"
+        )
+        neg = "_Neg" if self._run_conf.orb_factory_conf.types.negative.enabled else ""
         score = f"{self._run_conf.droid_conf.starting_score}score"
         step_offset = f"{self._run_conf.droid_conf.step_penalty}step_offset"
+        tier_consumption_penalty = (
+            ""
+            if self._run_conf.droid_conf.tier_consumption_penalty == 0.0
+            else f"_{self._run_conf.droid_conf.tier_consumption_penalty}cons_offset"
+        )
+
+        base_tier_id = f"{perception}{neg}__{tier}_{reward}{growth}{tier_consumption_penalty}__{score}{step_offset}__{self._conf.alg}"
+        base_non_tier_id = (
+            f"{perception}_NoTier{neg}__{score}_{step_offset}__{self._conf.alg}"
+        )
 
         # --- RecurrentPPO with tier orbs --- #
         if (
             self._conf.alg == "RPPO"
             and self._run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_{tier}{neg}_{reward}_{growth}_{score}_{step_offset}_{lstm_hidden_size}_{self._conf.alg}"
+            self._id = f"{base_tier_id}{lstm_hidden_size}"
         # --- RecurrentPPO without tier orbs --- #
         elif (
             self._conf.alg == "RPPO"
             and not self._run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_NoTier{neg}_{score}_{step_offset}_{lstm_hidden_size}_{self._conf.alg}"
+            self._id = f"{base_non_tier_id}{lstm_hidden_size}"
         # --- With tier orbs --- #
         elif (
             not self._conf.alg == "RPPO"
             and self._run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_{tier}{neg}_{reward}_{growth}_{score}_{step_offset}_{self._conf.alg}"
+            self._id = f"{base_tier_id}"
         # --- Without tier orbs --- #
         elif (
             not self._conf.alg == "RPPO"
             and not self._run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_NoTier{neg}_{score}_{step_offset}_{self._conf.alg}"
+            self._id = f"{base_non_tier_id}"
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
         env = make(render_mode, self._run_conf, self._obs_conf)

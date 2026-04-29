@@ -93,15 +93,20 @@ class SYNGridEnv(gym.Env):
 
         self.obs = self._observation_handler.get_observation(self.world)
 
-        # Return observation, reward, terminated, truncated and info (TODO: truncated and info is
-        # not used now, but maybe add info at termination so result can be persisted in the eval()
-        # method)
+        info = {
+            'reward': reward,
+            'steps_left': self._observation_handler.steps_left,
+            'score': self.world.droid.score,
+            'chain': self.world.droid.digestion_engine.chained_tiers
+        }
+
+        # Return observation, reward, terminated, truncated and info
         return (
             self.obs,
             reward,
             terminated,
             False,
-            {},
+            info,
         )
 
     def render(self) -> None:

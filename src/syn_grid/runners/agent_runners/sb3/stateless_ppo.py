@@ -10,7 +10,9 @@ class StatelessPPO(BaseSB3Runner[PPO]):
     # ================= #
 
     def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
-        policy = self.get_policy_from_perception(obs_conf.observation_handler.perception)
+        policy = self._get_policy_from_perception(
+            obs_conf.observation_handler.perception
+        )
         hyper_parameters = {"policy": policy, "device": "cpu", "ent_coef": 0.02}
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, PPO)
 
@@ -36,6 +38,18 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         episode_lengths = []
 
         try:
+            # ==========================
+            #   Debug
+            # ==========================
+
+            rewards = []
+            chains = []
+            scores = []
+            steps = []
+
+            # ==========================
+            #   Debug END
+            # ==========================
 
             for i in range(self._eval_conf.num_eval_episodes):
                 # start the eval loop
@@ -43,10 +57,31 @@ class StatelessPPO(BaseSB3Runner[PPO]):
                 total_reward = 0.0
                 step_count = 0
 
+                # ==========================
+                #   Debug
+                # ==========================
+
+                # ==========================
+                #   Debug END
+                # ==========================
+
                 while True:
                     assert isinstance(obs, dict)
                     action, states = model.predict(obs, deterministic=True)
                     obs, reward_arr, done_arr, info = env.step(action)
+
+                    # ==========================
+                    #   Debug
+                    # ==========================
+
+                    rewards.append(info[0].get('reward'))
+                    steps.append(info[0].get('steps_left'))
+                    scores.append(info[0].get('score'))
+                    chains.append(info[0].get('chain'))
+
+                    # ==========================
+                    #   Debug END
+                    # ==========================
 
                     total_reward += reward_arr[0]
                     step_count += 1
@@ -67,4 +102,16 @@ class StatelessPPO(BaseSB3Runner[PPO]):
             f"Eval over {self._eval_conf.num_eval_episodes} episodes: average reward = {avg_reward:.2f}, average length = {avg_length:.1f}"
         )
 
+        # ==========================
+        #   Debug
+        # ==========================
 
+        num_max_tier_reached = sum(1 for r in rewards if r == 9)
+        average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
+
+        print(f'Max tier reached: {num_max_tier_reached} times')
+        print(f'Average: {average_max_tier:.2f}')
+
+        # ==========================
+        #   Debug END
+        # ==========================

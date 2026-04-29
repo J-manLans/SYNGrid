@@ -112,7 +112,7 @@ class ObservationHandlerConf(BaseModel, frozen=True):
             "vector_hard",
             "composite_easy",
             "composite_medium",
-            "composite_hard"
+            "composite_hard",
         ]:
             raise ValueError("The value of difficulty is not allowed")
         return self

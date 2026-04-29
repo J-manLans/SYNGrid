@@ -20,7 +20,6 @@ def main():
     if experiments_conf.snapshot.enabled:
         config_manager.save_snapshot(experiments_conf.snapshot.id)
 
-
     # Extract individual configs for use
     run_conf = full_conf.world
     obs_conf = full_conf.obs

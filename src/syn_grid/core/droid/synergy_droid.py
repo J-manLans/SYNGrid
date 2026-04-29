@@ -77,6 +77,6 @@ class SynergyDroid:
         self.score += reward
 
         if self.score < 0:
-            self.score = 0 # clip to 0 if we go negative at the end of an episode
+            self.score = 0  # clip to 0 if we go negative at the end of an episode
 
         return reward

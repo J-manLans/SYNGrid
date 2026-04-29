@@ -18,21 +18,19 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     #       Init        #
     # ================= #
 
-    _POLICY_MAP = {
-        'vector': 'Mlp',
-        'composite': 'MultiInput',
-        'spatial': 'Cnn'
-    }
+    _POLICY_MAP = {"vector": "Mlp", "composite": "MultiInput", "spatial": "Cnn"}
 
     @classmethod
-    def get_policy_from_perception(cls, perception_str: str, use_lstm: bool = False) -> str:
+    def _get_policy_from_perception(
+        cls, perception_str: str, use_lstm: bool = False
+    ) -> str:
         """Extract SB3 policy string from perception configuration."""
 
-        policy = ''
+        policy = ""
 
         for perception_key, base_policy in cls._POLICY_MAP.items():
             if perception_key in perception_str:
-                suffix = 'LstmPolicy' if use_lstm else 'Policy'
+                suffix = "LstmPolicy" if use_lstm else "Policy"
                 policy = base_policy + suffix
 
         return policy
@@ -51,9 +49,10 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         self._ALGORITHM = algorithm
 
         # Create directory for saving learned statistics for normalization
-        self._vec_norm_stats_dir = Path(get_project_path("output", "results", "saved_vec_norms"))
+        self._vec_norm_stats_dir = Path(
+            get_project_path("output", "results", "saved_vec_norms")
+        )
         Path(self._vec_norm_stats_dir).mkdir(parents=True, exist_ok=True)
-
 
     # ================= #
     #      Helpers      #
@@ -149,7 +148,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     print(f"\nModel saved with {model.num_timesteps} time steps")
 
                     if isinstance(env, VecNormalize):
-                        evn_save_path = f'{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl'
+                        evn_save_path = f"{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl"
                         env.save(evn_save_path)
         finally:
             env.close()
