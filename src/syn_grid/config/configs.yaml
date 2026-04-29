@@ -38,7 +38,7 @@ world:
     grid_cols: *grid_cols
     starting_score: 50.0
     step_penalty: -1.0
-    tier_consumption_penalty: -0.1
+    tier_consumption_penalty: -1
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -141,5 +141,5 @@ agent:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 33
+    num_eval_episodes: 100
     render_mode: null
