@@ -263,16 +263,6 @@ class PygameRenderer:
 
         self._draw_hud_stat(current_score, hud_rect.x + 120, hud_rect.y + 45)
 
-    def _draw_hud_stat(self, stat: int | float, x, y):
-        tier_surf = self.hud_font.render(str(stat), True, self._hud_text_clr)
-
-        # Place it in the hud
-        tier_rect = pygame.Rect(x, y, 64, 52)
-
-        # Center it inside a rect
-        rect = tier_surf.get_rect(center=tier_rect.center)
-        self.window_surface.blit(tier_surf, rect)
-
     def _draw_moves_bar(self, remaining_moves: int | float, hud_rect: pygame.Rect):
         """
         Draw a dynamic life bar inside hud_rect.
@@ -302,6 +292,25 @@ class PygameRenderer:
         # --- Draw border --- #
         status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
         pygame.draw.rect(self.window_surface, (75, 75, 75), status_rect, 2)
+
+    def _draw_hud_stat(self, stat: int | float, x, y):
+        '''
+        Draw a numeric stat centered at position (x,y) in the HUD.
+
+        Parameters:
+            stat: Numeric value to display (formatted to 2 decimals)
+            x: Left coordinate of the stat's bounding box
+            y: Top coordinate of the stat's bounding box
+        '''
+
+        tier_surf = self.hud_font.render(f"{stat:.2f}", True, self._hud_text_clr)
+
+        # Place it in the hud
+        tier_rect = pygame.Rect(x, y, 64, 52)
+
+        # Center it inside a rect
+        rect = tier_surf.get_rect(center=tier_rect.center)
+        self.window_surface.blit(tier_surf, rect)
 
     def _update(self):
         """Refreshes the display and limits FPS"""

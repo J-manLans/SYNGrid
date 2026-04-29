@@ -38,7 +38,7 @@ world:
     grid_cols: *grid_cols
     starting_score: 50.0
     step_penalty: -1.0
-    tier_consumption_penalty: -1
+    tier_consumption_penalty: -0.5
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -78,7 +78,7 @@ world:
     linear_reward_growth: true
     step_wise_scoring: true
     growth_factor: 2.2
-    base_reward: 5.0
+    base_reward: 6.0
     cool_down: 7
 
 ###########################
