@@ -20,22 +20,23 @@ class BaseAgentRunner(ABC):
         run_conf: WorldConfig,
         lstm_hidden_size: int | None = None,  # TODO: turn into **kwargs?
     ):
-        self.conf = conf.global_agent_conf
-        self.train_conf = conf.train_agent_conf
-        self.eval_conf = conf.eval_agent_conf
-        self.obs_conf = obs_conf
-        self.run_conf = run_conf
+        self._conf = conf.global_agent_conf
+        self._train_conf = conf.train_agent_conf
+        self._eval_conf = conf.eval_agent_conf
+        self._obs_conf = obs_conf
+        self._run_conf = run_conf
 
         self._construct_model_id(lstm_hidden_size)
 
         # Get current date and time to us as an identifier for unique file naming
-        self.date = datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
+        # TODO: make a util file for this so date is returned consistently in the codebase
+        self._date = datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
 
         # Create directories for saving models and logs
-        self.model_dir = Path(get_project_path("output", "models"))
+        self._model_dir = Path(get_project_path("output", "models"))
         self.log_dir = Path(get_project_path("output", "results", "logs"))
 
-        Path(self.model_dir).mkdir(parents=True, exist_ok=True)
+        Path(self._model_dir).mkdir(parents=True, exist_ok=True)
         Path(self.log_dir).mkdir(parents=True, exist_ok=True)
 
     # ================= #
@@ -53,60 +54,60 @@ class BaseAgentRunner(ABC):
     # ================= #
 
     def _construct_model_id(self, lstm_hidden_size: int | None = None) -> None:
-        perception = self.obs_conf.observation_handler.perception
-        tier = f"Tier{self.run_conf.orb_factory_conf.max_tier}"
-        neg = "_Neg" if self.run_conf.orb_factory_conf.types.negative.enabled else ""
-        reward = f"{self.run_conf.tier_orb_conf.base_reward}rew"
-        growth = f"{self.run_conf.tier_orb_conf.growth_factor}growth"
-        score = f"{self.run_conf.droid_conf.starting_score}score"
-        step_offset = f"{self.run_conf.droid_conf.step_penalty}step_offset"
+        perception = self._obs_conf.observation_handler.perception
+        tier = f"Tier{self._run_conf.orb_factory_conf.max_tier}"
+        neg = "_Neg" if self._run_conf.orb_factory_conf.types.negative.enabled else ""
+        reward = f"{self._run_conf.tier_orb_conf.base_reward}rew"
+        growth = f"{self._run_conf.tier_orb_conf.growth_factor}growth"
+        score = f"{self._run_conf.droid_conf.starting_score}score"
+        step_offset = f"{self._run_conf.droid_conf.step_penalty}step_offset"
 
         # --- RecurrentPPO with tier orbs --- #
         if (
-            self.conf.alg == "RPPO"
-            and self.run_conf.orb_factory_conf.types.tier.enabled
+            self._conf.alg == "RPPO"
+            and self._run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_{tier}{neg}_{reward}_{growth}_{score}_{step_offset}_{lstm_hidden_size}_{self.conf.alg}"
+            self._id = f"{perception}_{tier}{neg}_{reward}_{growth}_{score}_{step_offset}_{lstm_hidden_size}_{self._conf.alg}"
         # --- RecurrentPPO without tier orbs --- #
         elif (
-            self.conf.alg == "RPPO"
-            and not self.run_conf.orb_factory_conf.types.tier.enabled
+            self._conf.alg == "RPPO"
+            and not self._run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_NoTier{neg}_{score}_{step_offset}_{lstm_hidden_size}_{self.conf.alg}"
+            self._id = f"{perception}_NoTier{neg}_{score}_{step_offset}_{lstm_hidden_size}_{self._conf.alg}"
         # --- With tier orbs --- #
         elif (
-            not self.conf.alg == "RPPO"
-            and self.run_conf.orb_factory_conf.types.tier.enabled
+            not self._conf.alg == "RPPO"
+            and self._run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_{tier}{neg}_{reward}_{growth}_{score}_{step_offset}_{self.conf.alg}"
+            self._id = f"{perception}_{tier}{neg}_{reward}_{growth}_{score}_{step_offset}_{self._conf.alg}"
         # --- Without tier orbs --- #
         elif (
-            not self.conf.alg == "RPPO"
-            and not self.run_conf.orb_factory_conf.types.tier.enabled
+            not self._conf.alg == "RPPO"
+            and not self._run_conf.orb_factory_conf.types.tier.enabled
         ):
-            self._id = f"{perception}_NoTier{neg}_{score}_{step_offset}_{self.conf.alg}"
+            self._id = f"{perception}_NoTier{neg}_{score}_{step_offset}_{self._conf.alg}"
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
-        env = make(render_mode, self.run_conf, self.obs_conf)
+        env = make(render_mode, self._run_conf, self._obs_conf)
 
-        if self.conf.check_env:
+        if self._conf.check_env:
             check_my_env(env)
             sys.exit("Environment is fine")
 
         return env
 
-    def _get_model_path(self) -> Path:
+    def _get_saved_path(self, dir: Path) -> Path:
         """
         Returns a path that matches the latest model of the timesteps specified in the config file
         """
 
-        if self.conf.agent_steps == "":
+        if self._conf.agent_steps == "":
             sys.exit("You forgot to specify the models steps")
 
-        file_name = f"{self.conf.agent_steps}_{self._id}*"
+        file_name = f"{self._conf.agent_steps}_{self._id}*"
 
         # list all files
-        matches = list(self.model_dir.glob(file_name))
+        matches = list(dir.glob(file_name))
         if not matches:
             raise FileNotFoundError(f"No model found for path: {file_name}")
 
@@ -114,4 +115,4 @@ class BaseAgentRunner(ABC):
         return max(matches, key=lambda p: p.stat().st_mtime)
 
     def _get_model_id(self) -> str:
-        return f"{self._id}_{self.date}"
+        return f"{self._id}_{self._date}"

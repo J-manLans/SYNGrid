@@ -19,57 +19,29 @@ class StatelessPPO(BaseSB3Runner[PPO]):
     # ================= #
 
     def train(self) -> None:
-        env = self._make_wrapped_dummy_vec_env(self.train_conf.render_mode)
-        env = self._apply_normalize_wrapper(env)
+        env = self._make_wrapped_dummy_vec_env(self._train_conf.render_mode)
+        env = self._get_vec_env(env)
         model = self._get_model(env)
 
         self._train_model(model, env)
 
     def eval(self) -> None:
         # prep model and env
-        env = self._make_wrapped_dummy_vec_env(self.eval_conf.render_mode)
-        env = self._load_normalize_wrapper(env, 'vec_normalize_stats.pkl') # TODO: fix this
+        env = self._make_wrapped_dummy_vec_env(self._eval_conf.render_mode)
+        env = self._get_vec_env(env)
         model = self._load_model(env)
 
         # stores total reward and episode length for each evaluation episode
         episode_rewards = []
         episode_lengths = []
 
-        # ======================================
-        # logging for debugging the env
-        # ======================================
-
-        _GLOBAL_KEY = 'global_data'
-        _DROID_KEY = 'droid_data'
-        _ORB_KEY = 'orb_data'
-
-        # ======================================
-        # END
-        # ======================================
-
         try:
-            # ======================================
-            # logging for debugging the env
-            # ======================================
 
-            # ======================================
-            # END
-            # ======================================
-
-            for i in range(self.eval_conf.num_eval_episodes):
-
+            for i in range(self._eval_conf.num_eval_episodes):
                 # start the eval loop
                 obs = env.reset()
                 total_reward = 0.0
                 step_count = 0
-
-                # ======================================
-                # logging for debugging the env
-                # ======================================
-
-                # ======================================
-                # END
-                # ======================================
 
                 while True:
                     assert isinstance(obs, dict)
@@ -92,15 +64,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         avg_reward = sum(episode_rewards) / len(episode_rewards)
         avg_length = sum(episode_lengths) / len(episode_lengths)
         print(
-            f"Eval over {self.eval_conf.num_eval_episodes} episodes: average reward = {avg_reward:.2f}, average length = {avg_length:.1f}"
+            f"Eval over {self._eval_conf.num_eval_episodes} episodes: average reward = {avg_reward:.2f}, average length = {avg_length:.1f}"
         )
-
-        # ======================================
-        # logging for debugging the env
-        # ======================================
-
-        # ======================================
-        # END
-        # ======================================
 
 

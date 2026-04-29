@@ -41,7 +41,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     # ================= #
 
     def train(self) -> None:
-        env = self._make_wrapped_dummy_vec_env(self.train_conf.render_mode)
+        env = self._make_wrapped_dummy_vec_env(self._train_conf.render_mode)
         model = self._get_model(env)
 
         self._train_model(model, env)
@@ -65,7 +65,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
 
         # start the eval loop
         obs = env.reset()
-        total_episodes_to_collect = self.eval_conf.num_eval_episodes * num_envs
+        total_episodes_to_collect = self._eval_conf.num_eval_episodes * num_envs
         try:
             while len(all_rewards) < total_episodes_to_collect:
                 action, lstm_states = model.predict(

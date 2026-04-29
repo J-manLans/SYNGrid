@@ -89,9 +89,9 @@ class TestAgentRunner:
             SystemExit: If no agent steps are provided.
         """
 
-        agent_runner.conf.agent_steps = ""
+        agent_runner._conf.agent_steps = ""
 
         with pytest.raises(SystemExit):
-            agent_runner._get_model_path()
+            agent_runner._get_saved_path()
 
 
