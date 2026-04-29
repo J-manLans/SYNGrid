@@ -1,8 +1,9 @@
 from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
+from syn_grid.utils.date_utils import get_date
 from syn_grid.gymnasium.env_factory import make, check_my_env
 
-import sys, datetime
+import sys
 from pathlib import Path
 from abc import ABC, abstractmethod
 from gymnasium import Env
@@ -26,8 +27,7 @@ class BaseAgentRunner(ABC):
         self._run_conf = run_conf
 
         # Get current date and time to us as an identifier for unique file naming
-        # TODO: make a util file for this so date is returned consistently in the codebase
-        self._date = datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
+        self._date = get_date()
 
         # Create directories for saving models and logs
         self._model_dir = Path(get_project_path("output", "models"))
