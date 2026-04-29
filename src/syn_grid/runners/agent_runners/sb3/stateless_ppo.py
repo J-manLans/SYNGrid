@@ -36,53 +36,21 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         # stores total reward and episode length for each evaluation episode
         episode_rewards = []
         episode_lengths = []
+        rewards = []  # stores all rewards
 
         try:
-            # ==========================
-            #   Debug
-            # ==========================
-
-            rewards = []
-            chains = []
-            scores = []
-            steps = []
-
-            # ==========================
-            #   Debug END
-            # ==========================
-
             for i in range(self._eval_conf.num_eval_episodes):
                 # start the eval loop
                 obs = env.reset()
                 total_reward = 0.0
                 step_count = 0
 
-                # ==========================
-                #   Debug
-                # ==========================
-
-                # ==========================
-                #   Debug END
-                # ==========================
-
                 while True:
                     assert isinstance(obs, dict)
                     action, states = model.predict(obs, deterministic=True)
                     obs, reward_arr, done_arr, info = env.step(action)
 
-                    # ==========================
-                    #   Debug
-                    # ==========================
-
                     rewards.append(info[0].get("reward"))
-                    steps.append(info[0].get("steps_left"))
-                    scores.append(info[0].get("score"))
-                    chains.append(info[0].get("chain"))
-
-                    # ==========================
-                    #   Debug END
-                    # ==========================
-
                     total_reward += reward_arr[0]
                     step_count += 1
                     if done_arr[0]:
@@ -98,20 +66,11 @@ class StatelessPPO(BaseSB3Runner[PPO]):
 
         avg_reward = sum(episode_rewards) / len(episode_rewards)
         avg_length = sum(episode_lengths) / len(episode_lengths)
-        print(
-            f"Eval over {self._eval_conf.num_eval_episodes} episodes: average reward = {avg_reward:.2f}, average length = {avg_length:.1f}"
-        )
-
-        # ==========================
-        #   Debug
-        # ==========================
-
-        num_max_tier_reached = sum(1 for r in rewards if r == 47)
+        num_max_tier_reached = sum(1 for r in rewards if r == 9)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
 
-        print(f"Max tier reached: {num_max_tier_reached} times")
-        print(f"Average: {average_max_tier:.2f}")
-
-        # ==========================
-        #   Debug END
-        # ==========================
+        print(
+            f"Eval over {self._eval_conf.num_eval_episodes} episodes:"
+            f"average reward = {avg_reward:.2f}, average length = {avg_length:.1f}\n"
+            f"Max tier reached: {num_max_tier_reached} times, average: {average_max_tier:.2f}"
+        )

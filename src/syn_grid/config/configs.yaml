@@ -82,8 +82,8 @@ world:
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
     step_wise_scoring: true
-    growth_factor: 1.5
-    base_reward: 3.0
+    growth_factor: 2.0
+    base_reward: 5.0
     cool_down: 7
 
 ###########################
@@ -125,7 +125,7 @@ agent:
     alg: "PPO"
     agent_steps: "1605632"
     human_control: false
-    training: false
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -146,5 +146,5 @@ agent:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 1
-    render_mode: 'human'
+    num_eval_episodes: 100
+    render_mode: null

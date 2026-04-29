@@ -18,11 +18,6 @@ class MediumCompositePerception(BasePerception):
     _DROID_KEY = "droid_data"
     _ORB_KEY = "orb_data"
 
-    _MISSING_ORB: Final[float] = -1.0
-
-    def __init__(self, conf: PerceptionConf, orbs: int) -> None:
-        super().__init__(conf, orbs)
-
     # ================= #
     #        API        #
     # ================= #
@@ -31,7 +26,7 @@ class MediumCompositePerception(BasePerception):
         # Reset the observation arrays
         self._global_data[:] = 0
         self._droid_data[:] = 0
-        self._orb_data[:] = -1.0
+        self._orb_data[:] = self._MISSING_ORB_VALUE
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
@@ -57,7 +52,7 @@ class MediumCompositePerception(BasePerception):
         self._global_data = np.zeros_like(global_high, dtype=np.float32)
         self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
         self._orb_data = np.full(
-            (self._orbs_in_env, orb_features), self._MISSING_ORB, dtype=np.float32
+            (self._orbs_in_env, orb_features), self._MISSING_ORB_VALUE, dtype=np.float32
         )
 
         return spaces.Dict(
@@ -111,7 +106,7 @@ class MediumCompositePerception(BasePerception):
                     orb.TIMER.remaining,
                 ]
             else:
-                self._orb_data[i] = self._MISSING_ORB
+                self._orb_data[i] = self._MISSING_ORB_VALUE
 
         return {
             self._GLOBAL_KEY: self._global_data,

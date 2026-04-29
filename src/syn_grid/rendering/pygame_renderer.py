@@ -139,7 +139,7 @@ class PygameRenderer:
                     (c * self._cell_width) + self._grid_offset,
                     (r * self._cell_height) + self._grid_offset,
                 )
-                self.window_surface.blit(self.graphics['floor_img'], pos)
+                self.window_surface.blit(self.graphics["floor_img"], pos)
 
                 for i in range(len(is_active_statuses)):
                     if is_active_statuses[i]:
@@ -152,13 +152,13 @@ class PygameRenderer:
 
         if orb_meta.CATEGORY == OrbCategory.DIRECT:
             if orb_meta.TYPE == DirectType.NEGATIVE:
-                self.window_surface.blit(self.graphics['negative_orb_img'], pos)
+                self.window_surface.blit(self.graphics["negative_orb_img"], pos)
         else:
             if orb_meta.TYPE == SynergyType.TIER and orb_meta.TIER is not None:
                 self._draw_tier_orb(orb_meta.TIER, pos)
 
     def _draw_tier_orb(self, tier: int, pos: tuple[int, int]):
-        base_img = self.graphics['positive_orb_img']
+        base_img = self.graphics["positive_orb_img"]
         # create (or fetch cached) combined surface with number
         tier_surf = self._make_tier_surface(tier, base_img)
         self.window_surface.blit(tier_surf, pos)
@@ -195,13 +195,13 @@ class PygameRenderer:
     def _draw_droid(self, pos: tuple[int, int]):
         """Draw droid at a specific pixel position"""
 
-        self.window_surface.blit(self.graphics['droid_img'], pos)
+        self.window_surface.blit(self.graphics["droid_img"], pos)
 
     def _draw_hud(self, hud_data: dict[str, int | float]):
         """Draw HUD / score with background rectangle for multiple data"""
 
         # --- Hud element --- #
-        hud_img = self.graphics['hud_img']
+        hud_img = self.graphics["hud_img"]
         hud_rect = hud_img.get_rect(
             topleft=(
                 self._grid_offset,
@@ -253,7 +253,7 @@ class PygameRenderer:
         status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
         pygame.draw.rect(self.window_surface, (75, 75, 75), status_rect, 2)
 
-        self._draw_hud_stat(current_score, hud_rect.x + 120, hud_rect.y + 45)
+        self._draw_hud_stat(round(current_score, 2), hud_rect.x + 120, hud_rect.y + 45)
 
     def _draw_moves_bar(self, remaining_moves: int | float, hud_rect: pygame.Rect):
         """
@@ -286,16 +286,16 @@ class PygameRenderer:
         pygame.draw.rect(self.window_surface, (75, 75, 75), status_rect, 2)
 
     def _draw_hud_stat(self, stat: int | float, x, y):
-        '''
+        """
         Draw a numeric stat centered at position (x,y) in the HUD.
 
         Parameters:
             stat: Numeric value to display (formatted to 2 decimals)
             x: Left coordinate of the stat's bounding box
             y: Top coordinate of the stat's bounding box
-        '''
+        """
 
-        tier_surf = self.hud_font.render(f"{stat:.2f}", True, self._hud_text_clr)
+        tier_surf = self.hud_font.render(str(stat), True, self._hud_text_clr)
 
         # Place it in the hud
         tier_rect = pygame.Rect(x, y, 64, 52)
