@@ -1,5 +1,5 @@
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
+from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
 
 import os
@@ -20,6 +20,29 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     _POLICY_MAP = {"vector": "Mlp", "composite": "MultiInput", "spatial": "Cnn"}
 
+    def __init__(
+        self,
+        conf: AgentConfig,
+        obs_conf: ObsConfig,
+        run_conf: WorldConfig,
+        hyper_parameters: dict[str, Any],
+        algorithm: Type[T],
+        lstm_hidden_size: int | None = None,
+    ):
+        super().__init__(conf, obs_conf, run_conf)
+        id = self._construct_model_id(
+            conf.global_agent_conf, run_conf, lstm_hidden_size
+        )
+        super()._set_id(id)
+        self._HYPER_PARAMETERS = hyper_parameters
+        self._ALGORITHM = algorithm
+
+        # Create directory for saving learned statistics for normalization
+        self._vec_norm_stats_dir = Path(
+            get_project_path("output", "results", "saved_vec_norms")
+        )
+        Path(self._vec_norm_stats_dir).mkdir(parents=True, exist_ok=True)
+
     @classmethod
     def _get_policy_from_perception(
         cls, perception_str: str, use_lstm: bool = False
@@ -35,28 +58,45 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
         return policy
 
-    def __init__(
-        self,
-        conf: AgentConfig,
-        obs_conf: ObsConfig,
-        run_conf: WorldConfig,
-        hyper_parameters: dict[str, Any],
-        algorithm: Type[T],
-        lstm_hidden_size: int | None = None,
-    ):
-        super().__init__(conf, obs_conf, run_conf, lstm_hidden_size)
-        self._HYPER_PARAMETERS = hyper_parameters
-        self._ALGORITHM = algorithm
-
-        # Create directory for saving learned statistics for normalization
-        self._vec_norm_stats_dir = Path(
-            get_project_path("output", "results", "saved_vec_norms")
-        )
-        Path(self._vec_norm_stats_dir).mkdir(parents=True, exist_ok=True)
-
     # ================= #
     #      Helpers      #
     # ================= #
+
+    def _construct_model_id(
+        self,
+        agent_conf: GlobalAgentConf,
+        run_conf: WorldConfig,
+        lstm_hidden_size: int | None = None,
+    ) -> str:
+        base_tier_id, base_non_tier_id = super()._get_model_base_id()
+
+        # --- RecurrentPPO with tier orbs --- #
+        if agent_conf.alg == "RPPO" and run_conf.orb_factory_conf.types.tier.enabled:
+            return f"{base_tier_id}{lstm_hidden_size}"
+        # --- RecurrentPPO without tier orbs --- #
+        elif (
+            agent_conf.alg == "RPPO"
+            and not run_conf.orb_factory_conf.types.tier.enabled
+        ):
+            return f"{base_non_tier_id}{lstm_hidden_size}"
+        # --- With tier orbs --- #
+        elif (
+            not agent_conf.alg == "RPPO"
+            and run_conf.orb_factory_conf.types.tier.enabled
+        ):
+            return f"{base_tier_id}"
+        # --- Without tier orbs --- #
+        elif (
+            not agent_conf.alg == "RPPO"
+            and not run_conf.orb_factory_conf.types.tier.enabled
+        ):
+            return f"{base_non_tier_id}"
+        else:
+            raise ValueError(
+                f"Unhandled case:\n"
+                f"alg={agent_conf.alg}\n"
+                f"tier_enabled={run_conf.orb_factory_conf.types.tier.enabled}"
+            )
 
     # === Env === #
 

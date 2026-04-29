@@ -74,10 +74,10 @@ class StatelessPPO(BaseSB3Runner[PPO]):
                     #   Debug
                     # ==========================
 
-                    rewards.append(info[0].get('reward'))
-                    steps.append(info[0].get('steps_left'))
-                    scores.append(info[0].get('score'))
-                    chains.append(info[0].get('chain'))
+                    rewards.append(info[0].get("reward"))
+                    steps.append(info[0].get("steps_left"))
+                    scores.append(info[0].get("score"))
+                    chains.append(info[0].get("chain"))
 
                     # ==========================
                     #   Debug END
@@ -109,8 +109,8 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         num_max_tier_reached = sum(1 for r in rewards if r == 9)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
 
-        print(f'Max tier reached: {num_max_tier_reached} times')
-        print(f'Average: {average_max_tier:.2f}')
+        print(f"Max tier reached: {num_max_tier_reached} times")
+        print(f"Average: {average_max_tier:.2f}")
 
         # ==========================
         #   Debug END

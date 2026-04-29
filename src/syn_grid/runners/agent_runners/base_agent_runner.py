@@ -1,4 +1,4 @@
-from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
+from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
 from syn_grid.gymnasium.env_factory import make, check_my_env
 
@@ -17,16 +17,13 @@ class BaseAgentRunner(ABC):
         self,
         conf: AgentConfig,
         obs_conf: ObsConfig,
-        run_conf: WorldConfig,
-        lstm_hidden_size: int | None = None,  # TODO: turn into **kwargs?
+        run_conf: WorldConfig
     ):
         self._conf = conf.global_agent_conf
         self._train_conf = conf.train_agent_conf
         self._eval_conf = conf.eval_agent_conf
         self._obs_conf = obs_conf
         self._run_conf = run_conf
-
-        self._construct_model_id(lstm_hidden_size)
 
         # Get current date and time to us as an identifier for unique file naming
         # TODO: make a util file for this so date is returned consistently in the codebase
@@ -39,21 +36,40 @@ class BaseAgentRunner(ABC):
         Path(self._model_dir).mkdir(parents=True, exist_ok=True)
         Path(self.log_dir).mkdir(parents=True, exist_ok=True)
 
+    def _set_id(self, id: str) -> None:
+        self._id = id
+
     # ================= #
     #  Abstract methods #
     # ================= #
 
     @abstractmethod
-    def train(self): ...
+    def _construct_model_id(
+        self, agent_conf: GlobalAgentConf, run_conf: WorldConfig
+    ) -> str:
+        """
+        Construct a unique model identifier for saving/loading.
+
+        This method is called directly after `super().__init__()` and should:
+            1. Call `super()._get_model_base_id()` to retrieve base identifiers
+            2. Combine them with any subclass-specific agent parameters
+            3. Set the result via `super()._set_id()`
+
+        Returns:
+            A unique string identifier (used as filename/folder name)
+        """
 
     @abstractmethod
-    def eval(self): ...
+    def train(self) -> None: ...
+
+    @abstractmethod
+    def eval(self) -> None: ...
 
     # ================= #
     #      Helpers      #
     # ================= #
 
-    def _construct_model_id(self, lstm_hidden_size: int | None = None) -> None:
+    def _get_model_base_id(self) -> tuple[str, str]:
         perception = self._obs_conf.observation_handler.perception
         tier = f"Tier{self._run_conf.orb_factory_conf.max_tier}"
         reward = f"{self._run_conf.tier_orb_conf.base_reward}rew"
@@ -79,30 +95,7 @@ class BaseAgentRunner(ABC):
             f"{perception}_NoTier{neg}__{score}_{step_offset}__{self._conf.alg}"
         )
 
-        # --- RecurrentPPO with tier orbs --- #
-        if (
-            self._conf.alg == "RPPO"
-            and self._run_conf.orb_factory_conf.types.tier.enabled
-        ):
-            self._id = f"{base_tier_id}{lstm_hidden_size}"
-        # --- RecurrentPPO without tier orbs --- #
-        elif (
-            self._conf.alg == "RPPO"
-            and not self._run_conf.orb_factory_conf.types.tier.enabled
-        ):
-            self._id = f"{base_non_tier_id}{lstm_hidden_size}"
-        # --- With tier orbs --- #
-        elif (
-            not self._conf.alg == "RPPO"
-            and self._run_conf.orb_factory_conf.types.tier.enabled
-        ):
-            self._id = f"{base_tier_id}"
-        # --- Without tier orbs --- #
-        elif (
-            not self._conf.alg == "RPPO"
-            and not self._run_conf.orb_factory_conf.types.tier.enabled
-        ):
-            self._id = f"{base_non_tier_id}"
+        return base_tier_id, base_non_tier_id
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
         env = make(render_mode, self._run_conf, self._obs_conf)
