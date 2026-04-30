@@ -22,7 +22,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
 
     def train(self) -> None:
         env = self._make_wrapped_dummy_vec_env(self._train_conf.render_mode)
-        env = self._get_vec_env(env)
+        env = self._get_normalized_env(env)
         model = self._get_model(env)
 
         self._train_model(model, env)
@@ -30,7 +30,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
     def eval(self) -> None:
         # prep model and env
         env = self._make_wrapped_dummy_vec_env(self._eval_conf.render_mode)
-        env = self._get_vec_env(env)
+        env = self._get_normalized_env(env)
         model = self._load_model(env)
 
         # stores total reward and episode length for each evaluation episode
@@ -66,11 +66,14 @@ class StatelessPPO(BaseSB3Runner[PPO]):
 
         avg_reward = sum(episode_rewards) / len(episode_rewards)
         avg_length = sum(episode_lengths) / len(episode_lengths)
-        num_max_tier_reached = sum(1 for r in rewards if r == 19)
+        num_max_tier_reached = sum(1 for r in rewards if r == 20)
+        num_tier_out_of_order = sum(1 for r in rewards if r == -0.5)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
+        average_tier_out_of_order = num_tier_out_of_order / self._eval_conf.num_eval_episodes
 
         print(
             f"Eval over {self._eval_conf.num_eval_episodes} episodes:"
             f"average reward = {avg_reward:.2f}, average length = {avg_length:.1f}\n"
-            f"Max tier reached: {num_max_tier_reached} times, average: {average_max_tier:.2f}"
+            f"Max tier reached: {num_max_tier_reached} times, average: {average_max_tier:.2f}\n"
+            f'Tier orbs out of order: {num_tier_out_of_order}, avg: {average_tier_out_of_order:.2f}'
         )

@@ -107,6 +107,7 @@ def _build_grid_observation(self):
 
     return grid
 
+# Example with global values steps left, score and chained tiers at the start [33, 54, 1, ..., 0]:
 obs = [
     [[33,54,1,0,0,0,0,0], [33,54,1,0,0,0,0,0], [33,54,1,0,0,0,0,0], [33,54,1,0,0,0,0,0], [33,54,1,0,0,0,0,0]],
     [[33,54,1,0,0,0,0,0], [33,54,1,1,0,0,0,0], [33,54,1,0,1,1,0,5], [33,54,1,0,0,0,0,0], [33,54,1,0,0,0,0,0]],
@@ -136,3 +137,59 @@ obs = [
 # tier3 orb
 [0, 2, 1, 3]
 ```
+
+## n_step and batch_size hyper parameters for RecurrentPPO
+In my environment the maximum length of an episode is 100 steps then the episode terminates, the other deciding factor for termination is if the droid's score reaches 0. Each step in the env cost 1 score and the agent starts with 50. So effective length of an episode is [50-100]
+
+### n_step = 128, batch_size = 32 (or whatever that bigger than the actual collection of episodes, which will be maximum 2)
+Collect phase:
+- Run environment for n_steps=128 steps
+- Gives 2 complete episodes (30-100,0-58 steps each)
+
+Update phase:
+- Only have 2 episode to work with
+- Epoch 1:
+    - Since batch_size is so big we update on all episodes at once
+- Epoch 2: same update
+- Epoch 3: same
+- Epoch 4: same
+- Total: 4 gradient updates
+
+Takeaway:
+The agent sees only partial episodes, no chance to learn long term dynamics, this is catastrophic for the agents learning
+
+### n_step = 512, batch_size = 64 (or whatever that bigger than the actual collection of episodes, which will be maximum 2)
+Collect phase:
+- Run environment for n_steps=512 steps
+- Gives 5 complete episodes
+- 5 / 64 < 0 so we will train on the whole batch in one go
+
+Update phase:
+- Only have 5 episode to work with, plus whatever leftover
+- Epoch 1:
+    - Since batch_size is so big we update on all episodes at once
+- Epoch 2: same update
+- Epoch 3: same
+- Epoch 4: same
+- Total: 4 gradient updates
+
+Takeaway:
+The agent have a reasonable dataset to work with, it updates on the whole one right away without batching it up. Not catastrophic, but could presumably be better with longer n_step to better catch long term dynamics.
+
+### n_step = 1024, batch_size = 5
+Collect phase:
+- Run environment for n_steps=1024 steps
+- Gives ~10 complete episodes
+
+Update phase:
+- Shuffle the 10 episodes into 2 minibatches of 5
+- Epoch 1:
+    - Gradient update on minibatch 1 (episodes 1-5)
+    - Gradient update on minibatch 2 (episodes 6-10)
+- Epoch 2: same 2 updates
+- Epoch 3: same
+- Epoch 4: same
+- Total: 8 gradient updates
+
+Takeaway:
+The agent updates on a batch of ca 512 steps each, one after the other, then repeats. Then go out for new experiences, so it's 2 updates before updating the policy compared to the 512 version. I have a hard time to visualize how this affects learning to be honest

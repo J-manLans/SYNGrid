@@ -17,11 +17,11 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         hyper_parameters = {
             "policy": policy,
             "device": "cpu",
-            "ent_coef": 0.05,
-            "n_steps": 128,
+            "ent_coef": 0.025,
+            "n_steps": 512,
             "batch_size": 64,
-            "n_epochs": 5,
-            "learning_rate": 3e-4,
+            "n_epochs": 8,
+            "learning_rate": 1e-4,
             "clip_range": 0.2,
             "policy_kwargs": {
                 "lstm_hidden_size": 128,
@@ -44,13 +44,15 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
 
     def train(self) -> None:
         env = self._make_wrapped_dummy_vec_env(self._train_conf.render_mode)
+        env = self._get_normalized_env(env)
         model = self._get_model(env)
 
         self._train_model(model, env)
 
     def eval(self) -> None:
         # prep model and env
-        env = self._make_wrapped_dummy_vec_env("human")
+        env = self._make_wrapped_dummy_vec_env(self._eval_conf.render_mode)
+        env = self._get_normalized_env(env)
         model = self._load_model(env)
 
         # prep lstm variables
@@ -61,6 +63,8 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         # Each environment will have a list of rewards and lengths for completed episodes
         all_rewards = []
         all_lengths = []
+        al_rewards = []
+
         current_rewards = np.zeros(num_envs)
         current_lengths = np.zeros(num_envs, dtype=int)
         episode_counts = np.zeros(num_envs, dtype=int)
@@ -77,6 +81,8 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
                     deterministic=True,
                 )
                 obs, rewards, dones, infos = env.step(action)
+
+                al_rewards.append(rewards[0])
 
                 current_rewards += rewards
                 current_lengths += 1
@@ -102,6 +108,11 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         # Compute averages
         avg_reward = np.mean(all_rewards)
         avg_length = np.mean(all_lengths)
+        num_max_tier_reached = sum(1 for r in al_rewards if r == 19)
+        average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
+
         print(
-            f"Eval over {len(all_rewards)} episodes: average reward = {avg_reward:.2f}, average length = {avg_length:.1f}"
+            f"Eval over {self._eval_conf.num_eval_episodes} episodes:"
+            f"average reward = {avg_reward:.2f}, average length = {avg_length:.1f}\n"
+            f"Max tier reached: {num_max_tier_reached} times, average: {average_max_tier:.2f}"
         )

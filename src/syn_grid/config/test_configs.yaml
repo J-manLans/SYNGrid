@@ -126,29 +126,34 @@ agent:
     # Global settings:
     # - algorithm: which algorithm the agent will use
     # - agent_steps: identifier for the model to continue training or evaluate
-    # - human_control: allow human to control the game manually
-    # - training: choose whether to train the agent or just run it
+    # - id_tag: used to tag your model so it can be easily found
+    # - human_control: allow human to control the game manually, disables training and eval
+    # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "RPPO"
-    agent_steps: "100096"
+    alg: "PPO"
+    agent_steps: "1605632"
+    id_tag: ""
     human_control: false
     training: false
     check_env: false
 
   # Pick algorithm to train or evaluate
   train_agent_conf:
-  train_agent_conf:
     # Train settings:
     # - continue_training: continue from a previously saved model
-    # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
-    # - render_mode (None or human): None is default, change to human if you want visual feedback during debugging
+    # - monitor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
+    # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
+    # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
+    # - model_output (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    enable_output: false
+    monitor_output: false
+    tensorboard_output: true
+    model_output: true
     render_mode: null
-    timesteps: 1000
-    iterations: 1
+    timesteps: 400000
+    iterations: 4
 
   eval_agent_conf:
     # Eval settings:

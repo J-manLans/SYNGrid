@@ -14,7 +14,8 @@ class BasePerception(ABC):
     #        Init       #
     # ================= #
 
-    _MISSING_ORB_VALUE: Final[float] = -1.0
+    _MISSING_ORB_VALUE: Final[float] = 0.0
+    _ORB_ACTIVE_FLAG: Final[float] = 1.0
 
     def __init__(self, conf: PerceptionConf, orbs: int) -> None:
         # Global values

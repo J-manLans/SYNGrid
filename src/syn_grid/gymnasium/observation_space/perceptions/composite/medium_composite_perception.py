@@ -24,8 +24,8 @@ class MediumCompositePerception(BasePerception):
 
     def reset(self) -> None:
         # Reset the observation arrays
-        self._global_data.fill(0)
-        self._droid_data.fill(0)
+        self._global_data.fill(0.0)
+        self._droid_data.fill(0.0)
         self._orb_data.fill(self._MISSING_ORB_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
@@ -39,6 +39,7 @@ class MediumCompositePerception(BasePerception):
         orb_high = np.tile(
             np.concatenate(
                 [
+                    np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
                     self._get_max_orb_positions(),
                     self._get_max_orb_identity(),
                     self._get_max_orb_data(),
@@ -51,8 +52,8 @@ class MediumCompositePerception(BasePerception):
         # Initialize the arrays used for giving the observation
         self._global_data = np.zeros_like(global_high, dtype=np.float32)
         self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
-        self._orb_data = np.full(
-            (self._orbs_in_env, orb_features), self._MISSING_ORB_VALUE, dtype=np.float32
+        self._orb_data = np.zeros(
+            (self._orbs_in_env, orb_features), dtype=np.float32
         )
 
         return spaces.Dict(
@@ -70,7 +71,7 @@ class MediumCompositePerception(BasePerception):
                     dtype=np.float32,
                 ),
                 self._ORB_KEY: spaces.Box(
-                    low=-1,
+                    low=self._MISSING_ORB_VALUE,
                     high=orb_high,
                     shape=(self._orbs_in_env, orb_features),
                     dtype=np.float32,
@@ -98,6 +99,7 @@ class MediumCompositePerception(BasePerception):
                 orb_y, orb_x = orb.position
 
                 self._orb_data[i] = [
+                    self._ORB_ACTIVE_FLAG,
                     orb_y,
                     orb_x,
                     orb.META.CATEGORY.value,

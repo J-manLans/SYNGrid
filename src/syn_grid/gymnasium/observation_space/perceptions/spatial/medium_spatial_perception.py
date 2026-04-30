@@ -15,16 +15,18 @@ class MediumSpatialPerception(BasePerception):
     # ================= #
 
     def reset(self) -> None:
-        self._grid.fill(0)
+        self._grid.fill(0.0)
 
     def setup_obs_space(self) -> spaces.Space:
         # Initialize spatial specific values and construct the high array
-        max_agent_present = 1
-        high = np.concatenate([
-            np.array([max_agent_present]),
-            self._get_max_orb_identity(),
-            self._get_max_orb_data()
-        ])
+        max_agent_present = 1.0
+        high = np.concatenate(
+            [
+                np.array([max_agent_present]),
+                self._get_max_orb_identity(),
+                self._get_max_orb_data(),
+            ]
+        )
 
         # Create H,W,C and let C be the length of the list
         rows, cols = self._get_max_droid_positions()
@@ -48,7 +50,7 @@ class MediumSpatialPerception(BasePerception):
 
     def get_observation(self, state: GridWorld, steps_left: int) -> np.ndarray:
         # Reset grid
-        self._grid.fill(0)
+        self._grid.fill(0.0)
 
         # Droid data
         droid_y, droid_x = state.droid.position

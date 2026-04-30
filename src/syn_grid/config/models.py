@@ -152,6 +152,7 @@ class PerceptionConf(BaseModel, frozen=True):
 class GlobalAgentConf(BaseModel, frozen=False):
     alg: str
     agent_steps: str
+    id_tag: str | None
     human_control: bool
     training: bool
     check_env: bool
@@ -159,7 +160,9 @@ class GlobalAgentConf(BaseModel, frozen=False):
 
 class TrainAgentConf(BaseModel, frozen=False):
     continue_training: bool
-    enable_output: bool
+    monitor_output: bool
+    tensorboard_output: bool
+    model_output: bool
     render_mode: str | None
     timesteps: int
     iterations: int

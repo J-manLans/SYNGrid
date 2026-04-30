@@ -103,12 +103,12 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _make_env(self, render_mode: str | None) -> Env:
         env = self._make_raw_env(render_mode)
 
-        if self._conf.training and self._train_conf.enable_output:
+        if self._conf.training and self._train_conf.monitor_output:
             env = self._wrap_in_monitor(env)
 
         return env
 
-    def _get_vec_env(self, env: DummyVecEnv) -> VecNormalize:
+    def _get_normalized_env(self, env: DummyVecEnv) -> VecNormalize:
         if self._conf.training and not self._train_conf.continue_training:
             return self._apply_normalize_wrapper(env)
         else:
@@ -157,7 +157,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             env=env,
             verbose=1,
             tensorboard_log=(
-                str(self.log_dir) if self._train_conf.enable_output else None
+                str(self.log_dir) if self._train_conf.tensorboard_output else None
             ),
             **self._HYPER_PARAMETERS,
         )
@@ -181,7 +181,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     reset_num_timesteps=False,
                 )
 
-                if self._train_conf.enable_output:
+                if self._train_conf.model_output:
                     # Save the model
                     checkpoint = f"{model.num_timesteps}_{self._get_model_id()}.zip"
                     model.save(self._model_dir / checkpoint)

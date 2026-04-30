@@ -41,8 +41,8 @@ world:
     # - tier_consumption_penalty: punishment for consuming tier orbs in the wrong order
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 50.0
-    step_penalty: -1.0
+    starting_score: 10.0
+    step_penalty: 0.0
     tier_consumption_penalty: -0.5
 
   orb_factory_conf:
@@ -119,11 +119,13 @@ agent:
     # Global settings:
     # - algorithm: which algorithm the agent will use
     # - agent_steps: identifier for the model to continue training or evaluate
+    # - id_tag: (null if not applicable) used to tag your model so it can be easily found
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "PPO"
+    alg: "RPPO"
     agent_steps: "1605632"
+    id_tag: 'missing_orbs_0'
     human_control: false
     training: true
     check_env: false
@@ -132,12 +134,16 @@ agent:
   train_agent_conf:
     # Train settings:
     # - continue_training: continue from a previously saved model
-    # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
-    # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
+    # - monitor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
+    # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
+    # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
+    # - model_output (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    enable_output: true
+    monitor_output: true
+    tensorboard_output: true
+    model_output: true
     render_mode: null
     timesteps: 400000
     iterations: 4
@@ -146,5 +152,5 @@ agent:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 100
+    num_eval_episodes: 300
     render_mode: null
