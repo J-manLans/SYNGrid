@@ -139,10 +139,8 @@ class SYNGridEnv(gym.Env):
 
         if self.world.droid.score <= 0:
             terminated = True
-            # reward -= 0.5 * self._observation_handler.steps_left
 
         if (self._observation_handler.steps_left <= 0) and not terminated:
             terminated = True
-            # reward += 0.5 * self.world.droid.score
 
         return terminated, reward

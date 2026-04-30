@@ -24,9 +24,9 @@ class MediumCompositePerception(BasePerception):
 
     def reset(self) -> None:
         # Reset the observation arrays
-        self._global_data[:] = 0
-        self._droid_data[:] = 0
-        self._orb_data[:] = self._MISSING_ORB_VALUE
+        self._global_data.fill(0)
+        self._droid_data.fill(0)
+        self._orb_data.fill(self._MISSING_ORB_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
