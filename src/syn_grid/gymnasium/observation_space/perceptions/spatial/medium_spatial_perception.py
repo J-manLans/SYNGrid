@@ -14,58 +14,55 @@ class MediumSpatialPerception(BasePerception):
     #        API        #
     # ================= #
 
-    def reset(self) -> None: ...
+    def reset(self) -> None:
+        self._grid.fill(0)
 
     def setup_obs_space(self) -> spaces.Space:
-        self._max_vals = []
-
-        # Initialize spatial specific values
+        # Initialize spatial specific values and construct the high array
         max_agent_present = 1
-
-        # Add the spatial values to the list
-        self._max_vals.insert(0, max_agent_present)
+        high = np.concatenate([
+            np.array([max_agent_present]),
+            self._get_max_orb_identity(),
+            self._get_max_orb_data()
+        ])
 
         # Create H,W,C and let C be the length of the list
-        droid_positions = self._get_max_droid_positions()
-        self._rows = int(droid_positions[0])
-        self._cols = int(droid_positions[1])
-        self._channels = len(self._max_vals)
+        rows, cols = self._get_max_droid_positions()
+        rows = int(rows) + 1
+        cols = int(cols) + 1
+        channels = high.shape[0]
+
+        # Initialize grid
+        self._grid = np.zeros((rows, cols, channels), dtype=np.float32)
+
+        # Build low array - one value per channel
+        low = np.zeros(channels, dtype=np.float32)
+        low[3] = -1  # Set the tier index to be -1 for non tier orbs
 
         return spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=(self._rows, self._cols, self._channels),
+            low=low,
+            high=high,
+            shape=(rows, cols, channels),
             dtype=np.float32,
         )
 
     def get_observation(self, state: GridWorld, steps_left: int) -> np.ndarray:
-        # TODO: Think about if this is worth it:
-        #
-        # But I want my obs's to be very much plug and play. So this was a good suggestion:
-        # You could handle global info by dedicating separate channels entirely (full 5x5
-        # filled with the same normalized value) instead of grouping global values like score,
-        # steps left and chained tiers with the droid, sort of letting the agent understand they
-        # aren't tied to a specific cell. This way I don't need to add more spaces for them and put
-        # them in a dict, since I don't think most agents handle those observations out of the box.
-
-        grid = np.zeros((self._rows, self._cols, self._channels), dtype=np.float32)
+        # Reset grid
+        self._grid.fill(0)
 
         # Droid data
         droid_y, droid_x = state.droid.position
 
-        grid[droid_y, droid_x, 0] = 1
-        grid[droid_y, droid_x, 1] = steps_left
-        grid[droid_y, droid_x, 2] = state.droid.score
-        grid[droid_y, droid_x, 3] = state.droid.digestion_engine.chained_tiers
+        self._grid[droid_y, droid_x, 0] = 1
 
         # Orb data
         for orb in state.ALL_ORBS:
             if orb.is_active:
                 y, x = orb.position
 
-                grid[y, x, 4] = orb.META.CATEGORY.value
-                grid[y, x, 5] = orb.META.TYPE.value
-                grid[y, x, 6] = orb.META.TIER
-                grid[y, x, 7] = orb.TIMER.remaining
+                self._grid[y, x, 1] = orb.META.CATEGORY.value
+                self._grid[y, x, 2] = orb.META.TYPE.value
+                self._grid[y, x, 3] = orb.META.TIER if orb.META.TIER > 0 else -1
+                self._grid[y, x, 4] = orb.TIMER.remaining
 
-        return grid
+        return self._grid

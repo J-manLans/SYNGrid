@@ -17,7 +17,7 @@ class HardVectorPerception(BasePerception):
 
     def reset(self) -> None:
         self._orb_slot_map: dict[int, int] = {}
-        self._obs_data[:] = self._MISSING_ORB_VALUE
+        self._obs_data.fill(self._MISSING_ORB_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout

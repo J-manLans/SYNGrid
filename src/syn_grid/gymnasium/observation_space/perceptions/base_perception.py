@@ -19,20 +19,20 @@ class BasePerception(ABC):
     def __init__(self, conf: PerceptionConf, orbs: int) -> None:
         # Global values
         self._orbs_in_env = orbs
-        self._max_active_orbs: Final[int] = conf.max_active_orbs
-        self._max_steps: Final[int] = conf.max_steps
-        self._max_grid_y: Final[int] = conf.grid_rows - 1
-        self._max_grid_x: Final[int] = conf.grid_cols - 1
+        self._max_active_orbs = conf.max_active_orbs
+        self._max_steps = conf.max_steps
+        self._max_grid_y = conf.grid_rows - 1
+        self._max_grid_x = conf.grid_cols - 1
 
         # Droid data
-        self._max_score: Final[int] = conf.max_score
-        self._max_tier_chain: Final[int] = conf.max_tier
+        self._max_score = conf.max_score
+        self._max_tier_chain = conf.max_tier
 
         # Orb data
-        self._max_category: Final[int] = len(OrbCategory) - 1
-        self._max_type: Final[int] = max(len(DirectType) - 1, len(SynergyType) - 1)
-        self._max_tier: Final[int] = conf.max_tier
-        self._max_orb_lifespan: Final[int] = BaseOrb._life_span
+        self._max_category = len(OrbCategory) - 1
+        self._max_type = max(len(DirectType) - 1, len(SynergyType) - 1)
+        self._max_tier = conf.max_tier
+        self._max_orb_lifespan = BaseOrb._life_span
 
     # ================= #
     #      Helpers      #
