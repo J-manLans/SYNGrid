@@ -153,6 +153,7 @@ class GlobalAgentConf(BaseModel, frozen=False):
     alg: str
     agent_steps: str
     id_tag: str | None
+    save_folder: str | None
     human_control: bool
     training: bool
     check_env: bool

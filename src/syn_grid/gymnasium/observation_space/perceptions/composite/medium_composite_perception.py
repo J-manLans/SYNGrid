@@ -52,9 +52,7 @@ class MediumCompositePerception(BasePerception):
         # Initialize the arrays used for giving the observation
         self._global_data = np.zeros_like(global_high, dtype=np.float32)
         self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
-        self._orb_data = np.zeros(
-            (self._orbs_in_env, orb_features), dtype=np.float32
-        )
+        self._orb_data = np.zeros((self._orbs_in_env, orb_features), dtype=np.float32)
 
         return spaces.Dict(
             {

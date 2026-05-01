@@ -120,14 +120,16 @@ agent:
     # - algorithm: which algorithm the agent will use
     # - agent_steps: identifier for the model to continue training or evaluate
     # - id_tag: (null if not applicable) used to tag your model so it can be easily found
+    # - save_folder: (null for default) specify this if you want to have special folders for your experiments
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "RPPO"
-    agent_steps: "1201152"
-    id_tag: 'n_steps_256_batch_128'
+    agent_steps: "5120"
+    id_tag: 'n_steps_128'
+    save_folder: 'rppo'
     human_control: false
-    training: true
+    training: false
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -145,12 +147,12 @@ agent:
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 400000
-    iterations: 4
+    timesteps: 5000
+    iterations: 1
 
   eval_agent_conf:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 300
+    num_eval_episodes: 1
     render_mode: null

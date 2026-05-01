@@ -18,9 +18,9 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
             "policy": policy,
             "device": "cpu",
             "ent_coef": 0.025,
-            "n_steps": 256,
+            "n_steps": 128,
             "batch_size": 64,
-            "n_epochs": 8,
+            "n_epochs": 4,
             "learning_rate": 1e-4,
             "clip_range": 0.2,
             "policy_kwargs": {
@@ -111,7 +111,9 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         num_max_tier_reached = sum(1 for r in al_rewards if r == 20)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
         num_tier_out_of_order = sum(1 for r in al_rewards if r == -0.5)
-        average_tier_out_of_order = num_tier_out_of_order / self._eval_conf.num_eval_episodes
+        average_tier_out_of_order = (
+            num_tier_out_of_order / self._eval_conf.num_eval_episodes
+        )
 
         print(
             f"Eval over {self._eval_conf.num_eval_episodes} episodes:"

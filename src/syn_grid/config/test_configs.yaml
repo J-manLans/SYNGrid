@@ -126,15 +126,17 @@ agent:
     # Global settings:
     # - algorithm: which algorithm the agent will use
     # - agent_steps: identifier for the model to continue training or evaluate
-    # - id_tag: used to tag your model so it can be easily found
+    # - id_tag: (null if not applicable) used to tag your model so it can be easily found
+    # - save_folder: (null for default) specify this if you want to have special folders for your experiments
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "PPO"
-    agent_steps: "1605632"
-    id_tag: ""
+    alg: "RPPO"
+    agent_steps: "1201152"
+    id_tag: 'n_steps_128'
+    save_folder: null
     human_control: false
-    training: false
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate

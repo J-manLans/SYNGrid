@@ -14,7 +14,7 @@ class BasePerception(ABC):
     #        Init       #
     # ================= #
 
-    _OLD_MISSING_VALUE = -1.0 # TODO: remove this when fixed
+    _OLD_MISSING_VALUE = -1.0  # TODO: remove this when fixed
     _MISSING_ORB_VALUE: Final[float] = 0.0
     _ORB_ACTIVE_FLAG: Final[float] = 1.0
 

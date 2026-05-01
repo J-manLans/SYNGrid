@@ -30,18 +30,12 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         lstm_hidden_size: int | None = None,
     ):
         super().__init__(conf, obs_conf, run_conf)
-        id = self._construct_model_id(
-            conf.global_agent_conf, run_conf, lstm_hidden_size
-        )
+        id = self._construct_model_id(self._conf, run_conf, lstm_hidden_size)
         super()._set_id(id)
         self._HYPER_PARAMETERS = hyper_parameters
         self._ALGORITHM = algorithm
 
-        # Create directory for saving learned statistics for normalization
-        self._vec_norm_stats_dir = Path(
-            get_project_path("output", "results", "saved_vec_norms")
-        )
-        Path(self._vec_norm_stats_dir).mkdir(parents=True, exist_ok=True)
+        self._init_normalization_stats_dir()
 
     @classmethod
     def _get_policy_from_perception(
@@ -62,39 +56,51 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     #      Helpers      #
     # ================= #
 
+    def _init_normalization_stats_dir(self):
+        """
+        Create directory for saving environment normalization statistics.
+        Required for consistent eval, also for resuming training.
+        """
+
+        if self._conf.save_folder:
+            self._vec_norm_stats_dir = Path(
+                get_project_path(
+                    "output", "results", "saved_vec_norms", self._conf.save_folder
+                )
+            )
+        else:
+            self._vec_norm_stats_dir = Path(
+                get_project_path("output", "results", "saved_vec_norms")
+            )
+
+        Path(self._vec_norm_stats_dir).mkdir(parents=True, exist_ok=True)
+
     def _construct_model_id(
         self,
-        agent_conf: GlobalAgentConf,
+        conf: GlobalAgentConf,
         run_conf: WorldConfig,
         lstm_hidden_size: int | None = None,
     ) -> str:
         base_tier_id, base_non_tier_id = super()._get_model_base_id()
 
         # --- RecurrentPPO with tier orbs --- #
-        if agent_conf.alg == "RPPO" and run_conf.orb_factory_conf.types.tier.enabled:
+        if conf.alg == "RPPO" and run_conf.orb_factory_conf.types.tier.enabled:
             return f"{base_tier_id}{lstm_hidden_size}"
         # --- RecurrentPPO without tier orbs --- #
-        elif (
-            agent_conf.alg == "RPPO"
-            and not run_conf.orb_factory_conf.types.tier.enabled
-        ):
+        elif conf.alg == "RPPO" and not run_conf.orb_factory_conf.types.tier.enabled:
             return f"{base_non_tier_id}{lstm_hidden_size}"
         # --- With tier orbs --- #
-        elif (
-            not agent_conf.alg == "RPPO"
-            and run_conf.orb_factory_conf.types.tier.enabled
-        ):
+        elif not conf.alg == "RPPO" and run_conf.orb_factory_conf.types.tier.enabled:
             return f"{base_tier_id}"
         # --- Without tier orbs --- #
         elif (
-            not agent_conf.alg == "RPPO"
-            and not run_conf.orb_factory_conf.types.tier.enabled
+            not conf.alg == "RPPO" and not run_conf.orb_factory_conf.types.tier.enabled
         ):
             return f"{base_non_tier_id}"
         else:
             raise ValueError(
                 f"Unhandled case:\n"
-                f"alg={agent_conf.alg}\n"
+                f"alg={conf.alg}\n"
                 f"tier_enabled={run_conf.orb_factory_conf.types.tier.enabled}"
             )
 

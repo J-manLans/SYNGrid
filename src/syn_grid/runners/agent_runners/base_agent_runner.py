@@ -20,16 +20,11 @@ class BaseAgentRunner(ABC):
         self._eval_conf = conf.eval_agent_conf
         self._obs_conf = obs_conf
         self._run_conf = run_conf
+        self._date = (
+            get_date()
+        )  # Get current date and time to us as id for unique file naming
 
-        # Get current date and time to us as an identifier for unique file naming
-        self._date = get_date()
-
-        # Create directories for saving models and logs
-        self._model_dir = Path(get_project_path("output", "models"))
-        self.log_dir = Path(get_project_path("output", "results", "logs"))
-
-        Path(self._model_dir).mkdir(parents=True, exist_ok=True)
-        Path(self.log_dir).mkdir(parents=True, exist_ok=True)
+        self._init_output_directories()
 
     def _set_id(self, id: str) -> None:
         self._id = id
@@ -39,9 +34,7 @@ class BaseAgentRunner(ABC):
     # ================= #
 
     @abstractmethod
-    def _construct_model_id(
-        self, agent_conf: GlobalAgentConf, run_conf: WorldConfig
-    ) -> str:
+    def _construct_model_id(self, conf: GlobalAgentConf, run_conf: WorldConfig) -> str:
         """
         Construct a unique model identifier for saving/loading.
 
@@ -64,12 +57,30 @@ class BaseAgentRunner(ABC):
     #      Helpers      #
     # ================= #
 
+    def _init_output_directories(self):
+        """
+        Create and store paths for model checkpoints and TensorBoard logs.
+
+        Uses the save_folder config value if provided, otherwise saves directly
+        under the default 'models' directory.
+        """
+
+        if self._conf.save_folder:
+            self._model_dir = Path(
+                get_project_path("output", "models", self._conf.save_folder)
+            )
+            self.log_dir = Path(
+                get_project_path("output", "results", "logs", self._conf.save_folder)
+            )
+        else:
+            self._model_dir = Path(get_project_path("output", "models"))
+            self.log_dir = Path(get_project_path("output", "results", "logs"))
+
+        Path(self._model_dir).mkdir(parents=True, exist_ok=True)
+        Path(self.log_dir).mkdir(parents=True, exist_ok=True)
+
     def _get_model_base_id(self) -> tuple[str, str]:
-        tag = (
-            f"TAG_{self._conf.id_tag}__"
-            if self._conf.id_tag
-            else ""
-        )
+        tag = f"TAG_{self._conf.id_tag}_" if self._conf.id_tag else ""
         perception = self._obs_conf.observation_handler.perception
         tier = f"Tier{self._run_conf.orb_factory_conf.max_tier}"
         reward = f"{self._run_conf.tier_orb_conf.base_reward}rew"
@@ -90,9 +101,16 @@ class BaseAgentRunner(ABC):
             else f"_{self._run_conf.droid_conf.tier_consumption_penalty}cons_offset"
         )
 
-        base_tier_id = f"{perception}{neg}__{tier}_{reward}{growth}{tier_consumption_penalty}__{score}{step_offset}__{tag}{self._conf.alg}"
+        base_tier_id = (
+            f"{perception}{neg}__"
+            f"{tier}_{reward}{growth}{tier_consumption_penalty}__"
+            f"{score}{step_offset}__"
+            f"{tag}{self._conf.alg}"
+        )
         base_non_tier_id = (
-            f"{perception}_NoTier{neg}__{score}_{step_offset}__{tag}{self._conf.alg}"
+            f"{perception}_NoTier{neg}__"
+            f"{score}_{step_offset}__"
+            f"{tag}{self._conf.alg}"
         )
 
         return base_tier_id, base_non_tier_id
@@ -119,7 +137,10 @@ class BaseAgentRunner(ABC):
         # list all files
         matches = list(dir.glob(file_name))
         if not matches:
-            raise FileNotFoundError(f"No model found for path: {file_name}")
+            raise FileNotFoundError(
+                f"\nNo model found for path: {file_name}"
+                f"\nIn: {self._conf.save_folder if self._conf.save_folder else 'base_dir'}"
+            )
 
         # return the one with the highest value of the timestamp
         return max(matches, key=lambda p: p.stat().st_mtime)
