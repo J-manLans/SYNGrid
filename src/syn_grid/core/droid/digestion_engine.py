@@ -49,7 +49,8 @@ class DigestionEngine:
                 # return the flushed reward
                 if (
                     consumed_orb.META.TIER == self._BASE_TIER
-                    and self._pending_reward != 0 and self._pending_reward != consumed_orb._tier_base_reward
+                    and self._pending_reward != 0
+                    and self._pending_reward != consumed_orb._tier_base_reward
                 ):
                     reward = self._flush_pending_reward()
                     self._pending_reward = consumed_orb.REWARD

@@ -128,13 +128,15 @@ agent:
     # - agent_steps: identifier for the model to continue training or evaluate
     # - id_tag: (null if not applicable) used to tag your model so it can be easily found
     # - save_folder: (null for default) specify this if you want to have special folders for your experiments
+    # - seed: algorithm seed for initial weights and env reproducibility
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "RPPO"
-    agent_steps: "1201152"
-    id_tag: 'n_steps_128'
-    save_folder: null
+    alg: "PPO"
+    agent_steps: "1605632"
+    id_tag: 'combo_reward'
+    save_folder: 'ppo'
+    seed: 3
     human_control: false
     training: true
     check_env: false

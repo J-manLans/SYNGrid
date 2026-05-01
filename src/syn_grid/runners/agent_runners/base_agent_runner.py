@@ -98,6 +98,7 @@ class BaseAgentRunner(ABC):
         tier_consumption_penalty = (
             ""
             if self._run_conf.droid_conf.tier_consumption_penalty == 0.0
+            or self._run_conf.orb_factory_conf.max_tier == 1
             else f"_{self._run_conf.droid_conf.tier_consumption_penalty}cons_offset"
         )
 

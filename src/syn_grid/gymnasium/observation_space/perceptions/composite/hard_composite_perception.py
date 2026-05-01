@@ -27,16 +27,14 @@ class HardCompositePerception(BasePerception):
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
-        droid_high = np.concatenate(
-            [self._get_max_droid_positions()]
-        )
+        droid_high = np.concatenate([self._get_max_droid_positions()])
 
         orb_high = np.tile(
             np.concatenate(
                 [
                     np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
                     self._get_max_orb_positions(),
-                    self._get_max_orb_identity()
+                    self._get_max_orb_identity(),
                 ]
             ),
             (self._orbs_in_env, 1),
@@ -90,4 +88,3 @@ class HardCompositePerception(BasePerception):
             self._DROID_KEY: self._droid_data,
             self._ORB_KEY: self._orb_data,
         }
-

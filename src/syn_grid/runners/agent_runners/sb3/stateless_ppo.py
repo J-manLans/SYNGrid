@@ -13,7 +13,14 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         policy = self._get_policy_from_perception(
             obs_conf.observation_handler.perception
         )
-        hyper_parameters = {"policy": policy, "device": "cpu", "ent_coef": 0.02}
+        hyper_parameters = {
+            "policy": policy,
+            "device": "cpu",
+            "ent_coef": 0.02,
+            "n_steps": 512,
+            "batch_size": 64,
+            "n_epochs": 4,
+        }
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, PPO)
 
     # ================= #

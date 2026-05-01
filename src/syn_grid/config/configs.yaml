@@ -42,7 +42,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 10.0
-    step_penalty: -0.2
+    step_penalty: -0.25
     tier_consumption_penalty: -0.5
 
   orb_factory_conf:
@@ -56,8 +56,8 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 2
-    de_spawn_tiers: true
+    max_tier: &max_tier 1
+    de_spawn_tiers: false
     types:
       negative:
         enabled: false
@@ -81,9 +81,9 @@ world:
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
-    step_wise_scoring: false
-    growth_factor: 2.0
-    base_reward: 5.0
+    step_wise_scoring: true
+    growth_factor: 0.0
+    base_reward: 3.0
     cool_down: 7
 
 ###########################
@@ -94,7 +94,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "composite_hard"
+    perception: "composite_medium"
     max_steps: &max_steps 100
 
   perception:
@@ -121,15 +121,17 @@ agent:
     # - agent_steps: identifier for the model to continue training or evaluate
     # - id_tag: (null if not applicable) used to tag your model so it can be easily found
     # - save_folder: (null for default) specify this if you want to have special folders for your experiments
+    # - seed: algorithm seed for initial weights and env reproducibility
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "1605632"
-    id_tag: 'combo_reward'
-    save_folder: 'ppo'
+    agent_steps: "800256"
+    id_tag: 'seed_3_n_step_512'
+    save_folder: 'ppo_thesis_exp'
+    seed: 3
     human_control: false
-    training: false
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -143,16 +145,16 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    monitor_output: false
-    tensorboard_output: false
-    model_output: false
+    monitor_output: true
+    tensorboard_output: true
+    model_output: true
     render_mode: null
-    timesteps: 400000
+    timesteps: 200000
     iterations: 4
 
   eval_agent_conf:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 1
+    num_eval_episodes: 3
     render_mode: 'human'

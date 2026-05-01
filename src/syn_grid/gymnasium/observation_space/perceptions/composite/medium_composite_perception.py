@@ -40,7 +40,7 @@ class MediumCompositePerception(BasePerception):
                     np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
                     self._get_max_orb_positions(),
                     self._get_max_orb_identity(),
-                    self._get_max_orb_data(),
+                    # self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             ),
             (self._orbs_in_env, 1),
@@ -98,7 +98,7 @@ class MediumCompositePerception(BasePerception):
                     orb.META.CATEGORY.value,
                     orb.META.TYPE.value,
                     orb.META.TIER,
-                    orb.TIMER.remaining,
+                    # orb.TIMER.remaining, # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             else:
                 self._orb_data[i] = self._MISSING_ORB_VALUE

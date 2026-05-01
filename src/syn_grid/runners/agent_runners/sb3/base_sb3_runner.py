@@ -106,6 +106,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Env === #
 
+    def _make_wrapped_dummy_vec_env(self, render_mode: str | None) -> DummyVecEnv:
+        return DummyVecEnv([lambda: self._make_env(render_mode)])
+
     def _make_env(self, render_mode: str | None) -> Env:
         env = self._make_raw_env(render_mode)
 
@@ -129,9 +132,6 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         """
 
         return Monitor(env=env, filename=str(self.log_dir / self._get_model_id()))
-
-    def _make_wrapped_dummy_vec_env(self, render_mode: str | None) -> DummyVecEnv:
-        return DummyVecEnv([lambda: self._make_env(render_mode)])
 
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
         evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
@@ -165,6 +165,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             tensorboard_log=(
                 str(self.log_dir) if self._train_conf.tensorboard_output else None
             ),
+            seed=self._conf.seed,
             **self._HYPER_PARAMETERS,
         )
 
