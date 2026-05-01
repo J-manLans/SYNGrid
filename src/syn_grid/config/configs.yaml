@@ -81,7 +81,7 @@ world:
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
-    step_wise_scoring: true
+    step_wise_scoring: false
     growth_factor: 2.0
     base_reward: 5.0
     cool_down: 7
@@ -125,8 +125,8 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "RPPO"
-    agent_steps: "5120"
-    id_tag: 'n_steps_128'
+    agent_steps: "800000"
+    id_tag: 'combo_reward'
     save_folder: 'rppo'
     human_control: false
     training: false
@@ -147,12 +147,12 @@ agent:
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 5000
-    iterations: 1
+    timesteps: 400000
+    iterations: 4
 
   eval_agent_conf:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
     num_eval_episodes: 1
-    render_mode: null
+    render_mode: 'human'

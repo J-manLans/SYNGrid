@@ -49,7 +49,7 @@ class DigestionEngine:
                 # return the flushed reward
                 if (
                     consumed_orb.META.TIER == self._BASE_TIER
-                    and self._pending_reward != 0
+                    and self._pending_reward != 0 and self._pending_reward != consumed_orb._tier_base_reward
                 ):
                     reward = self._flush_pending_reward()
                     self._pending_reward = consumed_orb.REWARD
@@ -70,6 +70,7 @@ class DigestionEngine:
 
         # Non-tier orbs: always return base reward and resets the tier chain
         self.chained_tiers = self._NO_CHAIN
+        self._pending_reward = 0.0
         return consumed_orb.REWARD
 
     # ================= #
