@@ -1,12 +1,10 @@
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
-from syn_grid.config.models import PerceptionConf
 from syn_grid.core.grid_world import GridWorld
 
 import numpy as np
 from gymnasium import spaces
-from typing import Final
 
 
 class MediumCompositePerception(BasePerception):
@@ -84,10 +82,7 @@ class MediumCompositePerception(BasePerception):
         self._global_data[0] = steps_left
 
         # Droid data
-        droid_y, droid_x = state.droid.position
-
-        self._droid_data[0] = droid_y
-        self._droid_data[1] = droid_x
+        self._droid_data[0], self._droid_data[1] = state.droid.position
         self._droid_data[2] = state.droid.score
         self._droid_data[3] = state.droid.digestion_engine.chained_tiers
 

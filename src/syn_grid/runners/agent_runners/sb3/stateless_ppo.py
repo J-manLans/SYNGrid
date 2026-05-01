@@ -66,7 +66,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
 
         avg_reward = sum(episode_rewards) / len(episode_rewards)
         avg_length = sum(episode_lengths) / len(episode_lengths)
-        num_max_tier_reached = sum(1 for r in rewards if r == 20)
+        num_max_tier_reached = sum(1 for r in rewards if r == 19.8)
         num_tier_out_of_order = sum(1 for r in rewards if r == -0.5)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
         average_tier_out_of_order = (

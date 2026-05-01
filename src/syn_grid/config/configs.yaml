@@ -38,11 +38,11 @@ world:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
-    # - tier_consumption_penalty: punishment for consuming tier orbs in the wrong order
+    # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 10.0
-    step_penalty: 0.0
+    step_penalty: -0.2
     tier_consumption_penalty: -0.5
 
   orb_factory_conf:
@@ -60,7 +60,7 @@ world:
     de_spawn_tiers: true
     types:
       negative:
-        enabled: true
+        enabled: false
         weight: 1
       tier:
         enabled: true
@@ -94,7 +94,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "composite_medium"
+    perception: "composite_hard"
     max_steps: &max_steps 100
 
   perception:
@@ -124,10 +124,10 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "RPPO"
-    agent_steps: "800000"
+    alg: "PPO"
+    agent_steps: "1605632"
     id_tag: 'combo_reward'
-    save_folder: 'rppo'
+    save_folder: 'ppo'
     human_control: false
     training: false
     check_env: false
@@ -143,9 +143,9 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    monitor_output: true
-    tensorboard_output: true
-    model_output: true
+    monitor_output: false
+    tensorboard_output: false
+    model_output: false
     render_mode: null
     timesteps: 400000
     iterations: 4

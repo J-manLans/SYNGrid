@@ -108,7 +108,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         # Compute averages
         avg_reward = np.mean(all_rewards)
         avg_length = np.mean(all_lengths)
-        num_max_tier_reached = sum(1 for r in al_rewards if r == 20)
+        num_max_tier_reached = sum(1 for r in al_rewards if r == 19.8)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
         num_tier_out_of_order = sum(1 for r in al_rewards if r == -0.5)
         average_tier_out_of_order = (
