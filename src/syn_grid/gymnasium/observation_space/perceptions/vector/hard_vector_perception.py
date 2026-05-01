@@ -17,7 +17,7 @@ class HardVectorPerception(BasePerception):
 
     def reset(self) -> None:
         self._orb_slot_map: dict[int, int] = {}
-        self._obs_data.fill(self._MISSING_ORB_VALUE)
+        self._obs_data.fill(self._OLD_MISSING_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
@@ -36,7 +36,7 @@ class HardVectorPerception(BasePerception):
         # Initialize the array used for giving the observation and finalize observation space
         # definition
         self._obs_data = np.full(
-            high.shape[0], self._MISSING_ORB_VALUE, dtype=np.float32
+            high.shape[0], self._OLD_MISSING_VALUE, dtype=np.float32
         )
         low = self._obs_data
         low[0:num_droid_slots] = 0.0
@@ -101,7 +101,7 @@ class HardVectorPerception(BasePerception):
                 # Reset the slot data in observation before removing mapping from the dict
                 self._obs_data[
                     obs_start_index : obs_start_index + self._orb_features
-                ] = self._MISSING_ORB_VALUE
+                ] = self._OLD_MISSING_VALUE
                 del self._orb_slot_map[orb_index]
 
     def _add_orb_data(self, orb: BaseOrb, obs_index: int) -> None:
