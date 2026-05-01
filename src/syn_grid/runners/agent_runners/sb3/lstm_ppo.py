@@ -18,13 +18,13 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
             "policy": policy,
             "device": "cpu",
             "ent_coef": 0.025,
-            "n_steps": 512,
+            "n_steps": 256,
             "batch_size": 64,
             "n_epochs": 8,
             "learning_rate": 1e-4,
             "clip_range": 0.2,
             "policy_kwargs": {
-                "lstm_hidden_size": 128,
+                "lstm_hidden_size": 64,
                 "n_lstm_layers": 1,
                 "shared_lstm": False,
             },
@@ -108,8 +108,10 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         # Compute averages
         avg_reward = np.mean(all_rewards)
         avg_length = np.mean(all_lengths)
-        num_max_tier_reached = sum(1 for r in al_rewards if r == 19)
+        num_max_tier_reached = sum(1 for r in al_rewards if r == 20)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
+        num_tier_out_of_order = sum(1 for r in al_rewards if r == -0.5)
+        average_tier_out_of_order = num_tier_out_of_order / self._eval_conf.num_eval_episodes
 
         print(
             f"Eval over {self._eval_conf.num_eval_episodes} episodes:"

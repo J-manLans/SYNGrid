@@ -124,8 +124,8 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "RPPO"
-    agent_steps: "1605632"
-    id_tag: 'missing_orbs_0'
+    agent_steps: "1201152"
+    id_tag: 'n_steps_256_batch_128'
     human_control: false
     training: true
     check_env: false

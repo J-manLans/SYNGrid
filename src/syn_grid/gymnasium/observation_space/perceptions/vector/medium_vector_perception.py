@@ -16,7 +16,7 @@ class MediumVectorPerception(BasePerception):
 
     def reset(self) -> None:
         # Reset the observation arrays
-        self._obs_data.fill(self._MISSING_ORB_VALUE)
+        self._obs_data.fill(self._OLD_MISSING_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
@@ -41,7 +41,7 @@ class MediumVectorPerception(BasePerception):
         # Initialize the array used for giving the observation and finalize observation
         # space definition
         self._obs_data = np.full(
-            high.shape[0], self._MISSING_ORB_VALUE, dtype=np.float32
+            high.shape[0], self._OLD_MISSING_VALUE, dtype=np.float32
         )
         low = self._obs_data
         low[0 : world_high.shape[0]] = 0.0
