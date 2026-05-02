@@ -19,7 +19,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
             "ent_coef": 0.02,
             "n_steps": 512,
             "batch_size": 64,
-            "n_epochs": 4,
+            "n_epochs": 2,
         }
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, PPO)
 

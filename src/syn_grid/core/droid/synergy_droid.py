@@ -43,17 +43,17 @@ class SynergyDroid:
         # Move droid to the next cell
         match agent_action:
             case DroidAction.LEFT:
-                self._moveTowardsMinBound(1)
+                bound_penalty = self._moveTowardsMinBound(1)
             case DroidAction.RIGHT:
-                self._moveTowardsMaxBound(1, self._conf.grid_cols - 1)
+                bound_penalty = self._moveTowardsMaxBound(1, self._conf.grid_cols - 1)
             case DroidAction.UP:
-                self._moveTowardsMinBound(0)
+                bound_penalty = self._moveTowardsMinBound(0)
             case DroidAction.DOWN:
-                self._moveTowardsMaxBound(0, self._conf.grid_rows - 1)
+                bound_penalty = self._moveTowardsMaxBound(0, self._conf.grid_rows - 1)
             case _:
                 raise TypeError("This action isn't implemented")
 
-        return self._apply_reward(self._conf.step_penalty)
+        return self._apply_reward(self._conf.step_penalty + bound_penalty)
 
     def consume_orb(self, orb: BaseOrb) -> float:
         """Consumes the orb, add its reward to its score and returns the reward"""
@@ -67,11 +67,21 @@ class SynergyDroid:
     #      Helpers      #
     # ================= #
 
-    def _moveTowardsMinBound(self, axis: int) -> None:
-        self.position[axis] = max(self.position[axis] - 1, 0)
+    def _moveTowardsMinBound(self, axis: int) -> float:
+        if self.position[axis] - 1 < 0:
+            self.position[axis] = 0
+            return self._conf.step_penalty
 
-    def _moveTowardsMaxBound(self, axis: int, bound: int) -> None:
-        self.position[axis] = min(self.position[axis] + 1, bound)
+        self.position[axis] = self.position[axis] - 1
+        return 0.0
+
+    def _moveTowardsMaxBound(self, axis: int, bound: int) -> float:
+        if self.position[axis] + 1 > bound:
+            self.position[axis] = bound
+            return self._conf.step_penalty
+
+        self.position[axis] = self.position[axis] + 1
+        return 0.0
 
     def _apply_reward(self, reward: float):
         self.score += reward
