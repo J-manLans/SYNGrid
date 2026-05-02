@@ -49,7 +49,8 @@ class BasePerception(ABC):
         return np.array([self._max_grid_y, self._max_grid_x], dtype=np.float32)
 
     def _get_max_droid_data(self) -> np.ndarray:
-        return np.array([self._max_score, self._max_tier_chain], dtype=np.float32)
+        # TODO: Try without max score, return it later if needed
+        return np.array([self._max_tier_chain], dtype=np.float32)
 
     # === Orb data getters === #
     def _get_max_orb_positions(self) -> np.ndarray:
