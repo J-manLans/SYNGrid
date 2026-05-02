@@ -108,9 +108,9 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         # Compute averages
         avg_reward = np.mean(all_rewards)
         avg_length = np.mean(all_lengths)
-        num_max_tier_reached = sum(1 for r in al_rewards if r == 19.8)
+        num_max_tier_reached = sum(1 for r in al_rewards if r == 7)
         average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
-        num_tier_out_of_order = sum(1 for r in al_rewards if r == -0.5)
+        num_tier_out_of_order = sum(1 for r in al_rewards if r == -2)
         average_tier_out_of_order = (
             num_tier_out_of_order / self._eval_conf.num_eval_episodes
         )
@@ -118,5 +118,6 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         print(
             f"Eval over {self._eval_conf.num_eval_episodes} episodes:"
             f"average reward = {avg_reward:.2f}, average length = {avg_length:.1f}\n"
-            f"Max tier reached: {num_max_tier_reached} times, average: {average_max_tier:.2f}"
+            f"Max tier reached: {num_max_tier_reached} times, average: {average_max_tier:.2f}\n"
+            f"Tiers out of order: {num_tier_out_of_order}, avg: {average_tier_out_of_order}"
         )

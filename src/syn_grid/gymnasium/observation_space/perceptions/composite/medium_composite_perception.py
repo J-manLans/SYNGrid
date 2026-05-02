@@ -40,7 +40,7 @@ class MediumCompositePerception(BasePerception):
                     np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
                     self._get_max_orb_positions(),
                     self._get_max_orb_identity(),
-                    # self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
+                    self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             ),
             (self._orbs_in_env, 1),
@@ -82,12 +82,22 @@ class MediumCompositePerception(BasePerception):
         self._global_data[0] = steps_left
 
         # Droid data
-        self._droid_data[0], self._droid_data[1] = state.droid.position
-        # self._droid_data[2] = state.droid.score # TODO: decide what to tdo about this
+        droid_y, droid_x = state.droid.position
+        self._droid_data[0], self._droid_data[1] = droid_y, droid_x
+        # self._droid_data[2] = state.droid.score # TODO: decide what to do about this
         self._droid_data[2] = state.droid.digestion_engine.chained_tiers
 
+        # Sort orbs by distance to droid, inactive orbs go to the bottom
+        sorted_orbs = sorted(
+            state.ALL_ORBS,
+            key=lambda o: (
+                abs(o.position[0] - droid_y) + abs(o.position[1] - droid_x)
+                if o.is_active else float('inf')
+            )
+        )
+
         # Orb data
-        for i, orb in enumerate(state.ALL_ORBS):
+        for i, orb in enumerate(sorted_orbs):
             if orb.is_active:
                 orb_y, orb_x = orb.position
 
@@ -98,7 +108,7 @@ class MediumCompositePerception(BasePerception):
                     orb.META.CATEGORY.value,
                     orb.META.TYPE.value,
                     orb.META.TIER,
-                    # orb.TIMER.remaining, # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
+                    orb.TIMER.remaining, # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             else:
                 self._orb_data[i] = self._MISSING_ORB_VALUE

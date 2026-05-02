@@ -41,9 +41,9 @@ world:
     # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 10
-    step_penalty: -0.25
-    tier_consumption_penalty: -0.5
+    starting_score: 50
+    step_penalty: &step_penalty -1.0
+    tier_consumption_penalty: *step_penalty
 
   orb_factory_conf:
     # Orbs manager settings:
@@ -56,7 +56,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 1
+    max_tier: &max_tier 2
     de_spawn_tiers: false
     types:
       negative:
@@ -82,8 +82,8 @@ world:
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
     step_wise_scoring: true
-    growth_factor: 0.0
-    base_reward: 5.0
+    growth_factor: 1.5
+    base_reward: 3.0
     cool_down: 7
 
 ###########################
@@ -125,9 +125,9 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "PPO"
-    agent_steps: "401408"
-    id_tag: 'orb2_termination_and truncation_2048n_step'
+    alg: "RPPO"
+    agent_steps: "450432"
+    id_tag: 'orb2_0_score_termination_and_truncate'
     save_folder: 'experiments'
     seed: 3
     human_control: false
@@ -144,17 +144,17 @@ agent:
     # - model_output (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: false
+    continue_training: true
     monitor_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 600000
-    iterations: 1
+    timesteps: 50000
+    iterations: 10
 
   eval_agent_conf:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 5
-    render_mode: 'human'
+    num_eval_episodes: 300
+    render_mode: null

@@ -64,9 +64,9 @@ class StatelessPPO(BaseSB3Runner[PPO]):
                     episode_rewards.append(info[0].get("reward"))
                     step_count += 1
 
-                    print(f'Episode {i}, reward: {episode_rewards[-1]}, droid score: {info[0]["score"]}, sum of rewards: {np.sum(episode_rewards)}')
+                    # print(f'Episode {i}, reward: {episode_rewards[-1]}, droid score: {info[0]["score"]}, sum of rewards: {np.sum(episode_rewards)}')
                     if done_arr[0]:
-                        print()
+                        # print()
                         break
 
                 episode_lengths.append(step_count)
@@ -80,9 +80,17 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         avg_length = sum(episode_lengths) / len(episode_lengths)
         sum_rew = sum(r for r in all_rewards)
         avg_rew = sum_rew / self._eval_conf.num_eval_episodes
+        max_tier_reached = sum(1 for r in all_rewards if r == 7)
+        avg_max_tier = max_tier_reached / self._eval_conf.num_eval_episodes
+        num_tier_out_of_order = sum(1 for r in all_rewards if r == -2)
+        average_tier_out_of_order = (
+            num_tier_out_of_order / self._eval_conf.num_eval_episodes
+        )
 
         print(
             f"Eval over {self._eval_conf.num_eval_episodes} episodes\n"
-            f"average length = {avg_length:.1f}\n"
-            f"Rewards collected: {sum_rew}, avg per episode: {avg_rew:.2f}"
+            f"average episode length = {avg_length:.1f}\n"
+            f"Rewards collected: {sum_rew}, avg: {avg_rew:.2f}\n"
+            f"Max Tier reached {max_tier_reached} times, avg: {avg_max_tier}\n"
+            f"Tiers out of order: {num_tier_out_of_order}, avg: {average_tier_out_of_order}"
         )
