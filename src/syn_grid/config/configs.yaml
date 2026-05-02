@@ -81,7 +81,7 @@ world:
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
-    step_wise_scoring: true
+    step_wise_scoring: false
     growth_factor: 1.5
     base_reward: 3.0
     cool_down: 7
@@ -94,7 +94,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "composite_medium"
+    perception: "composite_hard"
     max_steps: &max_steps 100
 
   perception:
@@ -126,12 +126,12 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "RPPO"
-    agent_steps: "450432"
+    agent_steps: "600576"
     id_tag: 'orb2_0_score_termination_and_truncate'
     save_folder: 'experiments'
     seed: 3
     human_control: false
-    training: true
+    training: false
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -144,13 +144,13 @@ agent:
     # - model_output (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: true
+    continue_training: false
     monitor_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 50000
-    iterations: 10
+    timesteps: 100000
+    iterations: 7
 
   eval_agent_conf:
     # Eval settings:

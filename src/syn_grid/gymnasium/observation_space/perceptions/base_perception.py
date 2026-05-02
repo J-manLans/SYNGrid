@@ -64,6 +64,15 @@ class BasePerception(ABC):
     def _get_max_orb_data(self) -> np.ndarray:
         return np.array([self._max_orb_lifespan], dtype=np.float32)
 
+    def _sort_orbs_by_distance_to_droid(self, orbs: list[BaseOrb], droid_y:int , droid_x: int):
+        return sorted(
+            orbs,
+            key=lambda o: (
+                abs(o.position[0] - droid_y) + abs(o.position[1] - droid_x)
+                if o.is_active else float('inf')
+            )
+        )
+
     # ================= #
     #  Abstract methods #
     # ================= #

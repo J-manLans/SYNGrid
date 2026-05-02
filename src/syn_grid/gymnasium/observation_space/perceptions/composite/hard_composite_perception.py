@@ -65,11 +65,15 @@ class HardCompositePerception(BasePerception):
     def get_observation(
         self, state: GridWorld, steps_left: int
     ) -> dict[str, np.ndarray]:
-        # Droid data [y, x]
-        self._droid_data[0], self._droid_data[1] = state.droid.position
+        # Droid data
+        droid_y, droid_x = state.droid.position
+        self._droid_data[0], self._droid_data[1] = droid_y, droid_x
+
+        # Sort orbs by distance to droid, inactive orbs go to the bottom
+        sorted_orbs = self._sort_orbs_by_distance_to_droid(state.ALL_ORBS, droid_y, droid_x)
 
         # Orb data
-        for i, orb in enumerate(state.ALL_ORBS):
+        for i, orb in enumerate(sorted_orbs):
             if orb.is_active:
                 orb_y, orb_x = orb.position
 

@@ -74,9 +74,6 @@ class TypesConf(BaseModel, frozen=True):
     negative: OrbConf
     tier: OrbConf
 
-    class Config:
-        extra = "allow"
-
 
 class OrbFactoryConf(BaseModel, frozen=True):
     grid_rows: int

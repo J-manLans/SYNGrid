@@ -40,7 +40,7 @@ class MediumCompositePerception(BasePerception):
                     np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
                     self._get_max_orb_positions(),
                     self._get_max_orb_identity(),
-                    self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
+                    #self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             ),
             (self._orbs_in_env, 1),
@@ -88,13 +88,7 @@ class MediumCompositePerception(BasePerception):
         self._droid_data[2] = state.droid.digestion_engine.chained_tiers
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
-        sorted_orbs = sorted(
-            state.ALL_ORBS,
-            key=lambda o: (
-                abs(o.position[0] - droid_y) + abs(o.position[1] - droid_x)
-                if o.is_active else float('inf')
-            )
-        )
+        sorted_orbs = self._sort_orbs_by_distance_to_droid(state.ALL_ORBS, droid_y, droid_x)
 
         # Orb data
         for i, orb in enumerate(sorted_orbs):
@@ -108,7 +102,7 @@ class MediumCompositePerception(BasePerception):
                     orb.META.CATEGORY.value,
                     orb.META.TYPE.value,
                     orb.META.TIER,
-                    orb.TIMER.remaining, # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
+                    #orb.TIMER.remaining, # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             else:
                 self._orb_data[i] = self._MISSING_ORB_VALUE
