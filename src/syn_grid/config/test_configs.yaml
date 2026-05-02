@@ -137,7 +137,7 @@ agent:
     id_tag: 'combo_reward'
     save_folder: 'ppo'
     seed: 3
-    human_control: false
+    human_control: true
     training: true
     check_env: false
 

@@ -20,9 +20,8 @@ class BaseAgentRunner(ABC):
         self._eval_conf = conf.eval_agent_conf
         self._obs_conf = obs_conf
         self._run_conf = run_conf
-        self._date = (
-            get_date()
-        )  # Get current date and time to us as id for unique file naming
+        # Get current date and time to us as id for unique file naming
+        self._date = (get_date())
 
         self._init_output_directories()
 

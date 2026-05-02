@@ -41,7 +41,7 @@ world:
     # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 10.0
+    starting_score: 10
     step_penalty: -0.25
     tier_consumption_penalty: -0.5
 
@@ -126,7 +126,7 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "800256"
+    agent_steps: "802816"
     id_tag: 'seed_3_n_step_512'
     save_folder: 'ppo_thesis_exp'
     seed: 3
