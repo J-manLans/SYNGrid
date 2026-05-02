@@ -83,8 +83,8 @@ class MediumCompositePerception(BasePerception):
 
         # Droid data
         self._droid_data[0], self._droid_data[1] = state.droid.position
-        self._droid_data[2] = state.droid.score
-        self._droid_data[3] = state.droid.digestion_engine.chained_tiers
+        # self._droid_data[2] = state.droid.score # TODO: decide what to tdo about this
+        self._droid_data[2] = state.droid.digestion_engine.chained_tiers
 
         # Orb data
         for i, orb in enumerate(state.ALL_ORBS):

@@ -18,7 +18,7 @@ world:
     # - max active orbs on grid
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
-    max_active_orbs: &max_active_orbs 3
+    max_active_orbs: &max_active_orbs 2
 
   renderer_conf:
     # Renderer settings:
@@ -83,7 +83,7 @@ world:
     linear_reward_growth: false
     step_wise_scoring: true
     growth_factor: 0.0
-    base_reward: 3.0
+    base_reward: 5.0
     cool_down: 7
 
 ###########################
@@ -99,8 +99,8 @@ obs:
 
   perception:
     # - max_score: set per scenario based on expected achievable score in this setup
-    # - max_steps (set in orb_factory_conf): number of steps in an episode until truncated
-    # - max_tier (set in observation_handler): max tier of the tier type orbs
+    # - max_steps (set in observation_handler): number of steps in an episode until truncated
+    # - max_tier (set in orb_factory_conf): max tier of the tier type orbs
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
     # - max_active_orbs (set in grid_world_conf): max active orbs on grid
     max_score: &max_score 100
@@ -126,9 +126,9 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "802816"
-    id_tag: 'seed_3_n_step_512'
-    save_folder: 'ppo_thesis_exp'
+    agent_steps: "401408"
+    id_tag: 'orb2_termination_and truncation_2048n_step'
+    save_folder: 'experiments'
     seed: 3
     human_control: false
     training: true
@@ -149,12 +149,12 @@ agent:
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 200000
-    iterations: 4
+    timesteps: 600000
+    iterations: 1
 
   eval_agent_conf:
     # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 3
+    num_eval_episodes: 5
     render_mode: 'human'
