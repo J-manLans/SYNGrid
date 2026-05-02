@@ -3,8 +3,7 @@ from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS
 
 from tests.utils.config_helpers import get_test_config, update_conf
 
-from stable_baselines3 import A2C
-from unittest.mock import patch
+from pathlib import Path
 import pytest
 
 
@@ -26,7 +25,7 @@ class TestAgentRunner:
 
         Returns:
             AgentRunner: A configured `AgentRunner` instance with a specified environment ("synergy_grid-v0")
-                         and algorithm ("A2C").
+                         and algorithm ("PPO").
         """
 
         full_conf = get_test_config()
@@ -51,13 +50,11 @@ class TestAgentRunner:
     def test_initialization_with_invalid_algorithm(self):
         """
         Tests the behavior when an invalid algorithm is passed to the `AgentRunner` constructor.
-
-        Verifies that a `ValueError` is raised when an unsupported algorithm is provided.
-
+        Verifies that a `KeyError` is raised when an unsupported algorithm is provided.
         This helps ensure that only supported algorithms are used in the `AgentRunner`.
 
         Raises:
-            ValueError: If the algorithm is invalid (e.g., "invalid_algorithm").
+            KeyError: If the algorithm is invalid (e.g., "invalid_algorithm").
         """
 
         full_conf = get_test_config()
@@ -80,9 +77,7 @@ class TestAgentRunner:
     def test_get_model_with_no_agent_steps(self, agent_runner: BaseAgentRunner):
         """
         Tests the behavior when no agent steps are provided to the `get_model` method.
-
         Verifies that the program exits with an error (SystemExit) when no agent steps are specified.
-
         This test ensures that the `get_model` method handles the missing steps case correctly and prevents further execution.
 
         Raises:
@@ -92,6 +87,6 @@ class TestAgentRunner:
         agent_runner._conf.agent_steps = ""
 
         with pytest.raises(SystemExit):
-            agent_runner._get_saved_path()
+            agent_runner._get_saved_path(Path("null_path"))
 
 

@@ -20,7 +20,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
             "ent_coef": 0.02,
             "n_steps": 2048,
             "batch_size": 64,
-            "n_epochs": 4,
+            "n_epochs": 8,
         }
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, PPO)
 
@@ -64,9 +64,9 @@ class StatelessPPO(BaseSB3Runner[PPO]):
                     episode_rewards.append(info[0].get("reward"))
                     step_count += 1
 
-                    # print(f'Episode {i}, reward: {episode_rewards[-1]}, droid score: {info[0]["score"]}, sum of rewards: {np.sum(episode_rewards)}')
+                    print(f'Episode {i}, reward: {episode_rewards[-1]}, droid score: {info[0]["score"]}, sum of rewards: {np.sum(episode_rewards)}')
                     if done_arr[0]:
-                        # print()
+                        print()
                         break
 
                 episode_lengths.append(step_count)
