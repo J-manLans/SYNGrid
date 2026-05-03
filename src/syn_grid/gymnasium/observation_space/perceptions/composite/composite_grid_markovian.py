@@ -8,6 +8,8 @@ from gymnasium import spaces
 
 
 class CompositeGridMarkovian(BasePerception):
+    # TODO: remake this within a dict and have global values as another box space, also hot code
+    # the orb identity, check in the dev folder for the idea
 
     # ================= #
     #        API        #
