@@ -18,7 +18,7 @@ world:
     # - max active orbs on grid
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
-    max_active_orbs: &max_active_orbs 2
+    max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
     # Renderer settings:
@@ -127,7 +127,7 @@ agent:
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
     agent_steps: "600576"
-    id_tag: 'new_obs'
+    id_tag: 'score_in_obs_capped_at_100'
     save_folder: 'experiments'
     seed: 3
     human_control: false

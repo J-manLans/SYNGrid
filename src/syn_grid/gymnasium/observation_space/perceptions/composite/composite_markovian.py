@@ -8,6 +8,9 @@ from gymnasium import spaces
 
 
 class CompositeMarkovian(BasePerception):
+    # TODO: remake this with nested dicts and create a custom extractor, right now it is merely a
+    # 1D Box vector
+
     # ================= #
     #        Init       #
     # ================= #
@@ -43,14 +46,14 @@ class CompositeMarkovian(BasePerception):
                     # self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             ),
-            (self._orbs_in_env, 1),
+            (self._max_active_orbs, 1),
         )
         orb_features = orb_high.shape[1]
 
         # Initialize the arrays used for giving the observation
         self._global_data = np.zeros_like(global_high, dtype=np.float32)
         self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
-        self._orb_data = np.zeros((self._orbs_in_env, orb_features), dtype=np.float32)
+        self._orb_data = np.zeros((self._max_active_orbs, orb_features), dtype=np.float32)
 
         return spaces.Dict(
             {
@@ -69,7 +72,7 @@ class CompositeMarkovian(BasePerception):
                 self._ORB_KEY: spaces.Box(
                     low=self._MISSING_ORB_VALUE,
                     high=orb_high,
-                    shape=(self._orbs_in_env, orb_features),
+                    shape=(self._max_active_orbs, orb_features),
                     dtype=np.float32,
                 ),
             }
@@ -84,11 +87,11 @@ class CompositeMarkovian(BasePerception):
         # Droid data
         droid_y, droid_x = state.droid.position
         self._droid_data[0], self._droid_data[1] = droid_y, droid_x
-        # self._droid_data[2] = state.droid.score # TODO: decide what to do about this
-        self._droid_data[2] = state.droid.digestion_engine.chained_tiers
+        self._droid_data[2] = max(state.droid.score, self._max_score)
+        self._droid_data[3] = state.droid.digestion_engine.chained_tiers
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
-        sorted_orbs = self._sort_orbs_by_droid_proximity(
+        sorted_orbs = self._sort_orbs_by_manhattan_dist_to_droid(
             state.ALL_ORBS, droid_y, droid_x
         )
 

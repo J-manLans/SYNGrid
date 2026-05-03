@@ -8,6 +8,9 @@ from gymnasium import spaces
 
 
 class CompositeFullyPOMDP(BasePerception):
+    # TODO: remake this with nested dicts and create a custom extractor, right now it is merely a
+    # 1D Box vector
+
     # ================= #
     #        Init       #
     # ================= #
@@ -72,7 +75,7 @@ class CompositeFullyPOMDP(BasePerception):
         self._droid_data[0], self._droid_data[1] = droid_y, droid_x
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
-        sorted_orbs = self._sort_orbs_by_droid_proximity(
+        sorted_orbs = self._sort_orbs_by_manhattan_dist_to_droid(
             state.ALL_ORBS, droid_y, droid_x
         )
 
