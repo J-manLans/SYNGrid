@@ -67,12 +67,13 @@ class BasePerception(ABC):
     def _sort_orbs_by_droid_proximity(
         self, orbs: list[BaseOrb], droid_y: int, droid_x: int
     ) -> list[BaseOrb]:
-        def manhattan_distance(orb: BaseOrb) -> float:
-            if not orb.is_active:
-                return float("inf")
-            return abs(orb.position[0] - droid_y) + abs(orb.position[1] - droid_x)
-
-        return sorted(orbs, key=manhattan_distance)[: self._max_active_orbs]
+        return sorted(
+            orbs,
+            key=lambda orb: (
+                abs(orb.position[0] - droid_y) + abs(orb.position[1] - droid_x)
+                if orb.is_active else float('inf')
+            )
+        )[:self._max_active_orbs]
 
     # ================= #
     #  Abstract methods #

@@ -18,7 +18,7 @@ world:
     # - max active orbs on grid
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
-    max_active_orbs: &max_active_orbs 3
+    max_active_orbs: &max_active_orbs 2
 
   renderer_conf:
     # Renderer settings:
@@ -94,7 +94,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "composite_fully_pomdp"
+    perception: "composite_markovian"
     max_steps: &max_steps 100
 
   perception:
@@ -125,7 +125,7 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "RPPO"
+    alg: "PPO"
     agent_steps: "600576"
     id_tag: 'new_obs'
     save_folder: 'experiments'
