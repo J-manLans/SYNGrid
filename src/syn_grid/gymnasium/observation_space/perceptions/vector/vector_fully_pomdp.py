@@ -9,7 +9,7 @@ from gymnasium import spaces
 import numpy as np
 
 
-class HardVectorPerception(BasePerception):
+class VectorFullyPOMDP(BasePerception):
 
     # ================= #
     #        API        #

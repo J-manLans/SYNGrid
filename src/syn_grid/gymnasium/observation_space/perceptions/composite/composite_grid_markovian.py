@@ -7,7 +7,7 @@ import numpy as np
 from gymnasium import spaces
 
 
-class MediumSpatialPerception(BasePerception):
+class CompositeGridMarkovian(BasePerception):
 
     # ================= #
     #        API        #

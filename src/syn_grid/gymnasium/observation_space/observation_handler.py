@@ -2,19 +2,16 @@ from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
 from syn_grid.gymnasium.observation_space.perceptions.vector import (
-    EasyVectorPerception,
-    MediumVectorPerception,
-    HardVectorPerception,
+    VectorMarkovian,
+    VectorFullyPOMDP,
 )
 from syn_grid.gymnasium.observation_space.perceptions.composite import (
-    EasyCompositePerception,
-    MediumCompositePerception,
-    HardCompositePerception,
+    CompositeMarkovian,
+    CompositeFullyPOMDP,
+    CompositeGridMarkovian
 )
 from syn_grid.gymnasium.observation_space.perceptions.spatial import (
-    EasySpatialPerception,
-    MediumSpatialPerception,
-    HardSpatialPerception,
+    GridPixel,
 )
 from syn_grid.config.models import ObsConfig
 from syn_grid.core.grid_world import GridWorld
@@ -23,15 +20,12 @@ from gymnasium import spaces
 from typing import Final, Type, Any
 
 PERCEPTIONS = {
-    "vector_easy": EasyVectorPerception,
-    "vector_medium": MediumVectorPerception,
-    "vector_hard": HardVectorPerception,
-    "composite_easy": EasyCompositePerception,
-    "composite_medium": MediumCompositePerception,
-    "composite_hard": HardCompositePerception,
-    "spatial_easy": EasySpatialPerception,
-    "spatial_medium": MediumSpatialPerception,
-    "spatial_hard": HardSpatialPerception,
+    "vector_markovian": VectorMarkovian,
+    "vector_fully_pomdp": VectorFullyPOMDP,
+    "composite_markovian": CompositeMarkovian,
+    "composite_fully_pomdp": CompositeFullyPOMDP,
+    "composite_grid_markovian": CompositeGridMarkovian,
+    "grid_pixel": GridPixel,
 }
 
 
