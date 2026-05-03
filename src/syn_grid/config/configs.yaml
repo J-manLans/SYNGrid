@@ -18,7 +18,7 @@ world:
     # - max active orbs on grid
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
-    max_active_orbs: &max_active_orbs 2
+    max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
     # Renderer settings:
@@ -94,7 +94,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "composite_hard"
+    perception: "composite_fully_pomdp"
     max_steps: &max_steps 100
 
   perception:
@@ -127,11 +127,11 @@ agent:
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "RPPO"
     agent_steps: "600576"
-    id_tag: 'orb2_0_score_termination_and_truncate'
+    id_tag: 'new_obs'
     save_folder: 'experiments'
     seed: 3
     human_control: false
-    training: false
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate

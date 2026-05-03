@@ -60,11 +60,12 @@ class StatelessPPO(BaseSB3Runner[PPO]):
                     action, states = model.predict(obs, deterministic=True)
                     obs, reward_arr, done_arr, info = env.step(action)
 
-
                     episode_rewards.append(info[0].get("reward"))
                     step_count += 1
 
-                    print(f'Episode {i}, reward: {episode_rewards[-1]}, droid score: {info[0]["score"]}, sum of rewards: {np.sum(episode_rewards)}')
+                    print(
+                        f'Episode {i}, reward: {episode_rewards[-1]}, droid score: {info[0]["score"]}, sum of rewards: {np.sum(episode_rewards)}'
+                    )
                     if done_arr[0]:
                         print()
                         break

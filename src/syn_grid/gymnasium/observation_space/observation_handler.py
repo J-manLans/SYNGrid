@@ -8,7 +8,7 @@ from syn_grid.gymnasium.observation_space.perceptions.vector import (
 from syn_grid.gymnasium.observation_space.perceptions.composite import (
     CompositeMarkovian,
     CompositeFullyPOMDP,
-    CompositeGridMarkovian
+    CompositeGridMarkovian,
 )
 from syn_grid.gymnasium.observation_space.perceptions.spatial import (
     GridPixel,
