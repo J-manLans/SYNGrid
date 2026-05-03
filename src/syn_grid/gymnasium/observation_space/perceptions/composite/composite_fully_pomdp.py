@@ -37,13 +37,15 @@ class CompositeFullyPOMDP(BasePerception):
                     self._get_max_orb_identity(),
                 ]
             ),
-            (self._orbs_in_env, 1),
+            (self._max_active_orbs, 1),
         )
         orb_features = orb_high.shape[1]
 
         # Initialize the arrays used for giving the observation
         self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
-        self._orb_data = np.zeros((self._orbs_in_env, orb_features), dtype=np.float32)
+        self._orb_data = np.zeros(
+            (self._max_active_orbs, orb_features), dtype=np.float32
+        )
 
         return spaces.Dict(
             {
@@ -56,7 +58,7 @@ class CompositeFullyPOMDP(BasePerception):
                 self._ORB_KEY: spaces.Box(
                     low=self._MISSING_ORB_VALUE,
                     high=orb_high,
-                    shape=(self._orbs_in_env, orb_features),
+                    shape=(self._max_active_orbs, orb_features),
                     dtype=np.float32,
                 ),
             }
@@ -70,7 +72,9 @@ class CompositeFullyPOMDP(BasePerception):
         self._droid_data[0], self._droid_data[1] = droid_y, droid_x
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
-        sorted_orbs = self._sort_orbs_by_distance_to_droid(state.ALL_ORBS, droid_y, droid_x)
+        sorted_orbs = self._sort_orbs_by_droid_proximity(
+            state.ALL_ORBS, droid_y, droid_x
+        )
 
         # Orb data
         for i, orb in enumerate(sorted_orbs):

@@ -64,14 +64,15 @@ class BasePerception(ABC):
     def _get_max_orb_data(self) -> np.ndarray:
         return np.array([self._max_orb_lifespan], dtype=np.float32)
 
-    def _sort_orbs_by_distance_to_droid(self, orbs: list[BaseOrb], droid_y:int , droid_x: int):
-        return sorted(
-            orbs,
-            key=lambda o: (
-                abs(o.position[0] - droid_y) + abs(o.position[1] - droid_x)
-                if o.is_active else float('inf')
-            )
-        )
+    def _sort_orbs_by_droid_proximity(
+        self, orbs: list[BaseOrb], droid_y: int, droid_x: int
+    ) -> list[BaseOrb]:
+        def manhattan_distance(orb: BaseOrb) -> float:
+            if not orb.is_active:
+                return float("inf")
+            return abs(orb.position[0] - droid_y) + abs(orb.position[1] - droid_x)
+
+        return sorted(orbs, key=manhattan_distance)[: self._max_active_orbs]
 
     # ================= #
     #  Abstract methods #
