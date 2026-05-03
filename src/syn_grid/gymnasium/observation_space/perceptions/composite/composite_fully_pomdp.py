@@ -7,7 +7,7 @@ import numpy as np
 from gymnasium import spaces
 
 
-class MediumCompositePerception(BasePerception):
+class CompositeFullyPOMDP(BasePerception):
     # ================= #
     #        Init       #
     # ================= #
@@ -22,17 +22,12 @@ class MediumCompositePerception(BasePerception):
 
     def reset(self) -> None:
         # Reset the observation arrays
-        self._global_data.fill(0.0)
         self._droid_data.fill(0.0)
         self._orb_data.fill(self._MISSING_ORB_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
-        global_high = self._get_max_global_values()
-
-        droid_high = np.concatenate(
-            [self._get_max_droid_positions(), self._get_max_droid_data()]
-        )
+        droid_high = np.concatenate([self._get_max_droid_positions()])
 
         orb_high = np.tile(
             np.concatenate(
@@ -40,7 +35,6 @@ class MediumCompositePerception(BasePerception):
                     np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
                     self._get_max_orb_positions(),
                     self._get_max_orb_identity(),
-                    #self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             ),
             (self._orbs_in_env, 1),
@@ -48,18 +42,11 @@ class MediumCompositePerception(BasePerception):
         orb_features = orb_high.shape[1]
 
         # Initialize the arrays used for giving the observation
-        self._global_data = np.zeros_like(global_high, dtype=np.float32)
         self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
         self._orb_data = np.zeros((self._orbs_in_env, orb_features), dtype=np.float32)
 
         return spaces.Dict(
             {
-                self._GLOBAL_KEY: spaces.Box(
-                    low=0,
-                    high=global_high,
-                    shape=(len(global_high),),
-                    dtype=np.float32,
-                ),
                 self._DROID_KEY: spaces.Box(
                     low=0,
                     high=droid_high,
@@ -78,14 +65,9 @@ class MediumCompositePerception(BasePerception):
     def get_observation(
         self, state: GridWorld, steps_left: int
     ) -> dict[str, np.ndarray]:
-        # Global data
-        self._global_data[0] = steps_left
-
         # Droid data
         droid_y, droid_x = state.droid.position
         self._droid_data[0], self._droid_data[1] = droid_y, droid_x
-        # self._droid_data[2] = state.droid.score # TODO: decide what to do about this
-        self._droid_data[2] = state.droid.digestion_engine.chained_tiers
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
         sorted_orbs = self._sort_orbs_by_distance_to_droid(state.ALL_ORBS, droid_y, droid_x)
@@ -102,13 +84,11 @@ class MediumCompositePerception(BasePerception):
                     orb.META.CATEGORY.value,
                     orb.META.TYPE.value,
                     orb.META.TIER,
-                    #orb.TIMER.remaining, # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
                 ]
             else:
                 self._orb_data[i] = self._MISSING_ORB_VALUE
 
         return {
-            self._GLOBAL_KEY: self._global_data,
             self._DROID_KEY: self._droid_data,
             self._ORB_KEY: self._orb_data,
         }

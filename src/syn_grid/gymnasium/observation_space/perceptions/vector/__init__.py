@@ -1,3 +1,2 @@
-from .easy_vector_perception import EasyVectorPerception
-from .medium_vector_perception import MediumVectorPerception
-from .hard_vector_perception import HardVectorPerception
+from .vector_markovian import VectorMarkovian
+from .vector_fully_pomdp import VectorFullyPOMDP

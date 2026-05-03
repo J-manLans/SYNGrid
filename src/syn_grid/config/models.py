@@ -118,15 +118,12 @@ class ObservationHandlerConf(BaseModel, frozen=True):
     @model_validator(mode="after")
     def validate_config(self):
         if self.perception not in [
-            "vector_easy",
-            "vector_medium",
-            "vector_hard",
-            "composite_easy",
-            "composite_medium",
-            "composite_hard",
-            "spatial_easy",
-            "spatial_medium",
-            "spatial_hard",
+            "vector_markovian",
+            "vector_fully_pomdp",
+            "composite_markovian",
+            "composite_fully_pomdp",
+            "composite_grid_markovian",
+            "grid_pixel",
         ]:
             raise ValueError("The value of difficulty is not allowed")
         return self

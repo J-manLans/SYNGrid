@@ -99,9 +99,9 @@ world:
 
 obs:
   observation_handler:
-    # - perception: decides how much information to pack into the agents observation. Hard, medium and easy are the options
+    # - perception: decides how much information to pack into the agents observation. Check out the ObservationHandlerConf in models.py for options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_hard"
+    perception: "vector_fully_pomdp"
     max_steps: &max_steps 100
 
   perception:
