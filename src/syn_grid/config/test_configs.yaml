@@ -20,15 +20,15 @@ snapshot:
 
 world:
   grid_world_conf:
-    # GridWorld settings:
     # - number of rows and columns
     # - max active orbs on grid
+    # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
     max_active_orbs: &max_active_orbs 3
+    de_spawn_tiers: &de_spawn_tiers false
 
   renderer_conf:
-    # Renderer settings:
     # - grid_rows / grid_cols (set in grid_world_conf): used to calculate display size and layout
     # - img_assets: paths to graphic elements
     grid_rows: *grid_rows
@@ -41,7 +41,6 @@ world:
       hud_img: "assets/sprites/hud.png"
 
   droid_conf:
-    # Droid settings:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
@@ -53,18 +52,15 @@ world:
     tier_consumption_penalty: -0.2
 
   orb_factory_conf:
-    # Orbs manager settings:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span
     # - max_active_orbs: max active orbs on grid (set in grid_world_conf)
     # - max_tier: this is the highest tier that orbs can reach in this environment
-    # - de_spawn_tiers: decides if tiers should de spawn as the non tier orbs
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
     max_tier: &max_tier 3
-    de_spawn_tiers: false
     types:
       negative:
         enabled: false
@@ -74,15 +70,13 @@ world:
         weight: 2
 
   negative_orb_conf:
-    # Negative orb behavior:
     # - reward: penalty applied when interacting with the orb
     # - cool_down: number of steps before the orb can be reused
     reward: -3.0
     cool_down: 10
 
   tier_orb_conf:
-    # Tiered orb behavior:
-    # - linear_reward_growth: if true, reward scales linearly instead of exponentially
+    # - linear_reward_growth: if true, reward scales linearly instead of polynomial
     # - step_wise_scoring: if true, reward is given per correctly consumed tier instead of on chain break
     # - growth_factor: multiplier applied per tier increase
     # - base_reward: starting reward value at tier 0
@@ -106,16 +100,18 @@ obs:
 
   perception:
     # - max_score: set per scenario based on expected achievable score in this setup
-    # - max_steps (set in orb_factory_conf): number of steps in an episode until truncated
-    # - max_tier (set in observation_handler): max tier of the tier type orbs
+    # - max_steps (set in observation_handler): number of steps in an episode until truncated
+    # - max_tier (set in orb_factory_conf): max tier of the tier type orbs
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
     # - max_active_orbs (set in grid_world_conf): max active orbs on grid
+    # - include_timer(set in grid_world_conf): used to decide if orb timer should be added to the observation
     max_score: &max_score 100
     max_steps: *max_steps
     max_tier: *max_tier
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
+    include_timer: *de_spawn_tiers
 
 ###########################
 #   Agent Configuration   #
