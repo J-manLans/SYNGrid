@@ -152,7 +152,7 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    monitor_output: false
+    monitor_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null

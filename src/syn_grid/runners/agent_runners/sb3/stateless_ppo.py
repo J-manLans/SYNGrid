@@ -18,9 +18,9 @@ class StatelessPPO(BaseSB3Runner[PPO]):
             "policy": policy,
             "device": "cpu",
             "ent_coef": 0.02,
-            "n_steps": 512,
+            "n_steps": 2048,
             "batch_size": 64,
-            "n_epochs": 2,
+            "n_epochs": 8,
         }
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, PPO)
 
@@ -56,8 +56,9 @@ class StatelessPPO(BaseSB3Runner[PPO]):
                     pass
 
                 while True:
-                    assert isinstance(obs, dict)
-                    action, states = model.predict(obs, deterministic=True)
+                    action, states = model.predict(
+                        obs, deterministic=True  # type: ignore[arg-type]
+                    )
                     obs, reward_arr, done_arr, info = env.step(action)
 
                     episode_rewards.append(info[0].get("reward"))
