@@ -63,10 +63,10 @@ world:
     max_tier: &max_tier 3
     types:
       negative:
-        enabled: false
+        enabled: &neg_enabled true
         weight: 1
       tier:
-        enabled: true
+        enabled: &tier_enabled true
         weight: 2
 
   negative_orb_conf:
@@ -105,6 +105,7 @@ obs:
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
     # - max_active_orbs (set in grid_world_conf): max active orbs on grid
     # - include_timer(set in grid_world_conf): used to decide if orb timer should be added to the observation
+    # - enabled_orbs (set in orb_factory_conf): defines which orb types are active, used to build the observation space
     max_score: &max_score 100
     max_steps: *max_steps
     max_tier: *max_tier
@@ -112,6 +113,9 @@ obs:
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
     include_timer: *de_spawn_tiers
+    enabled_orbs:
+      neg_enabled: *neg_enabled
+      tier_enabled: *tier_enabled
 
 ###########################
 #   Agent Configuration   #

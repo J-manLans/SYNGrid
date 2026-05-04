@@ -129,6 +129,14 @@ class ObservationHandlerConf(BaseModel, frozen=True):
         return self
 
 
+# === PerceptionConf START === #
+
+
+class EnabledOrbsConf(BaseModel, frozen=True):
+    neg_enabled: bool
+    tier_enabled: bool
+
+
 class PerceptionConf(BaseModel, frozen=True):
     max_score: int
     max_steps: int
@@ -137,6 +145,10 @@ class PerceptionConf(BaseModel, frozen=True):
     grid_cols: int
     max_active_orbs: int
     include_timer: bool
+    enabled_orbs: EnabledOrbsConf
+
+
+# === PerceptionConf END === #
 
 
 # ----------------------- #

@@ -22,11 +22,13 @@ class VectorFullyPOMDP(BasePerception):
         # Define observation layout
         droid_high = self._get_max_droid_positions()
 
-        orb_high = np.concatenate([
-            np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
-            self._get_max_orb_positions(),
-            self._get_max_orb_identity(),
-        ])
+        orb_high = np.concatenate(
+            [
+                np.array([self._ACTIVE_FLAG], dtype=np.float32),
+                self._get_max_orb_positions(),
+                self._get_max_orb_identity(),
+            ]
+        )
         self._orb_features = orb_high.shape[0]
         orb_high = np.tile(orb_high, self._max_active_orbs)
         self._orb_start_index = droid_high.shape[0]

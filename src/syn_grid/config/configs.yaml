@@ -56,10 +56,10 @@ world:
     max_tier: &max_tier 2
     types:
       negative:
-        enabled: false
+        enabled: &neg_enabled true
         weight: 1
       tier:
-        enabled: true
+        enabled: &tier_enabled true
         weight: 2
 
   negative_orb_conf:
@@ -88,7 +88,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_fully_pomdp"
+    perception: "composite_grid_markovian"
     max_steps: &max_steps 100
 
   perception:
@@ -105,6 +105,9 @@ obs:
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
     include_timer: *de_spawn_tiers
+    enabled_orbs:
+      neg_enabled: *neg_enabled
+      tier_enabled: *tier_enabled
 
 ###########################
 #   Agent Configuration   #
@@ -120,14 +123,14 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "RPPO"
+    alg: "PPO"
     agent_steps: "501760"
-    id_tag: 'vector_pomdp_baseline'
+    id_tag: 'composite_grid_markovian'
     save_folder: 'experiments'
     seed: 3
     human_control: false
     training: true
-    check_env: false
+    check_env: true
 
   # Pick algorithm to train or evaluate
   train_agent_conf:
@@ -139,12 +142,12 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    monitor_output: true
-    tensorboard_output: true
-    model_output: true
+    monitor_output: false
+    tensorboard_output: false
+    model_output: false
     render_mode: null
     timesteps: 100000
-    iterations: 5
+    iterations: 10
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate

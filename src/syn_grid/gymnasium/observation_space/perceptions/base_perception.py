@@ -15,7 +15,7 @@ class BasePerception(ABC):
     # ================= #
 
     _MISSING_ORB_VALUE: Final[float] = 0.0
-    _ORB_ACTIVE_FLAG: Final[float] = 1.0
+    _ACTIVE_FLAG: Final[float] = 1.0
 
     def __init__(self, conf: PerceptionConf, orbs: int) -> None:
         # Global values
@@ -35,6 +35,7 @@ class BasePerception(ABC):
         self._max_tier = conf.max_tier
         self._max_orb_lifespan = BaseOrb._life_span
         self._include_timer = conf.include_timer
+        self._enabled_orbs = conf.enabled_orbs
 
     # ================= #
     #      Helpers      #
@@ -64,6 +65,9 @@ class BasePerception(ABC):
     def _get_max_orb_data(self) -> np.ndarray:
         return np.array([self._max_orb_lifespan], dtype=np.float32)
 
+    def _get_max_orb_type_flags(self) -> np.ndarray:
+        return np.ones(sum(self._enabled_orbs.model_dump().values()), dtype=np.float32)
+
     # ======= get_observation() helpers ======= #
 
     def _get_global_values(self, steps_left: int, state: GridWorld) -> np.ndarray:
@@ -83,7 +87,7 @@ class BasePerception(ABC):
         orb_y, orb_x = orb.position
 
         values = [
-            self._ORB_ACTIVE_FLAG,
+            self._ACTIVE_FLAG,
             orb_y,
             orb_x,
             orb.META.CATEGORY.value,

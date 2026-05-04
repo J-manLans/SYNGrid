@@ -8,8 +8,9 @@ from gymnasium import spaces
 
 
 class CompositeMarkovian(BasePerception):
-    # TODO: remake this with nested dicts and create a custom extractor, right now it is merely a
-    # 1D Box vector
+    # NOTE: remake this with nested dicts and create a custom extractor, right now it is merely a
+    # 1D Box vector because SB3 flattens it. The custom extractor is needed because SB3 can't
+    # handle nested dicts or dicts with different spaces. But this is post-thesis work. Notes in dev/observations.md
 
     # ================= #
     #        Init       #
@@ -35,7 +36,7 @@ class CompositeMarkovian(BasePerception):
         droid_high = self._get_max_droid_positions()
 
         orb_parts = [
-            np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
+            np.array([self._ACTIVE_FLAG], dtype=np.float32),
             self._get_max_orb_positions(),
             self._get_max_orb_identity(),
         ]
