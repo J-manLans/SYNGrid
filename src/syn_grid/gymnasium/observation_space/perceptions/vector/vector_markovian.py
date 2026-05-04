@@ -20,12 +20,23 @@ class VectorMarkovian(BasePerception):
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
-        global_high, droid_high, orb_high, self._orb_features = (
-            self._get_markovian_obs()
-        )
-        orb_high = np.tile(orb_high, self._max_active_orbs)
+        global_high = self._get_max_global_values()
+
+        droid_high = self._get_max_droid_positions()
         self._droid_start_index = global_high.shape[0]
+
+        orb_parts = [
+            np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
+            self._get_max_orb_positions(),
+            self._get_max_orb_identity(),
+        ]
+        if self._include_timer:
+            orb_parts.append(self._get_max_orb_data())
+        orb_high = np.concatenate(orb_parts)
+        self._orb_features = orb_high.shape[0]
+        orb_high = np.tile(orb_high, self._max_active_orbs)
         self._orb_start_index = self._droid_start_index + droid_high.shape[0]
+
         high = np.concatenate([global_high, droid_high, orb_high])
 
         # Initialize the array used for giving the observation
@@ -35,7 +46,7 @@ class VectorMarkovian(BasePerception):
         return spaces.Box(
             low=0,
             high=high,
-            shape=(high.shape[0],),
+            shape=high.shape,
             dtype=np.float32,
         )
 
@@ -60,7 +71,7 @@ class VectorMarkovian(BasePerception):
         for orb in sorted_orbs:
             if orb.is_active:
                 self._obs_data[obs_index : obs_index + self._orb_features] = (
-                    self._get_orb_values(orb)
+                    self._get_orb_values(orb, self._include_timer)
                 )
             else:
                 self._obs_data[obs_index : obs_index + self._orb_features] = (

@@ -31,9 +31,18 @@ class CompositeMarkovian(BasePerception):
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
-        global_high, droid_high, orb_high, orb_features = self._get_markovian_obs()
+        global_high = self._get_max_global_values()
+        droid_high = self._get_max_droid_positions()
+
+        orb_parts = [
+            np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
+            self._get_max_orb_positions(),
+            self._get_max_orb_identity(),
+        ]
+        if self._include_timer:
+            orb_parts.append(self._get_max_orb_data())
         orb_high = np.tile(
-            orb_high,
+            np.concatenate(orb_parts),
             (self._max_active_orbs, 1),
         )
 
@@ -48,19 +57,19 @@ class CompositeMarkovian(BasePerception):
                 self._GLOBAL_KEY: spaces.Box(
                     low=0,
                     high=global_high,
-                    shape=(len(global_high),),
+                    shape=global_high.shape,
                     dtype=np.float32,
                 ),
                 self._DROID_KEY: spaces.Box(
                     low=0,
                     high=droid_high,
-                    shape=(len(droid_high),),
+                    shape=droid_high.shape,
                     dtype=np.float32,
                 ),
                 self._ORB_KEY: spaces.Box(
                     low=self._MISSING_ORB_VALUE,
                     high=orb_high,
-                    shape=(self._max_active_orbs, orb_features),
+                    shape=orb_high.shape,
                     dtype=np.float32,
                 ),
             }
@@ -84,7 +93,7 @@ class CompositeMarkovian(BasePerception):
         # Orb data
         for i, orb in enumerate(sorted_orbs):
             if orb.is_active:
-                self._orb_data[i] = self._get_orb_values(orb)
+                self._orb_data[i] = self._get_orb_values(orb, self._include_timer)
             else:
                 self._orb_data[i] = self._MISSING_ORB_VALUE
 

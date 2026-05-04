@@ -34,7 +34,6 @@ class GridWorld:
 
         # World
         self._conf: Final[GridWorldConf] = conf
-        self._de_spawn_tiers: Final[bool] = orb_manager_conf.de_spawn_tiers
 
         # Droid
         self.droid: Final[SynergyDroid] = SynergyDroid(droid_conf)
@@ -82,7 +81,7 @@ class GridWorld:
         for orb in self.ALL_ORBS:
             if orb.is_active:
                 # only decrease timer for tier orbs if de-spawning is activated in the configs
-                if orb.META.TIER == 0 or self._de_spawn_tiers:
+                if orb.META.TIER == 0 or self._conf.de_spawn_tiers:
                     orb.TIMER.tick()
                 if orb.TIMER.is_completed():
                     orb.de_spawn()
