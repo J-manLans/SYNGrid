@@ -125,11 +125,11 @@ agent:
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
     agent_steps: "307200"
-    id_tag: 'vector_termination_exp'
+    id_tag: 'vector_markovian_ablations'
     save_folder: 'experiments'
     seed: 3
     human_control: false
-    training: false
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -141,13 +141,13 @@ agent:
     # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: true
+    continue_training: false
     monitor_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 40000
-    iterations: 5
+    timesteps: 100000
+    iterations: 3
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
