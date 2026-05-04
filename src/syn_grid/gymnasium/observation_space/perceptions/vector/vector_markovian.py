@@ -1,7 +1,6 @@
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
-from syn_grid.config.models import PerceptionConf
 from syn_grid.core.grid_world import GridWorld
 
 import numpy as np
@@ -44,7 +43,7 @@ class VectorMarkovian(BasePerception):
 
         # Return observation space definition
         return spaces.Box(
-            low=0,
+            low=0.0,
             high=high,
             shape=high.shape,
             dtype=np.float32,

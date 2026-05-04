@@ -55,13 +55,13 @@ class CompositeMarkovian(BasePerception):
         return spaces.Dict(
             {
                 self._GLOBAL_KEY: spaces.Box(
-                    low=0,
+                    low=0.0,
                     high=global_high,
                     shape=global_high.shape,
                     dtype=np.float32,
                 ),
                 self._DROID_KEY: spaces.Box(
-                    low=0,
+                    low=0.0,
                     high=droid_high,
                     shape=droid_high.shape,
                     dtype=np.float32,
@@ -79,11 +79,11 @@ class CompositeMarkovian(BasePerception):
         self, state: GridWorld, steps_left: int
     ) -> dict[str, np.ndarray]:
         # Global data
-        self._global_data[0:] = self._get_global_values(steps_left, state)
+        self._global_data[:] = self._get_global_values(steps_left, state)
 
         # Droid data
         droid_y, droid_x = state.droid.position
-        self._droid_data[0:] = self._get_droid_values(droid_y, droid_x)
+        self._droid_data[:] = self._get_droid_values(droid_y, droid_x)
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
         sorted_orbs = self._sort_orbs_by_manhattan_dist_to_droid(
