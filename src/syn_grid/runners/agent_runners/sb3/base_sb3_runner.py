@@ -18,7 +18,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     #       Init        #
     # ================= #
 
-    _POLICY_MAP = {"vector": "Mlp", "composite": "MultiInput", "spatial": "Cnn"}
+    _POLICY_MAP = {"vector": "Mlp", "composite": "MultiInput", "grid": "Cnn"}
 
     def __init__(
         self,
@@ -49,6 +49,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             if perception_key in perception_str:
                 suffix = "LstmPolicy" if use_lstm else "Policy"
                 policy = base_policy + suffix
+                break
 
         return policy
 
@@ -180,6 +181,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             # tensorboard --logdir results/logs/<env_name>
             # Once Tensorboard is loaded, it will print a URL. Follow the URL to see
             # the status of the training.
+
             for i in range(1, self._train_conf.iterations + 1):
                 # Train the model
                 model.learn(

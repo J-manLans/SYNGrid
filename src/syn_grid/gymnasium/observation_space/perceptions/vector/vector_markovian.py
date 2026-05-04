@@ -25,7 +25,7 @@ class VectorMarkovian(BasePerception):
         self._droid_start_index = global_high.shape[0]
 
         orb_parts = [
-            np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
+            np.array([self._ACTIVE_FLAG], dtype=np.float32),
             self._get_max_orb_positions(),
             self._get_max_orb_identity(),
         ]

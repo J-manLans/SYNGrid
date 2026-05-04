@@ -18,9 +18,9 @@ class StatelessPPO(BaseSB3Runner[PPO]):
             "policy": policy,
             "device": "cpu",
             "ent_coef": 0.02,
-            "n_steps": 2048,
+            "n_steps": 512,
             "batch_size": 64,
-            "n_epochs": 8,
+            "n_epochs": 2,
         }
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, PPO)
 
