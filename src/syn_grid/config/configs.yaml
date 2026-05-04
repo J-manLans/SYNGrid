@@ -88,7 +88,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_markovian"
+    perception: "composite_fully_pomdp"
     max_steps: &max_steps 100
 
   perception:
@@ -120,9 +120,9 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "PPO"
+    alg: "RPPO"
     agent_steps: "600576"
-    id_tag: 'vector_baseline'
+    id_tag: 'composite_pomdp_baseline'
     save_folder: 'experiments'
     seed: 3
     human_control: false
@@ -139,12 +139,12 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    monitor_output: true
-    tensorboard_output: true
-    model_output: true
+    monitor_output: false
+    tensorboard_output: false
+    model_output: false
     render_mode: null
     timesteps: 100000
-    iterations: 2
+    iterations: 5
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
