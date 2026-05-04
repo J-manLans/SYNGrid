@@ -56,7 +56,7 @@ world:
     max_tier: &max_tier 2
     types:
       negative:
-        enabled: &neg_enabled true
+        enabled: &neg_enabled false
         weight: 1
       tier:
         enabled: &tier_enabled true
@@ -88,7 +88,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "composite_grid_markovian"
+    perception: "vector_markovian"
     max_steps: &max_steps 100
 
   perception:
@@ -124,13 +124,13 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "501760"
-    id_tag: 'composite_grid_markovian'
+    agent_steps: "307200"
+    id_tag: 'vector_termination_exp'
     save_folder: 'experiments'
     seed: 3
     human_control: false
-    training: true
-    check_env: true
+    training: false
+    check_env: false
 
   # Pick algorithm to train or evaluate
   train_agent_conf:
@@ -141,16 +141,16 @@ agent:
     # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: false
-    monitor_output: false
-    tensorboard_output: false
-    model_output: false
+    continue_training: true
+    monitor_output: true
+    tensorboard_output: true
+    model_output: true
     render_mode: null
-    timesteps: 100000
-    iterations: 10
+    timesteps: 40000
+    iterations: 5
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
     num_eval_episodes: 300
-    render_mode: null
+    render_mode: 'human'
