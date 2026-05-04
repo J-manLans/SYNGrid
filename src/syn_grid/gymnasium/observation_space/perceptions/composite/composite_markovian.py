@@ -31,30 +31,18 @@ class CompositeMarkovian(BasePerception):
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
-        global_high = self._get_max_global_values()
-
-        droid_high = np.concatenate(
-            [self._get_max_droid_positions(), self._get_max_droid_data()]
-        )
-
+        global_high, droid_high, orb_high, orb_features = self._get_markovian_obs()
         orb_high = np.tile(
-            np.concatenate(
-                [
-                    np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
-                    self._get_max_orb_positions(),
-                    self._get_max_orb_identity(),
-                    # self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
-                ]
-            ),
+            orb_high,
             (self._max_active_orbs, 1),
         )
-        orb_features = orb_high.shape[1]
 
         # Initialize the arrays used for giving the observation
         self._global_data = np.zeros_like(global_high, dtype=np.float32)
         self._droid_data = np.zeros_like(droid_high, dtype=np.float32)
-        self._orb_data = np.zeros((self._max_active_orbs, orb_features), dtype=np.float32)
+        self._orb_data = np.zeros_like(orb_high, dtype=np.float32)
 
+        # Return observation space definition
         return spaces.Dict(
             {
                 self._GLOBAL_KEY: spaces.Box(
@@ -82,13 +70,11 @@ class CompositeMarkovian(BasePerception):
         self, state: GridWorld, steps_left: int
     ) -> dict[str, np.ndarray]:
         # Global data
-        self._global_data[0] = steps_left
+        self._global_data[0:] = self._get_global_values(steps_left, state)
 
         # Droid data
         droid_y, droid_x = state.droid.position
-        self._droid_data[0], self._droid_data[1] = droid_y, droid_x
-        self._droid_data[2] = max(state.droid.score, self._max_score)
-        self._droid_data[3] = state.droid.digestion_engine.chained_tiers
+        self._droid_data[0:] = self._get_droid_values(droid_y, droid_x)
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
         sorted_orbs = self._sort_orbs_by_manhattan_dist_to_droid(
@@ -98,17 +84,7 @@ class CompositeMarkovian(BasePerception):
         # Orb data
         for i, orb in enumerate(sorted_orbs):
             if orb.is_active:
-                orb_y, orb_x = orb.position
-
-                self._orb_data[i] = [
-                    self._ORB_ACTIVE_FLAG,
-                    orb_y,
-                    orb_x,
-                    orb.META.CATEGORY.value,
-                    orb.META.TYPE.value,
-                    orb.META.TIER,
-                    # orb.TIMER.remaining, # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
-                ]
+                self._orb_data[i] = self._get_orb_values(orb)
             else:
                 self._orb_data[i] = self._MISSING_ORB_VALUE
 

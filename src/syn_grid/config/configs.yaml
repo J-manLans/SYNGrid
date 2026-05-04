@@ -94,7 +94,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "composite_markovian"
+    perception: "vector_markovian"
     max_steps: &max_steps 100
 
   perception:
@@ -127,7 +127,7 @@ agent:
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
     agent_steps: "600576"
-    id_tag: 'score_in_obs_capped_at_100'
+    id_tag: 'vector_baseline'
     save_folder: 'experiments'
     seed: 3
     human_control: false
@@ -138,10 +138,10 @@ agent:
   train_agent_conf:
     # Train settings:
     # - continue_training: continue from a previously saved model
-    # - monitor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
-    # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
-    # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
-    # - model_output (null or "human"): null is default, change to human if you want visual feedback for debugging
+    # - monitor_output: False if you have your own internal logging, are debugging or experimenting and only want to inspect behavior, not persist results
+    # - tensorboard_output: False if you have your own internal logging, are debugging or experimenting and only want to inspect behavior, not persist training
+    # - model_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
+    # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
@@ -150,7 +150,7 @@ agent:
     model_output: true
     render_mode: null
     timesteps: 100000
-    iterations: 7
+    iterations: 2
 
   eval_agent_conf:
     # Eval settings:

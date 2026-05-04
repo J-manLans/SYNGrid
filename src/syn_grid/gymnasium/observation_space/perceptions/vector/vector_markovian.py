@@ -16,75 +16,56 @@ class VectorMarkovian(BasePerception):
 
     def reset(self) -> None:
         # Reset the observation arrays
-        self._obs_data.fill(self._OLD_MISSING_VALUE)
+        self._obs_data.fill(self._MISSING_ORB_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
-        world_high = np.concatenate(
-            [
-                self._get_max_global_values(),
-                self._get_max_droid_positions(),
-                self._get_max_droid_data(),
-            ]
+        global_high, droid_high, orb_high, self._orb_features = (
+            self._get_markovian_obs()
         )
-        orb_high = np.concatenate(
-            [
-                self._get_max_orb_positions(),
-                self._get_max_orb_identity(),
-                self._get_max_orb_data(),
-            ]
-        )
-        self._orb_features = orb_high.shape[0]
-        orb_high = np.tile(orb_high, self._orbs_in_env)
-        high = np.concatenate([world_high, orb_high])
+        orb_high = np.tile(orb_high, self._max_active_orbs)
+        self._droid_start_index = global_high.shape[0]
+        self._orb_start_index = self._droid_start_index + droid_high.shape[0]
+        high = np.concatenate([global_high, droid_high, orb_high])
 
-        # Initialize the array used for giving the observation and finalize observation
-        # space definition
-        self._obs_data = np.full(
-            high.shape[0], self._OLD_MISSING_VALUE, dtype=np.float32
-        )
-        low = self._obs_data
-        low[0 : world_high.shape[0]] = 0.0
+        # Initialize the array used for giving the observation
+        self._obs_data = np.zeros_like(high, dtype=np.float32)
 
+        # Return observation space definition
         return spaces.Box(
-            low=low,
+            low=0,
             high=high,
-            shape=(len(high),),
+            shape=(high.shape[0],),
             dtype=np.float32,
         )
 
     def get_observation(self, state: GridWorld, steps_left: int) -> np.ndarray:
-        obs_index = 0
-
         # Global data
-        self._obs_data[obs_index] = steps_left
-        obs_index += 1
+        self._obs_data[0 : self._droid_start_index] = self._get_global_values(
+            steps_left, state
+        )
 
         # Droid data
         droid_y, droid_x = state.droid.position
-        self._obs_data[obs_index : obs_index + 4] = [
-            droid_y,
-            droid_x,
-            state.droid.score,
-            state.droid.digestion_engine.chained_tiers,
-        ]
-        obs_index += 4
+        self._obs_data[self._droid_start_index : self._orb_start_index] = (
+            self._get_droid_values(droid_y, droid_x)
+        )
+
+        sorted_orbs = self._sort_orbs_by_manhattan_dist_to_droid(
+            state.ALL_ORBS, droid_y, droid_x
+        )
 
         # Orb data
-        for orb in state.ALL_ORBS:
+        obs_index = self._orb_start_index
+        for orb in sorted_orbs:
             if orb.is_active:
-                orb_y, orb_x = orb.position
-
-                self._obs_data[obs_index : obs_index + self._orb_features] = [
-                    orb_y,
-                    orb_x,
-                    orb.META.CATEGORY.value,
-                    orb.META.TYPE.value,
-                    orb.META.TIER,
-                    orb.TIMER.remaining,
-                ]
+                self._obs_data[obs_index : obs_index + self._orb_features] = (
+                    self._get_orb_values(orb)
+                )
             else:
-                self._obs_data[obs_index : obs_index + self._orb_features] = -1
+                self._obs_data[obs_index : obs_index + self._orb_features] = (
+                    self._MISSING_ORB_VALUE
+                )
 
             obs_index += self._orb_features
 

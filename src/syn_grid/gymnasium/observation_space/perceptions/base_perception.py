@@ -40,18 +40,35 @@ class BasePerception(ABC):
     #      Helpers      #
     # ================= #
 
-    # === Global data getters === #
-    def _get_max_global_values(self) -> np.ndarray:
-        return np.array([self._max_steps], dtype=np.float32)
+    # ======= setup_obs_space helpers ======= #
+    def _get_markovian_obs(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
+        global_high = self._get_max_global_values()
+        droid_high = self._get_max_droid_positions()
+        orb_high = np.concatenate(
+            [
+                np.array([self._ORB_ACTIVE_FLAG], dtype=np.float32),
+                self._get_max_orb_positions(),
+                self._get_max_orb_identity(),
+                # self._get_max_orb_data(), # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
+            ]
+        )
 
-    # === Droid data getters === #
+        return global_high, droid_high, orb_high, orb_high.shape[0]
+
+    # --- Global data getters --- #
+    def _get_max_global_values(self) -> np.ndarray:
+        return np.array(
+            [self._max_steps, self._max_score, self._max_tier_chain], dtype=np.float32
+        )
+
+    # --- Droid data getters --- #
     def _get_max_droid_positions(self) -> np.ndarray:
         return np.array([self._max_grid_y, self._max_grid_x], dtype=np.float32)
 
     def _get_max_droid_data(self) -> np.ndarray:
         return np.array([self._max_score, self._max_tier_chain], dtype=np.float32)
 
-    # === Orb data getters === #
+    # --- Orb data getters --- #
     def _get_max_orb_positions(self) -> np.ndarray:
         return np.array([self._max_grid_y, self._max_grid_x], dtype=np.float32)
 
@@ -63,16 +80,49 @@ class BasePerception(ABC):
     def _get_max_orb_data(self) -> np.ndarray:
         return np.array([self._max_orb_lifespan], dtype=np.float32)
 
+    # ======= get_observation() helpers ======= #
+    def _get_global_values(self, steps_left: int, state: GridWorld) -> np.ndarray:
+        return np.array(
+            [
+                steps_left,
+                min(state.droid.score, self._max_score),
+                state.droid.digestion_engine.chained_tiers,
+            ],
+            dtype=np.float32,
+        )
+
+    def _get_droid_values(self, droid_y: int, droid_x: int) -> np.ndarray:
+        return np.array([droid_y, droid_x], dtype=np.float32)
+
+    def _get_orb_values(self, orb: BaseOrb) -> np.ndarray:
+        orb_y, orb_x = orb.position
+
+        return np.array(
+            [
+                self._ORB_ACTIVE_FLAG,
+                orb_y,
+                orb_x,
+                orb.META.CATEGORY.value,
+                orb.META.TYPE.value,
+                orb.META.TIER,
+                # orb.TIMER.remaining, # TODO: Re-add this after thesis experiments, I wont use timer for them, so removing it simplifies observation
+            ],
+            dtype=np.float32,
+        )
+
     def _sort_orbs_by_manhattan_dist_to_droid(
         self, orbs: list[BaseOrb], droid_y: int, droid_x: int
     ) -> list[BaseOrb]:
+        """Sort orbs by distance to droid, inactive orbs go to the bottom"""
+
         return sorted(
             orbs,
             key=lambda orb: (
                 abs(orb.position[0] - droid_y) + abs(orb.position[1] - droid_x)
-                if orb.is_active else float('inf')
-            )
-        )[:self._max_active_orbs]
+                if orb.is_active
+                else float("inf")
+            ),
+        )[: self._max_active_orbs]
 
     # ================= #
     #  Abstract methods #
