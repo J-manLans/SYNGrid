@@ -38,11 +38,14 @@ world:
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
     # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
+    # - reward_multiplier: multiplier applied to rewards when combinator reward structure is used
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
-    step_penalty: &step_penalty -1.0
+    step_penalty: &step_penalty 0.0
     tier_consumption_penalty: *step_penalty
+    reward_multiplier: 0.5
+
 
   orb_factory_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span
@@ -53,7 +56,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
-    max_tier: &max_tier 2
+    max_tier: &max_tier 4
     types:
       negative:
         enabled: &neg_enabled false
@@ -77,7 +80,7 @@ world:
     linear_reward_growth: false
     step_wise_scoring: false
     growth_factor: 1.5
-    base_reward: 3.0
+    base_reward: 3
     cool_down: 7
 
 ###########################
@@ -88,7 +91,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_markovian"
+    perception: "vector_fully_pomdp"
     max_steps: &max_steps 100
 
   perception:
@@ -124,11 +127,11 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "307200"
-    id_tag: 'vector_markovian_ablations'
-    save_folder: 'experiments'
+    agent_steps: "10014720"
+    id_tag: 'max_tier_breakdown'
+    save_folder: 'experiments/tier_break'
     seed: 3
-    human_control: false
+    human_control: true
     training: true
     check_env: false
 
@@ -141,16 +144,16 @@ agent:
     # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: false
+    continue_training: true
     monitor_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 100000
-    iterations: 3
+    timesteps: 1000000
+    iterations: 10
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 300
-    render_mode: 'human'
+    num_eval_episodes: 20
+    render_mode: null
