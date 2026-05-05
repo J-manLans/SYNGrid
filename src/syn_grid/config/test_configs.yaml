@@ -78,15 +78,19 @@ world:
     cool_down: 10
 
   tier_orb_conf:
-    # - linear_reward_growth: if true, reward scales linearly instead of polynomial
+    # - linear_reward_growth: if true, reward scales linearly instead of exponentially
     # - step_wise_scoring: if true, reward is given per correctly consumed tier instead of on chain break
-    # - growth_factor: multiplier applied per tier increase
+    # - threshold_scoring: if true, partial reward is given if the chain breaks or an accumulated reward if max tier is reached
+    # - max_tier_scoring: if true, reward is only given if max tier is reached
+    # - growth_factor: multiplier applied per tier increase if linear_reward_growth is false
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
-    linear_reward_growth: true
-    step_wise_scoring: true
-    growth_factor: 1.7
-    base_reward: 1.5
+    linear_reward_growth: false
+    step_wise_scoring: false
+    threshold_scoring: true
+    max_tier_scoring: false
+    growth_factor: 1.5
+    base_reward: 3
     cool_down: 7
 
 ###########################

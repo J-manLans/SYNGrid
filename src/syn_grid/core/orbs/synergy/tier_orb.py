@@ -20,11 +20,7 @@ class TierOrb(BaseOrb):
     #       Init        #
     # ================= #
 
-    _linear_reward_growth: bool
-    _tier_base_reward: Final[float]
-    _growth_factor: Final[float]
     max_tier: int
-    step_wise_scoring: bool
 
     def __init__(self, tier: int, conf: TierConf):
         if tier > self.max_tier:
@@ -34,6 +30,8 @@ class TierOrb(BaseOrb):
         self._tier_base_reward = conf.base_reward
         self._growth_factor = conf.growth_factor
         self.step_wise_scoring = conf.step_wise_scoring
+        self.threshold_scoring = conf.threshold_scoring
+        self.max_tier_scoring = conf.max_tier_scoring
 
         super().__init__(
             self._calculate_reward(tier),

@@ -44,13 +44,18 @@ class DigestionEngine:
             if consumed_orb.step_wise_scoring:
                 return self._step_wise_scoring(consumed_orb)
 
-            # Non-step-wise scoring: accumulate reward silently on correct progression.
-            # If the chain breaks, flush the pending reward and return it.
-            return self._threshold_scoring(consumed_orb)
+            # Threshold scoring: accumulate reward silently on correct progression.
+            # If the chain breaks or max tier is reached, flush the pending reward and return it.
+            if consumed_orb.threshold_scoring:
+                return self._threshold_scoring(consumed_orb)
 
-        # Non-tier orbs: always return base reward and resets the tier chain
-        self.chained_tiers = self._NO_CHAIN
-        self._pending_reward = 0.0
+            # Max tier scoring: only give rewards when reaching max tier, for more controlled
+            # scenarios
+            if consumed_orb.max_tier_scoring:
+                return self._max_tier_scoring(consumed_orb)
+
+        # Non-tier orbs: always return base reward and resets reward state
+        self.reset()
         return consumed_orb.REWARD
 
     # ================= #
@@ -60,100 +65,87 @@ class DigestionEngine:
     # === Scoring types === #
 
     def _step_wise_scoring(self, consumed_orb: TierOrb) -> float:
-        if self._resolve_tier_progression(consumed_orb):
+        if self.chained_tiers == consumed_orb.META.TIER - 1:
+            self.chained_tiers = (
+                consumed_orb.META.TIER if not consumed_orb.max_tier else self._NO_CHAIN
+            )
             return consumed_orb.REWARD
+
+        self.chained_tiers = self._NO_CHAIN
         # small punishment for consuming in wrong order
         return self._tier_consumption_penalty
 
     def _threshold_scoring(self, consumed_orb: TierOrb) -> float:
-        if self._resolve_tier_progression(consumed_orb):
-            # Get the pending reward if the consumed orb is a base tier and other orbs except
-            # another base tier have been consumed before it
-            if (
-                consumed_orb.META.TIER == self._BASE_TIER
-                and self._pending_reward != 0
-                and self._pending_reward != round(consumed_orb.REWARD * self._reward_multiplier)
-            ):
-                return self._get_pending_reward(consumed_orb.REWARD)
+        scaled_reward = round(consumed_orb.REWARD * self._reward_multiplier)
+        current_tier = consumed_orb.META.TIER
 
-            # If we reached max tier, return the bonus
-            if consumed_orb.META.TIER == consumed_orb.max_tier:
-                return self._get_max_tier_bonus(consumed_orb.REWARD)
+        if self.chained_tiers == current_tier - 1:
+            # Keep on building the tier chain, pending reward and bonus if we're not at max tier
+            if current_tier != consumed_orb.max_tier:
+                self.chained_tiers = current_tier
+                self._set_pending_rewards(scaled_reward)
+                return 0.0
 
-            # Otherwise, keep on building the pending reward and bonus
-            self._set_pending_rewards(consumed_orb.REWARD)
-            return 0.0
+            # If we reached max tier, reset the chain and return the bonus
+            self.chained_tiers = self._NO_CHAIN
+            return self._flush_rewards()[1] + scaled_reward
 
         # Handel pending reward if chain is broken,
-        return self._get_pending_reward_at_chain_break()
+        return self._handle_chain_break(current_tier, scaled_reward)
 
-    def _sparse_scoring(self, consumed_orb: TierOrb):
-        if self._resolve_tier_progression(consumed_orb):
-            if consumed_orb.META.TIER == consumed_orb.max_tier:
-                _, max_bonus = self._flush_rewards()
-                return max_bonus + round(consumed_orb.REWARD * self._reward_multiplier)
+    def _max_tier_scoring(self, consumed_orb: TierOrb):
+        current_tier = consumed_orb.META.TIER
 
-            self._set_pending_rewards(consumed_orb.REWARD)
-            return 0
+        if self.chained_tiers == current_tier - 1:
+            if current_tier != consumed_orb.max_tier:
+                self.chained_tiers = current_tier
+                return 0.0
 
-        self._flush_rewards()
-        return 0
+            self.chained_tiers = self._NO_CHAIN
+            return consumed_orb.REWARD
+
+        self.chained_tiers = (
+            self._NO_CHAIN if current_tier != self._BASE_TIER else current_tier
+        )
+
+        return 0.0
 
     # === Scoring helpers === #
 
-    def _resolve_tier_progression(self, consumed_orb: TierOrb) -> bool:
-        current_tier = consumed_orb.META.TIER
+    def _set_pending_rewards(self, scaled_reward: float):
+        self._pending_reward = scaled_reward
+        self._max_reward_bonus += self._pending_reward
 
-        # Correct progression (starting tier or previous tier + 1)
-        if self.chained_tiers == current_tier - 1:
-            if current_tier == consumed_orb.max_tier:
-                # If max tier is reached, reset chain
-                self.chained_tiers = self._NO_CHAIN
-            else:
-                # Otherwise, continue the chain
-                self.chained_tiers = current_tier
-            return True
+    def _handle_chain_break(self, current_tier: int, scaled_reward: float) -> float:
+        """
+        Handles a broken tier chain and returns any accumulated pending reward.
 
-        if current_tier == self._BASE_TIER:
-            # Restart chain from base tier
-            self.chained_tiers = self._BASE_TIER
-            return True
+        A chain break occurs when an orb is consumed out of sequence. Behavior depends
+        on the breaking orb's tier:
 
-        # Invalid progression - reset chain
-        self.chained_tiers = self._NO_CHAIN
-        return False
-
-    def _get_pending_reward(self, orb_reward) -> float:
-        '''
-        Flush the bonus and pending reward, set pending reward
-        to the base tiers reward and return the flushed reward
-        '''
-
-        pending_reward, _ = self._flush_rewards()
-        self._set_pending_rewards(orb_reward)
-        return pending_reward
-
-    def _get_max_tier_bonus(self, orb_reward: float) -> float:
-        '''
-        Flush the bonus and pending reward and return the
-        bonus plus the orb's own reward scaled by the multiplier
-        '''
-
-        return self._flush_rewards()[1] + round(orb_reward * self._reward_multiplier)
-
-    def _get_pending_reward_at_chain_break(self) -> float:
-        '''
-        If we haven't chained anything yet, return early. Otherwise flush the bonus and pending reward, then return the pending reward
-        '''
+        - No pending reward: return early with 0.
+        - Base tier, previous was higher tier: flush pending reward, restart chain and
+        rewards at base tier, return the flushed reward.
+        - Base tier, previous was also base tier: consecutive base tier collections are
+        not treated as chain breaks — do nothing, return 0.
+        - Any other tier: reset chain state, flush and return pending reward.
+        """
 
         if self._pending_reward == 0.0:
             return 0.0
 
-        return self._flush_rewards()[0]
+        pending_reward = 0.0
 
-    def _set_pending_rewards(self, orb_reward: float):
-        self._pending_reward = round(orb_reward * self._reward_multiplier)
-        self._max_reward_bonus += self._pending_reward
+        if current_tier == self._BASE_TIER:
+            if self.chained_tiers != current_tier:
+                self.chained_tiers = current_tier
+                pending_reward = self._flush_rewards()[0]
+                self._set_pending_rewards(scaled_reward)
+        else:
+            self.chained_tiers = self._NO_CHAIN
+            pending_reward = self._flush_rewards()[0]
+
+        return pending_reward
 
     def _flush_rewards(self) -> tuple[float, float]:
         temp_rew = self._pending_reward
