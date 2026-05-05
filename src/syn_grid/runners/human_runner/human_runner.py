@@ -36,7 +36,10 @@ class HumanRunner:
                 terminated = self._world.droid.score <= 0
                 self._render()
 
-                if terminated or truncated:
+                if (terminated or truncated) or (
+                    self._world.droid.digestion_engine.termination_on_max_tier
+                    and self._world.droid.digestion_engine.max_tier_reached
+                ):
                     break
 
             action = self._renderer.get_user_action()

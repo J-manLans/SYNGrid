@@ -144,4 +144,10 @@ class SYNGridEnv(gym.Env):
         if (self._observation_handler.steps_left <= 0) and not terminated:
             terminated = True
 
+        if (
+            self.world.droid.digestion_engine.termination_on_max_tier
+            and self.world.droid.digestion_engine.max_tier_reached
+        ):
+            terminated = True
+
         return terminated, truncated, reward

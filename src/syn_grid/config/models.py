@@ -56,6 +56,7 @@ class DroidConf(BaseModel, frozen=True):
     step_penalty: float
     tier_consumption_penalty: float
     reward_multiplier: float
+    termination_on_max_tier: bool
 
     @model_validator(mode="after")
     def validate_config(self):
@@ -82,12 +83,24 @@ class OrbFactoryConf(BaseModel, frozen=True):
     grid_cols: int
     max_active_orbs: int
     max_tier: int
+    termination_on_max_tier: bool
+    de_spawn_tiers: bool
+    single_chain_mode: bool
     types: TypesConf
 
     @model_validator(mode="after")
     def validate_config(self):
+        single_chain_requirements = [
+            self.termination_on_max_tier,
+            not self.de_spawn_tiers,
+        ]
+
         if self.max_tier <= 0:
             raise ValueError("max_tier should be larger than 0")
+        elif self.single_chain_mode and not any(single_chain_requirements):
+            raise ValueError(
+                "single_chain_mode requires termination_on_max_tier to be enabled in DroidConf"
+            )
         return self
 
 

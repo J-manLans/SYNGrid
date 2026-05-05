@@ -31,13 +31,7 @@ class TestAgentRunner:
         full_conf = get_test_config()
 
         full_conf = update_conf(
-            full_conf, {
-                'agent': {
-                    'global_agent_conf': {
-                        "alg": "PPO"
-                    }
-                }
-            }
+            full_conf, {"agent": {"global_agent_conf": {"alg": "PPO"}}}
         )
 
         run_conf = full_conf.world
@@ -60,19 +54,15 @@ class TestAgentRunner:
         full_conf = get_test_config()
 
         full_conf = update_conf(
-            full_conf, {
-                'agent': {
-                    'global_agent_conf': {
-                        "alg": "Ajja_bajja"
-                    }
-                }
-            }
+            full_conf, {"agent": {"global_agent_conf": {"alg": "Ajja_bajja"}}}
         )
         run_conf = full_conf.world
         obs_conf = full_conf.obs
 
         with pytest.raises(KeyError):
-            ALGORITHMS[full_conf.agent.global_agent_conf.alg](full_conf.agent, obs_conf, run_conf)
+            ALGORITHMS[full_conf.agent.global_agent_conf.alg](
+                full_conf.agent, obs_conf, run_conf
+            )
 
     def test_get_model_with_no_agent_steps(self, agent_runner: BaseAgentRunner):
         """
@@ -88,5 +78,3 @@ class TestAgentRunner:
 
         with pytest.raises(SystemExit):
             agent_runner._get_saved_path(Path("null_path"))
-
-

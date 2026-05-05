@@ -20,7 +20,9 @@ class SynergyDroid:
 
         self._conf: Final[DroidConf] = conf
         self.digestion_engine: Final[DigestionEngine] = DigestionEngine(
-            conf.tier_consumption_penalty, conf.reward_multiplier
+            conf.tier_consumption_penalty,
+            conf.reward_multiplier,
+            conf.termination_on_max_tier,
         )
 
     def reset(self) -> None:

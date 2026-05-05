@@ -45,24 +45,31 @@ world:
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
     # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
-    # - reward_multiplier: multiplier applied to rewards when combinator reward structure is used
+    # - reward_multiplier: multiplier applied to rewards when threshold scoring in tier_orb_conf is activated
+    # - termination_on_max_tier: terminate the episode as max tier is reached
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 30
     step_penalty: &step_penalty -1.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 0.5
+    termination_on_max_tier: &termination_on_max_tier false
 
   orb_factory_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span
-    # - max_active_orbs: max active orbs on grid (set in grid_world_conf)
+    # - max_active_orbs (set in grid_world_conf): max active orbs on grid
     # - max_tier: this is the highest tier that orbs can reach in this environment
+    # - termination_on_max_tier and de_spawn_tiers (set in droid_conf and grid_world_conf): don't change these, they determine if single chain mode is possible
+    # - single_chain_mode: if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just termination
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
     max_tier: &max_tier 3
+    termination_on_max_tier: *termination_on_max_tier
+    de_spawn_tiers: *de_spawn_tiers
+    single_chain_mode: false
     types:
       negative:
         enabled: &neg_enabled true
