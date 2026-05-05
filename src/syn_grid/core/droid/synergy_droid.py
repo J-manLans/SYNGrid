@@ -11,7 +11,7 @@ class SynergyDroid:
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: DroidConf):
+    def __init__(self, conf: DroidConf, single_chain_mode: bool):
         """
         Initializes the droid.
 
@@ -19,6 +19,7 @@ class SynergyDroid:
         """
 
         self._conf: Final[DroidConf] = conf
+        self._single_chain_mode = single_chain_mode
         self.digestion_engine: Final[DigestionEngine] = DigestionEngine(
             conf.tier_consumption_penalty,
             conf.reward_multiplier,
@@ -57,7 +58,10 @@ class SynergyDroid:
             case _:
                 raise TypeError("This action isn't implemented")
 
-        return self._apply_reward(self._conf.step_penalty + bound_penalty)
+        if self._single_chain_mode:
+            return 0.0
+        else:
+            return self._apply_reward(self._conf.step_penalty + bound_penalty)
 
     def consume_orb(self, orb: BaseOrb) -> float:
         """Consumes the orb, add its reward to its score and returns the reward"""

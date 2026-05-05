@@ -36,7 +36,9 @@ class GridWorld:
         self._conf: Final[GridWorldConf] = conf
 
         # Droid
-        self.droid: Final[SynergyDroid] = SynergyDroid(droid_conf)
+        self.droid: Final[SynergyDroid] = SynergyDroid(
+            droid_conf, conf.single_chain_mode
+        )
 
         # Orbs
         self._active_orbs: Final[list[BaseOrb]] = []
@@ -65,8 +67,13 @@ class GridWorld:
 
         self._rng = rng
 
-        # Spawn the first orb
-        self._spawn_random_orb_if_ready()
+        if self._conf.single_chain_mode:
+            # spawn all orbs
+            for _ in range(self._conf.max_active_orbs):
+                self._spawn_random_orb_if_ready()
+        else:
+            # Spawn the first orb
+            self._spawn_random_orb_if_ready()
 
     # ================= #
     #        API        #
@@ -94,8 +101,9 @@ class GridWorld:
                 # decrease the cooldown for inactive orbs
                 orb.TIMER.tick()
 
-        if len(self._active_orbs) < self._conf.max_active_orbs:
-            self._spawn_random_orb_if_ready()
+        if not self._conf.single_chain_mode:
+            if len(self._active_orbs) < self._conf.max_active_orbs:
+                self._spawn_random_orb_if_ready()
 
         return step_penalty + reward
 
