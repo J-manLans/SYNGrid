@@ -44,12 +44,14 @@ world:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
-    # - tier_consumption_penalty: punishment for consuming tier orbs in the wrong order
+    # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
+    # - reward_multiplier: multiplier applied to rewards when combinator reward structure is used
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 30.0
-    step_penalty: -1
-    tier_consumption_penalty: -0.2
+    starting_score: 50
+    step_penalty: &step_penalty -1.0
+    tier_consumption_penalty: *step_penalty
+    reward_multiplier: 0.5
 
   orb_factory_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span

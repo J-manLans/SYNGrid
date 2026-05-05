@@ -19,7 +19,9 @@ class SynergyDroid:
         """
 
         self._conf: Final[DroidConf] = conf
-        self.digestion_engine: Final[DigestionEngine] = DigestionEngine()
+        self.digestion_engine: Final[DigestionEngine] = DigestionEngine(
+            conf.tier_consumption_penalty, conf.reward_multiplier
+        )
 
     def reset(self) -> None:
         """
@@ -58,9 +60,7 @@ class SynergyDroid:
     def consume_orb(self, orb: BaseOrb) -> float:
         """Consumes the orb, add its reward to its score and returns the reward"""
 
-        reward = self.digestion_engine.digest(
-            orb.consume(), self._conf.tier_consumption_penalty
-        )
+        reward = self.digestion_engine.digest(orb.consume())
         return self._apply_reward(reward)
 
     # ================= #

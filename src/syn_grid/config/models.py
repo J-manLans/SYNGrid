@@ -55,6 +55,7 @@ class DroidConf(BaseModel, frozen=True):
     starting_score: float
     step_penalty: float
     tier_consumption_penalty: float
+    reward_multiplier: float
 
     @model_validator(mode="after")
     def validate_config(self):
