@@ -17,6 +17,8 @@ class SnapshotConf(BaseModel, frozen=True):
 class GridWorldConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
+    single_chain_mode: bool
+    max_tier: int
     max_active_orbs: int
     de_spawn_tiers: bool
 
@@ -26,6 +28,11 @@ class GridWorldConf(BaseModel, frozen=True):
             raise ValueError("grid_cols and grid_rows should be larger than 0")
         if self.max_active_orbs <= 0:
             raise ValueError("max_active_orbs should be larger than 0")
+        if self.single_chain_mode:
+            if self.de_spawn_tiers:
+                raise ValueError('de_spawn_tiers must be false when single_chain_mode is true')
+            object.__setattr__(self, "max_active_orbs", self.max_tier)
+
         return self
 
 
@@ -84,7 +91,7 @@ class OrbFactoryConf(BaseModel, frozen=True):
     max_active_orbs: int
     max_tier: int
     termination_on_max_tier: bool
-    de_spawn_tiers: bool
+    max_tier_scoring: bool
     single_chain_mode: bool
     types: TypesConf
 
@@ -92,15 +99,23 @@ class OrbFactoryConf(BaseModel, frozen=True):
     def validate_config(self):
         single_chain_requirements = [
             self.termination_on_max_tier,
-            not self.de_spawn_tiers,
+            self.max_tier_scoring,
         ]
 
         if self.max_tier <= 0:
             raise ValueError("max_tier should be larger than 0")
-        elif self.single_chain_mode and not any(single_chain_requirements):
-            raise ValueError(
-                "single_chain_mode requires termination_on_max_tier to be enabled in DroidConf"
-            )
+        if self.single_chain_mode:
+            if self.max_tier >= (self.grid_rows * self.grid_cols):
+                raise ValueError(
+                    "max_tier can't be higher than number of cells in the grid, there will be no space for orbs"
+                )
+            if not all(single_chain_requirements):
+                raise ValueError(
+                    f"Single_chain_mode requires:"
+                    f"\ntermination_on_max_tier to be enabled in DroidConf"
+                    f"\nand max_tier_scoring enabled in OrbFactoryConf"
+                )
+
         return self
 
 

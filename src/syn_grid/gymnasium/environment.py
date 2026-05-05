@@ -86,7 +86,7 @@ class SYNGridEnv(gym.Env):
         # Perform action and adjust variables affected by it
         reward = self.world.perform_droid_action(DroidAction(action))
         self._observation_handler.steps_left -= 1
-        terminated, truncated, reward = self._check_episode_end(reward)
+        terminated, truncated = self._check_episode_end()
 
         if self.render_mode == "human":
             self.render()
@@ -134,20 +134,26 @@ class SYNGridEnv(gym.Env):
 
         return hud_data
 
-    def _check_episode_end(self, reward: float) -> tuple[bool, bool, float]:
+    def _check_episode_end(self) -> tuple[bool, bool]:
         terminated = False
         truncated = False
 
         if self.world.droid.score <= 0:
             terminated = True
-
-        if (self._observation_handler.steps_left <= 0) and not terminated:
-            terminated = True
-
-        if (
+        elif self._observation_handler.steps_left <= 0:
+            if self.world._conf.single_chain_mode:
+                truncated = True
+            else:
+                terminated = True
+        elif (
             self.world.droid.digestion_engine.termination_on_max_tier
             and self.world.droid.digestion_engine.max_tier_reached
         ):
             terminated = True
+        elif self.world._conf.single_chain_mode and (
+            len(self.world._active_orbs) == 0
+            and not self.world.droid.digestion_engine.max_tier_reached
+        ):
+            terminated = True
 
-        return terminated, truncated, reward
+        return terminated, truncated

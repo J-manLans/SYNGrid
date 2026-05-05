@@ -42,6 +42,12 @@ class HumanRunner:
                 ):
                     break
 
+                if self._world._conf.single_chain_mode and (
+                    len(self._world._active_orbs) == 0
+                    and not self._world.droid.digestion_engine.max_tier_reached
+                ):
+                    break
+
             action = self._renderer.get_user_action()
 
     # ================= #

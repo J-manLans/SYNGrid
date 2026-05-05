@@ -57,7 +57,7 @@ class TestSynergyDroid:
         Returns a SynergyDroid instance reset to its initial state. Used as a reusable fixture for most tests.
         """
 
-        droid = SynergyDroid(get_test_config().world.droid_conf)
+        droid = SynergyDroid(get_test_config().world.droid_conf, False)
         droid.reset()
 
         return droid
@@ -80,7 +80,7 @@ class TestSynergyDroid:
             update={"grid_rows": y, "grid_cols": x}
         )
 
-        droid = SynergyDroid(conf)
+        droid = SynergyDroid(conf, False)
         droid.reset()
 
         assert droid.position == expected_position
@@ -96,7 +96,7 @@ class TestSynergyDroid:
             update={"starting_score": score}
         )
 
-        droid = SynergyDroid(conf)
+        droid = SynergyDroid(conf, False)
         droid.reset()
 
         assert droid.score == score
@@ -174,7 +174,7 @@ class TestSynergyDroid:
             update={"grid_rows": 1, "grid_cols": 1}
         )
 
-        droid = SynergyDroid(conf)
+        droid = SynergyDroid(conf, False)
         droid.reset()
         droid.perform_action(action)
 
