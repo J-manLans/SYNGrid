@@ -65,9 +65,11 @@ class DigestionEngine:
     # === Scoring types === #
 
     def _step_wise_scoring(self, consumed_orb: TierOrb) -> float:
-        if self.chained_tiers == consumed_orb.META.TIER - 1:
+        current_tier = consumed_orb.META.TIER
+
+        if self.chained_tiers == current_tier - 1 or current_tier == 1:
             self.chained_tiers = (
-                consumed_orb.META.TIER if not consumed_orb.max_tier else self._NO_CHAIN
+                current_tier if current_tier != consumed_orb.max_tier else self._NO_CHAIN
             )
             return consumed_orb.REWARD
 

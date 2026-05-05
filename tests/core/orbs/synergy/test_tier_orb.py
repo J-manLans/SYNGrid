@@ -65,8 +65,8 @@ class TestTierOrb:
 
     def test_active_orb_is_correct(self, orb: TierOrb):
         position = [
-            np.int64(max(0, self._GRID_ROWS - 2)),
-            np.int64(max(0, self._GRID_COLS - 2)),
+            int(np.int64(max(0, self._GRID_ROWS - 2))),
+            int(np.int64(max(0, self._GRID_COLS - 2))),
         ]
         orb.spawn(position)
 
