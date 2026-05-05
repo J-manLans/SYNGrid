@@ -34,7 +34,7 @@ class TestDigestionEngine:
     @pytest.fixture
     def digestion_engine(self) -> DigestionEngine:
         BaseOrb.set_life_span(5, 5)
-        d = DigestionEngine(-1.0, 0.5)
+        d = DigestionEngine(-1.0, 0.5, False)
         d.reset()
         return d
 
@@ -154,9 +154,7 @@ class TestDigestionEngine:
         self, digestion_engine: DigestionEngine
     ):
         base_orb = TierOrb(1, get_test_config().world.tier_orb_conf)
-        in_order_orb = TierOrb(
-            self._MAX_TIER, get_test_config().world.tier_orb_conf
-        )
+        in_order_orb = TierOrb(self._MAX_TIER, get_test_config().world.tier_orb_conf)
         # set correct scoring type
         base_orb.step_wise_scoring = False
         base_orb.threshold_scoring = True

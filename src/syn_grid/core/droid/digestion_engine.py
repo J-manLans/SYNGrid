@@ -12,12 +12,19 @@ class DigestionEngine:
     #        Init       #
     # ================= #
 
-    def __init__(self, tier_consumption_penalty: float, reward_multiplier: float):
+    def __init__(
+        self,
+        tier_consumption_penalty: float,
+        reward_multiplier: float,
+        termination_on_max_tier: bool,
+    ):
         self._tier_consumption_penalty = tier_consumption_penalty
         self._reward_multiplier = reward_multiplier
+        self.termination_on_max_tier = termination_on_max_tier
 
     def reset(self):
         self.chained_tiers = self._NO_CHAIN
+        self.max_tier_reached = False
         self._pending_reward = 0.0
         self._max_reward_bonus = 0.0
 
@@ -69,7 +76,9 @@ class DigestionEngine:
 
         if self.chained_tiers == current_tier - 1 or current_tier == 1:
             self.chained_tiers = (
-                current_tier if current_tier != consumed_orb.max_tier else self._NO_CHAIN
+                current_tier
+                if current_tier != consumed_orb.max_tier
+                else self._NO_CHAIN
             )
             return consumed_orb.REWARD
 
@@ -104,6 +113,7 @@ class DigestionEngine:
                 return 0.0
 
             self.chained_tiers = self._NO_CHAIN
+            self.max_tier_reached = True
             return consumed_orb.REWARD
 
         self.chained_tiers = (
