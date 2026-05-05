@@ -48,7 +48,7 @@ world:
     # - reward_multiplier: multiplier applied to rewards when combinator reward structure is used
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 50
+    starting_score: 30
     step_penalty: &step_penalty -1.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 0.5
@@ -85,9 +85,9 @@ world:
     # - growth_factor: multiplier applied per tier increase if linear_reward_growth is false
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
-    linear_reward_growth: false
-    step_wise_scoring: false
-    threshold_scoring: true
+    linear_reward_growth: true
+    step_wise_scoring: true
+    threshold_scoring: false
     max_tier_scoring: false
     growth_factor: 1.5
     base_reward: 3

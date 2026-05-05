@@ -110,11 +110,15 @@ class TierConf(BaseModel, frozen=True):
 
     @model_validator(mode="after")
     def validate_config(self):
-        scoring_modes = [self.step_wise_scoring, self.threshold_scoring, self.max_tier_scoring]
+        scoring_modes = [
+            self.step_wise_scoring,
+            self.threshold_scoring,
+            self.max_tier_scoring,
+        ]
 
         if not any(scoring_modes):
             raise ValueError("At least one of the scoring modes need to be set to true")
-        elif (sum(1 for score_mode in scoring_modes if score_mode) > 1):
+        elif sum(1 for score_mode in scoring_modes if score_mode) > 1:
             raise ValueError("Only one of the scoring modes can be set to true")
         return self
 

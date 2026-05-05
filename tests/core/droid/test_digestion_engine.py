@@ -34,23 +34,14 @@ class TestDigestionEngine:
     @pytest.fixture
     def digestion_engine(self) -> DigestionEngine:
         BaseOrb.set_life_span(5, 5)
-        d = DigestionEngine()
+        d = DigestionEngine(-1.0, 0.5)
         d.reset()
         return d
-
-    @pytest.fixture
-    def reset_orb(self):
-        # restore state
-        TierOrb.max_tier = self._MAX_TIER
-        TierOrb.step_wise_scoring = True
-        TierOrb._linear_reward_growth = True
 
     @pytest.fixture
     def parameterize_reset(self):
         # adjust max tier so we don't tap out
         TierOrb.max_tier = self._MAX_TIER + 1
-        TierOrb.step_wise_scoring = True
-        TierOrb._linear_reward_growth = True
 
     # ================= #
     #       Tests       #
@@ -68,40 +59,41 @@ class TestDigestionEngine:
         # prep the "chain" by giving it a tier value 1 lower than current orb
         digestion_engine.chained_tiers = orb.META.TIER - 1
 
-        assert digestion_engine.digest(orb, 0.2) == orb.REWARD
+        assert digestion_engine.digest(orb) == orb.REWARD
         assert digestion_engine.chained_tiers == orb.META.TIER
 
     def test_max_tier_consumption_rewards_and_resets_chain(
-        self, reset_orb, digestion_engine: DigestionEngine
+        self, digestion_engine: DigestionEngine
     ):
         max_orb = TierOrb(self._MAX_TIER, get_test_config().world.tier_orb_conf)
+        max_orb.max_tier = self._MAX_TIER
 
         # prep the "chain" by giving it a tier value 1 lower than max_orb
         digestion_engine.chained_tiers = max_orb.META.TIER - 1
 
-        assert digestion_engine.digest(max_orb, 0.2) == max_orb.REWARD
+        assert digestion_engine.digest(max_orb) == max_orb.REWARD
         assert digestion_engine.chained_tiers == digestion_engine._NO_CHAIN
 
     def test_out_of_order_consumption_returns_zero_and_resets_chain(
-        self, reset_orb, digestion_engine: DigestionEngine
+        self, digestion_engine: DigestionEngine
     ):
         orb = TierOrb(self._MAX_TIER - 2, get_test_config().world.tier_orb_conf)
 
         # force out-of-order consumption for orb
         digestion_engine.chained_tiers = self._MAX_TIER - 1
 
-        assert digestion_engine.digest(orb, 0.2) == 0.2
+        assert digestion_engine.digest(orb) == -1.0
         assert digestion_engine.chained_tiers == digestion_engine._NO_CHAIN
 
     def test_base_tier_consumption_rewards_and_starts_chain(
-        self, reset_orb, digestion_engine: DigestionEngine
+        self, digestion_engine: DigestionEngine
     ):
         base_orb = TierOrb(1, get_test_config().world.tier_orb_conf)
 
         # force out-of-order consumption for base tier
-        digestion_engine.chained_tiers = self._MAX_TIER - 1
+        digestion_engine.chained_tiers = self._MAX_TIER
 
-        assert digestion_engine.digest(base_orb, 0.2) == base_orb.REWARD
+        assert digestion_engine.digest(base_orb) == base_orb.REWARD
         assert digestion_engine.chained_tiers == digestion_engine._BASE_TIER
 
     # === Delayed scoring === #
@@ -115,15 +107,16 @@ class TestDigestionEngine:
     ):
         # set correct scoring type
         orb.step_wise_scoring = False
+        orb.threshold_scoring = True
 
         # prep the "chain" by giving it a tier value 1 lower than current orb
         digestion_engine.chained_tiers = orb.META.TIER - 1
 
-        assert digestion_engine.digest(orb, 0.2) == 0
+        assert digestion_engine.digest(orb) == 0
         assert digestion_engine.chained_tiers == orb.META.TIER
 
     def test_delayed_scoring_max_tier_consumption_rewards_and_resets_chain(
-        self, reset_orb, digestion_engine: DigestionEngine
+        self, digestion_engine: DigestionEngine
     ):
         max_orb = TierOrb(self._MAX_TIER, get_test_config().world.tier_orb_conf)
         # set correct scoring type
@@ -132,11 +125,11 @@ class TestDigestionEngine:
         # prep the "chain" by giving it a tier value 1 lower than max_orb
         digestion_engine.chained_tiers = max_orb.META.TIER - 1
 
-        assert digestion_engine.digest(max_orb, 0.2) == max_orb.REWARD
+        assert digestion_engine.digest(max_orb) == max_orb.REWARD
         assert digestion_engine.chained_tiers == digestion_engine._NO_CHAIN
 
     def test_out_of_order_consumption_rewards_and_resets_chain(
-        self, reset_orb, digestion_engine: DigestionEngine
+        self, digestion_engine: DigestionEngine
     ):
         out_of_order_orb = TierOrb(
             self._MAX_TIER - 3, get_test_config().world.tier_orb_conf
@@ -146,29 +139,33 @@ class TestDigestionEngine:
         )
         # set correct scoring type
         out_of_order_orb.step_wise_scoring = False
+        out_of_order_orb.threshold_scoring = True
         in_order_orb.step_wise_scoring = False
+        in_order_orb.threshold_scoring = True
 
         # force out-of-order consumption for out_of_order_orb and prep the reward
         digestion_engine.chained_tiers = in_order_orb.META.TIER
         digestion_engine._pending_reward = in_order_orb.REWARD
 
-        assert digestion_engine.digest(out_of_order_orb, 0.2) == in_order_orb.REWARD
+        assert digestion_engine.digest(out_of_order_orb) == in_order_orb.REWARD
         assert digestion_engine.chained_tiers == digestion_engine._NO_CHAIN
 
     def test_base_tier_consumption_returns_pending_reward_and_starts_chain(
-        self, reset_orb, digestion_engine: DigestionEngine
+        self, digestion_engine: DigestionEngine
     ):
         base_orb = TierOrb(1, get_test_config().world.tier_orb_conf)
         in_order_orb = TierOrb(
-            self._MAX_TIER - 1, get_test_config().world.tier_orb_conf
+            self._MAX_TIER, get_test_config().world.tier_orb_conf
         )
         # set correct scoring type
         base_orb.step_wise_scoring = False
+        base_orb.threshold_scoring = True
         in_order_orb.step_wise_scoring = False
+        in_order_orb.threshold_scoring = True
 
         # force out-of-order consumption for base_orb and prep the reward
         digestion_engine.chained_tiers = in_order_orb.META.TIER
         digestion_engine._pending_reward = in_order_orb.REWARD
 
-        assert digestion_engine.digest(base_orb, 0.2) == in_order_orb.REWARD
+        assert digestion_engine.digest(base_orb) == in_order_orb.REWARD
         assert digestion_engine.chained_tiers == digestion_engine._BASE_TIER

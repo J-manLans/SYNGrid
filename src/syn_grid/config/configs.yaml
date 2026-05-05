@@ -38,7 +38,7 @@ world:
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
     # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
-    # - reward_multiplier: multiplier applied to rewards when combinator reward structure is used
+    # - reward_multiplier: multiplier applied to rewards when threshold scoring in tier_orb_conf is activated
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
