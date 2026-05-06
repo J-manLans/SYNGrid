@@ -135,25 +135,41 @@ class SYNGridEnv(gym.Env):
         return hud_data
 
     def _check_episode_end(self) -> tuple[bool, bool]:
+        """
+        Determine whether the episode should terminate or be truncated.
+
+        Returns:
+            (terminated, truncated): Both booleans. Terminated indicates natural end
+            (success/failure). Truncated indicates early cut due to step limit in
+            single_chain_mode (not a failure).
+        """
+
         terminated = False
         truncated = False
 
         if self.world.droid.score <= 0:
+            # always terminate when agent is out of score
             terminated = True
         elif self._observation_handler.steps_left <= 0:
+            # if we run single_chain_mode, treat out of step as truncation, since we are not
+            # measuring survival as a true goal, otherwise terminate — because the agent did good
             if self.world._conf.single_chain_mode:
                 truncated = True
             else:
                 terminated = True
         elif (
-            self.world.droid.digestion_engine.termination_on_max_tier
+            self.world._conf.termination_on_max_tier
             and self.world.droid.digestion_engine.max_tier_reached
         ):
+            # if we run any termination_on_max_tier scenario, we terminate whenever the first max
+            # tier is reached
             terminated = True
         elif self.world._conf.single_chain_mode and (
             len(self.world._active_orbs) == 0
             and not self.world.droid.digestion_engine.max_tier_reached
         ):
+            # in single_chain_mode and if all orbs are consumed but in wrong order, terminate the
+            # episode
             terminated = True
 
         return terminated, truncated

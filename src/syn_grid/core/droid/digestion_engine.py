@@ -12,15 +12,9 @@ class DigestionEngine:
     #        Init       #
     # ================= #
 
-    def __init__(
-        self,
-        tier_consumption_penalty: float,
-        reward_multiplier: float,
-        termination_on_max_tier: bool,
-    ):
+    def __init__(self, tier_consumption_penalty: float, reward_multiplier: float):
         self._tier_consumption_penalty = tier_consumption_penalty
         self._reward_multiplier = reward_multiplier
-        self.termination_on_max_tier = termination_on_max_tier
 
     def reset(self):
         self.chained_tiers = self._NO_CHAIN
@@ -61,6 +55,8 @@ class DigestionEngine:
             if consumed_orb.max_tier_scoring:
                 return self._max_tier_scoring(consumed_orb)
 
+            raise ValueError("The scoring type for this orb isn't implemented")
+
         # Non-tier orbs: always return base reward and resets reward state
         self.reset()
         return consumed_orb.REWARD
@@ -75,11 +71,14 @@ class DigestionEngine:
         current_tier = consumed_orb.META.TIER
 
         if self.chained_tiers == current_tier - 1 or current_tier == 1:
-            self.chained_tiers = (
-                current_tier
-                if current_tier != consumed_orb.max_tier
-                else self._NO_CHAIN
-            )
+            if current_tier == consumed_orb.max_tier:
+                self.chained_tiers = self._NO_CHAIN
+                self.max_tier_reached = (
+                    True  # impactful only in terminate_on_max_tier scenarios
+                )
+            else:
+                self.chained_tiers = current_tier
+
             return consumed_orb.REWARD
 
         self.chained_tiers = self._NO_CHAIN
@@ -99,6 +98,9 @@ class DigestionEngine:
 
             # If we reached max tier, reset the chain and return the bonus
             self.chained_tiers = self._NO_CHAIN
+            self.max_tier_reached = (
+                True  # impactful only in terminate_on_max_tier scenarios
+            )
             return self._flush_rewards()[1] + scaled_reward
 
         # Handel pending reward if chain is broken,
@@ -113,7 +115,7 @@ class DigestionEngine:
                 return 0.0
 
             self.chained_tiers = self._NO_CHAIN
-            self.max_tier_reached = True
+            self.max_tier_reached = True  # essential for this scoring type
             return consumed_orb.REWARD
 
         self.chained_tiers = (
@@ -123,10 +125,6 @@ class DigestionEngine:
         return 0.0
 
     # === Scoring helpers === #
-
-    def _set_pending_rewards(self, scaled_reward: float):
-        self._pending_reward = scaled_reward
-        self._max_reward_bonus += self._pending_reward
 
     def _handle_chain_break(self, current_tier: int, scaled_reward: float) -> float:
         """
@@ -158,6 +156,10 @@ class DigestionEngine:
             pending_reward = self._flush_rewards()[0]
 
         return pending_reward
+
+    def _set_pending_rewards(self, scaled_reward: float):
+        self._pending_reward = scaled_reward
+        self._max_reward_bonus += self._pending_reward
 
     def _flush_rewards(self) -> tuple[float, float]:
         temp_rew = self._pending_reward
