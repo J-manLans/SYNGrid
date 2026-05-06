@@ -19,6 +19,8 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     # ================= #
 
     _POLICY_MAP = {"vector": "Mlp", "composite": "MultiInput", "grid": "Cnn"}
+    _TRAIN = "train"
+    _EVAL = "eval"
 
     def __init__(
         self,
@@ -92,7 +94,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         Required for consistent eval, also for resuming training.
         """
 
-        base = get_project_path("output", "results", "saved_vec_norms")
+        base = get_project_path("output", "models_vec_norms")
         self._vec_norm_stats_dir = (
             base / self._conf.save_folder if self._conf.save_folder else base
         )
@@ -101,14 +103,19 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Env === #
 
-    def _make_wrapped_dummy_vec_env(self, render_mode: str | None) -> DummyVecEnv:
-        return DummyVecEnv([lambda: self._make_env(render_mode)])
+    def _make_wrapped_dummy_vec_env(self, render_mode: str | None, sub_dir: str) -> DummyVecEnv:
+        return DummyVecEnv([lambda: self._make_env(render_mode, sub_dir)])
 
-    def _make_env(self, render_mode: str | None) -> Env:
+    def _make_env(self, render_mode: str | None, sub_dir: str) -> Env:
         env = self._make_raw_env(render_mode)
 
-        if self._conf.training and self._train_conf.monitor_output:
-            env = self._wrap_in_logger(env)
+        # fmt: off
+        if (
+            (self._conf.training and self._train_conf.csv_output)
+            or (not self._conf.training and self._eval_conf.csv_output)
+        ):
+            env = self._wrap_in_logger(env, sub_dir)
+        # fmt: on
 
         return env
 
@@ -120,12 +127,13 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # --- Wrappers --- #
 
-    def _wrap_in_logger(self, env: Env) -> Env:
+    def _wrap_in_logger(self, env: Env, sub_dir: str) -> Env:
         """
-        Wrap the environment with a Monitor for logging.
-        The created csv is needed for plotting our own graphs with matplotlib later.
+        Wrap the environment with EpisodeStatsWrapper for logging.
+        Tracks episode metrics and saves them to a CSV for training and eval analysis.
         """
-        return EpisodeStatsWrapper(env, self.log_dir, self._get_model_id())
+
+        return EpisodeStatsWrapper(env, self.log_dir / sub_dir, self._get_model_id())
 
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
         evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
@@ -138,9 +146,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Model === #
 
-    def _get_model(self, env: Env | VecEnv) -> T:
+    def _get_model(self, env: Env | VecEnv, sub_dir: str) -> T:
         if self._conf.training and not self._train_conf.continue_training:
-            return self._create_model(env)
+            return self._create_model(env, sub_dir)
         else:
             return self._load_model(env)
 
@@ -150,14 +158,14 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             model_path, env=env, device=self._HYPER_PARAMETERS["device"]
         )
 
-    def _create_model(self, env: Env | VecEnv) -> T:
+    def _create_model(self, env: Env | VecEnv, sub_dir: str) -> T:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
         return self._ALGORITHM(
             env=env,
             verbose=1,
             tensorboard_log=(
-                str(self.log_dir) if self._train_conf.tensorboard_output else None
+                str(self.log_dir / sub_dir) if self._train_conf.tensorboard_output else None
             ),
             seed=self._conf.seed,
             **self._HYPER_PARAMETERS,

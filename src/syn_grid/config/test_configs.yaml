@@ -139,7 +139,6 @@ obs:
 
 agent:
   global_agent_conf:
-    # Global settings:
     # - algorithm: which algorithm the agent will use
     # - agent_steps: identifier for the model to continue training or evaluate
     # - id_tag: (null if not applicable) used to tag your model so it can be easily found
@@ -157,18 +156,16 @@ agent:
     training: true
     check_env: false
 
-  # Pick algorithm to train or evaluate
   train_agent_conf:
-    # Train settings:
     # - continue_training: continue from a previously saved model
-    # - monitor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
-    # - enable_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
-    # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
-    # - model_output (null or "human"): null is default, change to human if you want visual feedback for debugging
+    # - csv_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
+    # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training data
+    # - model_output : False if you are debugging or experimenting and only want to inspect behavior, not persist checkpoints
+    # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    monitor_output: true
+    csv_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
@@ -178,7 +175,7 @@ agent:
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    # - log_results: if you want to use the custom logger to persist results from the runs.
+    # - csv_output: if you want to use the custom logger to persist results from the runs.
     num_eval_episodes: 1
     render_mode: null
-    log_results: true
+    csv_output: true
