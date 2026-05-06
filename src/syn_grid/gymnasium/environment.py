@@ -94,7 +94,7 @@ class SYNGridEnv(gym.Env):
 
         self.obs = self._observation_handler.get_observation(self.world)
 
-        info = self._get_state_info(reward)
+        info = self._get_state_info()
 
         # Return observation, reward, terminated, truncated and info
         return (
@@ -170,9 +170,8 @@ class SYNGridEnv(gym.Env):
 
         return terminated, truncated
 
-    def _get_state_info(self, reward: float) -> dict[str, Any]:
+    def _get_state_info(self) -> dict[str, Any]:
         return {
-            "reward": reward,
-            "chained_tiers": self.world.droid.digestion_engine.chained_tiers,
             "max_tier_reached": self.world.droid.digestion_engine.max_tier_reached,
+            "tier_chain_broken": self.world.droid.digestion_engine.tier_chain_broken,
         }
