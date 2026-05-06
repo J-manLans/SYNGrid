@@ -142,7 +142,7 @@ agent:
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
     agent_steps: "301056"
-    id_tag: 'training_with_episode_stats'
+    id_tag: 'testing_new_paths'
     save_folder: 'experiments/just_checking'
     seed: 3
     human_control: false

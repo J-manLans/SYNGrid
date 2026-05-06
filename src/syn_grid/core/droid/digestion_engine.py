@@ -159,7 +159,6 @@ class DigestionEngine:
         - Any other tier: reset chain state, flush and return pending reward.
         """
 
-
         if self._pending_reward == 0.0:
             self.tier_chain_broken = True
             return 0.0
