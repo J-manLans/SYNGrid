@@ -142,11 +142,11 @@ agent:
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
     agent_steps: "301056"
-    id_tag: null
+    id_tag: 'training_with_episode_stats'
     save_folder: 'experiments/just_checking'
     seed: 3
     human_control: false
-    training: false
+    training: true
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -169,5 +169,7 @@ agent:
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 300
+    # - log_results: if you want to use the custom logger to persist results from the runs.
+    num_eval_episodes: 100
     render_mode: null
+    log_results: true

@@ -225,6 +225,7 @@ class TrainAgentConf(BaseModel, frozen=False):
 class EvalAgentConf(BaseModel, frozen=False):
     num_eval_episodes: int
     render_mode: str | None
+    log_results: bool
 
     @model_validator(mode="after")
     def validate_config(self):

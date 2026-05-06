@@ -176,8 +176,9 @@ agent:
     iterations: 4
 
   eval_agent_conf:
-    # Eval settings:
     # - num_eval_episodes: how many episodes to evaluate
-    # - render_mode (null or "human"): null is default, change to null if you don't want visual feedback during debugging
+    # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
+    # - log_results: if you want to use the custom logger to persist results from the runs.
     num_eval_episodes: 1
     render_mode: null
+    log_results: true

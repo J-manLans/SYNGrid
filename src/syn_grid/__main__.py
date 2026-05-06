@@ -3,7 +3,7 @@ from syn_grid.config.models import ExperimentConfig, FullConf
 from syn_grid.utils.args_utils import parse_args, update_agent_conf_from_args
 from syn_grid.runners.human_runner.human_runner import HumanRunner
 from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS
-from syn_grid.gymnasium.env_factory import register_env
+from syn_grid.gymnasium.utils.env_factory import register_env
 
 import sys
 

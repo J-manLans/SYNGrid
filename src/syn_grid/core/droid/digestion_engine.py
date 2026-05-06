@@ -39,6 +39,9 @@ class DigestionEngine:
         :return: The calculated reward.
         """
 
+        # Reset at start of each step, because if it was reached last step, we're back at zero now
+        self.max_tier_reached = False
+
         # Handle tier-based orbs with progression logic
         if isinstance(consumed_orb, TierOrb):
             # Step-wise scoring: reward only if progression is correct
@@ -74,7 +77,9 @@ class DigestionEngine:
             if current_tier == consumed_orb.max_tier:
                 self.chained_tiers = self._NO_CHAIN
                 self.max_tier_reached = (
-                    True  # impactful only in terminate_on_max_tier scenarios
+                    # terminates episode in terminate_on_max_tier scenarios,
+                    # used for logging in every other scenario
+                    True
                 )
             else:
                 self.chained_tiers = current_tier
@@ -99,7 +104,9 @@ class DigestionEngine:
             # If we reached max tier, reset the chain and return the bonus
             self.chained_tiers = self._NO_CHAIN
             self.max_tier_reached = (
-                True  # impactful only in terminate_on_max_tier scenarios
+                # terminates episode in terminate_on_max_tier scenarios,
+                # used for logging in every other scenario
+                True
             )
             return self._flush_rewards()[1] + scaled_reward
 
@@ -115,7 +122,9 @@ class DigestionEngine:
                 return 0.0
 
             self.chained_tiers = self._NO_CHAIN
-            self.max_tier_reached = True  # essential for this scoring type
+            # terminates episode in terminate_on_max_tier scenarios,
+            # used for logging in every other scenario
+            self.max_tier_reached = True
             return consumed_orb.REWARD
 
         self.chained_tiers = (
