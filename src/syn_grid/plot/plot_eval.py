@@ -1,6 +1,7 @@
 from syn_grid.utils.paths_util import get_project_path
 from syn_grid.plot.plot_helpers import (
     Color,
+    _EVAL,
     _setup_plotting,
     _plot_series,
     _finalize_plot,
@@ -88,9 +89,9 @@ def plot_completion_rate(csv_dir: Path, plots_dir: Path) -> None:
 if __name__ == "__main__":
     # The logger have a header with [episode,reward,length,chains_completed,chains_broken]
     csv_dir = get_project_path(
-        "output", "results", "logs", "experiments", "just_checking"
+        "output", "results", "logs", "experiments", "just_checking", _EVAL
     )
-    plots_dir = get_project_path("output", "results", "plots")
+    plots_dir = get_project_path("output", "results", "plots", _EVAL)
     plots_dir.mkdir(parents=True, exist_ok=True)
 
     plot_reward(csv_dir, plots_dir)

@@ -208,7 +208,7 @@ class GlobalAgentConf(BaseModel, frozen=False):
 
 class TrainAgentConf(BaseModel, frozen=False):
     continue_training: bool
-    monitor_output: bool
+    csv_output: bool
     tensorboard_output: bool
     model_output: bool
     render_mode: str | None
@@ -225,7 +225,7 @@ class TrainAgentConf(BaseModel, frozen=False):
 class EvalAgentConf(BaseModel, frozen=False):
     num_eval_episodes: int
     render_mode: str | None
-    log_results: bool
+    csv_output: bool
 
     @model_validator(mode="after")
     def validate_config(self):

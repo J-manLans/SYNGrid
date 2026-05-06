@@ -13,7 +13,7 @@ class EpisodeStatsWrapper(RecordEpisodeStatistics[ObsType, ActType]):
         self._completed_chains = 0
         self._broken_chains = 0
 
-        csv_path = Path(log_dir) / f"{model_id}.csv"
+        csv_path = log_dir / f"{model_id}.csv"
         csv_path.parent.mkdir(parents=True, exist_ok=True)
         self._csv_file = open(csv_path, "w", newline="")
         self._csv_writer = csv.DictWriter(

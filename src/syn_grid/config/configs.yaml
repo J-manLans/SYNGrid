@@ -142,24 +142,23 @@ agent:
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
     agent_steps: "301056"
-    id_tag: 'testing_new_paths'
+    id_tag: 'train_test_before_merging'
     save_folder: 'experiments/just_checking'
     seed: 3
     human_control: false
     training: true
     check_env: false
 
-  # Pick algorithm to train or evaluate
   train_agent_conf:
     # - continue_training: continue from a previously saved model
-    # - monitor_output: False if you have your own internal logging, are debugging or experimenting and only want to inspect behavior, not persist results
-    # - tensorboard_output: False if you have your own internal logging, are debugging or experimenting and only want to inspect behavior, not persist training
-    # - model_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training
+    # - csv_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
+    # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training data
+    # - model_output : False if you are debugging or experimenting and only want to inspect behavior, not persist checkpoints
     # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    monitor_output: true
+    csv_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
@@ -169,7 +168,7 @@ agent:
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    # - log_results: if you want to use the custom logger to persist results from the runs.
-    num_eval_episodes: 100
+    # - csv_output: if you want to use the custom logger to persist results from the runs.
+    num_eval_episodes: 300
     render_mode: null
-    log_results: true
+    csv_output: true

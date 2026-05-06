@@ -19,6 +19,14 @@ class Color(str, Enum):
 
 
 # ================= #
+#     Constants     #
+# ================= #
+
+
+_TRAIN = "train"
+_EVAL = "eval"
+
+# ================= #
 #      Helpers      #
 # ================= #
 

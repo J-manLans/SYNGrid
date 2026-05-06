@@ -43,15 +43,17 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     # ================= #
 
     def train(self) -> None:
-        env = self._make_wrapped_dummy_vec_env(self._train_conf.render_mode)
+        env = self._make_wrapped_dummy_vec_env(
+            self._train_conf.render_mode, self._TRAIN
+        )
         env = self._get_normalized_env(env)
-        model = self._get_model(env)
+        model = self._get_model(env, self._TRAIN)
 
         self._train_model(model, env)
 
     def eval(self) -> None:
         # prep model and env
-        env = self._make_wrapped_dummy_vec_env(self._eval_conf.render_mode)
+        env = self._make_wrapped_dummy_vec_env(self._eval_conf.render_mode, self._EVAL)
         env = self._get_normalized_env(env)
         model = self._load_model(env)
 
