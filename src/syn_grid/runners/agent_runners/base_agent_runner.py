@@ -61,22 +61,25 @@ class BaseAgentRunner(ABC):
         Create and store paths for model checkpoints and TensorBoard logs.
 
         Uses the save_folder config value if provided, otherwise saves directly
-        under the default 'models' directory.
-        """
+        under the default 'models' directory."""
 
-        if self._conf.save_folder:
-            self._model_dir = Path(
-                get_project_path("output", "models", self._conf.save_folder)
-            )
-            self.log_dir = Path(
-                get_project_path("output", "results", "logs", self._conf.save_folder)
-            )
-        else:
-            self._model_dir = Path(get_project_path("output", "models"))
-            self.log_dir = Path(get_project_path("output", "results", "logs"))
+        base_model_dir = get_project_path("output", "models")
+        base_log_dir = get_project_path("output", "results", "logs")
 
-        Path(self._model_dir).mkdir(parents=True, exist_ok=True)
-        Path(self.log_dir).mkdir(parents=True, exist_ok=True)
+        self._model_dir = (
+            base_model_dir / self._conf.save_folder
+            if self._conf.save_folder
+            else base_model_dir
+        )
+
+        self.log_dir = (
+            base_log_dir / self._conf.save_folder
+            if self._conf.save_folder
+            else base_log_dir
+        )
+
+        self._model_dir.mkdir(parents=True, exist_ok=True)
+        self.log_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_model_base_id(self) -> tuple[str, str]:
         tag = f"TAG_{self._conf.id_tag}_" if self._conf.id_tag else ""

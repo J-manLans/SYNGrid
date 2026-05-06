@@ -1,12 +1,9 @@
 from syn_grid.utils.paths_util import get_package_path, get_project_path
 from syn_grid.utils.date_utils import get_date
-from syn_grid.config.models import ExperimentConfig
 
 import yaml
-from pathlib import Path
 from typing import Type, TypeVar
 from pydantic import BaseModel
-import sys
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -17,8 +14,8 @@ class ConfigManager:
     # ================= #
 
     def __init__(self, config_file: str):
-        self.yaml_path = Path(get_package_path("config", config_file))
-        self.save_conf_path = Path(get_project_path("output", "saved_configs"))
+        self.yaml_path = get_package_path("config", config_file)
+        self.save_conf_path = get_project_path("output", "saved_configs")
         if not self.yaml_path.exists():
             raise FileNotFoundError(f"Config file not found: {self.yaml_path}")
 

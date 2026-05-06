@@ -1,4 +1,4 @@
-from syn_grid.config.models import RendererConf, AssetsConf
+from syn_grid.config.models import RendererConf
 from syn_grid.core.orbs.orb_meta import (
     OrbMeta,
     OrbCategory,
@@ -9,7 +9,6 @@ from syn_grid.utils.paths_util import get_package_path
 from syn_grid.gymnasium.action_space import DroidAction
 
 import pygame
-import json
 import sys
 
 

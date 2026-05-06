@@ -1,11 +1,11 @@
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
+from syn_grid.gymnasium.utils.episode_stats_wrapper import EpisodeStatsWrapper
+
 
 import os
 from typing import Type, TypeVar, Any, Generic
-from pathlib import Path
-from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize, VecEnv
 from gymnasium import Env
@@ -57,25 +57,6 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     #      Helpers      #
     # ================= #
 
-    def _init_normalization_stats_dir(self):
-        """
-        Create directory for saving environment normalization statistics.
-        Required for consistent eval, also for resuming training.
-        """
-
-        if self._conf.save_folder:
-            self._vec_norm_stats_dir = Path(
-                get_project_path(
-                    "output", "results", "saved_vec_norms", self._conf.save_folder
-                )
-            )
-        else:
-            self._vec_norm_stats_dir = Path(
-                get_project_path("output", "results", "saved_vec_norms")
-            )
-
-        Path(self._vec_norm_stats_dir).mkdir(parents=True, exist_ok=True)
-
     def _construct_model_id(
         self,
         conf: GlobalAgentConf,
@@ -105,6 +86,19 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                 f"tier_enabled={run_conf.orb_factory_conf.types.tier.enabled}"
             )
 
+    def _init_normalization_stats_dir(self):
+        """
+        Create directory for saving environment normalization statistics.
+        Required for consistent eval, also for resuming training.
+        """
+
+        base = get_project_path("output", "results", "saved_vec_norms")
+        self._vec_norm_stats_dir = (
+            base / self._conf.save_folder if self._conf.save_folder else base
+        )
+
+        self._vec_norm_stats_dir.mkdir(parents=True, exist_ok=True)
+
     # === Env === #
 
     def _make_wrapped_dummy_vec_env(self, render_mode: str | None) -> DummyVecEnv:
@@ -114,7 +108,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         env = self._make_raw_env(render_mode)
 
         if self._conf.training and self._train_conf.monitor_output:
-            env = self._wrap_in_monitor(env)
+            env = self._wrap_in_logger(env)
 
         return env
 
@@ -126,13 +120,12 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # --- Wrappers --- #
 
-    def _wrap_in_monitor(self, env: Env) -> Env:
+    def _wrap_in_logger(self, env: Env) -> Env:
         """
         Wrap the environment with a Monitor for logging.
         The created csv is needed for plotting our own graphs with matplotlib later.
         """
-
-        return Monitor(env=env, filename=str(self.log_dir / self._get_model_id()))
+        return EpisodeStatsWrapper(env, self.log_dir, self._get_model_id())
 
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
         evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
