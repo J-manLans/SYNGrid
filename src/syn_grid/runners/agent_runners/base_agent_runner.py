@@ -1,7 +1,7 @@
 from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
 from syn_grid.utils.date_utils import get_date
-from syn_grid.gymnasium.env_factory import make, check_my_env
+from syn_grid.gymnasium.utils.env_factory import make, check_my_env
 
 import sys
 from pathlib import Path

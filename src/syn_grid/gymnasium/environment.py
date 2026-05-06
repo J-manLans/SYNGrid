@@ -8,6 +8,7 @@ from syn_grid.gymnasium.observation_space.observation_handler import (
 
 import gymnasium as gym
 from gymnasium import spaces
+from typing import Any
 
 
 class SYNGridEnv(gym.Env):
@@ -93,12 +94,7 @@ class SYNGridEnv(gym.Env):
 
         self.obs = self._observation_handler.get_observation(self.world)
 
-        info = {
-            "reward": reward,
-            "steps_left": self._observation_handler.steps_left,
-            "score": self.world.droid.score,
-            "chain": self.world.droid.digestion_engine.chained_tiers,
-        }
+        info = self._get_state_info(reward)
 
         # Return observation, reward, terminated, truncated and info
         return (
@@ -173,3 +169,10 @@ class SYNGridEnv(gym.Env):
             terminated = True
 
         return terminated, truncated
+
+    def _get_state_info(self, reward: float) -> dict[str, Any]:
+        return {
+            "reward": reward,
+            "chained_tiers": self.world.droid.digestion_engine.chained_tiers,
+            "max_tier_reached": self.world.droid.digestion_engine.max_tier_reached,
+        }
