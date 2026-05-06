@@ -22,15 +22,19 @@ world:
   grid_world_conf:
     # - number of rows and columns
     # - single_chain_mode: if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just truncation
+    # - max_tier_scoring (used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
+    # - termination_on_max_tier: terminate the episode as max tier is reached
+    # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     # - max_tier: this is the highest tier that orbs can reach in this environment
     # - max active orbs: number of max active orbs on grid
-    # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode false
-    max_tier: &max_tier 3
-    max_active_orbs: &max_active_orbs 3
+    max_tier_scoring: &max_tier_scoring false
+    termination_on_max_tier: &termination_on_max_tier false
     de_spawn_tiers: &de_spawn_tiers true
+    max_tier: &max_tier 4
+    max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to calculate display size and layout
@@ -48,23 +52,19 @@ world:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
-    # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
-    # - reward_multiplier: multiplier applied to rewards when threshold scoring in tier_orb_conf is activated
-    # - termination_on_max_tier: terminate the episode as max tier is reached
+    # - tier_consumption_penalty (passed to digestion engine): (only applicable if step_wise_scoring is true) punishment for consuming tier orbs in the wrong order
+    # - reward_multiplier (passed to digestion engine): multiplier applied to rewards when threshold scoring in tier_orb_conf is activated, a sensible default is 1.0, then experiment if reward magnitudes get's to large for higher max tiers
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 30
     step_penalty: &step_penalty -1.0
     tier_consumption_penalty: *step_penalty
-    reward_multiplier: 0.5
-    termination_on_max_tier: &termination_on_max_tier false
+    reward_multiplier: 1.0
 
   orb_factory_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span
     # - max_active_orbs (set in grid_world_conf): max active orbs on grid
-    # - max_tier: this is the highest tier that orbs can reach in this environment
-    # - termination_on_max_tier (set in droid_conf): don't change this, it determine if single chain mode is possible
-    # - max_tier_scoring (also used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
+    # - max_tier (set in grid_world_conf): this is the highest tier that orbs can reach in this environment
     # - single_chain_mode (set in grid_world_conf): if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just termination
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
@@ -72,8 +72,6 @@ world:
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
     max_tier: *max_tier
-    termination_on_max_tier: *termination_on_max_tier
-    max_tier_scoring: &max_tier_scoring false
     single_chain_mode: *single_chain_mode
     types:
       negative:
@@ -93,7 +91,7 @@ world:
     # - linear_reward_growth: if true, reward scales linearly instead of exponentially
     # - step_wise_scoring: if true, reward is given per correctly consumed tier instead of on chain break
     # - threshold_scoring: if true, partial reward is given if the chain breaks or an accumulated reward if max tier is reached
-    # - max_tier_scoring (set in orb_factory_conf): if true, reward is only given if max tier is reached
+    # - max_tier_scoring (set in grid_world_conf): if true, reward is only given if max tier is reached
     # - growth_factor: multiplier applied per tier increase if linear_reward_growth is false
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused

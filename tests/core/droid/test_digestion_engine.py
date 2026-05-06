@@ -34,7 +34,7 @@ class TestDigestionEngine:
     @pytest.fixture
     def digestion_engine(self) -> DigestionEngine:
         BaseOrb.set_life_span(5, 5)
-        d = DigestionEngine(-1.0, 0.5, False)
+        d = DigestionEngine(-1.0, 1.0)
         d.reset()
         return d
 
@@ -115,12 +115,14 @@ class TestDigestionEngine:
         assert digestion_engine.digest(orb) == 0
         assert digestion_engine.chained_tiers == orb.META.TIER
 
-    def test_delayed_scoring_max_tier_consumption_rewards_and_resets_chain(
+    def test_threshold_scoring_max_tier_consumption_rewards_and_resets_chain(
         self, digestion_engine: DigestionEngine
     ):
         max_orb = TierOrb(self._MAX_TIER, get_test_config().world.tier_orb_conf)
-        # set correct scoring type
+        # set correct scoring type and max tier
         max_orb.step_wise_scoring = False
+        max_orb.threshold_scoring = True
+        max_orb.max_tier = self._MAX_TIER
 
         # prep the "chain" by giving it a tier value 1 lower than max_orb
         digestion_engine.chained_tiers = max_orb.META.TIER - 1

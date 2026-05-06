@@ -37,7 +37,7 @@ class HumanRunner:
                 self._render()
 
                 if (terminated or truncated) or (
-                    self._world.droid.digestion_engine.termination_on_max_tier
+                    self._world._conf.termination_on_max_tier
                     and self._world.droid.digestion_engine.max_tier_reached
                 ):
                     break

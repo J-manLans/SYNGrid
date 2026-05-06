@@ -15,15 +15,19 @@ world:
   grid_world_conf:
     # - number of rows and columns
     # - single_chain_mode: if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just truncation
+    # - max_tier_scoring (used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
+    # - termination_on_max_tier: terminate the episode as max tier is reached
+    # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     # - max_tier: this is the highest tier that orbs can reach in this environment
     # - max active orbs: number of max active orbs on grid
-    # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
-    single_chain_mode: &single_chain_mode true
-    max_tier: &max_tier 4
-    max_active_orbs: &max_active_orbs 3
+    single_chain_mode: &single_chain_mode false
+    max_tier_scoring: &max_tier_scoring false
+    termination_on_max_tier: &termination_on_max_tier false
     de_spawn_tiers: &de_spawn_tiers false
+    max_tier: &max_tier 2
+    max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to calculate display size and layout
@@ -41,24 +45,20 @@ world:
     # - grid_rows / grid_cols (set in grid_world_conf): defines the grid the droid can move in
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
-    # - tier_consumption_penalty: (only applicable if step_wise_scoring is true)punishment for consuming tier orbs in the wrong order
-    # - reward_multiplier: multiplier applied to rewards when threshold scoring in tier_orb_conf is activated
-    # - termination_on_max_tier: terminate the episode as max tier is reached
+    # - tier_consumption_penalty (passed to digestion engine): (only applicable if step_wise_scoring is true) punishment for consuming tier orbs in the wrong order
+    # - reward_multiplier (passed to digestion engine): multiplier applied to rewards when threshold scoring in tier_orb_conf is activated, a sensible default is 1.0, then experiment if reward magnitudes get's to large for higher max tiers
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
     step_penalty: &step_penalty -1.0
     tier_consumption_penalty: *step_penalty
-    reward_multiplier: 0.5
-    termination_on_max_tier: &termination_on_max_tier true
+    reward_multiplier: 1.0
 
 
   orb_factory_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span
     # - max_active_orbs (set in grid_world_conf): max active orbs on grid
-    # - max_tier: this is the highest tier that orbs can reach in this environment
-    # - termination_on_max_tier (set in droid_conf): don't change this, it determine if single chain mode is possible
-    # - max_tier_scoring (also used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
+    # - max_tier (set in grid_world_conf): this is the highest tier that orbs can reach in this environment
     # - single_chain_mode (set in grid_world_conf): if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just termination
     # - each orb type can be enabled/disabled
     # - weight defines relative spawn frequency when multiple orbs are active
@@ -66,8 +66,6 @@ world:
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
     max_tier: *max_tier
-    termination_on_max_tier: *termination_on_max_tier
-    max_tier_scoring: &max_tier_scoring true
     single_chain_mode: *single_chain_mode
     types:
       negative:
@@ -87,16 +85,16 @@ world:
     # - linear_reward_growth: if true, reward scales linearly instead of exponentially
     # - step_wise_scoring: if true, reward is given per correctly consumed tier instead of on chain break
     # - threshold_scoring: if true, partial reward is given if the chain breaks or an accumulated reward if max tier is reached
-    # - max_tier_scoring (set in orb_factory_conf): if true, reward is only given if max tier is reached
+    # - max_tier_scoring (set in grid_world_conf): if true, reward is only given if max tier is reached
     # - growth_factor: multiplier applied per tier increase if linear_reward_growth is false
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
     step_wise_scoring: false
-    threshold_scoring: false
+    threshold_scoring: true
     max_tier_scoring: *max_tier_scoring
-    growth_factor: 1.5
-    base_reward: 3
+    growth_factor: 2.0
+    base_reward: 3.0
     cool_down: 7
 
 ###########################
@@ -107,7 +105,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_fully_pomdp"
+    perception: "vector_markovian"
     max_steps: &max_steps 100
 
   perception:
@@ -143,12 +141,12 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "10014720"
-    id_tag: 'max_tier_breakdown'
-    save_folder: 'experiments/tier_break'
+    agent_steps: "301056"
+    id_tag: null
+    save_folder: 'experiments/just_checking'
     seed: 3
-    human_control: true
-    training: true
+    human_control: false
+    training: false
     check_env: false
 
   # Pick algorithm to train or evaluate
@@ -160,16 +158,16 @@ agent:
     # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: true
+    continue_training: false
     monitor_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 1000000
-    iterations: 10
+    timesteps: 100000
+    iterations: 3
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
-    num_eval_episodes: 20
+    num_eval_episodes: 300
     render_mode: null

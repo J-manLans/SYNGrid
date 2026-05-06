@@ -18,9 +18,11 @@ class GridWorldConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
     single_chain_mode: bool
+    max_tier_scoring: bool
+    termination_on_max_tier: bool
+    de_spawn_tiers: bool
     max_tier: int
     max_active_orbs: int
-    de_spawn_tiers: bool
 
     @model_validator(mode="after")
     def validate_config(self):
@@ -29,8 +31,19 @@ class GridWorldConf(BaseModel, frozen=True):
         if self.max_active_orbs <= 0:
             raise ValueError("max_active_orbs should be larger than 0")
         if self.single_chain_mode:
-            if self.de_spawn_tiers:
-                raise ValueError('de_spawn_tiers must be false when single_chain_mode is true')
+            if self.max_tier >= (self.grid_rows * self.grid_cols):
+                raise ValueError(
+                    "max_tier can't be higher than number of cells in the grid, there will be no space for orbs"
+                )
+            if not self.max_tier_scoring:
+                raise ValueError(
+                    f"Single_chain_mode requires max_tier_scoring to be true"
+                )
+            if self.de_spawn_tiers or not self.termination_on_max_tier:
+                raise ValueError(
+                    "de_spawn_tiers must be false and termination_on_max_tier must be true when single_chain_mode is true"
+                )
+
             object.__setattr__(self, "max_active_orbs", self.max_tier)
 
         return self
@@ -63,7 +76,6 @@ class DroidConf(BaseModel, frozen=True):
     step_penalty: float
     tier_consumption_penalty: float
     reward_multiplier: float
-    termination_on_max_tier: bool
 
     @model_validator(mode="after")
     def validate_config(self):
@@ -90,31 +102,13 @@ class OrbFactoryConf(BaseModel, frozen=True):
     grid_cols: int
     max_active_orbs: int
     max_tier: int
-    termination_on_max_tier: bool
-    max_tier_scoring: bool
     single_chain_mode: bool
     types: TypesConf
 
     @model_validator(mode="after")
     def validate_config(self):
-        single_chain_requirements = [
-            self.termination_on_max_tier,
-            self.max_tier_scoring,
-        ]
-
         if self.max_tier <= 0:
             raise ValueError("max_tier should be larger than 0")
-        if self.single_chain_mode:
-            if self.max_tier >= (self.grid_rows * self.grid_cols):
-                raise ValueError(
-                    "max_tier can't be higher than number of cells in the grid, there will be no space for orbs"
-                )
-            if not all(single_chain_requirements):
-                raise ValueError(
-                    f"Single_chain_mode requires:"
-                    f"\ntermination_on_max_tier to be enabled in DroidConf"
-                    f"\nand max_tier_scoring enabled in OrbFactoryConf"
-                )
 
         return self
 
