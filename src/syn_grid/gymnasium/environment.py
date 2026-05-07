@@ -1,4 +1,5 @@
 from syn_grid.config.models import WorldConfig, ObsConfig
+from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.gymnasium.action_space import DroidAction
@@ -172,6 +173,7 @@ class SYNGridEnv(gym.Env):
 
     def _get_state_info(self) -> dict[str, Any]:
         return {
-            "max_tier_reached": self.world.droid.digestion_engine.max_tier_reached,
-            "tier_chain_broken": self.world.droid.digestion_engine.tier_chain_broken,
+            LogKey.CHAIN_PROGRESSED: self.world.droid.digestion_engine.chain_progressed,
+            LogKey.CHAINS_BROKEN: self.world.droid.digestion_engine.tier_chain_broken,
+            LogKey.CHAINS_COMPLETED: self.world.droid.digestion_engine.max_tier_reached,
         }

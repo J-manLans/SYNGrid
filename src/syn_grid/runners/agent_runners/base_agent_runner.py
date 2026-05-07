@@ -82,7 +82,7 @@ class BaseAgentRunner(ABC):
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_model_base_id(self) -> tuple[str, str]:
-        tag = f"TAG_{self._conf.id_tag}_" if self._conf.id_tag else ""
+        tag = f"TAG_{self._conf.id_tag}_seed{self._conf.seed}_" if self._conf.id_tag else ""
         perception = self._obs_conf.observation_handler.perception
         tier = f"Tier{self._run_conf.orb_factory_conf.max_tier}"
         reward = f"{self._run_conf.tier_orb_conf.base_reward}rew"
