@@ -62,64 +62,26 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         num_envs = env.num_envs
         episode_starts = np.ones((num_envs,), dtype=bool)
 
-        # Each environment will have a list of rewards and lengths for completed episodes
-        all_rewards = []
-        all_lengths = []
-        al_rewards = []
-
-        current_rewards = np.zeros(num_envs)
-        current_lengths = np.zeros(num_envs, dtype=int)
-        episode_counts = np.zeros(num_envs, dtype=int)
-
-        # start the eval loop
-        obs = env.reset()
-        total_episodes_to_collect = self._eval_conf.num_eval_episodes * num_envs
         try:
-            while len(all_rewards) < total_episodes_to_collect:
-                action, lstm_states = model.predict(
-                    obs,  # type: ignore[arg-type]
-                    state=lstm_states,
-                    episode_start=episode_starts,
-                    deterministic=True,
-                )
-                obs, rewards, dones, infos = env.step(action)
+            for _ in range(self._eval_conf.num_eval_episodes):
+                # start the eval loop
+                obs = env.reset()
+                lstm_states = None
+                episode_starts = np.ones((num_envs,), dtype=bool)
+                while True:
+                    action, lstm_states = model.predict(
+                        obs,  # type: ignore[arg-type]
+                        state=lstm_states,
+                        episode_start=episode_starts,
+                        deterministic=True,
+                    )
+                    obs, rewards, dones, infos = env.step(action)
 
-                al_rewards.append(rewards[0])
-
-                current_rewards += rewards
-                current_lengths += 1
-
-                for i in range(num_envs):
-                    if dones[i]:
-                        # Episode finished – store it
-                        all_rewards.append(current_rewards[i])
-                        all_lengths.append(current_lengths[i])
-                        episode_counts[i] += 1
-
-                        # Reset accumulators for this environment
-                        current_rewards[i] = 0.0
-                        current_lengths[i] = 0
-
-                episode_starts = dones
+                    episode_starts = dones
+                    if dones[0]:
+                        break
         except Exception as e:
             print(f"System crashed: {e}")
             raise
         finally:
             env.close()
-
-        # Compute averages
-        avg_reward = np.mean(all_rewards)
-        avg_length = np.mean(all_lengths)
-        num_max_tier_reached = sum(1 for r in al_rewards if r == 9)
-        average_max_tier = num_max_tier_reached / self._eval_conf.num_eval_episodes
-        num_tier_out_of_order = sum(1 for r in al_rewards if r == -2)
-        average_tier_out_of_order = (
-            num_tier_out_of_order / self._eval_conf.num_eval_episodes
-        )
-
-        print(
-            f"Eval over {self._eval_conf.num_eval_episodes} episodes:"
-            f"average reward = {avg_reward:.2f}, average length = {avg_length:.1f}\n"
-            f"Max tier reached: {num_max_tier_reached} times, average: {average_max_tier:.2f}\n"
-            # f"Tiers out of order: {num_tier_out_of_order}, avg: {average_tier_out_of_order}"
-        )

@@ -105,7 +105,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_markovian"
+    perception: "vector_fully_pomdp"
     max_steps: &max_steps 100
 
   perception:
@@ -141,12 +141,12 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "301056"
-    id_tag: 'train_test_before_merging'
-    save_folder: 'experiments/just_checking'
+    agent_steps: "750080"
+    id_tag: 'threshold_scoring_256'
+    save_folder: 'thesis/tier_2/fully_pomdp'
     seed: 3
     human_control: false
-    training: true
+    training: false
     check_env: false
 
   train_agent_conf:
@@ -162,8 +162,8 @@ agent:
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 100000
-    iterations: 3
+    timesteps: 750000
+    iterations: 1
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate

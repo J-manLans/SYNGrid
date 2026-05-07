@@ -1,7 +1,9 @@
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
-from syn_grid.gymnasium.utils.episode_stats_wrapper import EpisodeStatsWrapper
+from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
+    EpisodeStatsWrapper,
+)
 
 
 import os
@@ -103,7 +105,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Env === #
 
-    def _make_wrapped_dummy_vec_env(self, render_mode: str | None, sub_dir: str) -> DummyVecEnv:
+    def _make_wrapped_dummy_vec_env(
+        self, render_mode: str | None, sub_dir: str
+    ) -> DummyVecEnv:
         return DummyVecEnv([lambda: self._make_env(render_mode, sub_dir)])
 
     def _make_env(self, render_mode: str | None, sub_dir: str) -> Env:
@@ -132,6 +136,12 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         Wrap the environment with EpisodeStatsWrapper for logging.
         Tracks episode metrics and saves them to a CSV for training and eval analysis.
         """
+
+        # if not self._conf.training and self._get_model_id() not in str(self.log_dir / self._TRAIN):
+        #     raise FileNotFoundError(
+        #         f"\nModel: {self._get_model_id()}"
+        #         f"\nWasn't found in: {self._conf.save_folder if self._conf.save_folder else 'base_dir'}"
+        #     )
 
         return EpisodeStatsWrapper(env, self.log_dir / sub_dir, self._get_model_id())
 
@@ -165,7 +175,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             env=env,
             verbose=1,
             tensorboard_log=(
-                str(self.log_dir / sub_dir) if self._train_conf.tensorboard_output else None
+                str(self.log_dir / sub_dir)
+                if self._train_conf.tensorboard_output
+                else None
             ),
             seed=self._conf.seed,
             **self._HYPER_PARAMETERS,

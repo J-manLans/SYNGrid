@@ -18,14 +18,14 @@ class DigestionEngine:
 
     def reset(self):
         self.chained_tiers = self._NO_CHAIN
-        self.max_tier_reached = False
-        self.tier_chain_broken = False
         self._pending_reward = 0.0
         self._max_reward_bonus = 0.0
+        self.reset_tier_chain_flags()
 
     def reset_tier_chain_flags(self):
         self.max_tier_reached = False
         self.tier_chain_broken = False
+        self.chain_progressed = False
 
     # ================= #
     #        API        #
@@ -84,6 +84,7 @@ class DigestionEngine:
                     True
                 )
             else:
+                self.chain_progressed = True
                 self.chained_tiers = current_tier
 
             return consumed_orb.REWARD
@@ -105,6 +106,7 @@ class DigestionEngine:
         if self.chained_tiers == current_tier - 1:
             # Keep on building the tier chain, pending reward and bonus if we're not at max tier
             if current_tier != consumed_orb.max_tier:
+                self.chain_progressed = True
                 self.chained_tiers = current_tier
                 self._set_pending_rewards(scaled_reward)
                 return 0.0
@@ -126,13 +128,16 @@ class DigestionEngine:
 
         if self.chained_tiers == current_tier - 1:
             if current_tier != consumed_orb.max_tier:
+                self.chain_progressed = True
                 self.chained_tiers = current_tier
                 return 0.0
 
             self.chained_tiers = self._NO_CHAIN
-            # terminates episode in terminate_on_max_tier scenarios,
-            # used for logging in every other scenario
-            self.max_tier_reached = True
+            self.max_tier_reached = (
+                # terminates episode in terminate_on_max_tier scenarios,
+                # used for logging in every other scenario
+                True
+            )
             return consumed_orb.REWARD
 
         self.tier_chain_broken = True
