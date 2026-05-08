@@ -24,7 +24,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
             "learning_rate": 1e-4,
             "clip_range": 0.2,
             "policy_kwargs": {
-                "lstm_hidden_size": 128,
+                "lstm_hidden_size": 256,
                 "n_lstm_layers": 1,
                 "shared_lstm": False,
             },

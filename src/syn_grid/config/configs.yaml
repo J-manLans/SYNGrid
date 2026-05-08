@@ -26,7 +26,7 @@ world:
     max_tier_scoring: &max_tier_scoring false
     termination_on_max_tier: &termination_on_max_tier false
     de_spawn_tiers: &de_spawn_tiers false
-    max_tier: &max_tier 2
+    max_tier: &max_tier 3
     max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
@@ -93,8 +93,8 @@ world:
     step_wise_scoring: false
     threshold_scoring: true
     max_tier_scoring: *max_tier_scoring
-    growth_factor: 2.0
-    base_reward: 3.0
+    growth_factor: 1.5
+    base_reward: 2.0
     cool_down: 7
 
 ###########################
@@ -140,13 +140,13 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "PPO"
-    agent_steps: "750080"
-    id_tag: 'threshold_scoring_256'
-    save_folder: 'thesis/tier_2/fully_pomdp'
+    alg: "RPPO"
+    agent_steps: "1200384"
+    id_tag: 'threshold_scoring'
+    save_folder: 'thesis/tier_3/fully_pomdp'
     seed: 3
     human_control: false
-    training: false
+    training: true
     check_env: false
 
   train_agent_conf:
@@ -157,13 +157,13 @@ agent:
     # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: false
+    continue_training: true
     csv_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
-    timesteps: 750000
-    iterations: 1
+    timesteps: 500000
+    iterations: 5
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate

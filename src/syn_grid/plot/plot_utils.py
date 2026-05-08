@@ -14,9 +14,11 @@ import re
 
 
 _BASE_LOG_DIR = get_project_path(
-    "output", "results", "logs", "thesis", "tier_2", "fully_pomdp"
+    "output", "results", "logs", "thesis", "tier_3", "markovian_vs_fully_pomdp"
 )
-_BASE_PLOT_DIR = get_project_path("output", "results", "plots", "fully_pomdp")
+_BASE_PLOT_DIR = get_project_path(
+    "output", "results", "plots", "tier_3", "markovian_vs_fully_pomdp"
+)
 
 
 # ================= #
