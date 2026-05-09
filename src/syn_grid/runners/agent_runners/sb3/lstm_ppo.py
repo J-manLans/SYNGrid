@@ -35,7 +35,6 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
             run_conf,
             hyper_parameters,
             RecurrentPPO,
-            hyper_parameters["policy_kwargs"]["lstm_hidden_size"],
         )
 
     # ================= #
@@ -62,10 +61,10 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         num_envs = env.num_envs
         episode_starts = np.ones((num_envs,), dtype=bool)
 
+        # start the eval loop
+        obs = env.reset()
         try:
             for _ in range(self._eval_conf.num_eval_episodes):
-                # start the eval loop
-                obs = env.reset()
                 lstm_states = None
                 episode_starts = np.ones((num_envs,), dtype=bool)
                 while True:

@@ -20,6 +20,7 @@ class GridWorldConf(BaseModel, frozen=True):
     single_chain_mode: bool
     max_tier_scoring: bool
     termination_on_max_tier: bool
+    curriculum_training: bool
     de_spawn_tiers: bool
     max_tier: int
     max_active_orbs: int
@@ -34,10 +35,6 @@ class GridWorldConf(BaseModel, frozen=True):
             if self.max_tier >= (self.grid_rows * self.grid_cols):
                 raise ValueError(
                     "max_tier can't be higher than number of cells in the grid, there will be no space for orbs"
-                )
-            if not self.max_tier_scoring:
-                raise ValueError(
-                    f"Single_chain_mode requires max_tier_scoring to be true"
                 )
             if self.de_spawn_tiers or not self.termination_on_max_tier:
                 raise ValueError(

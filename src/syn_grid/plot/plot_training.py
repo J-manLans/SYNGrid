@@ -9,7 +9,6 @@ from syn_grid.plot.plot_utils import (
     plot_completion_rate,
 )
 
-
 _TRAIN = "train"
 
 # ================= #

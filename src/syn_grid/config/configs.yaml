@@ -17,6 +17,7 @@ world:
     # - single_chain_mode: if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just truncation
     # - max_tier_scoring (used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
     # - termination_on_max_tier: terminate the episode as max tier is reached
+    # - curriculum_training: when enabled, certain scenario parameters are adjusted to better support progressive learning across increasing difficulty levels
     # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     # - max_tier: this is the highest tier that orbs can reach in this environment
     # - max active orbs: number of max active orbs on grid
@@ -25,8 +26,9 @@ world:
     single_chain_mode: &single_chain_mode false
     max_tier_scoring: &max_tier_scoring false
     termination_on_max_tier: &termination_on_max_tier false
+    curriculum_training: false
     de_spawn_tiers: &de_spawn_tiers false
-    max_tier: &max_tier 3
+    max_tier: &max_tier 6
     max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
@@ -90,8 +92,8 @@ world:
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
-    step_wise_scoring: false
-    threshold_scoring: true
+    step_wise_scoring: true
+    threshold_scoring: false
     max_tier_scoring: *max_tier_scoring
     growth_factor: 1.5
     base_reward: 2.0
@@ -141,11 +143,11 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "RPPO"
-    agent_steps: "1200384"
-    id_tag: 'threshold_scoring'
-    save_folder: 'thesis/tier_3/fully_pomdp'
+    agent_steps: "2508800"
+    id_tag: 'single_chain_max_tier_scoring_1penalty_no_curr'
+    save_folder: 'thesis/tier_3/testing_single_chain'
     seed: 3
-    human_control: false
+    human_control: true
     training: true
     check_env: false
 
@@ -157,18 +159,18 @@ agent:
     # - render_mode (null or "human"): null is default, change to human if you want visual feedback for debugging
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: true
+    continue_training: false
     csv_output: true
     tensorboard_output: true
     model_output: true
     render_mode: null
     timesteps: 500000
-    iterations: 5
+    iterations: 20
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null or "human"): set to null if you don't want visual feedback during evaluation
     # - csv_output: if you want to use the custom logger to persist results from the runs.
-    num_eval_episodes: 300
-    render_mode: null
+    num_eval_episodes: 100
+    render_mode: 'human'
     csv_output: true

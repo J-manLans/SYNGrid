@@ -24,6 +24,7 @@ world:
     # - single_chain_mode: if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just truncation
     # - max_tier_scoring (used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
     # - termination_on_max_tier: terminate the episode as max tier is reached
+    # - curriculum_training: when enabled, certain scenario parameters are adjusted to better support progressive learning across increasing difficulty levels
     # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     # - max_tier: this is the highest tier that orbs can reach in this environment
     # - max active orbs: number of max active orbs on grid
@@ -32,6 +33,7 @@ world:
     single_chain_mode: &single_chain_mode false
     max_tier_scoring: &max_tier_scoring false
     termination_on_max_tier: &termination_on_max_tier false
+    curriculum_training: false
     de_spawn_tiers: &de_spawn_tiers true
     max_tier: &max_tier 4
     max_active_orbs: &max_active_orbs 3
