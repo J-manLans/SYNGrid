@@ -30,22 +30,12 @@ class HumanRunner:
 
         while True:
             if action is not None:
-                self._world.perform_droid_action(action)
+                rew = self._world.perform_droid_action(action)
                 self._steps_left -= 1
-                truncated = self._steps_left <= 0
-                terminated = self._world.droid.score <= 0
+                terminated, truncated, rew = self._check_episode_end(rew)
                 self._render()
 
-                if (terminated or truncated) or (
-                    self._world._conf.termination_on_max_tier
-                    and self._world.droid.digestion_engine.max_tier_reached
-                ):
-                    break
-
-                if self._world._conf.single_chain_mode and (
-                    len(self._world._active_orbs) == 0
-                    and not self._world.droid.digestion_engine.max_tier_reached
-                ):
+                if terminated or truncated:
                     break
 
             action = self._renderer.get_user_action()
@@ -73,3 +63,64 @@ class HumanRunner:
         )
 
         return hud_data
+
+    def _check_episode_end(self, reward: float) -> tuple[bool, bool, float]:
+        terminated = False
+        truncated = False
+
+        if self._world.droid.score <= 0:
+            # always terminate when agent is out of score
+            terminated = True
+
+        if self._world._conf.single_chain_mode:
+            terminated, truncated, reward = self._check_single_chain_end(
+                terminated, truncated, reward
+            )
+        else:
+            terminated, truncated, reward = self._check_continuous_mode_end(
+                terminated, truncated, reward
+            )
+
+        return terminated, truncated, reward
+
+    def _check_single_chain_end(
+        self, terminated: bool, truncated: bool, reward: float
+    ) -> tuple[bool, bool, float]:
+        # === tier chain broken ===#
+        if self._world.droid.digestion_engine.tier_chain_broken:
+            terminated = True
+
+        # === max steps reached === #
+        elif self._steps_left <= 0:
+            if not self._world._conf.max_tier_scoring:
+                reward = self._world.droid.digestion_engine._pending_reward
+            else:
+                reward = -0.1
+
+            terminated = True
+
+        # === max tier reached ===#
+        elif (
+            self._world._conf.termination_on_max_tier
+            and self._world.droid.digestion_engine.max_tier_reached
+        ):
+            if (
+                not self._world._conf.curriculum_training
+                and self._world._conf.max_tier_scoring
+            ):
+                reward = 10
+
+            terminated = True
+
+        return terminated, truncated, reward
+
+    def _check_continuous_mode_end(
+        self, terminated: bool, truncated: bool, reward: float
+    ) -> tuple[bool, bool, float]:
+        # === max steps reached === #
+        if self._steps_left <= 0:
+            if not self._world._conf.max_tier_scoring:
+                reward = self._world.droid.digestion_engine._pending_reward
+            terminated = True
+
+        return terminated, truncated, reward

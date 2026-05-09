@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class LogKey(str, Enum):
     EPISODE = "episode"
     REWARD = "reward"

@@ -145,7 +145,7 @@ class DigestionEngine:
             self._NO_CHAIN if current_tier != self._BASE_TIER else current_tier
         )
 
-        return 0.0
+        return -0.1
 
     # === Scoring helpers === #
 

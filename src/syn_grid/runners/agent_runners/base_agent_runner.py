@@ -24,6 +24,7 @@ class BaseAgentRunner(ABC):
         self._date = get_date()
 
         self._init_output_directories()
+        self._get_model_base_id()
 
     def _set_id(self, id: str) -> None:
         self._id = id
@@ -31,20 +32,6 @@ class BaseAgentRunner(ABC):
     # ================= #
     #  Abstract methods #
     # ================= #
-
-    @abstractmethod
-    def _construct_model_id(self, conf: GlobalAgentConf, run_conf: WorldConfig) -> str:
-        """
-        Construct a unique model identifier for saving/loading.
-
-        This method is called directly after `super().__init__()` and should:
-            1. Call `super()._get_model_base_id()` to retrieve base identifiers
-            2. Combine them with any subclass-specific agent parameters
-            3. Set the result via `super()._set_id()`
-
-        Returns:
-            A unique string identifier (used as filename/folder name)
-        """
 
     @abstractmethod
     def train(self) -> None: ...
@@ -81,8 +68,12 @@ class BaseAgentRunner(ABC):
         self._model_dir.mkdir(parents=True, exist_ok=True)
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
-    def _get_model_base_id(self) -> tuple[str, str]:
-        tag = f"TAG_{self._conf.id_tag}_seed{self._conf.seed}_" if self._conf.id_tag else ""
+    def _get_model_base_id(self) -> None:
+        tag = (
+            f"TAG_{self._conf.id_tag}_seed{self._conf.seed}_"
+            if self._conf.id_tag
+            else ""
+        )
         perception = self._obs_conf.observation_handler.perception
         tier = f"Tier{self._run_conf.orb_factory_conf.max_tier}"
         reward = f"{self._run_conf.tier_orb_conf.base_reward}rew"
@@ -104,19 +95,19 @@ class BaseAgentRunner(ABC):
             else f"_{self._run_conf.droid_conf.tier_consumption_penalty}cons_offset"
         )
 
-        base_tier_id = (
-            f"{perception}{neg}__"
-            f"{tier}_{reward}{growth}{tier_consumption_penalty}__"
-            f"{score}{step_offset}__"
-            f"{tag}{self._conf.alg}"
-        )
-        base_non_tier_id = (
-            f"{perception}_NoTier{neg}__"
-            f"{score}_{step_offset}__"
-            f"{tag}{self._conf.alg}"
-        )
-
-        return base_tier_id, base_non_tier_id
+        if self._run_conf.orb_factory_conf.types.tier.enabled:
+            self._id = (
+                f"{perception}{neg}__"
+                f"{tier}_{reward}{growth}{tier_consumption_penalty}__"
+                f"{score}{step_offset}__"
+                f"{tag}{self._conf.alg}"
+            )
+        else:
+            self._id = (
+                f"{perception}_NoTier{neg}__"
+                f"{score}_{step_offset}__"
+                f"{tag}{self._conf.alg}"
+            )
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
         env = make(render_mode, self._run_conf, self._obs_conf)

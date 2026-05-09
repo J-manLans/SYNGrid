@@ -31,11 +31,8 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         run_conf: WorldConfig,
         hyper_parameters: dict[str, Any],
         algorithm: Type[T],
-        lstm_hidden_size: int | None = None,
     ):
         super().__init__(conf, obs_conf, run_conf)
-        id = self._construct_model_id(self._conf, run_conf, lstm_hidden_size)
-        super()._set_id(id)
         self._HYPER_PARAMETERS = hyper_parameters
         self._ALGORITHM = algorithm
 
@@ -60,35 +57,6 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     # ================= #
     #      Helpers      #
     # ================= #
-
-    def _construct_model_id(
-        self,
-        conf: GlobalAgentConf,
-        run_conf: WorldConfig,
-        lstm_hidden_size: int | None = None,
-    ) -> str:
-        base_tier_id, base_non_tier_id = super()._get_model_base_id()
-
-        # --- RecurrentPPO with tier orbs --- #
-        if conf.alg == "RPPO" and run_conf.orb_factory_conf.types.tier.enabled:
-            return f"{base_tier_id}{lstm_hidden_size}"
-        # --- RecurrentPPO without tier orbs --- #
-        elif conf.alg == "RPPO" and not run_conf.orb_factory_conf.types.tier.enabled:
-            return f"{base_non_tier_id}{lstm_hidden_size}"
-        # --- With tier orbs --- #
-        elif not conf.alg == "RPPO" and run_conf.orb_factory_conf.types.tier.enabled:
-            return f"{base_tier_id}"
-        # --- Without tier orbs --- #
-        elif (
-            not conf.alg == "RPPO" and not run_conf.orb_factory_conf.types.tier.enabled
-        ):
-            return f"{base_non_tier_id}"
-        else:
-            raise ValueError(
-                f"Unhandled case:\n"
-                f"alg={conf.alg}\n"
-                f"tier_enabled={run_conf.orb_factory_conf.types.tier.enabled}"
-            )
 
     def _init_normalization_stats_dir(self):
         """
@@ -137,13 +105,16 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         Tracks episode metrics and saves them to a CSV for training and eval analysis.
         """
 
-        # if not self._conf.training and self._get_model_id() not in str(self.log_dir / self._TRAIN):
-        #     raise FileNotFoundError(
-        #         f"\nModel: {self._get_model_id()}"
-        #         f"\nWasn't found in: {self._conf.save_folder if self._conf.save_folder else 'base_dir'}"
-        #     )
+        model_id = self._get_model_id()
 
-        return EpisodeStatsWrapper(env, self.log_dir / sub_dir, self._get_model_id())
+        # catches missing model file if we're evaluating — so no eval csv is created unnecessarily
+        if not self._conf.training and model_id not in str(self._model_dir):
+            raise FileNotFoundError(
+                f"\nModel: {model_id}"
+                f"\nWasn't found in: {self._conf.save_folder if self._conf.save_folder else 'base_dir'}"
+            )
+
+        return EpisodeStatsWrapper(env, self.log_dir / sub_dir, model_id)
 
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
         evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
@@ -164,9 +135,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     def _load_model(self, env: Env | VecEnv) -> T:
         model_path = self._get_saved_path(self._model_dir)
-        return self._ALGORITHM.load(
-            model_path, env=env, device=self._HYPER_PARAMETERS["device"]
-        )
+        return self._ALGORITHM.load(model_path, env=env, **self._HYPER_PARAMETERS)
 
     def _create_model(self, env: Env | VecEnv, sub_dir: str) -> T:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""

@@ -64,7 +64,7 @@ def plot_episode_length(csv_dir: Path, plots_dir: Path) -> None:
 
         _plot_series(data[LogKey.LENGTH], color, window, label)
 
-    _finalize_plot('steps', plots_dir)
+    _finalize_plot("steps", plots_dir)
 
 
 def plot_average_reward(csv_dir: Path, plots_dir: Path) -> None:
@@ -123,11 +123,13 @@ def plot_completion_rate(csv_dir: Path, plots_dir: Path) -> None:
 #      Helpers      #
 # ================= #
 
+
 def _get_label_and_color(file: Path, i: int) -> tuple[str, Color]:
     match = re.search(r"seed\d+_[^_]+", file.stem)
     label = match.group() if match else "unknown"
     color = list(Color)[i % len(Color)]
     return label, color
+
 
 def _get_data_and_window(file: Path) -> tuple[DataFrame, int]:
     data = pd.read_csv(file)

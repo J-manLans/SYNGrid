@@ -42,10 +42,10 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         env = self._get_normalized_env(env)
         model = self._load_model(env)
 
+        # start the eval loop
+        obs = env.reset()
         try:
             for i in range(self._eval_conf.num_eval_episodes):
-                # start the eval loop
-                obs = env.reset()
                 while True:
                     action, states = model.predict(
                         obs, deterministic=True  # type: ignore[arg-type]

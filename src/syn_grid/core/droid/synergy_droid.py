@@ -60,7 +60,7 @@ class SynergyDroid:
                 raise TypeError("This action isn't implemented")
 
         if self._single_chain_mode:
-            return 0.0
+            return self._apply_reward(bound_penalty)
         else:
             return self._apply_reward(self._conf.step_penalty + bound_penalty)
 
