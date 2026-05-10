@@ -5,6 +5,6 @@ from typing import Type
 
 ALGORITHMS: dict[str, Type[BaseAgentRunner]] = {
     "PPO": StatelessPPO,
+    "FSPPO": FrameStackPPO,
     "RPPO": LstmPPO,
-    "DQN": FrameStackPPO,
 }

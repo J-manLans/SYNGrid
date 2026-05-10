@@ -95,7 +95,7 @@ class HumanRunner:
             if not self._world._conf.max_tier_scoring:
                 reward = self._world.droid.digestion_engine._pending_reward
             else:
-                reward = -0.1
+                reward += -0.1
 
             terminated = True
 

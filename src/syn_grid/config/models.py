@@ -71,6 +71,7 @@ class DroidConf(BaseModel, frozen=True):
     grid_cols: int
     starting_score: float
     step_penalty: float
+    boundary_penalty: float
     tier_consumption_penalty: float
     reward_multiplier: float
 
