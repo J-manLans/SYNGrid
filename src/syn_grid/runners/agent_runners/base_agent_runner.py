@@ -75,39 +75,12 @@ class BaseAgentRunner(ABC):
             else ""
         )
         perception = self._obs_conf.observation_handler.perception
-        tier = f"Tier{self._run_conf.orb_factory_conf.max_tier}"
-        reward = f"{self._run_conf.tier_orb_conf.base_reward}rew"
-        growth = (
-            ""
-            if (
-                self._run_conf.orb_factory_conf.max_tier == 1
-                or self._run_conf.tier_orb_conf.linear_reward_growth
-            )
-            else f"_{self._run_conf.tier_orb_conf.growth_factor}growth"
-        )
         neg = "_Neg" if self._run_conf.orb_factory_conf.types.negative.enabled else ""
-        score = f"{self._run_conf.droid_conf.starting_score}score"
-        step_offset = f"{self._run_conf.droid_conf.step_penalty}step_offset"
-        tier_consumption_penalty = (
-            ""
-            if self._run_conf.droid_conf.tier_consumption_penalty == 0.0
-            or self._run_conf.orb_factory_conf.max_tier == 1
-            else f"_{self._run_conf.droid_conf.tier_consumption_penalty}cons_offset"
-        )
 
         if self._run_conf.orb_factory_conf.types.tier.enabled:
-            self._id = (
-                f"{perception}{neg}__"
-                f"{tier}_{reward}{growth}{tier_consumption_penalty}__"
-                f"{score}{step_offset}__"
-                f"{tag}{self._conf.alg}"
-            )
+            self._id = f"{perception}{neg}__" f"{tag}{self._conf.alg}"
         else:
-            self._id = (
-                f"{perception}_NoTier{neg}__"
-                f"{score}_{step_offset}__"
-                f"{tag}{self._conf.alg}"
-            )
+            self._id = f"{perception}_NoTier{neg}__" f"{tag}{self._conf.alg}"
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
         env = make(render_mode, self._run_conf, self._obs_conf)

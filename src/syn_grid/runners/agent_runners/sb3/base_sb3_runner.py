@@ -1,5 +1,5 @@
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, ObsConfig
+from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
 from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
     EpisodeStatsWrapper,
@@ -9,7 +9,12 @@ from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
 import os
 from typing import Type, TypeVar, Any, Generic
 from stable_baselines3.common.base_class import BaseAlgorithm
-from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize, VecEnv
+from stable_baselines3.common.vec_env import (
+    DummyVecEnv,
+    VecNormalize,
+    VecEnv,
+    unwrap_vec_normalize,
+)
 from gymnasium import Env
 
 T = TypeVar("T", bound=BaseAlgorithm)
@@ -105,16 +110,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         Tracks episode metrics and saves them to a CSV for training and eval analysis.
         """
 
-        model_id = self._get_model_id()
-
-        # catches missing model file if we're evaluating — so no eval csv is created unnecessarily
-        if not self._conf.training and model_id not in str(self._model_dir):
-            raise FileNotFoundError(
-                f"\nModel: {model_id}"
-                f"\nWasn't found in: {self._conf.save_folder if self._conf.save_folder else 'base_dir'}"
-            )
-
-        return EpisodeStatsWrapper(env, self.log_dir / sub_dir, model_id)
+        return EpisodeStatsWrapper(env, self.log_dir / sub_dir, self._get_model_id())
 
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
         evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
@@ -154,7 +150,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Train === #
 
-    def _train_model(self, model: T, env: Env | VecEnv):
+    def _train_model(self, model: T, env: VecEnv):
         try:
             # This loop will keep training based on timesteps and iterations.
             # After the timesteps are completed, the model is saved and training
@@ -178,8 +174,27 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     model.save(self._model_dir / checkpoint)
                     print(f"\nModel saved with {model.num_timesteps} time steps")
 
-                    if isinstance(env, VecNormalize):
+                    vec_normalize = unwrap_vec_normalize(env)
+                    if vec_normalize is not None:
                         evn_save_path = f"{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl"
-                        env.save(evn_save_path)
+                        vec_normalize.save(evn_save_path)
+        finally:
+            env.close()
+
+    def _eval_model(self, env: VecEnv, model: T):
+        obs = env.reset()
+        try:
+            for i in range(self._eval_conf.num_eval_episodes):
+                while True:
+                    action, states = model.predict(
+                        obs, deterministic=True  # type: ignore[arg-type]
+                    )
+                    obs, rewards, dones, info = env.step(action)
+
+                    if dones[0]:
+                        break
+        except Exception as e:
+            print(f"System crashed: {e}")
+            raise
         finally:
             env.close()

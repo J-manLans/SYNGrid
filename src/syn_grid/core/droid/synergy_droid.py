@@ -49,20 +49,21 @@ class SynergyDroid:
         # Move droid to the next cell
         match agent_action:
             case DroidAction.LEFT:
-                bound_penalty = self._moveTowardsMinBound(1)
+                boundary_penalty = self._moveTowardsMinBound(1)
             case DroidAction.RIGHT:
-                bound_penalty = self._moveTowardsMaxBound(1, self._conf.grid_cols - 1)
+                boundary_penalty = self._moveTowardsMaxBound(
+                    1, self._conf.grid_cols - 1
+                )
             case DroidAction.UP:
-                bound_penalty = self._moveTowardsMinBound(0)
+                boundary_penalty = self._moveTowardsMinBound(0)
             case DroidAction.DOWN:
-                bound_penalty = self._moveTowardsMaxBound(0, self._conf.grid_rows - 1)
+                boundary_penalty = self._moveTowardsMaxBound(
+                    0, self._conf.grid_rows - 1
+                )
             case _:
                 raise TypeError("This action isn't implemented")
 
-        if self._single_chain_mode:
-            return self._apply_reward(bound_penalty)
-        else:
-            return self._apply_reward(self._conf.step_penalty + bound_penalty)
+        return self._apply_reward(self._conf.step_penalty + boundary_penalty)
 
     def consume_orb(self, orb: BaseOrb) -> float:
         """Consumes the orb, add its reward to its score and returns the reward"""
@@ -77,7 +78,7 @@ class SynergyDroid:
     def _moveTowardsMinBound(self, axis: int) -> float:
         if self.position[axis] - 1 < 0:
             self.position[axis] = 0
-            return self._conf.step_penalty
+            return self._conf.boundary_penalty
 
         self.position[axis] = self.position[axis] - 1
         return 0.0
@@ -85,7 +86,7 @@ class SynergyDroid:
     def _moveTowardsMaxBound(self, axis: int, bound: int) -> float:
         if self.position[axis] + 1 > bound:
             self.position[axis] = bound
-            return self._conf.step_penalty
+            return self._conf.boundary_penalty
 
         self.position[axis] = self.position[axis] + 1
         return 0.0

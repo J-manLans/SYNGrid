@@ -14,11 +14,9 @@ import re
 
 
 _BASE_LOG_DIR = get_project_path(
-    "output", "results", "logs", "thesis", "tier_3", "markovian_vs_fully_pomdp"
+    "output", "results", "logs", "thesis_real", "tier_5", "threshold"
 )
-_BASE_PLOT_DIR = get_project_path(
-    "output", "results", "plots", "tier_3", "markovian_vs_fully_pomdp"
-)
+_BASE_PLOT_DIR = get_project_path("output", "results", "plots", "tier_5", "threshold")
 
 
 # ================= #
@@ -46,8 +44,8 @@ class Color(str, Enum):
 
 
 def plot_reward(csv_dir: Path, plots_dir: Path) -> None:
-    plt.figure(figsize=(15, 8))
-    for i, file in enumerate(csv_dir.glob("*.csv")):
+    _figsize()
+    for i, file in enumerate(csv_dir.glob(_get_files())):
         label, color = _get_label_and_color(file, i)
         data, window = _get_data_and_window(file)
 
@@ -57,10 +55,12 @@ def plot_reward(csv_dir: Path, plots_dir: Path) -> None:
 
 
 def plot_episode_length(csv_dir: Path, plots_dir: Path) -> None:
-    plt.figure(figsize=(15, 8))
-    for i, file in enumerate(csv_dir.glob("*.csv")):
+    _figsize()
+    for i, file in enumerate(csv_dir.glob(_get_files())):
         label, color = _get_label_and_color(file, i)
         data, window = _get_data_and_window(file)
+
+        print(f"\n{file} color: {color}\n")
 
         _plot_series(data[LogKey.LENGTH], color, window, label)
 
@@ -68,8 +68,8 @@ def plot_episode_length(csv_dir: Path, plots_dir: Path) -> None:
 
 
 def plot_average_reward(csv_dir: Path, plots_dir: Path) -> None:
-    plt.figure(figsize=(15, 8))
-    for i, file in enumerate(csv_dir.glob("*.csv")):
+    _figsize()
+    for i, file in enumerate(csv_dir.glob(_get_files())):
         label, color = _get_label_and_color(file, i)
         data, window = _get_data_and_window(file)
         average_reward = data[LogKey.REWARD] / data["length"]
@@ -80,8 +80,8 @@ def plot_average_reward(csv_dir: Path, plots_dir: Path) -> None:
 
 
 def plot_chain_progression_steps(csv_dir: Path, plots_dir: Path) -> None:
-    plt.figure(figsize=(15, 8))
-    for i, file in enumerate(csv_dir.glob("*.csv")):
+    _figsize()
+    for i, file in enumerate(csv_dir.glob(_get_files())):
         label, color = _get_label_and_color(file, i)
         data, window = _get_data_and_window(file)
 
@@ -91,8 +91,8 @@ def plot_chain_progression_steps(csv_dir: Path, plots_dir: Path) -> None:
 
 
 def plot_chain_outcomes(csv_dir: Path, plots_dir: Path) -> None:
-    plt.figure(figsize=(15, 8))
-    for i, file in enumerate(csv_dir.glob("*.csv")):
+    _figsize()
+    for i, file in enumerate(csv_dir.glob(_get_files())):
         label, color = _get_label_and_color(file, i * 2)
         color2 = list(Color)[(i * 2 + 1) % len(Color)]
         data, window = _get_data_and_window(file)
@@ -106,8 +106,8 @@ def plot_chain_outcomes(csv_dir: Path, plots_dir: Path) -> None:
 
 
 def plot_completion_rate(csv_dir: Path, plots_dir: Path) -> None:
-    plt.figure(figsize=(15, 8))
-    for i, file in enumerate(csv_dir.glob("*.csv")):
+    _figsize()
+    for i, file in enumerate(csv_dir.glob(_get_files())):
         label, color = _get_label_and_color(file, i)
         data, window = _get_data_and_window(file)
         completion_rate = data[LogKey.CHAINS_COMPLETED] / (
@@ -119,9 +119,42 @@ def plot_completion_rate(csv_dir: Path, plots_dir: Path) -> None:
     _finalize_plot("chain_completion_rate", plots_dir)
 
 
+# === Single chain mode plots === #
+
+
+def plot_success(csv_dir: Path, plots_dir: Path) -> None:
+    _figsize()
+    for i, file in enumerate(csv_dir.glob(_get_files())):
+        label, color = _get_label_and_color(file, i)
+        data, window = _get_data_and_window(file)
+
+        _plot_series(data[LogKey.CHAINS_COMPLETED], color, 1, label)
+
+    _finalize_plot("Reached max tier", plots_dir)
+
+
+def plot_failure(csv_dir: Path, plots_dir: Path) -> None:
+    _figsize()
+    for i, file in enumerate(csv_dir.glob(_get_files())):
+        label, color = _get_label_and_color(file, i)
+        data, window = _get_data_and_window(file)
+
+        _plot_series(data[LogKey.CHAINS_BROKEN], color, 1, label)
+
+    _finalize_plot("Broke the chain", plots_dir)
+
+
 # ================= #
 #      Helpers      #
 # ================= #
+
+
+def _figsize() -> None:
+    plt.figure(figsize=(15, 8))
+
+
+def _get_files() -> str:
+    return "*.csv"
 
 
 def _get_label_and_color(file: Path, i: int) -> tuple[str, Color]:
@@ -133,12 +166,17 @@ def _get_label_and_color(file: Path, i: int) -> tuple[str, Color]:
 
 def _get_data_and_window(file: Path) -> tuple[DataFrame, int]:
     data = pd.read_csv(file)
-    return data, len(data) // 30
+    return data, len(data) // 10
 
 
 def _plot_series(data, color, window: int, label: str) -> int:
+    if window <= 1:
+        smoothed = data.fillna(0)
+    else:
+        smoothed = data.fillna(0).rolling(window=window).mean()
+
     plt.plot(data, alpha=0.2, color=color)
-    plt.plot(data.fillna(0).rolling(window=window).mean(), label=label, color=color)
+    plt.plot(smoothed, label=label, color=color)
     return 1
 
 

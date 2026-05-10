@@ -7,6 +7,8 @@ from syn_grid.plot.plot_utils import (
     plot_chain_progression_steps,
     plot_chain_outcomes,
     plot_completion_rate,
+    plot_success,
+    plot_failure,
 )
 
 _EVAL = "eval"
@@ -22,7 +24,9 @@ if __name__ == "__main__":
 
     plot_reward(csv_dir, plots_dir)
     plot_episode_length(csv_dir, plots_dir)
-    plot_average_reward(csv_dir, plots_dir)
+    # plot_average_reward(csv_dir, plots_dir)
     plot_chain_progression_steps(csv_dir, plots_dir)
-    plot_chain_outcomes(csv_dir, plots_dir)
+    # plot_chain_outcomes(csv_dir, plots_dir)
     plot_completion_rate(csv_dir, plots_dir)
+    plot_success(csv_dir, plots_dir)
+    plot_failure(csv_dir, plots_dir)
