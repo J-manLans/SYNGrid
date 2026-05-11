@@ -10,6 +10,7 @@ from syn_grid.gymnasium.action_space import DroidAction
 
 import pygame
 import sys
+import numpy as np
 
 
 class PygameRenderer:
@@ -71,7 +72,8 @@ class PygameRenderer:
         orb_positions: list[list[int]],
         orb_meta: list[OrbMeta],
         hud_data: dict[str, int | float],
-    ) -> None | str:
+        render_mode: str | None
+    ) -> np.ndarray | None:
         """
         Draws the game window and all its content, updates and limits the fps.
         """
@@ -90,6 +92,13 @@ class PygameRenderer:
         self._draw_hud(hud_data)
 
         self._update()
+
+        if render_mode == "rgb_array":
+            return np.transpose(
+                pygame.surfarray.array3d(self.window_surface), axes=(1, 0, 2)
+            )
+
+        return None
 
     # ================= #
     #      Helpers      #

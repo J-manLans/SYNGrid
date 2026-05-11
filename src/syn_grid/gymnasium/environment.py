@@ -11,6 +11,7 @@ from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 import gymnasium as gym
 from gymnasium import spaces
 from typing import Any
+import numpy as np
 
 
 class SYNGridEnv(gym.Env):
@@ -29,7 +30,7 @@ class SYNGridEnv(gym.Env):
     # render_fps caps the update rate of render(); each call corresponds to one logic step, not the
     # full game framerate. Simply put: render_fps controls the speed of the environment’s logic,
     # while a sub-loop in the renderer would handle smooth animation between steps.
-    metadata = {"render_modes": ["human"], "render_fps": 8}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 8}
 
     def __init__(
         self,
@@ -47,7 +48,7 @@ class SYNGridEnv(gym.Env):
             run_conf.tier_orb_conf,
         )
 
-        if self.render_mode == "human":
+        if self.render_mode in self.metadata["render_modes"]:
             self.renderer = PygameRenderer(
                 run_conf.renderer_conf, self.metadata["render_fps"]
             )
@@ -109,15 +110,19 @@ class SYNGridEnv(gym.Env):
             info,
         )
 
-    def render(self) -> None:
-        self.renderer.render(
+    def render(self) -> np.ndarray | None:
+        frame = self.renderer.render(
             self.world.droid.position,
             self.world.get_orb_is_active_status(True),
             self.world.get_orb_positions(True),
             self.world.get_orb_meta(True),
             self._get_hud_data(),
+            self.render_mode
         )
         self.renderer.get_user_action()
+
+        if self.render_mode == "rgb_array":
+            return frame
 
     # ================== #
     #       Helpers      #
@@ -136,7 +141,7 @@ class SYNGridEnv(gym.Env):
 
     def _get_state_info(self) -> dict[str, Any]:
         return {
-            LogKey.CHAIN_PROGRESSED: self.world.droid.digestion_engine.chain_progressed,
             LogKey.CHAINS_BROKEN: self.world.droid.digestion_engine.tier_chain_broken,
+            LogKey.CHAIN_PROGRESSED: self.world.droid.digestion_engine.chain_progressed,
             LogKey.CHAINS_COMPLETED: self.world.droid.digestion_engine.max_tier_reached,
         }

@@ -210,12 +210,14 @@ class TrainAgentConf(BaseModel, frozen=False):
     tensorboard_output: bool
     model_output: bool
     render_mode: str | None
+    rec_interval: int
+    rec_length: int
     timesteps: int
     iterations: int
 
     @model_validator(mode="after")
     def validate_config(self):
-        if self.render_mode not in ["human", None]:
+        if self.render_mode not in ["human", "rgb_array", None]:
             raise ValueError("The value of render mode is not allowed")
         return self
 
@@ -223,11 +225,12 @@ class TrainAgentConf(BaseModel, frozen=False):
 class EvalAgentConf(BaseModel, frozen=False):
     num_eval_episodes: int
     render_mode: str | None
+    rec_episode: int
     csv_output: bool
 
     @model_validator(mode="after")
     def validate_config(self):
-        if self.render_mode not in ["human", None]:
+        if self.render_mode not in ["human", "rgb_array", None]:
             raise ValueError("The value of render mode is not allowed")
         return self
 
