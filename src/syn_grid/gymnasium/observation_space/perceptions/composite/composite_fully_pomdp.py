@@ -10,7 +10,8 @@ from gymnasium import spaces
 class CompositeFullyPOMDP(BasePerception):
     # NOTE: remake this with nested dicts and create a custom extractor, right now it is merely a
     # 1D Box vector because SB3 flattens it. The custom extractor is needed because SB3 can't
-    # handle nested dicts or dicts with different spaces. But this is post-thesis work. Notes in dev/observations.md
+    # handle nested dicts or dicts with different spaces. But this is post-thesis work. Notes in
+    # dev/observations.md
 
     # ================= #
     #        Init       #

@@ -1,18 +1,11 @@
-# NOTE: Do not modify this config file.
-# These are the default settings used for tests.
-# Any changes needed for a specific test should be made
-# directly in the test files, not here.
-
 ###########################
 #   Experiment Settings   #
 ###########################
 
 snapshot:
   # Snapshot settings:
-  # - enabled: whether to save a snapshot of the full config
-  # - id: optional identifier used as part of the snapshot filename
+  # - enabled: whether to save a snapshot of the full config for replicating scenario
   enabled: false
-  id: ""
 
 ###########################
 #   World Configuration   #
@@ -30,11 +23,11 @@ world:
     # - max active orbs: number of max active orbs on grid
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
-    single_chain_mode: &single_chain_mode false
-    max_tier_scoring: &max_tier_scoring false
-    termination_on_max_tier: &termination_on_max_tier false
+    single_chain_mode: &single_chain_mode true
+    max_tier_scoring: &max_tier_scoring true
+    termination_on_max_tier: &termination_on_max_tier true
     curriculum_training: false
-    de_spawn_tiers: &de_spawn_tiers true
+    de_spawn_tiers: &de_spawn_tiers false
     max_tier: &max_tier 4
     max_active_orbs: &max_active_orbs 3
 
@@ -59,8 +52,8 @@ world:
     # - reward_multiplier (passed to digestion engine): multiplier applied to rewards when threshold scoring in tier_orb_conf is activated, a sensible default is 1.0, then experiment if reward magnitudes get's to large for higher max tiers
     grid_rows: *grid_rows
     grid_cols: *grid_cols
-    starting_score: 30
-    step_penalty: &step_penalty -1.0
+    starting_score: 50
+    step_penalty: &step_penalty -0.1
     boundary_penalty: -1.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
@@ -79,7 +72,7 @@ world:
     single_chain_mode: *single_chain_mode
     types:
       negative:
-        enabled: &neg_enabled true
+        enabled: &neg_enabled false
         weight: 1
       tier:
         enabled: &tier_enabled true
@@ -89,7 +82,7 @@ world:
     # - reward: penalty applied when interacting with the orb
     # - cool_down: number of steps before the orb can be reused
     reward: -3.0
-    cool_down: 10
+    cool_down: 5
 
   tier_orb_conf:
     # - linear_reward_growth: if true, reward scales linearly instead of exponentially
@@ -99,12 +92,12 @@ world:
     # - growth_factor: multiplier applied per tier increase if linear_reward_growth is false
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
-    linear_reward_growth: true
-    step_wise_scoring: true
+    linear_reward_growth: false
+    step_wise_scoring: false
     threshold_scoring: false
     max_tier_scoring: *max_tier_scoring
     growth_factor: 1.5
-    base_reward: 3
+    base_reward: 2.0
     cool_down: 7
 
 ###########################
@@ -113,7 +106,7 @@ world:
 
 obs:
   observation_handler:
-    # - perception: decides how much information to pack into the agents observation. Check out the ObservationHandlerConf in models.py for options
+    # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
     perception: "vector_fully_pomdp"
     max_steps: &max_steps 100
@@ -125,7 +118,6 @@ obs:
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
     # - max_active_orbs (set in grid_world_conf): max active orbs on grid
     # - include_timer(set in grid_world_conf): used to decide if orb timer should be added to the observation
-    # - enabled_orbs (set in orb_factory_conf): defines which orb types are active, used to build the observation space
     max_score: &max_score 100
     max_steps: *max_steps
     max_tier: *max_tier
@@ -152,11 +144,11 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     alg: "PPO"
-    agent_steps: "1605632"
-    id_tag: 'combo_reward'
-    save_folder: 'ppo'
+    agent_steps: "4801536"
+    id_tag: 'tier_4_single_chain_max_tier_scoring'
+    save_folder: 'thesis/tier_4/fully_pomdp/single_chain/max_tier'
     seed: 3
-    human_control: true
+    human_control: false
     training: true
     check_env: false
 
@@ -166,26 +158,26 @@ agent:
     # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training data
     # - model_output : False if you are debugging or experimenting and only want to inspect behavior, not persist checkpoints
     # - render_mode (null, "human" or "rgb_array"): null is default, change to human if you want visual feedback for debugging or "rgb_array" if you want to record at certain intervals
-    # - rec_interval: only applicable if render mode is set to "rgb_array", decides at which intervals to record the training
+    # - rec_interval: only applicable if render mode is set to "rgb_array", decides at what step intervals to start record the training
     # - rec_length: only applicable if render mode is set to "rgb_array", decides how many steps the recording should be
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
-    continue_training: true
-    csv_output: true
-    tensorboard_output: true
-    model_output: true
+    continue_training: false
+    csv_output: false
+    tensorboard_output: false
+    model_output: false
     render_mode: null
-    rec_interval: 100000
+    rec_interval: 10000
     rec_length: 100
-    timesteps: 400000
-    iterations: 4
+    timesteps: 20009
+    iterations: 1
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null, "human" or "rgb_array"): set to null if you don't want visual feedback during evaluation and "rgb_array" if you want to record runs
     # - rec_episode: only applicable if render mode is set to "rgb_array", decides which episode to record
     # - csv_output: if you want to use the custom logger to persist results from the runs.
-    num_eval_episodes: 1
+    num_eval_episodes: 300
     render_mode: null
     rec_episode: 100
-    csv_output: true
+    csv_output: false

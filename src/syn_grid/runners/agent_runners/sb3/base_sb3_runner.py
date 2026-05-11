@@ -16,6 +16,7 @@ from stable_baselines3.common.vec_env import (
     unwrap_vec_normalize,
 )
 from gymnasium import Env
+from gymnasium.wrappers import RecordVideo
 
 T = TypeVar("T", bound=BaseAlgorithm)
 
@@ -91,8 +92,21 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             (self._conf.training and self._train_conf.csv_output)
             or (not self._conf.training and self._eval_conf.csv_output)
         ):
-            env = self._wrap_in_logger(env, sub_dir)
+            env = self._logger_wrapper(env, sub_dir)
         # fmt: on
+
+        # if video recording for training is on
+        if self._conf.training and self._train_conf.render_mode == "rgb_array":
+            env = self._rec_video_wrapper(
+                env,
+                step_trigger=lambda t: t % self._train_conf.rec_interval == 0,
+                video_length=self._train_conf.rec_length,
+            )
+        # if video recording for evaluation is on
+        if not self._conf.training and self._eval_conf.render_mode == "rgb_array":
+            env = self._rec_video_wrapper(
+                env, episode_trigger=lambda t: t == self._eval_conf.rec_episode
+            )
 
         return env
 
@@ -104,13 +118,22 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # --- Wrappers --- #
 
-    def _wrap_in_logger(self, env: Env, sub_dir: str) -> Env:
+    def _logger_wrapper(self, env: Env, sub_dir: str) -> Env:
         """
         Wrap the environment with EpisodeStatsWrapper for logging.
         Tracks episode metrics and saves them to a CSV for training and eval analysis.
         """
 
         return EpisodeStatsWrapper(env, self.log_dir / sub_dir, self._get_model_id())
+
+    def _rec_video_wrapper(self, env: Env, **trigger) -> RecordVideo:
+        video_output = get_project_path("output", "results", "videos")
+        return RecordVideo(
+            env,
+            str(video_output),
+            **trigger,
+            name_prefix=self._get_model_id(),
+        )
 
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
         evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
