@@ -209,6 +209,7 @@ class TrainAgentConf(BaseModel, frozen=False):
     csv_output: bool
     tensorboard_output: bool
     model_output: bool
+    n_envs: int
     render_mode: str | None
     rec_interval: int
     rec_length: int

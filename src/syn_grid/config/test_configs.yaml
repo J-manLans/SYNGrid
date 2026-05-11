@@ -165,6 +165,7 @@ agent:
     # - csv_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
     # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training data
     # - model_output : False if you are debugging or experimenting and only want to inspect behavior, not persist checkpoints
+    # - n_envs: parallel training environments, more = faster training, benchmark to find your hardware's sweet spot
     # - render_mode (null, "human" or "rgb_array"): null is default, change to human if you want visual feedback for debugging or "rgb_array" if you want to record at certain intervals
     # - rec_interval: only applicable if render mode is set to "rgb_array", decides at which intervals to record the training
     # - rec_length: only applicable if render mode is set to "rgb_array", decides how many steps the recording should be
@@ -174,6 +175,7 @@ agent:
     csv_output: true
     tensorboard_output: true
     model_output: true
+    n_envs: 16
     render_mode: null
     rec_interval: 100000
     rec_length: 100
