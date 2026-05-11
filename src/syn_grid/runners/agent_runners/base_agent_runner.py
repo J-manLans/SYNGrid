@@ -2,11 +2,15 @@ from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, Ob
 from syn_grid.utils.paths_util import get_project_path
 from syn_grid.utils.date_utils import get_date
 from syn_grid.gymnasium.utils.env_factory import make, check_my_env
+from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
+    EpisodeStatsWrapper,
+)
 
 import sys
 from pathlib import Path
 from abc import ABC, abstractmethod
 from gymnasium import Env
+from gymnasium.wrappers import RecordVideo
 
 
 class BaseAgentRunner(ABC):
@@ -43,6 +47,8 @@ class BaseAgentRunner(ABC):
     #      Helpers      #
     # ================= #
 
+    # === Setup === #
+
     def _init_output_directories(self):
         """
         Create and store paths for model checkpoints and TensorBoard logs.
@@ -59,14 +65,14 @@ class BaseAgentRunner(ABC):
             else base_model_dir
         )
 
-        self.log_dir = (
+        self._log_dir = (
             base_log_dir / self._conf.save_folder
             if self._conf.save_folder
             else base_log_dir
         )
 
         self._model_dir.mkdir(parents=True, exist_ok=True)
-        self.log_dir.mkdir(parents=True, exist_ok=True)
+        self._log_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_model_base_id(self) -> None:
         tag = (
@@ -82,6 +88,8 @@ class BaseAgentRunner(ABC):
         else:
             self._id = f"{perception}_NoTier{neg}__" f"{tag}{self._conf.alg}"
 
+    # === Factory === #
+
     def _make_raw_env(self, render_mode: str | None) -> Env:
         env = make(render_mode, self._run_conf, self._obs_conf)
 
@@ -90,6 +98,27 @@ class BaseAgentRunner(ABC):
             sys.exit("Environment is fine")
 
         return env
+
+    # === Wrappers === #
+
+    def _logger_wrapper(self, env: Env, sub_dir: str) -> Env:
+        """
+        Wrap the environment with EpisodeStatsWrapper for logging.
+        Tracks episode metrics and saves them to a CSV for training and eval analysis.
+        """
+
+        return EpisodeStatsWrapper(env, self._log_dir / sub_dir, self._get_model_id())
+
+    def _rec_video_wrapper(self, env: Env, **trigger) -> RecordVideo:
+        video_output = get_project_path("output", "results", "videos")
+        return RecordVideo(
+            env,
+            str(video_output),
+            **trigger,
+            name_prefix=self._get_model_id(),
+        )
+
+    # === Persistence === #
 
     def _get_saved_path(self, dir: Path) -> Path:
         """
@@ -111,6 +140,8 @@ class BaseAgentRunner(ABC):
 
         # return the one with the highest value of the timestamp
         return max(matches, key=lambda p: p.stat().st_mtime)
+
+    # === Identification === #
 
     def _get_model_id(self) -> str:
         return f"{self._id}_{self._date}"

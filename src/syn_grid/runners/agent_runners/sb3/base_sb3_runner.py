@@ -1,14 +1,11 @@
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
-from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
-    EpisodeStatsWrapper,
-)
-
 
 import os
 from typing import Type, TypeVar, Any, Generic
 from stable_baselines3.common.base_class import BaseAlgorithm
+from torch.utils.tensorboard import SummaryWriter
 from stable_baselines3.common.vec_env import (
     DummyVecEnv,
     VecNormalize,
@@ -16,7 +13,6 @@ from stable_baselines3.common.vec_env import (
     unwrap_vec_normalize,
 )
 from gymnasium import Env
-from gymnasium.wrappers import RecordVideo
 
 T = TypeVar("T", bound=BaseAlgorithm)
 
@@ -41,6 +37,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         super().__init__(conf, obs_conf, run_conf)
         self._HYPER_PARAMETERS = hyper_parameters
         self._ALGORITHM = algorithm
+        self._writer = None
 
         self._init_normalization_stats_dir()
 
@@ -82,27 +79,38 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _make_wrapped_dummy_vec_env(
         self, render_mode: str | None, sub_dir: str
     ) -> DummyVecEnv:
-        return DummyVecEnv([lambda: self._make_env(render_mode, sub_dir)])
+        n_envs = self._train_conf.n_envs if self._conf.training else 1
+        return DummyVecEnv(
+            [
+                lambda i=i: self._make_env(render_mode, sub_dir, env_idx=i)
+                for i in range(n_envs)
+            ]
+        )
 
-    def _make_env(self, render_mode: str | None, sub_dir: str) -> Env:
-        env = self._make_raw_env(render_mode)
+    def _make_env(self, render_mode: str | None, sub_dir: str, env_idx: int) -> Env:
+        env = self._make_raw_env(
+            render_mode if (not self._conf.training or env_idx == 0) else None
+        )
 
+        # if logging is enabled
         # fmt: off
-        if (
-            (self._conf.training and self._train_conf.csv_output)
-            or (not self._conf.training and self._eval_conf.csv_output)
-        ):
-            env = self._logger_wrapper(env, sub_dir)
+        if env_idx == 0:
+            if (
+                (self._conf.training and self._train_conf.csv_output)
+                or (not self._conf.training and self._eval_conf.csv_output)
+            ):
+                env = self._logger_wrapper(env, sub_dir)
+
+            # if video recording for training is on record at a specific timestep interval
+            if self._conf.training and self._train_conf.render_mode == "rgb_array":
+                env = self._rec_video_wrapper(
+                    env,
+                    step_trigger=lambda t: t % self._train_conf.rec_interval == 0,
+                    video_length=self._train_conf.rec_length,
+                )
         # fmt: on
 
-        # if video recording for training is on
-        if self._conf.training and self._train_conf.render_mode == "rgb_array":
-            env = self._rec_video_wrapper(
-                env,
-                step_trigger=lambda t: t % self._train_conf.rec_interval == 0,
-                video_length=self._train_conf.rec_length,
-            )
-        # if video recording for evaluation is on
+        # if video recording for evaluation is on record selected episode
         if not self._conf.training and self._eval_conf.render_mode == "rgb_array":
             env = self._rec_video_wrapper(
                 env, episode_trigger=lambda t: t == self._eval_conf.rec_episode
@@ -118,23 +126,6 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # --- Wrappers --- #
 
-    def _logger_wrapper(self, env: Env, sub_dir: str) -> Env:
-        """
-        Wrap the environment with EpisodeStatsWrapper for logging.
-        Tracks episode metrics and saves them to a CSV for training and eval analysis.
-        """
-
-        return EpisodeStatsWrapper(env, self.log_dir / sub_dir, self._get_model_id())
-
-    def _rec_video_wrapper(self, env: Env, **trigger) -> RecordVideo:
-        video_output = get_project_path("output", "results", "videos")
-        return RecordVideo(
-            env,
-            str(video_output),
-            **trigger,
-            name_prefix=self._get_model_id(),
-        )
-
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
         evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
         vec_env = VecNormalize.load(str(evn_load_path), env)
@@ -147,14 +138,13 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     # === Model === #
 
     def _get_model(self, env: Env | VecEnv, sub_dir: str) -> T:
+        if self._train_conf.tensorboard_output:
+            self._writer = SummaryWriter(log_dir=self._log_dir / sub_dir)
+
         if self._conf.training and not self._train_conf.continue_training:
             return self._create_model(env, sub_dir)
         else:
             return self._load_model(env)
-
-    def _load_model(self, env: Env | VecEnv) -> T:
-        model_path = self._get_saved_path(self._model_dir)
-        return self._ALGORITHM.load(model_path, env=env, **self._HYPER_PARAMETERS)
 
     def _create_model(self, env: Env | VecEnv, sub_dir: str) -> T:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
@@ -163,13 +153,17 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             env=env,
             verbose=1,
             tensorboard_log=(
-                str(self.log_dir / sub_dir)
+                str(self._log_dir / sub_dir)
                 if self._train_conf.tensorboard_output
                 else None
             ),
             seed=self._conf.seed,
             **self._HYPER_PARAMETERS,
         )
+
+    def _load_model(self, env: Env | VecEnv) -> T:
+        model_path = self._get_saved_path(self._model_dir)
+        return self._ALGORITHM.load(model_path, env=env, **self._HYPER_PARAMETERS)
 
     # === Train === #
 
@@ -201,8 +195,19 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     if vec_normalize is not None:
                         evn_save_path = f"{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl"
                         vec_normalize.save(evn_save_path)
+        except KeyboardInterrupt:
+            print("Training interrupted")
         finally:
+            if self._writer:
+                self._writer.add_text(
+                    "hyperparameters",
+                    "|param|value|\n|-|-|\n"
+                    + "\n".join([f"|{k}|{v}|" for k, v in self._HYPER_PARAMETERS.items()]),
+                )
+                self._writer.close()
             env.close()
+
+    # === Eval === #
 
     def _eval_model(self, env: VecEnv, model: T):
         obs = env.reset()

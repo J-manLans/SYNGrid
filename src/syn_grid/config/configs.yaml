@@ -143,8 +143,8 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
-    alg: "PPO"
-    agent_steps: "4801536"
+    alg: "RPPO"
+    agent_steps: "2408448"
     id_tag: 'tier_4_single_chain_max_tier_scoring'
     save_folder: 'thesis/tier_4/fully_pomdp/single_chain/max_tier'
     seed: 3
@@ -157,20 +157,22 @@ agent:
     # - csv_output: False if you are debugging or experimenting and only want to inspect behavior, not persist results
     # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training data
     # - model_output : False if you are debugging or experimenting and only want to inspect behavior, not persist checkpoints
+    # - n_envs: parallel training environments, more = faster training, benchmark to find your hardware's sweet spot
     # - render_mode (null, "human" or "rgb_array"): null is default, change to human if you want visual feedback for debugging or "rgb_array" if you want to record at certain intervals
     # - rec_interval: only applicable if render mode is set to "rgb_array", decides at what step intervals to start record the training
     # - rec_length: only applicable if render mode is set to "rgb_array", decides how many steps the recording should be
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     continue_training: false
-    csv_output: false
-    tensorboard_output: false
-    model_output: false
+    csv_output: true
+    tensorboard_output: true
+    model_output: true
+    n_envs: 16
     render_mode: null
     rec_interval: 10000
     rec_length: 100
-    timesteps: 20009
-    iterations: 1
+    timesteps: 200000
+    iterations: 12
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate

@@ -72,7 +72,7 @@ class PygameRenderer:
         orb_positions: list[list[int]],
         orb_meta: list[OrbMeta],
         hud_data: dict[str, int | float],
-        render_mode: str | None
+        render_mode: str | None,
     ) -> np.ndarray | None:
         """
         Draws the game window and all its content, updates and limits the fps.

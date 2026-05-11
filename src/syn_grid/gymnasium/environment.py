@@ -117,7 +117,7 @@ class SYNGridEnv(gym.Env):
             self.world.get_orb_positions(True),
             self.world.get_orb_meta(True),
             self._get_hud_data(),
-            self.render_mode
+            self.render_mode,
         )
         self.renderer.get_user_action()
 

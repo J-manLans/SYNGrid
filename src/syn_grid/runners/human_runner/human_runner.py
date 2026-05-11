@@ -51,7 +51,7 @@ class HumanRunner:
             self._world.get_orb_positions(True),
             self._world.get_orb_meta(True),
             self._get_hud_data(),
-            'human'
+            "human",
         )
 
     def _get_hud_data(self) -> dict[str, int | float]:
