@@ -37,14 +37,13 @@ class CompositeMarkovian(BasePerception):
 
         orb_parts = [
             np.array([self._ACTIVE_FLAG], dtype=np.float32),
-            self._get_max_orb_positions(),
-            self._get_max_orb_identity(),
+            self._get_max_orb_base(),
         ]
-        if self._include_timer:
-            orb_parts.append(self._get_max_orb_data())
+        if self._conf.include_timer:
+            orb_parts.append(self._get_max_orb_extended())
         orb_high = np.tile(
             np.concatenate(orb_parts),
-            (self._max_active_orbs, 1),
+            (self._get_observable_orb_count(), 1),
         )
 
         # Initialize the arrays used for giving the observation
@@ -94,7 +93,7 @@ class CompositeMarkovian(BasePerception):
         # Orb data
         for i, orb in enumerate(sorted_orbs):
             if orb.is_active:
-                self._orb_data[i] = self._get_orb_values(orb, self._include_timer)
+                self._orb_data[i] = self._get_orb_values(orb, self._conf.include_timer)
             else:
                 self._orb_data[i] = self._MISSING_ORB_VALUE
 

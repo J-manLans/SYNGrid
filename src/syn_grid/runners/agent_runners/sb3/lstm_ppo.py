@@ -16,13 +16,13 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         )
         hyper_parameters = {
             "policy": policy,
-            "device": "cpu",
+            "device": "cuda",
             "ent_coef": 0.025,
             "n_steps": 128,
             "batch_size": 128,
             "n_epochs": 4,
             "policy_kwargs": {
-                "lstm_hidden_size": 256,
+                "lstm_hidden_size": 512,
                 "n_lstm_layers": 1,
                 "shared_lstm": False,
             },
@@ -34,6 +34,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
             hyper_parameters,
             RecurrentPPO,
         )
+        print("Initializing RecurrentPPO...")
 
     # ================= #
     #        API        #

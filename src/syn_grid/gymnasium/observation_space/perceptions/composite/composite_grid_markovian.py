@@ -41,8 +41,8 @@ class CompositeGridMarkovian(BasePerception):
             [
                 np.array([self._ACTIVE_FLAG], dtype=np.float32),
                 self._get_max_orb_type_flags(),
-                np.array([self._max_tier], dtype=np.float32),
-                self._get_max_orb_data(),
+                np.array([self._conf.max_tier], dtype=np.float32),
+                self._get_max_orb_extended(),
             ]
         )
 
@@ -114,15 +114,15 @@ class CompositeGridMarkovian(BasePerception):
         channel = 1  # channel 0 is droid
         mapping = {}
 
-        if self._enabled_orbs.neg_enabled:
+        if self._conf.enabled_orbs.neg_enabled:
             mapping[DirectType.NEGATIVE] = channel
             channel += 1
-        if self._enabled_orbs.tier_enabled:
+        if self._conf.enabled_orbs.tier_enabled:
             mapping[SynergyType.TIER] = channel
             channel += 1
 
         # Check if any implemented orbs are forgotten
-        expected = sum(self._enabled_orbs.model_dump().values())
+        expected = sum(self._conf.enabled_orbs.model_dump().values())
         if len(mapping) != expected:
             raise ValueError(
                 f"Orb type channel map is missing entries — "

@@ -4,6 +4,7 @@ from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
 from syn_grid.gymnasium.observation_space.perceptions.vector import (
     VectorMarkovian,
     VectorFullyPOMDP,
+    VectorFogOfWar
 )
 from syn_grid.gymnasium.observation_space.perceptions.composite import (
     CompositeMarkovian,
@@ -22,6 +23,7 @@ from typing import Final, Type, Any
 PERCEPTIONS = {
     "vector_markovian": VectorMarkovian,
     "vector_fully_pomdp": VectorFullyPOMDP,
+    "vector_fog_of_war": VectorFogOfWar,
     "composite_markovian": CompositeMarkovian,
     "composite_fully_pomdp": CompositeFullyPOMDP,
     "composite_grid_markovian": CompositeGridMarkovian,

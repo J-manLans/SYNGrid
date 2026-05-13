@@ -8,14 +8,26 @@ class OrbCategory(Enum):
     SYNERGY = 2
 
 
-class SynergyType(Enum):
-    NONE = 0
-    TIER = 1
-
-
 class DirectType(Enum):
     NONE = 0
     NEGATIVE = 1
+
+
+_MAX_SENTINEL = object()
+
+
+class SynergyType(Enum):
+    NONE = 0
+    TIER = _MAX_SENTINEL
+
+    def __new__(cls, value):
+        """Ensures TIER always gets the highest value"""
+
+        if value is _MAX_SENTINEL:
+            value = max((m.value for m in cls), default=0) + 1
+        obj = object.__new__(cls)
+        obj._value_ = value
+        return obj
 
 
 class OrbMeta:
@@ -31,11 +43,12 @@ class OrbMeta:
     ):
         self._assert_type_and_tier_matches_category(category, type, tier)
 
-        # These values are for finding correct image to render in PygameRenderer and to help the
-        # agent identify the orb in the observation
+        # These values are for finding correct image to render in PygameRenderer
         self.CATEGORY: Final[OrbCategory] = category
         self.TYPE: Final[DirectType | SynergyType] = type
         self.TIER: Final[int] = tier if (tier is not None) else 0
+        # And this is used by the agent to identify orbs
+        self.IDENTITY = self.compute_radix_identity()
 
     # ================= #
     #      Helpers      #
@@ -68,3 +81,17 @@ class OrbMeta:
 
             if tier < 1:
                 raise ValueError("Tier orbs can't have tiers less than 1")
+
+    def compute_radix_identity(self) -> int:
+        """
+        Encodes category, type and tier as a single unique scalar using mixed-radix encoding. Each dimension occupies its own positional slot, similar to how hours, minutes and seconds encode into a total number of seconds.
+        """
+
+        return (
+            self.CATEGORY.value
+            + ((len(OrbCategory) + 1) * self.TYPE.value)
+            + (
+                ((len(OrbCategory) + 1) * (max(len(DirectType), len(SynergyType)) + 1))
+                * self.TIER
+            )
+        )

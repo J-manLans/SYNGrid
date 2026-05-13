@@ -36,11 +36,10 @@ class CompositeFullyPOMDP(BasePerception):
             np.concatenate(
                 [
                     np.array([self._ACTIVE_FLAG], dtype=np.float32),
-                    self._get_max_orb_positions(),
-                    self._get_max_orb_identity(),
+                    self._get_max_orb_base(),
                 ]
             ),
-            (self._max_active_orbs, 1),
+            (self._get_observable_orb_count(), 1),
         )
 
         # Initialize the arrays used for giving the observation

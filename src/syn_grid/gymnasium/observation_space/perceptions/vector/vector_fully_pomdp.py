@@ -2,7 +2,6 @@ from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.core.orbs.base_orb import BaseOrb
 
 from gymnasium import spaces
 import numpy as np
@@ -15,7 +14,6 @@ class VectorFullyPOMDP(BasePerception):
     # ================= #
 
     def reset(self) -> None:
-        self._orb_slot_map: dict[int, int] = {}
         self._obs_data.fill(self._MISSING_ORB_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
@@ -25,12 +23,11 @@ class VectorFullyPOMDP(BasePerception):
         orb_high = np.concatenate(
             [
                 np.array([self._ACTIVE_FLAG], dtype=np.float32),
-                self._get_max_orb_positions(),
-                self._get_max_orb_identity(),
+                self._get_max_orb_base(),
             ]
         )
         self._orb_features = orb_high.shape[0]
-        orb_high = np.tile(orb_high, self._max_active_orbs)
+        orb_high = np.tile(orb_high, self._get_observable_orb_count())
         self._orb_start_index = droid_high.shape[0]
 
         high = np.concatenate([droid_high, orb_high])
