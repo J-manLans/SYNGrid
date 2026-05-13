@@ -47,6 +47,11 @@ class GridWorld:
             orb_manager_conf, negative_orb_conf, tier_orb_conf
         ).create_orbs()
 
+        sorted_orbs = sorted(self.ALL_ORBS, key=lambda o: o.META.IDENTITY)
+        # Remap radix identities to dense sequential indices to simplify learning
+        for dense_id, orb in enumerate(sorted_orbs, start=1):
+            orb.META.IDENTITY = dense_id
+
     def reset(self, rng: Generator | None = None) -> None:
         """
         Reset the droid to its starting position and re-spawns the orb at a random location

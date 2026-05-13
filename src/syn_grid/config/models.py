@@ -157,6 +157,7 @@ class ObservationHandlerConf(BaseModel, frozen=True):
         if self.perception not in [
             "vector_markovian",
             "vector_fully_pomdp",
+            "vector_fog_of_war",
             "composite_markovian",
             "composite_fully_pomdp",
             "composite_grid_markovian",
@@ -182,6 +183,7 @@ class PerceptionConf(BaseModel, frozen=True):
     grid_cols: int
     max_active_orbs: int
     include_timer: bool
+    single_chain_mode: bool
     enabled_orbs: EnabledOrbsConf
 
 
@@ -202,6 +204,8 @@ class GlobalAgentConf(BaseModel, frozen=False):
     human_control: bool
     training: bool
     check_env: bool
+    plateau_detection: bool
+    terminate_threshold: int
 
 
 class TrainAgentConf(BaseModel, frozen=False):
@@ -210,11 +214,11 @@ class TrainAgentConf(BaseModel, frozen=False):
     tensorboard_output: bool
     model_output: bool
     n_envs: int
+    timesteps: int
+    iterations: int
     render_mode: str | None
     rec_interval: int
     rec_length: int
-    timesteps: int
-    iterations: int
 
     @model_validator(mode="after")
     def validate_config(self):

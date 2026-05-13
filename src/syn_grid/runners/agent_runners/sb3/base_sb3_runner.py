@@ -1,11 +1,11 @@
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
+from syn_grid.runners.agent_runners.sb3.utils.plateau_callback import PlateauCallback
 
 import os
 from typing import Type, TypeVar, Any, Generic
 from stable_baselines3.common.base_class import BaseAlgorithm
-from torch.utils.tensorboard import SummaryWriter
 from stable_baselines3.common.vec_env import (
     DummyVecEnv,
     VecNormalize,
@@ -138,16 +138,13 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     # === Model === #
 
     def _get_model(self, env: Env | VecEnv, sub_dir: str) -> T:
-        if self._train_conf.tensorboard_output:
-            self._writer = SummaryWriter(log_dir=self._log_dir / sub_dir)
-
         if self._conf.training and not self._train_conf.continue_training:
             return self._create_model(env, sub_dir)
         else:
             return self._load_model(env)
 
     def _create_model(self, env: Env | VecEnv, sub_dir: str) -> T:
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+        # os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
         return self._ALGORITHM(
             env=env,
@@ -183,29 +180,31 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     total_timesteps=self._train_conf.timesteps,
                     tb_log_name=self._get_model_id(),
                     reset_num_timesteps=False,
+                    callback=(
+                        PlateauCallback(self._conf.terminate_threshold)
+                        if self._conf.plateau_detection
+                        else None
+                    ),
                 )
 
-                if self._train_conf.model_output:
-                    # Save the model
-                    checkpoint = f"{model.num_timesteps}_{self._get_model_id()}.zip"
-                    model.save(self._model_dir / checkpoint)
-                    print(f"\nModel saved with {model.num_timesteps} time steps")
-
-                    vec_normalize = unwrap_vec_normalize(env)
-                    if vec_normalize is not None:
-                        evn_save_path = f"{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl"
-                        vec_normalize.save(evn_save_path)
+                self._save_model(model, env)
         except KeyboardInterrupt:
             print("Training interrupted")
+            self._save_model(model, env)
         finally:
-            if self._writer:
-                self._writer.add_text(
-                    "hyperparameters",
-                    "|param|value|\n|-|-|\n"
-                    + "\n".join([f"|{k}|{v}|" for k, v in self._HYPER_PARAMETERS.items()]),
-                )
-                self._writer.close()
             env.close()
+
+    def _save_model(self, model: T, env):
+        if self._train_conf.model_output:
+            # Save the model
+            checkpoint = f"{model.num_timesteps}_{self._get_model_id()}.zip"
+            model.save(self._model_dir / checkpoint)
+            print(f"\nModel saved with {model.num_timesteps} time steps")
+
+            vec_normalize = unwrap_vec_normalize(env)
+            if vec_normalize is not None:
+                evn_save_path = f"{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl"
+                vec_normalize.save(evn_save_path)
 
     # === Eval === #
 

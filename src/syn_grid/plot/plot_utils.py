@@ -14,9 +14,16 @@ import re
 
 
 _BASE_LOG_DIR = get_project_path(
-    "output", "results", "logs", "thesis_real", "tier_5", "threshold"
+    "output",
+    "results",
+    "logs",
+    "thesis",
+    "tier_5",
+    "fully_pomdp",
+    "single_chain",
+    "max_tier",
 )
-_BASE_PLOT_DIR = get_project_path("output", "results", "plots", "tier_5", "threshold")
+_BASE_PLOT_DIR = get_project_path("output", "results", "plots", "tier_5", "max_tier")
 
 
 # ================= #
@@ -128,7 +135,7 @@ def plot_success(csv_dir: Path, plots_dir: Path) -> None:
         label, color = _get_label_and_color(file, i)
         data, window = _get_data_and_window(file)
 
-        _plot_series(data[LogKey.CHAINS_COMPLETED], color, 1, label)
+        _plot_series(data[LogKey.CHAINS_COMPLETED], color, window, label)
 
     _finalize_plot("Reached max tier", plots_dir)
 
@@ -139,7 +146,7 @@ def plot_failure(csv_dir: Path, plots_dir: Path) -> None:
         label, color = _get_label_and_color(file, i)
         data, window = _get_data_and_window(file)
 
-        _plot_series(data[LogKey.CHAINS_BROKEN], color, 1, label)
+        _plot_series(data[LogKey.CHAINS_BROKEN], color, window, label)
 
     _finalize_plot("Broke the chain", plots_dir)
 

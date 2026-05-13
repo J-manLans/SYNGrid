@@ -1,5 +1,4 @@
 from syn_grid.config.models import PerceptionConf
-from syn_grid.core.orbs.orb_meta import OrbCategory, DirectType, SynergyType
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.grid_world import GridWorld
 
@@ -18,24 +17,13 @@ class BasePerception(ABC):
     _ACTIVE_FLAG: Final[float] = 1.0
 
     def __init__(self, conf: PerceptionConf, orbs: int) -> None:
+        self._conf = conf
+
         # Global values
         self._orbs_in_env = orbs
-        self._max_active_orbs = conf.max_active_orbs
-        self._max_steps = conf.max_steps
-        self._max_grid_y = conf.grid_rows - 1
-        self._max_grid_x = conf.grid_cols - 1
 
-        # Droid data
-        self._max_score = conf.max_score
-        self._max_tier_chain = conf.max_tier
-
-        # Orb data
-        self._max_category = len(OrbCategory) - 1
-        self._max_type = max(len(DirectType) - 1, len(SynergyType) - 1)
-        self._max_tier = conf.max_tier
+        # # Orb data
         self._max_orb_lifespan = BaseOrb._life_span
-        self._include_timer = conf.include_timer
-        self._enabled_orbs = conf.enabled_orbs
 
     # ================= #
     #      Helpers      #
@@ -46,27 +34,39 @@ class BasePerception(ABC):
     # --- Global data getters --- #
     def _get_max_global_values(self) -> np.ndarray:
         return np.array(
-            [self._max_steps, self._max_score, self._max_tier_chain], dtype=np.float32
+            [self._conf.max_steps, self._conf.max_score, self._conf.max_tier],
+            dtype=np.float32,
         )
 
     # --- Droid data getters --- #
     def _get_max_droid_positions(self) -> np.ndarray:
-        return np.array([self._max_grid_y, self._max_grid_x], dtype=np.float32)
+        return np.array([self._conf.grid_rows, self._conf.grid_cols], dtype=np.float32)
 
     # --- Orb data getters --- #
-    def _get_max_orb_positions(self) -> np.ndarray:
-        return np.array([self._max_grid_y, self._max_grid_x], dtype=np.float32)
-
-    def _get_max_orb_identity(self) -> np.ndarray:
+    def _get_max_orb_base(self) -> np.ndarray:
         return np.array(
-            [self._max_category, self._max_type, self._max_tier], dtype=np.float32
+            [self._conf.grid_rows, self._conf.grid_cols, self._orbs_in_env],
+            dtype=np.float32,
         )
 
-    def _get_max_orb_data(self) -> np.ndarray:
+    def _get_max_orb_extended(self) -> np.ndarray:
         return np.array([self._max_orb_lifespan], dtype=np.float32)
 
     def _get_max_orb_type_flags(self) -> np.ndarray:
-        return np.ones(sum(self._enabled_orbs.model_dump().values()), dtype=np.float32)
+        return np.ones(
+            sum(self._conf.enabled_orbs.model_dump().values()), dtype=np.float32
+        )
+
+    def _get_observable_orb_count(self) -> int:
+        """
+        Returns the number of orbs to include in the observation. In single chain mode all orbs up to max tier are always present, so max_tier is used. Otherwise, max_active_orbs is used.
+        """
+
+        return (
+            self._conf.max_tier
+            if self._conf.single_chain_mode
+            else self._conf.max_active_orbs
+        )
 
     # ======= get_observation() helpers ======= #
 
@@ -74,7 +74,7 @@ class BasePerception(ABC):
         return np.array(
             [
                 steps_left,
-                min(state.droid.score, self._max_score),
+                min(state.droid.score, self._conf.max_score),
                 state.droid.digestion_engine.chained_tiers,
             ],
             dtype=np.float32,
@@ -86,14 +86,7 @@ class BasePerception(ABC):
     def _get_orb_values(self, orb: BaseOrb, include_timer: bool = False) -> np.ndarray:
         orb_y, orb_x = orb.position
 
-        values = [
-            self._ACTIVE_FLAG,
-            orb_y,
-            orb_x,
-            orb.META.CATEGORY.value,
-            orb.META.TYPE.value,
-            orb.META.TIER,
-        ]
+        values = [self._ACTIVE_FLAG, orb_y, orb_x, orb.META.IDENTITY]
 
         if include_timer:
             values.append(orb.TIMER.remaining)
@@ -112,7 +105,13 @@ class BasePerception(ABC):
                 if orb.is_active
                 else float("inf")
             ),
-        )[: self._max_active_orbs]
+        )[
+            : (
+                self._conf.max_tier
+                if self._conf.single_chain_mode
+                else self._conf.max_active_orbs
+            )
+        ]
 
     # ================= #
     #  Abstract methods #

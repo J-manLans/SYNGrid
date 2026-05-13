@@ -53,7 +53,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
-    step_penalty: &step_penalty -0.1
+    step_penalty: &step_penalty -0.001
     boundary_penalty: -1.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
@@ -108,7 +108,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_fully_pomdp"
+    perception: "vector_fog_of_war"
     max_steps: &max_steps 100
 
   perception:
@@ -118,6 +118,7 @@ obs:
     # - grid_rows / grid_cols (set in grid_world_conf): fix the maximum observation space size for those variables
     # - max_active_orbs (set in grid_world_conf): max active orbs on grid
     # - include_timer(set in grid_world_conf): used to decide if orb timer should be added to the observation
+    # - single_chain_mode (set in grid_world_conf): if true only one of each orb will be created and spawned at once
     max_score: &max_score 100
     max_steps: *max_steps
     max_tier: *max_tier
@@ -125,6 +126,7 @@ obs:
     grid_cols: *grid_cols
     max_active_orbs: *max_active_orbs
     include_timer: *de_spawn_tiers
+    single_chain_mode: *single_chain_mode
     enabled_orbs:
       neg_enabled: *neg_enabled
       tier_enabled: *tier_enabled
@@ -143,14 +145,18 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
+    # - plateau_detection: true if you are using automatic training termination
+    # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
     alg: "RPPO"
-    agent_steps: "2408448"
-    id_tag: 'tier_4_single_chain_max_tier_scoring'
+    agent_steps: "1486848"
+    id_tag: 'tier_4_single_chain_max_tier_scoring_512'
     save_folder: 'thesis/tier_4/fully_pomdp/single_chain/max_tier'
     seed: 3
     human_control: false
     training: true
     check_env: false
+    plateau_detection: true
+    terminate_threshold: 2000000
 
   train_agent_conf:
     # - continue_training: continue from a previously saved model
@@ -158,21 +164,21 @@ agent:
     # - tensor_output: False if you are debugging or experimenting and only want to inspect behavior, not persist training data
     # - model_output : False if you are debugging or experimenting and only want to inspect behavior, not persist checkpoints
     # - n_envs: parallel training environments, more = faster training, benchmark to find your hardware's sweet spot
+    # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
+    # - iterations: total number of training iterations
     # - render_mode (null, "human" or "rgb_array"): null is default, change to human if you want visual feedback for debugging or "rgb_array" if you want to record at certain intervals
     # - rec_interval: only applicable if render mode is set to "rgb_array", decides at what step intervals to start record the training
     # - rec_length: only applicable if render mode is set to "rgb_array", decides how many steps the recording should be
-    # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
-    # - iterations: total number of training iterations
     continue_training: false
     csv_output: true
     tensorboard_output: true
     model_output: true
     n_envs: 16
+    timesteps: 30000000
+    iterations: 1
     render_mode: null
     rec_interval: 10000
     rec_length: 100
-    timesteps: 200000
-    iterations: 12
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
@@ -180,6 +186,6 @@ agent:
     # - rec_episode: only applicable if render mode is set to "rgb_array", decides which episode to record
     # - csv_output: if you want to use the custom logger to persist results from the runs.
     num_eval_episodes: 300
-    render_mode: null
+    render_mode: 'human'
     rec_episode: 100
     csv_output: false
