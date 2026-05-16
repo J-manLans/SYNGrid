@@ -185,6 +185,8 @@ class PerceptionConf(BaseModel, frozen=True):
     include_timer: bool
     single_chain_mode: bool
     enabled_orbs: EnabledOrbsConf
+    curriculum_training: bool
+    tiers: int
 
 
 # === PerceptionConf END === #

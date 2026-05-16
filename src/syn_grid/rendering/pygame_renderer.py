@@ -212,7 +212,7 @@ class PygameRenderer:
         hud_img = self.graphics["hud_img"]
         hud_rect = hud_img.get_rect(
             topleft=(
-                self._grid_offset,
+                self._grid_offset + (self._conf.grid_cols - 5) * self._cell_width // 2,
                 (self._cell_height * self._conf.grid_rows) + self._grid_offset * 2,
             )
         )
