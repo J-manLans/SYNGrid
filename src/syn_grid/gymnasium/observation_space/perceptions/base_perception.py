@@ -44,8 +44,9 @@ class BasePerception(ABC):
 
     # --- Orb data getters --- #
     def _get_max_orb_base(self) -> np.ndarray:
+        # TODO: is orbs in env correctly catching max tier here for other than single chain mode??
         return np.array(
-            [self._conf.grid_rows, self._conf.grid_cols, self._orbs_in_env],
+            [self._conf.grid_rows, self._conf.grid_cols, self._conf.max_tier],
             dtype=np.float32,
         )
 
@@ -61,6 +62,12 @@ class BasePerception(ABC):
         """
         Returns the number of orbs to include in the observation. In single chain mode all orbs up to max tier are always present, so max_tier is used. Otherwise, max_active_orbs is used.
         """
+        if self._conf.curriculum_training:
+            return (
+                self._conf.tiers
+                if self._conf.single_chain_mode
+                else self._conf.max_active_orbs
+            )
 
         return (
             self._conf.max_tier

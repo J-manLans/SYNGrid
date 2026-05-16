@@ -8,7 +8,7 @@ class FrameStackPPO(StatelessPPO):
     #       Init        #
     # ================= #
 
-    _N_STACK = 10
+    _N_STACK = 4
 
     def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
         super().__init__(conf, obs_conf, run_conf)

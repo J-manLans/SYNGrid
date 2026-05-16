@@ -21,14 +21,14 @@ world:
     # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     # - max_tier: this is the highest tier that orbs can reach in this environment
     # - max active orbs: number of max active orbs on grid
-    grid_rows: &grid_rows 5
-    grid_cols: &grid_cols 5
+    grid_rows: &grid_rows 7
+    grid_cols: &grid_cols 7
     single_chain_mode: &single_chain_mode true
     max_tier_scoring: &max_tier_scoring true
     termination_on_max_tier: &termination_on_max_tier true
-    curriculum_training: false
+    curriculum_training: &curriculum_training true
     de_spawn_tiers: &de_spawn_tiers false
-    max_tier: &max_tier 4
+    max_tier: &max_tier 3
     max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
@@ -119,6 +119,8 @@ obs:
     # - max_active_orbs (set in grid_world_conf): max active orbs on grid
     # - include_timer(set in grid_world_conf): used to decide if orb timer should be added to the observation
     # - single_chain_mode (set in grid_world_conf): if true only one of each orb will be created and spawned at once
+    # - curriculum_training (set in grid_world_conf): when enabled, certain scenario parameters are adjusted to better support progressive learning across increasing difficulty levels
+    # - tiers: (only applicable when curriculum training is enabled) number of orbs in the observation
     max_score: &max_score 100
     max_steps: *max_steps
     max_tier: *max_tier
@@ -127,6 +129,8 @@ obs:
     max_active_orbs: *max_active_orbs
     include_timer: *de_spawn_tiers
     single_chain_mode: *single_chain_mode
+    curriculum_training: *curriculum_training
+    tiers: 5
     enabled_orbs:
       neg_enabled: *neg_enabled
       tier_enabled: *tier_enabled
@@ -148,12 +152,12 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
     alg: "RPPO"
-    agent_steps: "1486848"
-    id_tag: 'tier_4_single_chain_max_tier_scoring_512'
-    save_folder: 'thesis/tier_4/fully_pomdp/single_chain/max_tier'
+    agent_steps: "14232784"
+    id_tag: 'tier_3_single_chain_max_tier_scoring_curr_265'
+    save_folder: 'thesis/tier_3/fully_pomdp/single_chain/max_tier'
     seed: 3
     human_control: false
-    training: true
+    training: false
     check_env: false
     plateau_detection: true
     terminate_threshold: 2000000
@@ -169,12 +173,12 @@ agent:
     # - render_mode (null, "human" or "rgb_array"): null is default, change to human if you want visual feedback for debugging or "rgb_array" if you want to record at certain intervals
     # - rec_interval: only applicable if render mode is set to "rgb_array", decides at what step intervals to start record the training
     # - rec_length: only applicable if render mode is set to "rgb_array", decides how many steps the recording should be
-    continue_training: false
+    continue_training: true
     csv_output: true
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 30000000
+    timesteps: 20000000
     iterations: 1
     render_mode: null
     rec_interval: 10000
