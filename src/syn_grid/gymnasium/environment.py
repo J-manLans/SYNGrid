@@ -62,7 +62,7 @@ class SYNGridEnv(gym.Env):
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.
         self._observation_handler = ObservationHandler(
-            obs_conf, len(self.world.ALL_ORBS)
+            obs_conf, len(self.world.ALL_ORBS), self.world.max_identity
         )
         self.observation_space = self._observation_handler.setup_obs_space()
 

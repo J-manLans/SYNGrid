@@ -181,7 +181,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     tb_log_name=self._get_model_id(),
                     reset_num_timesteps=False,
                     callback=(
-                        PlateauCallback(self._conf.terminate_threshold)
+                        PlateauCallback(
+                            self._conf.terminate_threshold, self._conf.plateau_threshold
+                        )
                         if self._conf.plateau_detection
                         else None
                     ),

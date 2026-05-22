@@ -22,6 +22,7 @@ world:
   grid_world_conf:
     # - number of rows and columns
     # - single_chain_mode: if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just truncation
+    # - delay_mode: if enabled, consuming an orb triggers a cooldown period during which no additional orb consumption can occur
     # - max_tier_scoring (used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
     # - termination_on_max_tier: terminate the episode as max tier is reached
     # - curriculum_training: when enabled, certain scenario parameters are adjusted to better support progressive learning across increasing difficulty levels
@@ -31,10 +32,11 @@ world:
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode false
+    delay_mode: false
     max_tier_scoring: &max_tier_scoring false
     termination_on_max_tier: &termination_on_max_tier false
-    curriculum_training: false
-    de_spawn_tiers: &de_spawn_tiers true
+    curriculum_training: &curriculum_training false
+    de_spawn_tiers: &de_spawn_tiers false
     max_tier: &max_tier 4
     max_active_orbs: &max_active_orbs 3
 
@@ -157,7 +159,8 @@ agent:
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
     # - plateau_detection: true if you are using automatic training termination
-    # - terminate_threshold: amount of steps allowed before terminating the plateaued training
+    # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
+    # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
     alg: "PPO"
     agent_steps: "1605632"
     id_tag: 'combo_reward'
@@ -167,7 +170,8 @@ agent:
     training: true
     check_env: false
     plateau_detection: false
-    terminate_threshold: 200000
+    plateau_threshold: 10000000
+    terminate_threshold: 2000000
 
   train_agent_conf:
     # - continue_training: continue from a previously saved model

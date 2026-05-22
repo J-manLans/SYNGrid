@@ -25,7 +25,6 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         super().__init__(conf, obs_conf, run_conf, hyper_parameters, PPO)
         print("Initializing stateless PPO...")
 
-
     # ================= #
     #        API        #
     # ================= #

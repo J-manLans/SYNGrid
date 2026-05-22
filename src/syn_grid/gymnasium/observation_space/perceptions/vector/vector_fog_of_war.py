@@ -58,13 +58,16 @@ class VectorFogOfWar(BasePerception):
 
         visible_orbs = [
             orb for orb in sorted_orbs
-            if orb.is_active and max(abs(orb.position[0] - droid_y), abs(orb.position[1] - droid_x)) <= 1
+            if orb.is_active
+            and max(abs(orb.position[0] - droid_y), abs(orb.position[1] - droid_x)) <= 1
         ]
 
         # Orb data
         obs_index = self._orb_start_index
         for orb in visible_orbs:
-            self._obs_data[obs_index : obs_index + self._orb_features] = self._get_orb_values(orb)
+            self._obs_data[obs_index : obs_index + self._orb_features] = (
+                self._get_orb_values(orb)
+            )
             obs_index += self._orb_features
 
         return self._obs_data

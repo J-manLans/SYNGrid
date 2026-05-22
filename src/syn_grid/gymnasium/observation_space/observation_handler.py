@@ -4,7 +4,7 @@ from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
 from syn_grid.gymnasium.observation_space.perceptions.vector import (
     VectorMarkovian,
     VectorFullyPOMDP,
-    VectorFogOfWar
+    VectorFogOfWar,
 )
 from syn_grid.gymnasium.observation_space.perceptions.composite import (
     CompositeMarkovian,
@@ -36,12 +36,14 @@ class ObservationHandler:
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: ObsConfig, orbs: int) -> None:
+    def __init__(self, conf: ObsConfig, orbs: int, max_identity: int) -> None:
         self._max_steps: Final[int] = conf.observation_handler.max_steps
         perception_type: Type[BasePerception] = PERCEPTIONS[
             conf.observation_handler.perception
         ]
-        self.perception: Final[BasePerception] = perception_type(conf.perception, orbs)
+        self.perception: Final[BasePerception] = perception_type(
+            conf.perception, orbs, max_identity
+        )
 
     # ================= #
     #        API        #
