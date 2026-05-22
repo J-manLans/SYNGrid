@@ -83,9 +83,11 @@ class DigestionEngine:
                     # used for logging in every other scenario
                     True
                 )
+                return consumed_orb.REWARD + self._flush_rewards()[1]
             else:
                 self.chain_progressed = True
                 self.chained_tiers = current_tier
+                self._max_reward_bonus += consumed_orb.REWARD
 
             return consumed_orb.REWARD
 
@@ -145,7 +147,9 @@ class DigestionEngine:
             self._NO_CHAIN if current_tier != self._BASE_TIER else current_tier
         )
 
-        return -0.1
+        # TODO: make this a conf setting, perhaps an automatic one, if delay mode, -1,
+        # otherwise -0.1
+        return 0.0
 
     # === Scoring helpers === #
 

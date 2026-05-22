@@ -18,6 +18,7 @@ class GridWorldConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
     single_chain_mode: bool
+    delay_mode: bool
     max_tier_scoring: bool
     termination_on_max_tier: bool
     curriculum_training: bool
@@ -207,6 +208,7 @@ class GlobalAgentConf(BaseModel, frozen=False):
     training: bool
     check_env: bool
     plateau_detection: bool
+    plateau_threshold: int
     terminate_threshold: int
 
 

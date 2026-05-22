@@ -47,10 +47,7 @@ class GridWorld:
             orb_manager_conf, negative_orb_conf, tier_orb_conf
         ).create_orbs()
 
-        sorted_orbs = sorted(self.ALL_ORBS, key=lambda o: o.META.IDENTITY)
-        # Remap radix identities to dense sequential indices to simplify learning
-        for dense_id, orb in enumerate(sorted_orbs, start=1):
-            orb.META.IDENTITY = dense_id
+        self._remap_sparse_identities_to_dense()
 
     def reset(self, rng: Generator | None = None) -> None:
         """
@@ -102,6 +99,8 @@ class GridWorld:
                     # consume orb
                     reward = self.droid.consume_orb(orb)
                     self._toggle_orb_to_inactive(orb)
+                    if self._conf.delay_mode:
+                        self._deactivate_all_orbs()
             else:
                 # decrease the cooldown for inactive orbs
                 orb.TIMER.tick()
@@ -109,6 +108,11 @@ class GridWorld:
         if not self._conf.single_chain_mode:
             if len(self._active_orbs) < self._conf.max_active_orbs:
                 self._spawn_random_orb_if_ready()
+        else:
+            for orb in self._active_orbs:
+                if orb.TIMER.is_completed():
+                    orb.spawn(orb.position)
+            pass
 
         return step_penalty + reward
 
@@ -132,25 +136,40 @@ class GridWorld:
 
         return [o.META for o in self.ALL_ORBS]
 
-    def get_orb_categories(self) -> list[int]:
-        return [o.META.CATEGORY.value for o in self.ALL_ORBS]
-
-    def get_orb_types(self) -> list[int]:
-        return [o.META.TYPE.value for o in self.ALL_ORBS]
-
-    def get_orb_life(self) -> list[int]:
-        return [o.TIMER.remaining for o in self.ALL_ORBS]
-
-    def get_orb_tiers(self) -> list[int]:
-        return [o.META.TIER for o in self.ALL_ORBS]
-
     # ================= #
     #      Helpers      #
     # ================= #
 
+    # === Init === #
+
+    def _remap_sparse_identities_to_dense(self):
+        """Remap radix identities to dense sequential indices to simplify learning"""
+
+        sorted_orbs = sorted(self.ALL_ORBS, key=lambda o: o.META.IDENTITY)
+
+        identity_map = {}
+        next_dense = 1
+
+        for orb in sorted_orbs:
+            radix_id = orb.META.IDENTITY
+
+            if radix_id not in identity_map:
+                identity_map[radix_id] = next_dense
+                next_dense += 1
+
+            orb.META.IDENTITY = identity_map[radix_id]
+
+        self.max_identity = next_dense - 1
+
     # === API === #
 
-    def _toggle_orb_to_inactive(self, orb: BaseOrb):
+    def _deactivate_all_orbs(self) -> None:
+        for orb in self._active_orbs:
+            orb.reset()
+            orb.TIMER.set(30)
+        pass
+
+    def _toggle_orb_to_inactive(self, orb: BaseOrb) -> None:
         idx = self._active_orbs.index(orb)
         depleted = self._active_orbs.pop(idx)
         self._inactive_orbs.append(depleted)

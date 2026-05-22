@@ -83,7 +83,7 @@ class TestGridWorld:
         valid indices for the respective orb types in the world.
         """
 
-        types = grid_world.get_orb_types()
+        types = [o.META.TYPE.value for o in grid_world.ALL_ORBS]
 
         for t in types:
             max_type = max(len(DirectType), len(SynergyType))
@@ -97,7 +97,7 @@ class TestGridWorld:
         This confirms that the orbs have valid timers.
         """
 
-        timers = grid_world.get_orb_life()
+        timers = [o.TIMER.remaining for o in grid_world.ALL_ORBS]
 
         for timer in timers:
             # Each timer should be an integer signaling remaining life.

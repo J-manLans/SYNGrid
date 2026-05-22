@@ -3,9 +3,12 @@ import numpy as np
 
 
 class PlateauCallback(BaseCallback):
-    def __init__(self, terminate_threshold: int, min_delta: float = 0.3):
+    def __init__(
+        self, terminate_threshold: int, plateau_threshold: int, min_delta: float = 0.3
+    ):
         super().__init__()
         self._terminate_threshold = terminate_threshold
+        self._plateau_threshold = plateau_threshold
         self._min_delta = min_delta
         self._best_mean_reward = -np.inf
         self._last_improvement_step = 0
@@ -19,8 +22,8 @@ class PlateauCallback(BaseCallback):
 
             terminate_threshold = (
                 self._terminate_threshold
-                if self._best_mean_reward > 1
-                else 10_000_000
+                if self._best_mean_reward > 5
+                else self._plateau_threshold
             )
             if self.num_timesteps - self._last_improvement_step >= terminate_threshold:
                 return False
