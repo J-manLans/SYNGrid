@@ -12,9 +12,15 @@ class DigestionEngine:
     #        Init       #
     # ================= #
 
-    def __init__(self, tier_consumption_penalty: float, reward_multiplier: float):
+    def __init__(
+        self,
+        tier_consumption_penalty: float,
+        reward_multiplier: float,
+        chain_break_penalty: float
+    ):
         self._tier_consumption_penalty = tier_consumption_penalty
         self._reward_multiplier = reward_multiplier
+        self._chain_break_penalty = chain_break_penalty
 
     def reset(self):
         self.chained_tiers = self._NO_CHAIN
@@ -147,9 +153,7 @@ class DigestionEngine:
             self._NO_CHAIN if current_tier != self._BASE_TIER else current_tier
         )
 
-        # TODO: make this a conf setting, perhaps an automatic one, if delay mode, -1,
-        # otherwise -0.1
-        return 0.0
+        return self._chain_break_penalty
 
     # === Scoring helpers === #
 

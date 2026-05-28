@@ -105,14 +105,11 @@ class GridWorld:
                 # decrease the cooldown for inactive orbs
                 orb.TIMER.tick()
 
-        if not self._conf.single_chain_mode:
+        if self._conf.single_chain_mode and self._conf.delay_mode:
+            self._reactivate_all_orbs()
+        elif not self._conf.single_chain_mode:
             if len(self._active_orbs) < self._conf.max_active_orbs:
                 self._spawn_random_orb_if_ready()
-        else:
-            for orb in self._active_orbs:
-                if orb.TIMER.is_completed():
-                    orb.spawn(orb.position)
-            pass
 
         return step_penalty + reward
 
@@ -142,7 +139,7 @@ class GridWorld:
 
     # === Init === #
 
-    def _remap_sparse_identities_to_dense(self):
+    def _remap_sparse_identities_to_dense(self) -> None:
         """Remap radix identities to dense sequential indices to simplify learning"""
 
         sorted_orbs = sorted(self.ALL_ORBS, key=lambda o: o.META.IDENTITY)
@@ -166,8 +163,12 @@ class GridWorld:
     def _deactivate_all_orbs(self) -> None:
         for orb in self._active_orbs:
             orb.reset()
-            orb.TIMER.set(30)
-        pass
+            orb.TIMER.set(self._conf.delay)
+
+    def _reactivate_all_orbs(self) -> None:
+        for orb in self._active_orbs:
+            if orb.TIMER.is_completed():
+                orb.spawn(orb.position)
 
     def _toggle_orb_to_inactive(self, orb: BaseOrb) -> None:
         idx = self._active_orbs.index(orb)
@@ -176,7 +177,7 @@ class GridWorld:
 
     # === Global === #
 
-    def _spawn_random_orb_if_ready(self):
+    def _spawn_random_orb_if_ready(self) -> None:
         ready_orbs = [o for o in self._inactive_orbs if o.TIMER.is_completed()]
         if not ready_orbs:
             return

@@ -23,6 +23,7 @@ world:
     # - number of rows and columns
     # - single_chain_mode: if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just truncation
     # - delay_mode: if enabled, consuming an orb triggers a cooldown period during which no additional orb consumption can occur
+    # - delay: the delay used in delay mode
     # - max_tier_scoring (used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
     # - termination_on_max_tier: terminate the episode as max tier is reached
     # - curriculum_training: when enabled, certain scenario parameters are adjusted to better support progressive learning across increasing difficulty levels
@@ -33,6 +34,7 @@ world:
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode false
     delay_mode: false
+    delay: 30
     max_tier_scoring: &max_tier_scoring false
     termination_on_max_tier: &termination_on_max_tier false
     curriculum_training: &curriculum_training false
@@ -57,6 +59,7 @@ world:
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
     # - boundary_penalty: the cost of hugging walls
+    # - chain_break_penalty (passed to digestion engine): the cost of consuming orbs in wrong order
     # - tier_consumption_penalty (passed to digestion engine): (only applicable if step_wise_scoring is true) punishment for consuming tier orbs in the wrong order
     # - reward_multiplier (passed to digestion engine): multiplier applied to rewards when threshold scoring in tier_orb_conf is activated, a sensible default is 1.0, then experiment if reward magnitudes get's to large for higher max tiers
     grid_rows: *grid_rows
@@ -64,6 +67,7 @@ world:
     starting_score: 30
     step_penalty: &step_penalty -1.0
     boundary_penalty: -1.0
+    chain_break_penalty: 0.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -102,7 +106,7 @@ world:
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: true
-    step_wise_scoring: true
+    step_wise_scoring: false
     threshold_scoring: false
     max_tier_scoring: *max_tier_scoring
     growth_factor: 1.5

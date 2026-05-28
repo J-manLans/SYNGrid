@@ -10,6 +10,7 @@ class HumanRunner:
 
     def __init__(self, run_conf: WorldConfig, steps_left: int):
         self._renderer = PygameRenderer(run_conf.renderer_conf, 60)
+        self.delay_mode = run_conf.grid_world_conf.delay_mode
         self._world = GridWorld(
             run_conf.grid_world_conf,
             run_conf.orb_factory_conf,
@@ -89,7 +90,8 @@ class HumanRunner:
     ) -> tuple[bool, bool, float]:
         # === tier chain broken ===#
         if self._world.droid.digestion_engine.tier_chain_broken:
-            terminated = True
+            if not self.delay_mode:
+                terminated = True
 
         # === max steps reached === #
         elif self._steps_left <= 0:
