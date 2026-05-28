@@ -2,7 +2,7 @@ from syn_grid.core.grid_world import GridWorld
 
 
 def check_episode_end(
-    world: GridWorld, steps_left: int, reward: float
+    world: GridWorld, steps_left: int, delay_mode: bool, reward: float
 ) -> tuple[bool, bool, float]:
     terminated = False
     truncated = False
@@ -13,7 +13,7 @@ def check_episode_end(
 
     if world._conf.single_chain_mode:
         terminated, truncated, reward = _check_single_chain_end(
-            world, steps_left, terminated, truncated, reward
+            world, steps_left, delay_mode, terminated, truncated, reward
         )
     else:
         terminated, truncated, reward = _check_continuous_mode_end(
@@ -29,11 +29,12 @@ def check_episode_end(
 
 
 def _check_single_chain_end(
-    world: GridWorld, steps_left: int, terminated: bool, truncated: bool, reward: float
+    world: GridWorld, steps_left: int, delay_mode: bool, terminated: bool, truncated: bool, reward: float
 ) -> tuple[bool, bool, float]:
     # === tier chain broken ===#
     if world.droid.digestion_engine.tier_chain_broken:
-        terminated = True
+        if not delay_mode:
+            terminated = True
 
     # === max steps reached === #
     elif steps_left <= 0:

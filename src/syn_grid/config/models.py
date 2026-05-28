@@ -19,6 +19,7 @@ class GridWorldConf(BaseModel, frozen=True):
     grid_cols: int
     single_chain_mode: bool
     delay_mode: bool
+    delay: int
     max_tier_scoring: bool
     termination_on_max_tier: bool
     curriculum_training: bool
@@ -73,6 +74,7 @@ class DroidConf(BaseModel, frozen=True):
     starting_score: float
     step_penalty: float
     boundary_penalty: float
+    chain_break_penalty: float
     tier_consumption_penalty: float
     reward_multiplier: float
 

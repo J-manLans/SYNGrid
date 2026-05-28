@@ -21,7 +21,7 @@ class SynergyDroid:
         self._conf: Final[DroidConf] = conf
         self._single_chain_mode = single_chain_mode
         self.digestion_engine: Final[DigestionEngine] = DigestionEngine(
-            conf.tier_consumption_penalty, conf.reward_multiplier
+            conf.tier_consumption_penalty, conf.reward_multiplier, conf.chain_break_penalty
         )
 
     def reset(self) -> None:

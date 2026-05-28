@@ -16,6 +16,7 @@ world:
     # - number of rows and columns
     # - single_chain_mode: if true only one of each orb will be created and spawned at once, if collected in order episode terminates with a reward, else just truncation
     # - delay_mode: if enabled, consuming an orb triggers a cooldown period during which no additional orb consumption can occur
+    # - delay: the delay used in delay mode
     # - max_tier_scoring (used in tier_orb_conf, must be active in single_chain_mode): if true, reward is only given if max tier is reached
     # - termination_on_max_tier: terminate the episode as max tier is reached
     # - curriculum_training: when enabled, certain scenario parameters are adjusted to better support progressive learning across increasing difficulty levels
@@ -26,11 +27,12 @@ world:
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode true
     delay_mode: true
+    delay: 30
     max_tier_scoring: &max_tier_scoring true
     termination_on_max_tier: &termination_on_max_tier true
     curriculum_training: &curriculum_training false
     de_spawn_tiers: &de_spawn_tiers false
-    max_tier: &max_tier 4
+    max_tier: &max_tier 3
     max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
@@ -50,6 +52,7 @@ world:
     # - starting_score: initial score of the droid
     # - step_penalty: the cost of moving around for the agent
     # - boundary_penalty: the cost of hugging walls
+    # - chain_break_penalty (passed to digestion engine): the cost of consuming orbs in wrong order
     # - tier_consumption_penalty (passed to digestion engine): (only applicable if step_wise_scoring is true) punishment for consuming tier orbs in the wrong order
     # - reward_multiplier (passed to digestion engine): multiplier applied to rewards when threshold scoring in tier_orb_conf is activated, a sensible default is 1.0, then experiment if reward magnitudes get's to large for higher max tiers
     grid_rows: *grid_rows
@@ -57,6 +60,7 @@ world:
     starting_score: 50
     step_penalty: &step_penalty 0.0
     boundary_penalty: -1.0
+    chain_break_penalty: 0.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -155,16 +159,16 @@ agent:
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
     alg: "PPO"
-    agent_steps: "3987456"
-    id_tag: 'tier_4_single_chain_delay_mode_chain_break_penalty'
-    save_folder: 'thesis_new/tier_4/fully_pomdp/single_chain/delay_mode'
+    agent_steps: "7381264"
+    id_tag: 'tier_3_single_chain_delay_mode_no_penalty_30'
+    save_folder: 'thesis_new/tier_3/fully_pomdp/single_chain/delay_mode'
     seed: 3
     human_control: false
-    training: true
+    training: false
     check_env: false
     plateau_detection: true
-    plateau_threshold: 10000000
-    terminate_threshold: 2000000
+    plateau_threshold: 15000000
+    terminate_threshold: 3000000
 
   train_agent_conf:
     # - continue_training: continue from a previously saved model

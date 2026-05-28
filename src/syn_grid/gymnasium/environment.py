@@ -40,6 +40,7 @@ class SYNGridEnv(gym.Env):
     ):
         # Set up bench environment;
         self.render_mode = render_mode
+        self.delay_mode = run_conf.grid_world_conf.delay_mode
         self.world = GridWorld(
             run_conf.grid_world_conf,
             run_conf.orb_factory_conf,
@@ -91,7 +92,7 @@ class SYNGridEnv(gym.Env):
         reward = self.world.perform_droid_action(DroidAction(action))
         self._observation_handler.steps_left -= 1
         terminated, truncated, reward = check_episode_end(
-            self.world, self._observation_handler.steps_left, reward
+            self.world, self._observation_handler.steps_left, self.delay_mode, reward
         )
 
         if self.render_mode == "human":
