@@ -34,7 +34,7 @@ class TestDigestionEngine:
     @pytest.fixture
     def digestion_engine(self) -> DigestionEngine:
         BaseOrb.set_life_span(5, 5)
-        d = DigestionEngine(-1.0, 1.0)
+        d = DigestionEngine(-1.0, 1.0, -0.1)
         d.reset()
         return d
 
