@@ -27,7 +27,7 @@ world:
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode true
     delay_mode: true
-    delay: 30
+    delay: 70
     max_tier_scoring: &max_tier_scoring true
     termination_on_max_tier: &termination_on_max_tier true
     curriculum_training: &curriculum_training false
@@ -60,7 +60,7 @@ world:
     starting_score: 50
     step_penalty: &step_penalty 0.0
     boundary_penalty: -1.0
-    chain_break_penalty: 0.0
+    chain_break_penalty: -1.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -115,7 +115,7 @@ obs:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
     perception: "vector_fully_pomdp"
-    max_steps: &max_steps 100
+    max_steps: &max_steps 200
 
   perception:
     # - max_score: set per scenario based on expected achievable score in this setup
@@ -158,15 +158,15 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
-    alg: "PPO"
-    agent_steps: "7381264"
-    id_tag: 'tier_3_single_chain_delay_mode_no_penalty_30'
+    alg: "RPPO"
+    agent_steps: "16001024"
+    id_tag: 'tier_3_single_chain_delay_mode_scoring_70'
     save_folder: 'thesis_new/tier_3/fully_pomdp/single_chain/delay_mode'
     seed: 3
     human_control: false
-    training: false
+    training: true
     check_env: false
-    plateau_detection: true
+    plateau_detection: false
     plateau_threshold: 15000000
     terminate_threshold: 3000000
 
@@ -181,12 +181,12 @@ agent:
     # - render_mode (null, "human" or "rgb_array"): null is default, change to human if you want visual feedback for debugging or "rgb_array" if you want to record at certain intervals
     # - rec_interval: only applicable if render mode is set to "rgb_array", decides at what step intervals to start record the training
     # - rec_length: only applicable if render mode is set to "rgb_array", decides how many steps the recording should be
-    continue_training: false
+    continue_training: true
     csv_output: true
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 20000000
+    timesteps: 16000000
     iterations: 1
     render_mode: null
     rec_interval: 10000

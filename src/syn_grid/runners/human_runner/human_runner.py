@@ -115,6 +115,10 @@ class HumanRunner:
 
             terminated = True
 
+        # === last orb consumed in delay mode ===#
+        elif self.delay_mode and len(self._world._active_orbs) == 0:
+            terminated = True
+
         return terminated, truncated, reward
 
     def _check_continuous_mode_end(
