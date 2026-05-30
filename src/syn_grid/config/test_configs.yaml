@@ -106,7 +106,7 @@ world:
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: true
-    step_wise_scoring: false
+    step_wise_scoring: true
     threshold_scoring: false
     max_tier_scoring: *max_tier_scoring
     growth_factor: 1.5
