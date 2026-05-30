@@ -16,7 +16,7 @@ class DigestionEngine:
         self,
         tier_consumption_penalty: float,
         reward_multiplier: float,
-        chain_break_penalty: float
+        chain_break_penalty: float,
     ):
         self._tier_consumption_penalty = tier_consumption_penalty
         self._reward_multiplier = reward_multiplier

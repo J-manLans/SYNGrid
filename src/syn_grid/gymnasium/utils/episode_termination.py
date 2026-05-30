@@ -2,7 +2,11 @@ from syn_grid.core.grid_world import GridWorld
 
 
 def check_episode_end(
-    world: GridWorld, steps_left: int, delay_mode: bool, reward: float
+    world: GridWorld,
+    steps_left: int,
+    delay_mode: bool,
+    timeout_penalty: float,
+    reward: float,
 ) -> tuple[bool, bool, float]:
     terminated = False
     truncated = False
@@ -13,7 +17,13 @@ def check_episode_end(
 
     if world._conf.single_chain_mode:
         terminated, truncated, reward = _check_single_chain_end(
-            world, steps_left, delay_mode, terminated, truncated, reward
+            world,
+            steps_left,
+            delay_mode,
+            timeout_penalty,
+            terminated,
+            truncated,
+            reward,
         )
     else:
         terminated, truncated, reward = _check_continuous_mode_end(
@@ -29,7 +39,13 @@ def check_episode_end(
 
 
 def _check_single_chain_end(
-    world: GridWorld, steps_left: int, delay_mode: bool, terminated: bool, truncated: bool, reward: float
+    world: GridWorld,
+    steps_left: int,
+    delay_mode: bool,
+    timeout_penalty: float,
+    terminated: bool,
+    truncated: bool,
+    reward: float,
 ) -> tuple[bool, bool, float]:
     # === tier chain broken ===#
     if world.droid.digestion_engine.tier_chain_broken:
@@ -37,11 +53,11 @@ def _check_single_chain_end(
             terminated = True
 
     # === max steps reached === #
-    elif steps_left <= 0:
+    if steps_left <= 0:
         if not world._conf.max_tier_scoring:
             reward = world.droid.digestion_engine._pending_reward
         else:
-            reward = -1
+            reward = timeout_penalty
 
         terminated = True
 
@@ -51,6 +67,16 @@ def _check_single_chain_end(
             reward = 10
 
         terminated = True
+
+    """
+    TODO: This one helped understanding from what it seems like. However, too late to do reruns, just activate it after thesis and perform on lstm on a 30 delay to see if it learns faster.
+    And actually, termination without reward might be the cleaner signal.
+
+    # === last orb consumed in delay mode ===#
+    elif delay_mode and len(world._active_orbs) == 0:
+        terminated = True
+        reward = timeout_penalty / 2
+    """
 
     return terminated, truncated, reward
 
