@@ -22,8 +22,8 @@ class CompositeGridMarkovian(BasePerception):
     _GLOBAL_KEY = "global_data"
     _GRID_KEY = "grid_data"
 
-    def __init__(self, conf: PerceptionConf, orbs: int):
-        super().__init__(conf, orbs)
+    def __init__(self, conf: PerceptionConf, orbs: int, max_identity: int):
+        super().__init__(conf, orbs, max_identity)
         self._orb_type_channels = self._build_orb_type_channel_map()
 
     # ================= #

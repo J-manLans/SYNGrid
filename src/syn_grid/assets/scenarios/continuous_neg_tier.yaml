@@ -23,17 +23,17 @@ world:
     # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     # - max_tier: this is the highest tier that orbs can reach in this environment
     # - max active orbs: number of max active orbs on grid
-    grid_rows: &grid_rows 5
-    grid_cols: &grid_cols 5
-    single_chain_mode: &single_chain_mode true
+    grid_rows: &grid_rows 8
+    grid_cols: &grid_cols 8
+    single_chain_mode: &single_chain_mode false
     delay_mode: false
     delay: 30
-    max_tier_scoring: &max_tier_scoring true
-    termination_on_max_tier: &termination_on_max_tier true
+    max_tier_scoring: &max_tier_scoring false
+    termination_on_max_tier: &termination_on_max_tier false
     curriculum_training: &curriculum_training false
-    de_spawn_tiers: &de_spawn_tiers false
-    max_tier: &max_tier 3
-    max_active_orbs: &max_active_orbs 3
+    de_spawn_tiers: &de_spawn_tiers true
+    max_tier: &max_tier 4
+    max_active_orbs: &max_active_orbs 5
 
   renderer_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to calculate display size and layout
@@ -58,7 +58,7 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
-    step_penalty: &step_penalty 0.0
+    step_penalty: &step_penalty -1.0
     boundary_penalty: -1.0
     chain_break_penalty: -1.0
     tier_consumption_penalty: *step_penalty
@@ -78,7 +78,7 @@ world:
     single_chain_mode: *single_chain_mode
     types:
       negative:
-        enabled: &neg_enabled false
+        enabled: &neg_enabled true
         weight: 1
       tier:
         enabled: &tier_enabled true
@@ -99,7 +99,7 @@ world:
     # - base_reward: starting reward value at tier 0
     # - cool_down: number of steps before the orb can be reused
     linear_reward_growth: false
-    step_wise_scoring: false
+    step_wise_scoring: true
     threshold_scoring: false
     max_tier_scoring: *max_tier_scoring
     growth_factor: 1.5
@@ -114,7 +114,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_fog_of_war"
+    perception: "vector_fully_pomdp"
     max_steps: &max_steps 100
 
   perception:
@@ -158,12 +158,12 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
-    alg: "RPPO"
+    alg: "PPO"
     agent_steps: "16001024"
-    id_tag: 'tier_3_single_chain_spatial_5x5'
-    save_folder: 'thesis_new/tier_3/fully_pomdp/single_chain/spatial'
+    id_tag: 'tier_4_continuous_neg_tier_8x8'
+    save_folder: 'saved_confs/tier_3/markovian/continuous/delay'
     seed: 3
-    human_control: true
+    human_control: false
     training: true
     check_env: false
     plateau_detection: false

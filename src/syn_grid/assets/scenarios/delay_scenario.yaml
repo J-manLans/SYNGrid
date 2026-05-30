@@ -26,7 +26,7 @@ world:
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode true
-    delay_mode: false
+    delay_mode: true
     delay: 30
     max_tier_scoring: &max_tier_scoring true
     termination_on_max_tier: &termination_on_max_tier true
@@ -114,7 +114,7 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_fog_of_war"
+    perception: "vector_fully_pomdp"
     max_steps: &max_steps 100
 
   perception:
@@ -158,12 +158,12 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
-    alg: "RPPO"
+    alg: "PPO"
     agent_steps: "16001024"
-    id_tag: 'tier_3_single_chain_spatial_5x5'
-    save_folder: 'thesis_new/tier_3/fully_pomdp/single_chain/spatial'
+    id_tag: 'tier_3_single_chain_delay_30'
+    save_folder: 'saved_confs/tier_3/markovian/single_chain/delay'
     seed: 3
-    human_control: true
+    human_control: false
     training: true
     check_env: false
     plateau_detection: false
