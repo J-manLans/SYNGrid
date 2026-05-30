@@ -23,14 +23,14 @@ world:
     # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     # - max_tier: this is the highest tier that orbs can reach in this environment
     # - max active orbs: number of max active orbs on grid
-    grid_rows: &grid_rows 5
-    grid_cols: &grid_cols 5
+    grid_rows: &grid_rows 7
+    grid_cols: &grid_cols 7
     single_chain_mode: &single_chain_mode true
     delay_mode: false
-    delay: 30
+    delay: 260
     max_tier_scoring: &max_tier_scoring true
     termination_on_max_tier: &termination_on_max_tier true
-    curriculum_training: &curriculum_training false
+    curriculum_training: &curriculum_training true
     de_spawn_tiers: &de_spawn_tiers false
     max_tier: &max_tier 3
     max_active_orbs: &max_active_orbs 3
@@ -58,9 +58,9 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
-    step_penalty: &step_penalty 0.0
+    step_penalty: &step_penalty -0.001
     boundary_penalty: -1.0
-    chain_break_penalty: -1.0
+    chain_break_penalty: -0.1
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -158,13 +158,13 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
-    alg: "RPPO"
-    agent_steps: "16001024"
-    id_tag: 'tier_3_single_chain_spatial_5x5'
-    save_folder: 'thesis_new/tier_3/fully_pomdp/single_chain/spatial'
+    alg: "FSPPO"
+    agent_steps: "9275488"
+    id_tag: 'tier_3_single_chain_max_tier_scoring_curr_4'
+    save_folder: 'thesis_new/tier_3/fully_pomdp/single_chain/max_tier'
     seed: 3
-    human_control: true
-    training: true
+    human_control: false
+    training: false
     check_env: false
     plateau_detection: false
     plateau_threshold: 15000000
@@ -186,7 +186,7 @@ agent:
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 16000000
+    timesteps: 20000000
     iterations: 1
     render_mode: null
     rec_interval: 10000
