@@ -16,7 +16,7 @@ def check_episode_end(
         terminated = True
 
     if world._conf.single_chain_mode:
-        terminated, truncated, reward = _check_single_chain_end(
+        terminated, truncated, reward = _single_chain_mode_termination(
             world,
             steps_left,
             delay_mode,
@@ -26,7 +26,7 @@ def check_episode_end(
             reward,
         )
     else:
-        terminated, truncated, reward = _check_continuous_mode_end(
+        terminated, truncated, reward = _continuous_mode_termination(
             world, steps_left, terminated, truncated, reward
         )
 
@@ -38,7 +38,7 @@ def check_episode_end(
 # ================== #
 
 
-def _check_single_chain_end(
+def _single_chain_mode_termination(
     world: GridWorld,
     steps_left: int,
     delay_mode: bool,
@@ -56,7 +56,8 @@ def _check_single_chain_end(
     if steps_left <= 0:
         if not world._conf.max_tier_scoring:
             reward = world.droid.digestion_engine._pending_reward
-        else:
+
+        if delay_mode:
             reward = timeout_penalty
 
         terminated = True
@@ -64,24 +65,20 @@ def _check_single_chain_end(
     # === max tier reached ===#
     elif world.droid.digestion_engine.max_tier_reached:
         if not world._conf.curriculum_training and world._conf.max_tier_scoring:
+            # Overrides the reward from the consumption to a fixed ceiling
             reward = 10
 
         terminated = True
 
-    """
-    TODO: This one helped understanding from what it seems like. However, too late to do reruns, just activate it after thesis and perform on lstm on a 30 delay to see if it learns faster.
-    And actually, termination without reward might be the cleaner signal.
-
     # === last orb consumed in delay mode ===#
     elif delay_mode and len(world._active_orbs) == 0:
         terminated = True
-        reward = timeout_penalty / 2
-    """
+        reward = timeout_penalty // 2
 
     return terminated, truncated, reward
 
 
-def _check_continuous_mode_end(
+def _continuous_mode_termination(
     world: GridWorld, steps_left: int, terminated: bool, truncated: bool, reward: float
 ) -> tuple[bool, bool, float]:
     # === max steps reached === #

@@ -207,6 +207,8 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             if vec_normalize is not None:
                 evn_save_path = f"{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl"
                 vec_normalize.save(evn_save_path)
+                print(f"VecNormalize stats saved at {model.num_timesteps} timesteps")
+
 
     # === Eval === #
 
