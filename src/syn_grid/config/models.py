@@ -158,8 +158,8 @@ class ObservationHandlerConf(BaseModel, frozen=True):
     @model_validator(mode="after")
     def validate_config(self):
         if self.perception not in [
+            "vector_markovian_easy",
             "vector_markovian",
-            "vector_fully_pomdp",
             "vector_fog_of_war",
             "composite_markovian",
             "composite_fully_pomdp",
