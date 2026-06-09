@@ -26,13 +26,13 @@ world:
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode true
-    delay_mode: true
-    delay: 70
+    delay_mode: false
+    delay: 30
     max_tier_scoring: &max_tier_scoring true
     termination_on_max_tier: &termination_on_max_tier true
     curriculum_training: &curriculum_training false
     de_spawn_tiers: &de_spawn_tiers false
-    max_tier: &max_tier 3
+    max_tier: &max_tier 6
     max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
@@ -58,9 +58,9 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
-    step_penalty: &step_penalty 0.0
+    step_penalty: &step_penalty -0.001
     boundary_penalty: -1.0
-    chain_break_penalty: -1.0
+    chain_break_penalty: -0.1
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -115,7 +115,7 @@ obs:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
     perception: "vector_markovian"
-    max_steps: &max_steps 200
+    max_steps: &max_steps 100
 
   perception:
     # - max_score: set per scenario based on expected achievable score in this setup
@@ -158,11 +158,11 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
-    alg: "PPO"
+    alg: "RPPO"
     agent_steps: "16001024"
-    id_tag: 'delay_70'
-    save_folder: 'reproduction_package/delay_mode'
-    seed: 42
+    id_tag: 'tier_scaling_sparse_tier6'
+    save_folder: 'reproduction_package/tier_scaling_sparse'
+    seed: 7
     human_control: false
     training: true
     check_env: false
@@ -186,7 +186,7 @@ agent:
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 10760192
+    timesteps: 10000032
     iterations: 1
     render_mode: null
     rec_interval: 10000

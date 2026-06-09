@@ -136,6 +136,7 @@ class DigestionEngine:
 
         if self.chained_tiers == current_tier - 1:
             if current_tier != consumed_orb.max_tier:
+                # build on current chain
                 self.chain_progressed = True
                 self.chained_tiers = current_tier
                 return 0.0
