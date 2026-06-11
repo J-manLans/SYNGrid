@@ -162,7 +162,7 @@ agent:
     agent_steps: "16001024"
     id_tag: 'tier_scaling_sparse_tier7'
     save_folder: 'reproduction_package/tier_scaling_sparse/fsppo'
-    seed: 7
+    seed: 3
     human_control: false
     training: true
     check_env: false

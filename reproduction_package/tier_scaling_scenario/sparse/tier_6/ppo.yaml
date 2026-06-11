@@ -23,8 +23,8 @@ world:
     # - de_spawn_tiers: decides if tiers should de-spawn just as the non tier orbs
     # - max_tier: this is the highest tier that orbs can reach in this environment
     # - max active orbs: number of max active orbs on grid
-    grid_rows: &grid_rows 6
-    grid_cols: &grid_cols 6
+    grid_rows: &grid_rows 5
+    grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode true
     delay_mode: false
     delay: 30
@@ -32,7 +32,7 @@ world:
     termination_on_max_tier: &termination_on_max_tier true
     curriculum_training: &curriculum_training false
     de_spawn_tiers: &de_spawn_tiers false
-    max_tier: &max_tier 7
+    max_tier: &max_tier 6
     max_active_orbs: &max_active_orbs 3
 
   renderer_conf:
@@ -158,11 +158,11 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
-    alg: "FSPPO"
+    alg: "PPO"
     agent_steps: "16001024"
-    id_tag: 'tier_scaling_sparse_tier7'
-    save_folder: 'reproduction_package/tier_scaling_sparse/fsppo'
-    seed: 7
+    id_tag: 'tier_scaling_sparse_tier6'
+    save_folder: 'reproduction_package/tier_scaling_sparse/ppo'
+    seed: 3
     human_control: false
     training: true
     check_env: false
@@ -186,7 +186,7 @@ agent:
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 8595456
+    timesteps: 8905664
     iterations: 1
     render_mode: null
     rec_interval: 10000

@@ -316,12 +316,117 @@ def _finalize_plot(plot_id: str, plots_dir: Path):
     plt.savefig(plots_dir / f"{plot_id}.png")
     plt.close()
 
+def time_line(plots_dir: Path):
+    """Final roadmap Gantt chart for SYNGrid thesis — Appendix A companion figure.
+    Data transcribed from GitHub Projects roadmap screenshot (verify dates against repo).
+    Regenerate: python roadmap_gantt.py
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    from datetime import date
+
+    # (label, issue_no, start, end)
+    items = [
+        ("Write ex-job proposal", 56, date(2026, 3, 21), date(2026, 3, 27)),
+        ("See if the TierBase resource can be discarded", 48, date(2026, 3, 21), date(2026, 3, 31)),
+        ("Move _chained_tiers list into the agent for more unified handling", 47, date(2026, 3, 21), date(2026, 3, 31)),
+        ("Test if learning stabilizes earlier with move penalty as a reward", 46, date(2026, 3, 21), date(2026, 3, 31)),
+        ("Change how world boundary works in BaseResource", 40, date(2026, 3, 21), date(2026, 3, 31)),
+        ("Move the human control loop into the GridWorld class", 45, date(2026, 3, 21), date(2026, 3, 31)),
+        ("Fix the combo based reward signal", 42, date(2026, 3, 21), date(2026, 3, 31)),
+        ("Introduction, background and related work", 63, date(2026, 3, 31), date(2026, 4, 5)),
+        ("Implement configurable runs file", 23, date(2026, 3, 31), date(2026, 4, 10)),
+        ("Abstract base class for observation spaces + concrete observations", 32, date(2026, 4, 11), date(2026, 4, 20)),
+        ("Find a neat solution for plug and play for different agents", 33, date(2026, 4, 21), date(2026, 4, 22)),
+        ("Implement \u201cplug and play\u201d ability", 34, date(2026, 4, 23), date(2026, 5, 3)),
+        ("Method and preliminary results", 64, date(2026, 4, 6), date(2026, 5, 3)),
+        ("Midterm check: abstract, intro, background, related work, method", 65, date(2026, 5, 3), date(2026, 5, 4)),
+        ("Ablation studies for fully Markovian observation spaces", 81, date(2026, 5, 3), date(2026, 5, 5)),
+        ("Max Tier Only reward variant", 88, date(2026, 5, 3), date(2026, 5, 5)),
+        ("Add persistent result metrics", 39, date(2026, 5, 4), date(2026, 5, 10)),
+        ("Add performance metrics logging", 57, date(2026, 5, 4), date(2026, 5, 10)),
+
+        ("Converter and hazard orbs (if time allows)", 49, date(2026, 5, 11), date(2026, 5, 21)),
+
+        ("Result, discussion", 66, date(2026, 5, 4), date(2026, 5, 24)),
+        ("Completeness check", 67, date(2026, 5, 24), date(2026, 5, 25)),
+        ("Video submission", 68, date(2026, 5, 31), date(2026, 6, 1)),
+        ("Discussion day with examiners", 69, date(2026, 6, 2), date(2026, 6, 3)),
+        ("Finalize the ex-job report", 54, date(2026, 5, 1), date(2026, 6, 10)),
+
+        ("Set up CI workflow to run tests on push and pull requests", 35, date(2026, 5, 4), date(2026, 6, 10)),
+        ("Add docstrings where needed", 37, date(2026, 6, 1), date(2026, 6, 10)),
+        ("Write contributing file", 53, date(2026, 6, 1), date(2026, 6, 10)),
+        ("Build upon the readme file", 55, date(2026, 6, 1), date(2026, 6, 10)),
+
+        ("Final submission", 70, date(2026, 6, 11), date(2026, 6, 12)),
+    ]
+
+    DEADLINE = date(2026, 6, 12)
+
+    BAR = "#ffdf61"
+    EDGE = "#e6b800"
+    TEXT = "#000000"
+    NUMC = "#888888"
+    GRID = "#d9d9d9"
+
+    fig, ax = plt.subplots(figsize=(9.2, 6.4))
+
+    ys = range(len(items))
+
+    # ---- label + gray number as one annotation ----
+    fig, ax = plt.subplots(figsize=(9.2, 6.4))
+    for y, (label, num, start, end) in zip(ys, items):
+        ax.barh(y, (end - start).days, left=mdates.date2num(start),
+                height=0.62, color=BAR, edgecolor=EDGE, linewidth=0.8, zorder=3)
+        right_side = end <= date(2026, 5, 20)
+        if right_side:
+            x, ha = mdates.date2num(end) + 1.0, "left"
+        else:
+            x, ha = mdates.date2num(start) - 1.0, "right"
+        near_deadline = end >= date(2026, 6, 8)
+        if near_deadline:
+            ax.text(mdates.date2num(start) - 1.0, y, f"#{num}  {label}",
+                    va="center", ha="right", fontsize=7.2, color=TEXT, zorder=4)
+            continue
+        ax.text(x, y, f"{label}", va="center", ha=ha, fontsize=7.2, color=TEXT, zorder=4)
+        # number rides at the opposite end of the bar, inside-adjacent
+        nx = mdates.date2num(start) - 1.0 if right_side else mdates.date2num(end) + 1.0
+        nha = "right" if right_side else "left"
+        ax.text(nx, y, f"#{num}", va="center", ha=nha, fontsize=6.6, color=NUMC, zorder=4)
+
+    ax.invert_yaxis()
+    ax.set_yticks([])
+    ax.set_ylim(len(items) - 0.4, -0.6)
+
+    # x axis: weekly minor grid, monthly major labels
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%B %Y"))
+    ax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
+    ax.grid(which="major", axis="x", color="#595959", linewidth=0.9, zorder=0)
+    ax.tick_params(axis="x", which="major", labelsize=8.5, length=0, pad=6)
+    ax.tick_params(axis="x", which="minor", length=0)
+
+    ax.set_xlim(mdates.date2num(date(2026, 3, 20)), mdates.date2num(date(2026, 6, 15)))
+
+    # deadline marker
+    ax.axvline(mdates.date2num(DEADLINE), color="#00ccff", linewidth=1.1, zorder=2)
+    ax.text(mdates.date2num(DEADLINE) - 1.0, -0.55, "final deadline (June 12) ",
+            fontsize=7.5, color="#595959", ha="right", va="bottom")
+
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    fig.tight_layout()
+    fig.savefig(plots_dir / "final_roadmap.pdf", bbox_inches="tight")
+    fig.savefig(plots_dir / "final_roadmap_preview.png", dpi=150, bbox_inches="tight")
+    print("done")
 
 
 if __name__ == "__main__":
     _BASE_PLOT_DIR.mkdir(parents=True, exist_ok=True)
-
-    plot_ts_reward()
-    plot_ts_length()
+    time_line(_BASE_PLOT_DIR)
+    # plot_ts_reward()
+    # plot_ts_length()
     # plot_ts_entropy_loss()
     # plot_ts_explained_variance()
