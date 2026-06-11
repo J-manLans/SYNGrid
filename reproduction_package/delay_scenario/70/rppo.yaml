@@ -26,11 +26,11 @@ world:
     grid_rows: &grid_rows 5
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode true
-    delay_mode: false
-    delay: 30
+    delay_mode: true
+    delay: 70
     max_tier_scoring: &max_tier_scoring true
     termination_on_max_tier: &termination_on_max_tier true
-    curriculum_training: &curriculum_training true
+    curriculum_training: &curriculum_training false
     de_spawn_tiers: &de_spawn_tiers false
     max_tier: &max_tier 3
     max_active_orbs: &max_active_orbs 3
@@ -58,9 +58,9 @@ world:
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
-    step_penalty: &step_penalty -0.001
+    step_penalty: &step_penalty 0.0
     boundary_penalty: -1.0
-    chain_break_penalty: -0.01
+    chain_break_penalty: -1.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -114,8 +114,8 @@ obs:
   observation_handler:
     # - perception: decides type and how much information to pack into the agents observation. Hard, medium and easy are the options
     # - max_steps: number of steps in an episode until truncated
-    perception: "vector_fog_of_war"
-    max_steps: &max_steps 100
+    perception: "vector_markovian"
+    max_steps: &max_steps 200
 
   perception:
     # - max_score: set per scenario based on expected achievable score in this setup
@@ -158,10 +158,10 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
-    alg: "PPO"
+    alg: "RPPO"
     agent_steps: "16001024"
-    id_tag: 'tier_3_single_chain_spatial_5x5'
-    save_folder: 'saved_confs/tier_3/fully_pomdp/single_chain/spatial'
+    id_tag: 'delay_70'
+    save_folder: 'reproduction_package/delay_mode/rppo'
     seed: 3
     human_control: false
     training: true
@@ -186,7 +186,7 @@ agent:
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 16000000
+    timesteps: 32002048
     iterations: 1
     render_mode: null
     rec_interval: 10000
