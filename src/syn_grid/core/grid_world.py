@@ -84,7 +84,7 @@ class GridWorld:
     # === Logic === #
 
     def perform_droid_action(self, agent_action: DroidAction) -> float:
-        reward = 0
+        reward = 0.0
         step_penalty = self.droid.perform_action(agent_action)
 
         for orb in self.ALL_ORBS:

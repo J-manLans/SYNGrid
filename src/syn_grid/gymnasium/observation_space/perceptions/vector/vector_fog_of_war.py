@@ -33,7 +33,7 @@ class VectorFogOfWar(BasePerception):
         high = np.concatenate([droid_high, orb_high])
 
         # Initialize the array used for giving the observation
-        self._obs_data = np.zeros_like(high, dtype=np.float32)
+        self._obs_data = np.full(high.shape, self._MISSING_ORB_VALUE, dtype=np.float32)
 
         # Return observation space definition
         return spaces.Box(

@@ -60,7 +60,7 @@ world:
     starting_score: 50
     step_penalty: &step_penalty -0.001
     boundary_penalty: -1.0
-    chain_break_penalty: -0.1
+    chain_break_penalty: -0.01
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -159,8 +159,8 @@ agent:
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
     alg: "RPPO"
-    agent_steps: "471040"
-    id_tag: 'spatial_5x5_-0.1chainB_no rewardCapping'
+    agent_steps: "16001024"
+    id_tag: 'spatial_5x5'
     save_folder: 'reproduction_package/spatial/rppo'
     seed: 3
     human_control: false
