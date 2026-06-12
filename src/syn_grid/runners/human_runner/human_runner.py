@@ -1,7 +1,8 @@
 from syn_grid.config.models import WorldConfig
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.core.grid_world import GridWorld
-
+from syn_grid.gymnasium.utils.episode_termination import check_episode_end
+from syn_grid.gymnasium.environment import SYNGridEnv
 
 class HumanRunner:
     # ================= #
@@ -10,7 +11,10 @@ class HumanRunner:
 
     def __init__(self, run_conf: WorldConfig, steps_left: int):
         self._renderer = PygameRenderer(run_conf.renderer_conf, 60)
+
         self.delay_mode = run_conf.grid_world_conf.delay_mode
+        self.chain_break_penalty = run_conf.droid_conf.chain_break_penalty
+
         self._world = GridWorld(
             run_conf.grid_world_conf,
             run_conf.orb_factory_conf,
@@ -33,7 +37,13 @@ class HumanRunner:
             if action is not None:
                 rew = self._world.perform_droid_action(action)
                 self._steps_left -= 1
-                terminated, truncated, rew = self._check_episode_end(rew)
+                terminated, truncated, rew = check_episode_end(
+                    self._world,
+                    self._steps_left,
+                    self.delay_mode,
+                    self.chain_break_penalty,
+                    rew
+                )
                 self._render()
 
                 if terminated or truncated:
@@ -65,69 +75,3 @@ class HumanRunner:
         )
 
         return hud_data
-
-    def _check_episode_end(self, reward: float) -> tuple[bool, bool, float]:
-        terminated = False
-        truncated = False
-
-        if self._world.droid.score <= 0:
-            # always terminate when agent is out of score
-            terminated = True
-
-        if self._world._conf.single_chain_mode:
-            terminated, truncated, reward = self._check_single_chain_end(
-                terminated, truncated, reward
-            )
-        else:
-            terminated, truncated, reward = self._check_continuous_mode_end(
-                terminated, truncated, reward
-            )
-
-        return terminated, truncated, reward
-
-    def _check_single_chain_end(
-        self, terminated: bool, truncated: bool, reward: float
-    ) -> tuple[bool, bool, float]:
-        # === tier chain broken ===#
-        if self._world.droid.digestion_engine.tier_chain_broken:
-            if not self.delay_mode:
-                terminated = True
-
-        # === max steps reached === #
-        elif self._steps_left <= 0:
-            if not self._world._conf.max_tier_scoring:
-                reward = self._world.droid.digestion_engine._pending_reward
-            else:
-                reward += -0.1
-
-            terminated = True
-
-        # === max tier reached ===#
-        elif (
-            self._world._conf.termination_on_max_tier
-            and self._world.droid.digestion_engine.max_tier_reached
-        ):
-            if (
-                not self._world._conf.curriculum_training
-                and self._world._conf.max_tier_scoring
-            ):
-                reward = 10
-
-            terminated = True
-
-        # === last orb consumed in delay mode ===#
-        elif self.delay_mode and len(self._world._active_orbs) == 0:
-            terminated = True
-
-        return terminated, truncated, reward
-
-    def _check_continuous_mode_end(
-        self, terminated: bool, truncated: bool, reward: float
-    ) -> tuple[bool, bool, float]:
-        # === max steps reached === #
-        if self._steps_left <= 0:
-            if not self._world._conf.max_tier_scoring:
-                reward = self._world.droid.digestion_engine._pending_reward
-            terminated = True
-
-        return terminated, truncated, reward

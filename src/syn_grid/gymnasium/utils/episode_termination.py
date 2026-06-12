@@ -66,7 +66,7 @@ def _single_chain_mode_termination(
     elif world.droid.digestion_engine.max_tier_reached:
         if not world._conf.curriculum_training and world._conf.max_tier_scoring:
             # Overrides the reward from the consumption to a fixed ceiling
-            reward = 10
+            reward = 10.0
 
         terminated = True
 
