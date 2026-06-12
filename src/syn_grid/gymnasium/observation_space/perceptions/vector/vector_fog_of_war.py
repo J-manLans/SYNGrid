@@ -57,8 +57,7 @@ class VectorFogOfWar(BasePerception):
         )
 
         visible_orbs = [
-            orb
-            for orb in sorted_orbs
+            orb for orb in sorted_orbs
             if orb.is_active
             and max(abs(orb.position[0] - droid_y), abs(orb.position[1] - droid_x)) <= 1
         ]

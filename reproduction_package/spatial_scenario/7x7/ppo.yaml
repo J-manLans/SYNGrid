@@ -158,11 +158,11 @@ agent:
     # - plateau_detection: true if you are using automatic training termination
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
-    alg: "FSPPO"
-    agent_steps: "7276544"
+    alg: "PPO"
+    agent_steps: "8015872"
     id_tag: 'spatial_6x6'
-    save_folder: 'reproduction_package/spatial/fsppo'
-    seed: 7
+    save_folder: 'reproduction_package/spatial/ppo'
+    seed: 3
     human_control: false
     training: true
     check_env: false
@@ -186,7 +186,7 @@ agent:
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 1998944
+    timesteps: 2699216
     iterations: 1
     render_mode: null
     rec_interval: 10000
