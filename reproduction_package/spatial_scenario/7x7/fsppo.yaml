@@ -160,7 +160,7 @@ agent:
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
     alg: "FSPPO"
     agent_steps: "7276544"
-    id_tag: 'spatial_6x6'
+    id_tag: 'spatial_5x5'
     save_folder: 'reproduction_package/spatial/fsppo'
     seed: 7
     human_control: false
