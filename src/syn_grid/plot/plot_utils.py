@@ -264,7 +264,7 @@ def _finalize_ts_plot(bottom_limit: float| None, plot_id: str, ylabel: str, plot
     plt.ylim(bottom=bottom_limit)
     plt.xlabel("Timesteps")
     plt.ylabel(ylabel)
-    plt.title(f"{ylabel} at sparse training")
+    plt.title(f"{ylabel} in the spatial scenario")
     plt.legend(ncol=3)
     plt.tight_layout()
     plt.savefig(plots_dir / f"spatial_{plot_id}.pdf")  # PDF for the thesis
@@ -425,8 +425,8 @@ def time_line(plots_dir: Path):
 
 if __name__ == "__main__":
     _BASE_PLOT_DIR.mkdir(parents=True, exist_ok=True)
-    time_line(_BASE_PLOT_DIR)
-    # plot_ts_reward()
-    # plot_ts_length()
+    # time_line(_BASE_PLOT_DIR)
+    plot_ts_reward()
+    plot_ts_length()
     # plot_ts_entropy_loss()
     # plot_ts_explained_variance()
