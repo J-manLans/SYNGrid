@@ -34,7 +34,7 @@ When you enter a scenario (the spatial 5x5 scenario, for example) you will see t
 
 This means the scenario was run with all three models. To retrain one, follow the description above.
 
-Some scenarios contain fewer files — sparse tier scaling at tier 5, for example, has only `ppo.yaml` and `rppo.yaml`. This means only those models were run at that tier, following the probing protocol described in the [thesis](Evaluating%20Syngrid%3A%20A%20Configurable%20Benchmark%20Environment%20for%20Temporal%20Credit%20Assignment%20in%20Reinforcement%20Learning.pdf). The same training procedure as above applies for them.
+Some scenarios contain fewer files — sparse tier scaling at tier 5, for example, has only `ppo.yaml` and `rppo.yaml`. This means only those models were run at that tier, following the probing protocol described in the [thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794). The same training procedure as above applies for them.
 
 ## Evaluation runs
 ### Your own re-trained model
@@ -94,7 +94,7 @@ This will bring up all runs and seeds for the spatial scenario from 5x5 -> 7x7
 
 ## Notes on reproducibility
 - **Reruns within this codebase are exact, with a caveat**. Same configuration and seed produce identical results. Compared to the thesis-era logs, trajectories diverge a little after the initial episodes due to minor post-thesis code revisions without deserting the overall trends. The exceptions are described in the point below.
-- **The RPPO result in the spatial scenario could not be re-established** for any of the seeds after post-submission code revisions, the original logs and checkpoints from seed 3 are preserved and remain the authoritative record for the thesis figures. See the [thesis](Evaluating%20Syngrid%3A%20A%20Configurable%20Benchmark%20Environment%20for%20Temporal%20Credit%20Assignment%20in%20Reinforcement%20Learning.pdf) Limitations section for details. The other two agents and most other scenarios reproduce comparable results. However, to what extent wasn't made clear before the submission of the thesis. A rerun of all seeds and tiers, except where it flatlined, were conduced for PPO in the sparse tier scaling scenario to get a notion of the damage. These are the results:
+- **The RPPO result in the spatial scenario could not be re-established** for any of the seeds after post-submission code revisions, the original logs and checkpoints from seed 3 are preserved and remain the authoritative record for the thesis figures. See the [thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794) Limitations section for details. The other two agents and most other scenarios reproduce comparable results. However, to what extent wasn't made clear before the submission of the thesis. A rerun of all seeds and tiers, except where it flatlined, were conduced for PPO in the sparse tier scaling scenario to get a notion of the damage. These are the results:
 
     - tier 4: all seeds converged
     - tier 5: seed 7 and 47 converged
