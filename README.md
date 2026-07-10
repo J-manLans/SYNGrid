@@ -91,19 +91,12 @@ All scenario parameters live in a single YAML config file. No code changes neede
 
 ```yaml
 world:
-  grid_size: 8
-  tier_depth: 3
-  delay: 30
-  observability: "pomdp"  # or "mdp"
-  reward_density: "sparse"  # or "dense"
-
-orbs:
-  active_count: 3
-  types: ["tier", "negative"]
-
-agent:
-  architecture: "stateless"  # "stateless", "frame_stacking", "recurrent"
-  timesteps: 500_000
+  grid_world_conf:    
+    grid_rows: &grid_rows 5
+    grid_cols: &grid_cols 5
+    single_chain_mode: &single_chain_mode true
+    delay_mode: false
+    ...
 ```
 
 See [`config/config.yaml`](./src/syn_grid/config/config.yaml) for all available options.
@@ -111,18 +104,16 @@ See [`config/config.yaml`](./src/syn_grid/config/config.yaml) for all available 
 ---
 
 ## Roadmap
-**Effect Orbs** — The original vision for SYNGrid. Transient world states where an action's value only becomes clear later through interaction with something else. Examples:
+**Effect Orbs**: The original vision for SYNGrid. Transient world states where an action's value only becomes clear later through interaction with something else. Examples:
 - **Null orbs:** Nullify the next orb; force re-ordering.
 - **Converter orbs:** Flip reward signs; change the landscape.
 - **Hazard orbs:** Make regions costly to traverse.
 
-These can be mixed, reconfigured, and composed without touching the base environment. This is where the "SYN" (synergy) in SYNGrid comes alive—not isolated challenges, but *combined* complexity from simple mechanics.
+These can be mixed, reconfigured, and composed without touching the base environment.
 
-**GUI / Scenario Builder** — Hand-editing YAML configs works but isn't ideal. A visual builder would let you dial parameters, see previews, and save scenarios without needing to touch a file.
+**GUI / Scenario Builder**: Hand-editing YAML configs works but isn't ideal. A visual builder that hides irrelevant settings would let you dial parameters, see previews, and save scenarios without needing to touch a file.
 
-**Curriculum Learning Support** — Using active orb count and tier depth as difficulty axes for staged training.
-
-For detailed reasoning and prior experiments, see [`SYNGrid_Future_Work.md`](./SYNGrid_Future_Work.md).
+**Curriculum Learning Support**: A more dedicated system for incrementally increase tiers and orbs into the mix
 
 ---
 
@@ -130,7 +121,7 @@ For detailed reasoning and prior experiments, see [`SYNGrid_Future_Work.md`](./S
 SYNGrid is built on a few convictions:
 
 1. **Isolation matters.** A benchmark only tells you what it isolates. Mixing credit assignment with exploration, perception, and navigation obscures what an agent actually struggles with.
-2. **Simplicity is powerful.** Four cardinal directions. Two orb types (soon three). Composable mechanics. No inventory, no combat, no procedural generation. The goal is clean signal, not complex environments.
+2. **Simplicity is powerful.** Four cardinal directions. Orbs as the only other entity besides the droid. Composable mechanics. No inventory, no combat, no procedural generation. The goal is clean signal, not complex environments.
 3. **Configuration over code.** You shouldn't need to rewrite code to test a hypothesis. Scenarios should emerge from toggling mechanics, not rebuilding environments.
 4. **Diagnosis over scorekeeping.** A good benchmark tells you *how* agents break down, not just *that* they break down. Where does memory matter? Where does reward density? What's the hard boundary? These questions matter more than a single leaderboard score.
 
@@ -160,23 +151,19 @@ Whether this narrowness in RL agents is a limitation worth addressing, or simply
 If you use SYNGrid in research, please cite:
 
 ```bibtex
-@thesis{J-manLans2025,
-  author = {J-manLans},
-  title = {SYNGrid: A Configurable Benchmark for Temporal Credit Assignment},
+@thesis{J-manLans2026,
+  author = {Joel Lansgren},
+  title = {Evaluating SYNGrid: A Configurable Benchmark Environment for Temporal Credit Assignment in Reinforcement Learning},
   school = {Mid Sweden University},
-  year = {2025},
-  url = {https://github.com/J-manLans/SYNGrid}
+  year = {2026},
+  url = {https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794}
 }
 ```
 
 ---
 
 ## License
-
-[Add your license here, e.g., MIT, Apache 2.0, etc.]
+[MIT](/LICENSE)
 
 ---
 
-## Acknowledgments
-
-Thanks to my supervisor Rodi Jolak for keeping me on track and ensuring the work stayed clear and readable. Thanks to my wife for patience through late nights, my father for taking care of the dog, and to AI assistants who helped me think through problems and refine ideas while working remotely.
