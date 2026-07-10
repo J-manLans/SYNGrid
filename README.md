@@ -22,13 +22,13 @@ SYNGrid is one attempt to fill that gap.
 ## What SYNGrid Does
 SYNGrid is a configurable grid-based environment for isolating and diagnosing temporal credit assignment in RL agents.
 
-**In its current form:** SYNGrid is a simple grid where agents collect **orbs** to earn rewards, and this simplicity is intentional. You don't create new environments for new tasks — instead, you dial configuration knobs in a YAML file to compound the challange instead of writing a totally new one:
+**In its current form:** SYNGrid is a simple grid where agents collect **orbs** to earn rewards, and this simplicity is intentional. You don't create new environments for new tasks — instead, you dial configuration knobs in a YAML file to compound the challange instead of writing a totally new one, for example:
 
-- **Tier depth** — How long is the dependency chain? (tier 2 vs. tier 7)
-- **Delay** — How many steps between valid orb consumptions? (stretches the temporal gap between action and reward)
-- **Observability** — Does the agent see the full grid (MDP), or only a 3×3 window around itself (POMDP)?
-- **Reward density** — Sparse (reward only on full chain completion) or dense (reward per correctly consumed orb)?
-- **Grid size & spawn mechanics** — Adjust world complexity and orb availability
+- **Tier depth**: How long is the dependency chain? (tier 2 vs. tier 7)
+- **Delay**: Decide how many steps after consumption of an orb the next one can spawn. (stretches the temporal gap between action and reward)
+- **Observability**: Does the agent see the full grid (MDP), or only a 3×3 window around itself (POMDP)?
+- **Reward density**: Sparse (reward only on full chain completion) or dense (reward per correctly consumed orb)?
+- **Grid size & spawn mechanics**: Adjust world complexity and orb availability.
 
 Change any of these, and the agent faces a different credit assignment challenge, without the need to touch code. A human-playable mode also lets you validate scenarios before training.
 
