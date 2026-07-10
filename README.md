@@ -11,7 +11,7 @@
 ## The Problem
 In reinforcement learning, agents learn by trial and error — but which past actions actually mattered for success? This is the **Temporal Credit Assignment Problem (TCAP)**: figuring out which decisions in a long sequence deserve credit for an outcome, especially when the reward arrives much later.
 
-Since Minsky posed it in 1961, it's remained hard. Most RL benchmarks entangle credit assignment with exploration, navigation, and perception, making it impossible to isolate where an agent actually struggles. The ones that try to isolate it are often heavyweight (requiring millions of steps) or inflexible (fixed tasks, no easy configuration).
+Since Minsky posed it in 1961, it has remained hard. Most RL benchmarks, both big and focused ones, entangle credit assignment with other challenges, making it hard to isolate where an agent actually struggles.
 
 **The gap:** We lack lightweight, configurable benchmarks that let you dial credit assignment difficulty as a single tunable axis, isolate it from other challenges, and diagnose *how* agents break down.
 
