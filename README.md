@@ -1,6 +1,8 @@
 # SYNGrid
 
 > A configurable benchmark for isolating Temporal Credit Assignment in reinforcement learning agents.
+> 
+> SYNGrid lets you vary temporal credit assignment difficulty through configuration rather than creating new benchmark environments. Instead of switching between dozens of tasks, you change tier depth, reward sparsity, observability, and delay from a YAML file.
 >
 > **Status:** Research prototype. Evaluated across three scenarios in a [bachelor's thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794).
 
@@ -9,7 +11,7 @@
 ## The Problem
 In reinforcement learning, agents learn by trial and error — but which past actions actually mattered for success? This is the **Temporal Credit Assignment Problem (TCAP)**: figuring out which decisions in a long sequence deserve credit for an outcome, especially when the reward arrives much later.
 
-Since Minsky posed it in 1961, it's remained hard. Most RL benchmarks entangle credit assignment with exploration, perception, and navigation, making it impossible to isolate where an agent actually struggles. The ones that try to isolate it are often heavyweight (requiring millions of steps) or inflexible (fixed tasks, no easy configuration).
+Since Minsky posed it in 1961, it's remained hard. Most RL benchmarks entangle credit assignment with exploration, navigation, and perception, making it impossible to isolate where an agent actually struggles. The ones that try to isolate it are often heavyweight (requiring millions of steps) or inflexible (fixed tasks, no easy configuration).
 
 **The gap:** We lack lightweight, configurable benchmarks that let you dial credit assignment difficulty as a single tunable axis, isolate it from other challenges, and diagnose *how* agents break down.
 
@@ -30,11 +32,13 @@ SYNGrid is a configurable grid-based environment for isolating and diagnosing te
 
 Change any of these, and the agent faces a different credit assignment challenge, without the need to touch code. A human-playable mode also lets you validate scenarios before training.
 
-**The core mechanic today:** As of now, there are two orb types: tier orbs, which must be collected in strict order (tier 1, then tier 2, then tier 3, and so on — collecting them out of order resets the chain, and only a fully completed chain yields a reward), and negative orbs, which deliver a direct negative reward. 
+**The core mechanic today:** Currently, there are two orb types: tier orbs, which must be collected in strict order (tier 1, then tier 2, then tier 3, and so on — collecting them out of order resets the chain, and only a fully completed chain yields a reward), and negative orbs, which deliver a direct negative reward. 
 
 **Where it's headed:** The roadmap intends to extend this foundation with **Effect Orbs** — transient mechanics (nullifier, converter, hazard, etc) that interact and combine into richer scenarios, while keeping the config-driven paradigm intact. This would be where the "SYN" stops being a stretch and starts earning its name.
 
 ### Three Validated Scenarios
+These scenarios isolate three different dimensions of temporal credit assignment.
+
 ![Overview of the three SYNGrid scenarios with training results](/docs/img/scenario_overview.jpg)
 
 **Spatial Memory (POMDP):** Full grid visibility is removed; the agent sees only a 3×3 agent-centric window. Now memory must do spatial reconstruction *and* sequence tracking.
@@ -96,8 +100,16 @@ world:
     grid_cols: &grid_cols 5
     single_chain_mode: &single_chain_mode true
     delay_mode: false
-    ...
+    delay: 30
+    max_tier_scoring: &max_tier_scoring true
+    termination_on_max_tier: &termination_on_max_tier true
+    curriculum_training: &curriculum_training false
+    de_spawn_tiers: &de_spawn_tiers false
+    max_tier: &max_tier 4
+    max_active_orbs: &max_active_orbs 3
 ```
+
+> Increasing only max_tier changes the dependency chain while leaving the rest of the environment unchanged.
 
 See [`config/config.yaml`](./src/syn_grid/config/config.yaml) for all available options.
 
@@ -128,13 +140,7 @@ SYNGrid is built on a few convictions:
 ---
 
 ## Broader Context
-The deeper question underlying SYNGrid: **What can tabula rasa agents learn from reward alone?**
-
-Humans arrive with priors—intuitions about causality, sequences, goals. Agents start with nothing. They must learn "do things in order" *and* learn the specific order *simultaneously*, both from a single reward signal. We wouldn't expect a child to figure out ordered tasks with no structure; why do we expect agents to?
-
-Early active inference work (like AXIOM from VERSES AI) suggests that agents equipped with structured priors about dynamics learn orders of magnitude faster than reward-maximizing agents alone. Similarly, neuroscience shows that biological intelligence isn't shaped by reward alone, but by overlapping drives: predictability, effort cost, and outcome.
-
-Whether this narrowness in RL agents is a limitation worth addressing, or simply a different design point, remains open. SYNGrid is a tool for exploring that question empirically.
+SYNGrid is motivated by a broader question: What can agents learn from reward alone? Unlike humans, RL agents typically begin without built-in knowledge about sequences or causality. SYNGrid provides a controlled environment for studying where reward alone is sufficient—and where it begins to break down.
 
 ---
 
