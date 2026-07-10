@@ -7,7 +7,7 @@
 ---
 
 ## The Problem
-In reinforcement learning, agents learn by trial and error—but which past actions actually mattered for success? This is the **Temporal Credit Assignment Problem (TCAP)**: figuring out which decisions in a long sequence deserve credit for an outcome, especially when the reward arrives much later.
+In reinforcement learning, agents learn by trial and error — but which past actions actually mattered for success? This is the **Temporal Credit Assignment Problem (TCAP)**: figuring out which decisions in a long sequence deserve credit for an outcome, especially when the reward arrives much later.
 
 Since Minsky posed it in 1961, it's remained hard. Most RL benchmarks entangle credit assignment with exploration, perception, and navigation, making it impossible to isolate where an agent actually struggles. The ones that try to isolate it are often heavyweight (requiring millions of steps) or inflexible (fixed tasks, no easy configuration).
 
@@ -18,24 +18,28 @@ SYNGrid is one attempt to fill that gap.
 ---
 
 ## What SYNGrid Does
-SYNGrid is a grid-based environment where an agent collects **orbs** to earn rewards. The simplicity is intentional.
+SYNGrid is a configurable grid-based environment for isolating and diagnosing temporal credit assignment in RL agents.
 
-**The core mechanic:** Some orbs (**tier orbs**) must be collected in a specific order: tier 1, then tier 2, then tier 3, and so on. Collect them out of order and the chain resets. Only completing a full chain yields reward.
+**In its current form:** SYNGrid is a simple grid where agents collect **orbs** to earn rewards, and this simplicity is intentional. You don't create new environments for new tasks — instead, you dial configuration knobs in a YAML file to compound the challange instead of writing a totally new one:
 
-**The power:** You don't create new environments for new tasks. Instead, you dial a few knobs in a config file:
 - **Tier depth** — How long is the dependency chain? (tier 2 vs. tier 7)
 - **Delay** — How many steps between valid orb consumptions? (stretches the temporal gap between action and reward)
 - **Observability** — Does the agent see the full grid (MDP), or only a 3×3 window around itself (POMDP)?
 - **Reward density** — Sparse (reward only on full chain completion) or dense (reward per correctly consumed orb)?
+- **Grid size & spawn mechanics** — Adjust world complexity and orb availability
 
-Change any of these, and the agent faces a different credit assignment challenge—all without touching code. A human-playable mode lets you validate scenarios before training.
+Change any of these, and the agent faces a different credit assignment challenge, without the need to touch code. A human-playable mode also lets you validate scenarios before training.
+
+**The core mechanic today:** As of now, there are two orb types: tier orbs, which must be collected in strict order (tier 1, then tier 2, then tier 3, and so on — collecting them out of order resets the chain, and only a fully completed chain yields a reward), and negative orbs, which deliver a direct negative reward. 
+
+**Where it's headed:** The roadmap intends to extend this foundation with **Effect Orbs** — transient mechanics (nullifier, converter, hazard, etc) that interact and combine into richer scenarios, while keeping the config-driven paradigm intact. This would be where the "SYN" stops being a stretch and starts earning its name.
 
 ### Three Validated Scenarios
 ![Overview of the three SYNGrid scenarios with training results](/docs/img/scenario_overview.jpg)
 
-**Spatial Memory (POMDP):** Full grid visibility is removed; the agent sees only a 3×3 window. Now memory must do spatial reconstruction *and* sequence tracking.
+**Spatial Memory (POMDP):** Full grid visibility is removed; the agent sees only a 3×3 agent-centric window. Now memory must do spatial reconstruction *and* sequence tracking.
 
-**Tier Scaling (MDP):** Dependency chains grow (tier 4 → tier 7). As chains lengthen, the chance of stumbling on a complete sequence drops exponentially (1/6! → 1/7!), thinning the reward signal.
+**Tier Scaling (MDP):** Dependency chains grow (tier 4 → tier 7). Each additional tier causes the probability of randomly discovering the complete sequence (1/t!) to shrink factorially, making the reward signal increasingly sparse.
 
 **Temporal Delay (MDP):** A delay is imposed between valid consumptions. The temporal gap between action and reward grows (30 → 390 steps), testing how far the learning signal can reach.
 
@@ -47,31 +51,12 @@ Three agents were trained across these scenarios: stateless PPO (no memory), fra
 **Key findings:**
 
 - **Memory mattered where it should.** In the spatial scenario, agents without memory fumbled; LSTM-based agents mapped the area methodically. In fully observable scenarios, memory made less difference.
-- **Reward density was the real lever.** When sparse rewards made learning impossible, introducing step-wise feedback recovered all three agents. This concretely demonstrates the entanglement that existing benchmarks struggle to isolate.
-- **Temporal distance degrades learning gradually, not catastrophically.** As delay increased, the signal weakened in a predictable curve (not a hard cliff). At delay 30, all agents learned; at delay 70+, learning became unstable. This suggests a learnable boundary beyond which signal decay overpowers architectural advantages.
-- **Config-driven design works.** Changing a single parameter produced the intended behavioral shift. Agents' paths, loop patterns, and exploration strategies all reflected what the scenario was designed to test.
+- **Reward density was the real lever.** When sparse rewards made learning impossible, introducing step-wise feedback recovered all three agents.
+- **Temporal distance degrades learning gradually, not catastrophically.** As delay increased, the signal weakened in a predictable curve (not a hard cliff). At delay 30, all agents learned; at delay 70+, learning started to become unstable.
 
-**Bottom line:** SYNGrid isolates credit assignment to some extent—but with the caveat that reward density, not just memory architecture, determines learnability. It's a diagnostic tool, not a perfect isolation chamber. And that's useful.
+**Bottom line:** SYNGrid isolates credit assignment to some extent, but with the caveat that reward density, not just memory architecture, determines learnability. It's a diagnostic tool, not a perfect isolation chamber. And that's useful.
 
 For the full experimental details and analysis, see the [thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794).
-
----
-
-## Current State
-**Implemented:**
-- Tier orbs (sequential collection)
-- Negative orbs (consumption penalty)
-- MDP and POMDP observation modes
-- Config-driven scenario construction (YAML-based, no code changes)
-- Human-runner mode for playtesting
-- Modular observation space (distance-sorted, scalar orb identity)
-- Base agent runner infrastructure (SB3/SB3-contrib compatible)
-- Episode logging (CSV) and plotting module
-- Three validated scenarios (spatial, tier scaling, delay)
-
-**Not yet implemented:**
-- Effect orbs (transient mechanics: synergy, converter, hazard)
-- GUI / scenario builder
 
 ---
 
