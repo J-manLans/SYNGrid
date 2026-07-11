@@ -34,7 +34,7 @@ build-backend = "setuptools.build_meta"
 name = "syn-grid"
 version = "0.3.0"
 license = {file = "LICENSE"}
-description = "Benchmark for synergy reasoning in agents"
+description = "A configurable benchmark framework for temporal credit assignment in reinforcement learning"
 readme = "README.md"
 authors = [
     {name = "Joel Lansgren", email = "jola2311@student.miun.se"},
