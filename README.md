@@ -6,6 +6,8 @@
 >
 > **Status:** Research prototype. Evaluated across three scenarios in a [bachelor's thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794).
 
+---
+
 <p align="center">
   <img src="/docs/img/syngrid_scenarios.gif" alt="SyncGrid demonstration">
 </p>
