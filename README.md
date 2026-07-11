@@ -1,8 +1,8 @@
 # SYNGrid
 
-> A configurable benchmark for isolating Temporal Credit Assignment in reinforcement learning agents.
+> A configurable benchmark framework for reinforcement learning.
 >
-> SYNGrid lets you vary temporal credit assignment difficulty through configuration rather than creating new benchmark environments. Instead of switching between dozens of tasks, you modify the settings you desire from a YAML file.
+> SYNGrid lets you systematically vary benchmark dimensions — such as temporal delay, dependency depth, observability, and reward density — through configuration rather than creating new environments. While designed around temporal credit assignment, the framework is intended to support controlled experiments within a single configurable grid.
 >
 > **Status:** Research prototype. Evaluated across three scenarios in a [bachelor's thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794).
 
