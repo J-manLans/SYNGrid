@@ -116,7 +116,7 @@ These can be mixed, reconfigured, and composed without touching the base environ
 
 **Scenario Builder**: Hand-editing YAML works but isn't ideal. A visual builder would hide irrelevant settings, let you dial benchmark dimensions, preview scenarios, and save reusable experiments without touching the configuration file.
 
-**Curriculum Learning Support**: A more dedicated system for incrementally increase tiers and orbs into the mix
+**Curriculum Learning Support**: A dedicated system for progressively introducing new mechanics and increasing task complexity.
 
 ---
 
