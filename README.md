@@ -133,7 +133,7 @@ These can be mixed, reconfigured, and composed without touching the base environ
 If you use SYNGrid in research, please cite:
 
 ```bibtex
-@thesis{J-manLans2026,
+@thesis{Lansgren2026Evaluating,
   author = {Joel Lansgren},
   title = {Evaluating SYNGrid: A Configurable Benchmark Environment for Temporal Credit Assignment in Reinforcement Learning},
   school = {Mid Sweden University},
