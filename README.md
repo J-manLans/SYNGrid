@@ -96,12 +96,12 @@ SYNGrid experiments are defined through configuration rather than code. Changing
 ```yaml
 world:
   grid_world_conf:
-    delay_mode: false
+    delay_mode: true
     delay: 30
-    max_tier: 4
+    max_tier: 3
 ```
 
-> Changing only `max_tier` increases the dependency chain while leaving the rest of the environment unchanged.
+> Changing only `delay` increases the temporal gap between consuming orbs while leaving the rest of the environment unchanged.
 
 See [`config/config.yaml`](/src/syn_grid/config/configs.yaml) for all available options.
 
