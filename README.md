@@ -60,7 +60,7 @@ Three agents were trained across these scenarios: stateless PPO (no memory), fra
 
 **Key findings:**
 
-- **Memory helped in partial observability.** In the spatial (POMDP) scenario, agents without memory fumbled in the fog of war, while the LSTM-based agent explored it methodically. In fully observable scenarios, memory made little to no difference.
+- **Memory helped in partial observability.** In the spatial (POMDP) scenario, agents without memory fumbled in the fog of war, while the LSTM-based agent explored it methodically. In fully observable scenarios, memory made little to no difference to final reward — though it consistently produced a more stable internal model (higher explained variance, lower entropy), most visibly in the delay scenario.
 - **Reward density had a large effect.** When sparse rewards made learning challenging, introducing step-wise feedback restored all three agents ability to solve the task.
 - **Temporal distance degrades learning gradually, not catastrophically.** As delay increased, the signal weakened in steps (not a hard cliff). At delay 30, all agents learned; at delay 70+, learning started to become unstable. The exact boundary likely depends on agent architecture and reward structure.
 
