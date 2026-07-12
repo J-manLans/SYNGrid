@@ -28,7 +28,7 @@ SYNGrid is one attempt to fill that gap.
 ## What SYNGrid Does
 SYNGrid is a configurable grid-based environment for isolating and diagnosing temporal credit assignment in RL agents.
 
-**In its current form:** SYNGrid is a deliberately simple grid world with only two entities: the agent and orbs. The agent moves in the four cardinal directions, and orbs are consumed automatically when stepped on. Rather than adding new game systems, complexity comes from composing orb mechanics. The goal isn't to build increasingly complex worlds, but to vary one benchmark dimension at a time:
+**In its current form:** SYNGrid is a deliberately simple grid world with only two entities: the agent and orbs. The agent moves in the four cardinal directions, and orbs are consumed automatically when stepped on. Rather than adding new game systems, complexity comes from composing orb mechanics by toggling what types of orbs will be active in the run. The goal isn't to build increasingly complex worlds, but to vary one benchmark dimension at a time:
 
 - **Orb tier depth**: How long is the dependency chain? (tier 2 vs. tier 7)
 - **Delay**: Decide how many steps after consumption of an orb the next one can spawn, increasing the temporal credit assignment horizon.
