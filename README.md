@@ -60,11 +60,11 @@ Three agents were trained across these scenarios: stateless PPO (no memory), fra
 
 **Key findings:**
 
-- **Memory mattered where it should.** In the spatial scenario, agents without memory fumbled in the fog of war, while the LSTM-based agent explored it methodically. In fully observable scenarios, memory made little to no difference.
-- **Reward density was the real lever.** When sparse rewards made learning impossible, introducing step-wise feedback restored all three agents ability to solve the task.
-- **Temporal distance degrades learning gradually, not catastrophically.** As delay increased, the signal weakened in a predictable curve (not a hard cliff). At delay 30, all agents learned; at delay 70+, learning started to become unstable.
+- **Memory helped in partial observability.** In the spatial (POMDP) scenario, agents without memory fumbled in the fog of war, while the LSTM-based agent explored it methodically. In fully observable scenarios, memory made little to no difference.
+- **Reward density had a large effect.** When sparse rewards made learning challenging, introducing step-wise feedback restored all three agents ability to solve the task.
+- **Temporal distance degrades learning gradually, not catastrophically.** As delay increased, the signal weakened in steps (not a hard cliff). At delay 30, all agents learned; at delay 70+, learning started to become unstable. The exact boundary likely depends on agent architecture and reward structure.
 
-**Bottom line:** SYNGrid is a configurable benchmark framework rather than a fixed one. Making a benchmark harder is easy; making it harder while preserving learning is not. By systematically varying dimensions within a fixed environment — such as delay, dependency depth, and observability — SYNGrid enables controlled experiments that expose where and why learning begins to break down. The goal is diagnosis rather than scorekeeping: understanding why an agent succeeds or fails, not simply comparing final performance.
+**Bottom line:** SYNGrid is a configurable benchmark framework rather than a fixed one. By systematically varying dimensions within a fixed environment — delay, dependency depth, observability — SYNGrid enables controlled experiments that expose where learning begins to break down and under what conditions. The goal is diagnosis rather than scorekeeping: locating failure points, not simply comparing final performance.
 
 For the full experimental details and analysis, see the [thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794).
 
