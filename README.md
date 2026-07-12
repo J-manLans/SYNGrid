@@ -61,7 +61,7 @@ Three agents were trained across these scenarios: stateless PPO (no memory), fra
 **Key findings:**
 
 - **Memory mattered where it should.** In the spatial scenario, agents without memory fumbled in the fog of war, while the LSTM-based agent explored it methodically. In fully observable scenarios, memory made little to no difference.
-- **Reward density was the real lever.** When sparse rewards made learning impossible, introducing step-wise feedback restored all three agents' ability to solve the task.
+- **Reward density was the real lever.** When sparse rewards made learning impossible, introducing step-wise feedback restored all three agents ability to solve the task.
 - **Temporal distance degrades learning gradually, not catastrophically.** As delay increased, the signal weakened in a predictable curve (not a hard cliff). At delay 30, all agents learned; at delay 70+, learning started to become unstable.
 
 **Bottom line:** SYNGrid is a configurable benchmark framework rather than a fixed one. Making a benchmark harder is easy; making it harder while preserving learning is not. By systematically varying dimensions within a fixed environment — such as delay, dependency depth, and observability — SYNGrid enables controlled experiments that expose where and why learning begins to break down. The goal is diagnosis rather than scorekeeping: understanding why an agent succeeds or fails, not simply comparing final performance.
@@ -118,6 +118,7 @@ See [`config/config.yaml`](/src/syn_grid/config/configs.yaml) for all available 
 - **Null orbs:** Nullify the next orb; force re-ordering.
 - **Converter orbs:** Flip reward signs; change the landscape.
 - **Hazard orbs:** Make regions costly to traverse.
+
 These can be mixed, reconfigured, and composed without touching the base environment.
 
 **Scenario Builder**: Hand-editing YAML works but isn't ideal. A visual builder would hide irrelevant settings, let you dial benchmark dimensions, preview scenarios, and save reusable experiments without touching the configuration file.
@@ -127,9 +128,9 @@ These can be mixed, reconfigured, and composed without touching the base environ
 ---
 
 ## Related Work
-**MiniGrid** ([Chevalier-Boisvert et al.](https://minigrid.farama.org/)) excels at isolation: each environment probes a specific aspect of learning (memory, instruction following, delayed reward). The trade-off: each task lives in its own environment. Testing a different mechanic means switching environments entirely or writing new code.
+[**MiniGrid**](https://minigrid.farama.org/) excels at isolation: each environment probes a specific aspect of learning (memory, instruction following, delayed reward). The trade-off: each task lives in its own environment. Testing a different mechanic means switching environments entirely or writing new code.
 
-**MiniHack** ([Samvelyan et al.](https://minihack.readthedocs.io/)) is rich and highly configurable, supporting long action sequences and complex reward structures. The trade-off: it entangles credit assignment with navigation, perception, and combat. A comparable task (3-step key-room-staircase) requires ~10M steps in MiniHack but ~800k in SYNGrid—partly because SYNGrid's action space is simpler by design.
+[**MiniHack**](https://minihack.readthedocs.io/) is rich and highly configurable, supporting long action sequences and complex reward structures. The trade-off: it entangles credit assignment with navigation, perception, and combat. A comparable task (3-step key-room-staircase) requires ~10M steps in MiniHack but ~800k in SYNGrid—partly because SYNGrid's action space is simpler by design.
 
 **SYNGrid's niche:** A single configurable grid where scenario complexity varies through composed mechanics (not environment switching), while keeping the action and observation spaces minimal. The aim is to scale experimental complexity without scaling environmental complexity.
 
