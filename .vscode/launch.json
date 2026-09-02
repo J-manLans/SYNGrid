@@ -8,7 +8,13 @@
       "module": "syn_grid",
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",
-      "justMyCode": true
+      "justMyCode": true,
+      // NOTE: Temporary workaround for AMD/Mesa + Triton segfault on hybrid graphics.
+      // Investigate and remove before v1.0.0 if the underlying issue is resolved.
+      "env": {
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia"
+      }
     },
     {
       "name": "Debug tests",
