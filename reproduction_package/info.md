@@ -38,7 +38,7 @@ Some scenarios contain fewer files — sparse tier scaling at tier 5, for exampl
 
 ## Evaluation runs
 ### Your own re-trained model
-To watch them in action, navigate to the `global_agent_conf` in the Agent Configuration section and change `training` to `false` for the model you retrained, the path is auto resolved from the config file itself.
+To watch them in action, navigate to the `global_agent_conf` in the Agent Configuration section and change `training` to `false` and `agent_steps` to the number of steps for the model you retrained, the path is auto resolved from the config file itself.
 
 ### From the reproduction package
 Copy the desired scenario config into `configs.yaml` as described above, and set `training` to `false`. Then copy the corresponding run files from the reproduction package (matching scenario and seed) into the locations the framework loads from:
