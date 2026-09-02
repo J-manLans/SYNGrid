@@ -88,6 +88,15 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         )
 
     def _make_env(self, render_mode: str | None, sub_dir: str, env_idx: int) -> Env:
+        # During training, only env 0 gets a render mode so that it can be
+        # used for rendering/video recording; the remaining environments do not
+        # need to render. During evaluation, the render mode is passed to the
+        # single environment.
+        #
+        # NOTE: DummyVecEnv requires all environments to have the same render_mode.
+        # Therefore, using a render mode for env 0 and None for the others causes
+        # a render_mode mismatch when training with multiple environments. So need to
+        # rethink this one.
         env = self._make_raw_env(
             render_mode if (not self._conf.training or env_idx == 0) else None
         )
@@ -126,14 +135,16 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # --- Wrappers --- #
 
+    # If we're training from scratch
+    def _apply_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
+        return VecNormalize(env, norm_obs=True, norm_reward=False)
+
+    # If we are loading a checkpoint for evaluation or continual training
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
         evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
         vec_env = VecNormalize.load(str(evn_load_path), env)
         vec_env.training = False
         return vec_env
-
-    def _apply_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
-        return VecNormalize(env, norm_obs=True, norm_reward=False)
 
     # === Model === #
 
@@ -144,8 +155,6 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             return self._load_model(env)
 
     def _create_model(self, env: Env | VecEnv, sub_dir: str) -> T:
-        # os.environ["CUDA_VISIBLE_DEVICES"] = ""
-
         return self._ALGORITHM(
             env=env,
             verbose=1,
@@ -160,7 +169,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     def _load_model(self, env: Env | VecEnv) -> T:
         model_path = self._get_saved_path(self._model_dir)
-        return self._ALGORITHM.load(model_path, env=env, **self._HYPER_PARAMETERS)
+        return self._ALGORITHM.load(path=model_path, env=env, **self._HYPER_PARAMETERS)
 
     # === Train === #
 
