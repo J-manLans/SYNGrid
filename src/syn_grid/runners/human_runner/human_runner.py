@@ -3,6 +3,7 @@ from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 
+
 class HumanRunner:
     # ================= #
     #       Init        #
@@ -41,7 +42,7 @@ class HumanRunner:
                     self._steps_left,
                     self.delay_mode,
                     self.chain_break_penalty,
-                    rew
+                    rew,
                 )
                 self._render()
 

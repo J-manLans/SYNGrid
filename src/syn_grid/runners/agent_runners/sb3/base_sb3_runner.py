@@ -218,7 +218,6 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                 vec_normalize.save(evn_save_path)
                 print(f"VecNormalize stats saved at {model.num_timesteps} timesteps")
 
-
     # === Eval === #
 
     def _eval_model(self, env: VecEnv, model: T):
