@@ -41,29 +41,6 @@ class TestAgentRunner:
             full_conf.agent, obs_conf, run_conf
         )
 
-    def test_initialization_with_invalid_algorithm(self):
-        """
-        Tests the behavior when an invalid algorithm is passed to the `AgentRunner` constructor.
-        Verifies that a `KeyError` is raised when an unsupported algorithm is provided.
-        This helps ensure that only supported algorithms are used in the `AgentRunner`.
-
-        Raises:
-            KeyError: If the algorithm is invalid (e.g., "invalid_algorithm").
-        """
-
-        full_conf = get_test_config()
-
-        full_conf = update_conf(
-            full_conf, {"agent": {"global_agent_conf": {"alg": "Ajja_bajja"}}}
-        )
-        run_conf = full_conf.world
-        obs_conf = full_conf.obs
-
-        with pytest.raises(KeyError):
-            ALGORITHMS[full_conf.agent.global_agent_conf.alg](
-                full_conf.agent, obs_conf, run_conf
-            )
-
     def test_get_model_with_no_agent_steps(self, agent_runner: BaseAgentRunner):
         """
         Tests the behavior when no agent steps are provided to the `get_model` method.

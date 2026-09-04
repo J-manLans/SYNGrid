@@ -1,6 +1,3 @@
-from syn_grid.config.models import AgentConfig
-from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS
-
 import argparse
 from argparse import Namespace
 
@@ -15,6 +12,12 @@ def parse_args() -> Namespace:
 
     Run `python -m experiments -h` for detailed usage information.
     """
+
+    # Imported lazily: ALGORITHMS pulls in the full SB3/gymnasium chain,
+    # and it's only needed here for --alg-index's choices range. Keeping
+    # it out of the module-level imports lets other functions in this
+    # module (and anything importing them) stay lightweight.
+    from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS
 
     parser = argparse.ArgumentParser(description="Run agent experiments.")
 
@@ -93,19 +96,22 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
-def update_agent_conf_from_args(args: Namespace, agent_conf: AgentConfig) -> None:
+def args_to_overrides(args: Namespace) -> dict:
     """
-    Update an AgentConfig with values from parsed CLI arguments.
+    Convert parsed CLI arguments into a plain overrides dict.
 
-    Only arguments that are not None will overwrite the corresponding
-    fields in the agent's global, training, or evaluation configuration.
+    Filters out arguments left at their `None` sentinel default, so only
+    values explicitly set by the user are included. The resulting dict
+    has the same shape `apply_overrides` (see `syn_grid.config.overrides`)
+    expects regardless of where it came from, which lets other override
+    sources (e.g. a future GUI) reuse the same downstream code path
+    without touching argparse.
+
+    Args:
+        args: Parsed CLI arguments from `parse_args()`.
+
+    Returns:
+        A dict of {field_name: value} for every explicitly set argument.
     """
 
-    for key, val in vars(args).items():
-        if val is not None:
-            if hasattr(agent_conf.global_agent_conf, key):
-                setattr(agent_conf.global_agent_conf, key, val)
-            elif hasattr(agent_conf.train_agent_conf, key):
-                setattr(agent_conf.train_agent_conf, key, val)
-            elif hasattr(agent_conf.eval_agent_conf, key):
-                setattr(agent_conf.eval_agent_conf, key, val)
+    return {key: val for key, val in vars(args).items() if val is not None}

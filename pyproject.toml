@@ -40,7 +40,7 @@ authors = [
     {name = "Joel Lansgren", email = "jola2311@student.miun.se"},
     {name = "Lauri Bernstéen", email = "labe2301@student.miun.se"}
 ]
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.11"
 dependencies = [
     "gymnasium>=1.2",
     "stable-baselines3>=2.7.1",
