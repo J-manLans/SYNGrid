@@ -3,6 +3,13 @@ from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 
+# NOTE: This whole class is to a large extent stitched together, code duplication I think etc. When
+# I go full GUI, this needs to be connected to that in a better way because after loading or
+# customizing a scenario, the ability to play or train will be available, so either this will start
+# or the training...and it feels...I don't know, a little bit apart, like how rewards are
+# calculated and so on, there is some mismatch, and it needs to be an exact replica of the agent
+# version of the core.
+
 
 class HumanRunner:
     # ================= #

@@ -208,7 +208,6 @@ class GlobalAgentConf(BaseModel, frozen=False):
     seed: int
     human_control: bool
     training: bool
-    check_env: bool
     plateau_detection: bool
     plateau_threshold: int
     terminate_threshold: int

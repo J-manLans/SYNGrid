@@ -17,7 +17,7 @@ class TestBuildRunner:
             full_conf, {"agent": {"global_agent_conf": {"alg": "PPO"}}}
         )
 
-        runner = build_runner(full_conf.agent, full_conf.obs, full_conf.world)
+        runner = build_runner(full_conf.world, full_conf.obs, full_conf.agent)
 
         assert isinstance(runner, StatelessPPO)
 
@@ -28,7 +28,7 @@ class TestBuildRunner:
             full_conf, {"agent": {"global_agent_conf": {"alg": alg}}}
         )
 
-        runner = build_runner(full_conf.agent, full_conf.obs, full_conf.world)
+        runner = build_runner(full_conf.world, full_conf.obs, full_conf.agent)
 
         assert isinstance(runner, ALGORITHMS[alg])
 
@@ -39,4 +39,4 @@ class TestBuildRunner:
         )
 
         with pytest.raises(KeyError, match="not_a_real_algo"):
-            build_runner(full_conf.agent, full_conf.obs, full_conf.world)
+            build_runner(full_conf.world, full_conf.obs, full_conf.agent)

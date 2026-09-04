@@ -53,5 +53,5 @@ class TestAgentRunner:
 
         agent_runner._conf.agent_steps = ""
 
-        with pytest.raises(SystemExit):
+        with pytest.raises(ValueError):
             agent_runner._get_saved_path(Path("null_path"))

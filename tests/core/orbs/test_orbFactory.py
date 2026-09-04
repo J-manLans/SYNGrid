@@ -105,7 +105,9 @@ class TestOrbFactory:
         )
         orbs = factory.create_orbs()
 
-        expected_counts = self._expected_tier_counts(factory._conf.max_tier + 1, len(orbs))
+        expected_counts = self._expected_tier_counts(
+            factory._conf.max_tier + 1, len(orbs)
+        )
         if max_tier == 7:
             for tier, count in expected_counts.items():
                 assert count == 2 if tier == 0 else 1

@@ -7,6 +7,9 @@ from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
 
+# NOTE: this one probably also needs some restructuring, especially since the goal is to move
+# towards a GUI, but I will do that job whenever I cross that river.
+
 
 class ConfigManager:
     # ================= #

@@ -12,7 +12,7 @@ ALGORITHMS: dict[str, Type[BaseAgentRunner]] = {
 
 
 def build_runner(
-    agent_conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig
+    run_conf: WorldConfig, obs_conf: ObsConfig, agent_conf: AgentConfig
 ) -> BaseAgentRunner:
     """
     Instantiate the agent runner class registered for the configured algorithm.

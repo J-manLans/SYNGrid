@@ -1,4 +1,4 @@
-from syn_grid.config.models import AgentConfig, GlobalAgentConf, WorldConfig, ObsConfig
+from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
 from syn_grid.utils.paths_util import get_project_path
 from syn_grid.utils.date_utils import get_date
 from syn_grid.gymnasium.utils.env_factory import make, check_my_env
@@ -6,7 +6,6 @@ from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
     EpisodeStatsWrapper,
 )
 
-import sys
 from pathlib import Path
 from abc import ABC, abstractmethod
 from gymnasium import Env
@@ -91,13 +90,7 @@ class BaseAgentRunner(ABC):
     # === Factory === #
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
-        env = make(render_mode, self._run_conf, self._obs_conf)
-
-        if self._conf.check_env:
-            check_my_env(env)
-            sys.exit("Environment is fine")
-
-        return env
+        return make(render_mode, self._run_conf, self._obs_conf)
 
     # === Wrappers === #
 
@@ -126,7 +119,7 @@ class BaseAgentRunner(ABC):
         """
 
         if self._conf.agent_steps == "":
-            sys.exit("You forgot to specify the models steps")
+            raise ValueError("You forgot to specify the models steps")
 
         file_name = f"{self._conf.agent_steps}_{self._id}*"
 

@@ -5,7 +5,7 @@
 snapshot:
   # Snapshot settings:
   # - enabled: whether to save a snapshot of the full config for replicating scenario
-  enabled: false
+  enabled: true
 
 ###########################
 #   World Configuration   #
@@ -165,7 +165,6 @@ agent:
     seed: 3
     human_control: false
     training: false
-    check_env: false
     plateau_detection: false
     plateau_threshold: 15000000
     terminate_threshold: 3000000

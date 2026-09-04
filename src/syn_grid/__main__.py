@@ -1,4 +1,4 @@
-from syn_grid.cli import main
+from syn_grid.app import main
 
 if __name__ == "__main__":
     main()
