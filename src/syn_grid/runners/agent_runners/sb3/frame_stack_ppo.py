@@ -1,6 +1,6 @@
 from stable_baselines3.common.vec_env import VecFrameStack
 
-from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.runners.agent_runners.sb3.stateless_ppo import StatelessPPO
 
 
@@ -11,8 +11,8 @@ class FrameStackPPO(StatelessPPO):
 
     _N_STACK = 4
 
-    def __init__(self, world_conf: WorldConfig, obs_conf: ObsConfig, conf: AgentConfig):
-        super().__init__(world_conf, obs_conf, conf)
+    def __init__(self, agent_bundle: AgentBundle):
+        super().__init__(agent_bundle)
         print("Adding frame stacking on top...")
 
     # ================= #
@@ -20,19 +20,19 @@ class FrameStackPPO(StatelessPPO):
     # ================= #
 
     def train(self) -> None:
-        env = self._wrap_env(self._train_conf.render_mode, self._TRAIN)
+        env = super()._wrap_env(self._train_conf.render_mode, self._TRAIN)
         env = self._get_frame_stacked_env(env)
-        model = self._get_model(env, self._TRAIN)
+        model = super()._get_model(env, self._TRAIN)
 
-        self._train_model(model, env)
+        super()._train_model(model, env)
 
     def eval(self) -> None:
         # prep model and env
-        env = self._wrap_env(self._eval_conf.render_mode, self._EVAL)
+        env = super()._wrap_env(self._eval_conf.render_mode, self._EVAL)
         env = self._get_frame_stacked_env(env)
-        model = self._load_model(env)
+        model = super()._load_model(env)
 
-        self._eval_model(env, model)
+        super()._eval_model(env, model)
 
     # ================= #
     #      Helpers      #

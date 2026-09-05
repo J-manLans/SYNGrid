@@ -18,7 +18,7 @@ class BasePerception(ABC):
     _ACTIVE_FLAG: Final[float] = 1.0
 
     def __init__(self, conf: PerceptionConf, orbs: int, max_identity: int) -> None:
-        self._conf = conf
+        self._perception_conf = conf
 
         # Global values
         self._orbs_in_env = orbs
@@ -36,18 +36,29 @@ class BasePerception(ABC):
     # --- Global data getters --- #
     def _get_max_global_values(self) -> np.ndarray:
         return np.array(
-            [self._conf.max_steps, self._conf.max_score, self._conf.max_tier],
+            [
+                self._perception_conf.max_steps,
+                self._perception_conf.max_score,
+                self._perception_conf.max_tier,
+            ],
             dtype=np.float32,
         )
 
     # --- Droid data getters --- #
     def _get_max_droid_positions(self) -> np.ndarray:
-        return np.array([self._conf.grid_rows, self._conf.grid_cols], dtype=np.float32)
+        return np.array(
+            [self._perception_conf.grid_rows, self._perception_conf.grid_cols],
+            dtype=np.float32,
+        )
 
     # --- Orb data getters --- #
     def _get_max_orb_base(self) -> np.ndarray:
         return np.array(
-            [self._conf.grid_rows, self._conf.grid_cols, self._max_identity],
+            [
+                self._perception_conf.grid_rows,
+                self._perception_conf.grid_cols,
+                self._max_identity,
+            ],
             dtype=np.float32,
         )
 
@@ -56,7 +67,8 @@ class BasePerception(ABC):
 
     def _get_max_orb_type_flags(self) -> np.ndarray:
         return np.ones(
-            sum(self._conf.enabled_orbs.model_dump().values()), dtype=np.float32
+            sum(self._perception_conf.enabled_orbs.model_dump().values()),
+            dtype=np.float32,
         )
 
     def _get_observable_orb_count(self) -> int:
@@ -64,17 +76,17 @@ class BasePerception(ABC):
         Returns the number of orbs to include in the observation. In single chain mode all orbs up to max tier are always present, so max_tier is used. Otherwise, max_active_orbs is used.
         """
 
-        if self._conf.curriculum_training:
+        if self._perception_conf.curriculum_training:
             return (
-                self._conf.tiers
-                if self._conf.single_chain_mode
-                else self._conf.max_active_orbs
+                self._perception_conf.tiers
+                if self._perception_conf.single_chain_mode
+                else self._perception_conf.max_active_orbs
             )
 
         return (
-            self._conf.max_tier
-            if self._conf.single_chain_mode
-            else self._conf.max_active_orbs
+            self._perception_conf.max_tier
+            if self._perception_conf.single_chain_mode
+            else self._perception_conf.max_active_orbs
         )
 
     # ======= get_observation() helpers ======= #
@@ -83,7 +95,7 @@ class BasePerception(ABC):
         return np.array(
             [
                 steps_left,
-                min(state.droid.score, self._conf.max_score),
+                min(state.droid.score, self._perception_conf.max_score),
                 state.droid.digestion_engine.chained_tiers,
             ],
             dtype=np.float32,
@@ -116,9 +128,9 @@ class BasePerception(ABC):
             ),
         )[
             : (
-                self._conf.max_tier
-                if self._conf.single_chain_mode
-                else self._conf.max_active_orbs
+                self._perception_conf.max_tier
+                if self._perception_conf.single_chain_mode
+                else self._perception_conf.max_active_orbs
             )
         ]
 

@@ -1,14 +1,10 @@
-from dataclasses import dataclass
-
 from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models import (
-    AgentConfig,
     ExperimentConfig,
     FullConf,
-    ObsConfig,
-    WorldConfig,
 )
 from syn_grid.gymnasium.utils.env_factory import register_env
+from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.runners.agent_runners.agent_registry import build_runner
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.human_runner.human_runner import HumanRunner
@@ -23,18 +19,18 @@ def main() -> None:
 
     config_manager = ConfigManager("configs.yaml")
 
-    bundle = load_experiment_config(config_manager)
+    agent_bundle, experiment_conf = load_experiment_configs(config_manager)
 
-    if bundle.agent.global_agent_conf.human_control:
+    if agent_bundle.agent_conf.global_agent_conf.human_control:
         runner = HumanRunner(
-            bundle.world,
-            bundle.obs.observation_handler.max_steps,
+            agent_bundle.world_conf,
+            agent_bundle.obs_conf.observation_handler.max_steps,
         )
         runner.human_player_loop()
         return
 
-    runner = build_runner(bundle.world, bundle.obs, bundle.agent)
-    dispatch(runner, config_manager, bundle)
+    runner = build_runner(agent_bundle)
+    dispatch(runner, config_manager, agent_bundle, experiment_conf)
 
 
 # ================= #
@@ -42,17 +38,9 @@ def main() -> None:
 # ================= #
 
 
-@dataclass
-class ExperimentBundle:
-    """Bundled configuration needed to build and run an experiment."""
-
-    world: WorldConfig
-    obs: ObsConfig
-    agent: AgentConfig
-    experiments_conf: ExperimentConfig
-
-
-def load_experiment_config(config_manager: ConfigManager) -> ExperimentBundle:
+def load_experiment_configs(
+    config_manager: ConfigManager,
+) -> tuple[AgentBundle, ExperimentConfig]:
     """
     Load the full experiment configuration.
 
@@ -64,18 +52,22 @@ def load_experiment_config(config_manager: ConfigManager) -> ExperimentBundle:
     """
 
     full_conf = config_manager.load_config(FullConf)
-    experiments_conf = config_manager.load_config(ExperimentConfig)
 
-    return ExperimentBundle(
-        world=full_conf.world,
-        obs=full_conf.obs,
-        agent=full_conf.agent,
-        experiments_conf=experiments_conf,
+    return (
+        AgentBundle(
+            world_conf=full_conf.world,
+            obs_conf=full_conf.obs,
+            agent_conf=full_conf.agent,
+        ),
+        config_manager.load_config(ExperimentConfig),
     )
 
 
 def dispatch(
-    runner: BaseAgentRunner, config_manager: ConfigManager, bundle: ExperimentBundle
+    runner: BaseAgentRunner,
+    config_manager: ConfigManager,
+    agent_bundle: AgentBundle,
+    experiment_conf: ExperimentConfig,
 ) -> None:
     """
     Run an agent runner according to the loaded experiment configuration.
@@ -90,12 +82,12 @@ def dispatch(
         bundle: The loaded experiment configuration.
     """
 
-    if bundle.experiments_conf.snapshot.enabled:
-        config_manager.save_snapshot(runner._get_model_id())
+    if experiment_conf.snapshot.enabled:
+        config_manager.save_snapshot(runner.get_unique_model_id())
         print("Config snapshot saved. Exiting.")
         return
 
-    if bundle.agent.global_agent_conf.training:
+    if agent_bundle.agent_conf.global_agent_conf.training:
         runner.train()
     else:
         runner.eval()

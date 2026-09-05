@@ -15,8 +15,8 @@ class OrbFactory:
         negative_orb_conf: NegativeConf,
         tier_orb_conf: TierConf,
     ):
-        self._conf = orb_factory_conf
-        self._min_pool_size = self._conf.max_active_orbs * 3
+        self._orb_factory_conf = orb_factory_conf
+        self._min_pool_size = self._orb_factory_conf.max_active_orbs * 3
         self.negative_orb_conf = negative_orb_conf
         self.tier_orb_conf = tier_orb_conf
 
@@ -28,10 +28,12 @@ class OrbFactory:
         """Create all orbs according to the config and weights"""
 
         # Shared setup
-        BaseOrb.set_life_span(self._conf.grid_rows, self._conf.grid_cols)
-        TierOrb.max_tier = self._conf.max_tier
+        BaseOrb.set_life_span(
+            self._orb_factory_conf.grid_rows, self._orb_factory_conf.grid_cols
+        )
+        TierOrb.max_tier = self._orb_factory_conf.max_tier
 
-        if self._conf.single_chain_mode:
+        if self._orb_factory_conf.single_chain_mode:
             return self._single_chain_mode_orbs()
 
         # Gets the ena—bed orbs and calculate their total weight
@@ -61,7 +63,7 @@ class OrbFactory:
 
     def _single_chain_mode_orbs(self) -> list[BaseOrb]:
         orbs: list[BaseOrb] = []
-        for tier in range(1, self._conf.max_tier + 1):
+        for tier in range(1, self._orb_factory_conf.max_tier + 1):
             orbs.append(TierOrb(tier, self.tier_orb_conf))
 
         return orbs
@@ -70,7 +72,7 @@ class OrbFactory:
         """Return enabled orb types and their weights from orb_manager_conf"""
 
         enabled_orbs = {}
-        for orb_type, orb_conf in self._conf.types:
+        for orb_type, orb_conf in self._orb_factory_conf.types:
             if orb_conf.enabled:
                 enabled_orbs[orb_type] = orb_conf.weight
         if not enabled_orbs:
@@ -111,20 +113,20 @@ class OrbFactory:
     def _initialize_tier_orbs(self, orbs: list[BaseOrb], orb_count: int):
         # Default behavior when the projected total orb pool exceeds the minimum:
         # spawn one orb per tier and return early.
-        if self._conf.max_tier >= orb_count:
-            for tier in range(1, self._conf.max_tier + 1):
+        if self._orb_factory_conf.max_tier >= orb_count:
+            for tier in range(1, self._orb_factory_conf.max_tier + 1):
                 orbs.append(TierOrb(tier, self.tier_orb_conf))
             return
 
         # If total count can be evenly divided across tiers, spawn exactly that many orbs per tier.
         # Else, if total orbs cannot be evenly divided, distribute them one by one across tiers,
         # looping back to the first tier as needed.
-        orbs_per_tier = orb_count / (self._conf.max_tier)
+        orbs_per_tier = orb_count / (self._orb_factory_conf.max_tier)
         if orbs_per_tier.is_integer():
-            for tier in range(1, self._conf.max_tier + 1):
+            for tier in range(1, self._orb_factory_conf.max_tier + 1):
                 for _ in range(int(orbs_per_tier)):
                     orbs.append(TierOrb(tier, self.tier_orb_conf))
         else:
             for i in range(orb_count):
-                tier = (i % self._conf.max_tier) + 1
+                tier = (i % self._orb_factory_conf.max_tier) + 1
                 orbs.append(TierOrb(tier, self.tier_orb_conf))

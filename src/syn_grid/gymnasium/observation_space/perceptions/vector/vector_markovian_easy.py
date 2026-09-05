@@ -27,7 +27,7 @@ class VectorMarkovianEasy(BasePerception):
             np.array([self._ACTIVE_FLAG], dtype=np.float32),
             self._get_max_orb_base(),
         ]
-        if self._conf.include_timer:
+        if self._perception_conf.include_timer:
             orb_parts.append(self._get_max_orb_extended())
         orb_high = np.concatenate(orb_parts)
         self._orb_features = orb_high.shape[0]
@@ -68,7 +68,7 @@ class VectorMarkovianEasy(BasePerception):
         for orb in sorted_orbs:
             if orb.is_active:
                 self._obs_data[obs_index : obs_index + self._orb_features] = (
-                    self._get_orb_values(orb, self._conf.include_timer)
+                    self._get_orb_values(orb, self._perception_conf.include_timer)
                 )
             else:
                 self._obs_data[obs_index : obs_index + self._orb_features] = (

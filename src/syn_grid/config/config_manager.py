@@ -3,7 +3,6 @@ from typing import TypeVar
 import yaml
 from pydantic import BaseModel
 
-from syn_grid.utils.date_utils import get_date
 from syn_grid.utils.paths_util import get_package_path, get_project_path
 
 T = TypeVar("T", bound=BaseModel)
@@ -55,7 +54,6 @@ class ConfigManager:
 
         self.save_conf_path.mkdir(parents=True, exist_ok=True)
 
-        timestamp = get_date()
-        snapshot_file = self.save_conf_path / f"{save_conf_id}_{timestamp}.yaml"
+        snapshot_file = self.save_conf_path / f"{save_conf_id}.yaml"
 
         snapshot_file.write_bytes(self.yaml_path.read_bytes())

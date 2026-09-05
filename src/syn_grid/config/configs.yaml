@@ -159,7 +159,7 @@ agent:
     # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
     # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
     alg: "PPO"
-    agent_steps: "4924224"
+    agent_steps: "4096"
     id_tag: 'delay_30'
     save_folder: 'reproduction_package/delay_mode/ppo'
     seed: 3
@@ -185,7 +185,7 @@ agent:
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 10160128
+    timesteps: 3000
     iterations: 1
     render_mode: null
     rec_interval: 10000

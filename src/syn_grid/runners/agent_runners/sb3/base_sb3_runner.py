@@ -9,7 +9,7 @@ from stable_baselines3.common.vec_env import (
     unwrap_vec_normalize,
 )
 
-from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.sb3.utils.plateau_callback import PlateauCallback
 from syn_grid.utils.paths_util import get_project_path
@@ -28,16 +28,13 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     def __init__(
         self,
-        world_conf: WorldConfig,
-        obs_conf: ObsConfig,
-        conf: AgentConfig,
+        agent_bundle: AgentBundle,
         hyper_parameters: dict[str, Any],
         algorithm: type[T],
     ):
-        super().__init__(world_conf, obs_conf, conf)
+        super().__init__(agent_bundle)
         self._HYPER_PARAMETERS = hyper_parameters
         self._ALGORITHM = algorithm
-        self._writer = None
 
         self._init_normalization_stats_dir()
 
@@ -67,9 +64,11 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         Required for consistent eval, also for resuming training.
         """
 
-        base = get_project_path("output", "models_vec_norms")
+        base = get_project_path("output", "vec_norm_stats")
         self._vec_norm_stats_dir = (
-            base / self._conf.save_folder if self._conf.save_folder else base
+            base / self._agent_conf.save_folder
+            if self._agent_conf.save_folder
+            else base
         )
 
         self._vec_norm_stats_dir.mkdir(parents=True, exist_ok=True)
@@ -79,7 +78,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _make_wrapped_dummy_vec_env(
         self, render_mode: str | None, sub_dir: str
     ) -> DummyVecEnv:
-        n_envs = self._train_conf.n_envs if self._conf.training else 1
+        n_envs = self._train_conf.n_envs if self._agent_conf.training else 1
         return DummyVecEnv(
             [
                 lambda i=i: self._make_env(render_mode, sub_dir, env_idx=i)
@@ -97,22 +96,22 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         # Therefore, using a render mode for env 0 and None for the others causes
         # a render_mode mismatch when training with multiple environments. So need to
         # rethink this one.
-        env = self._make_raw_env(
-            render_mode if (not self._conf.training or env_idx == 0) else None
+        env = super()._make_raw_env(
+            render_mode if (not self._agent_conf.training or env_idx == 0) else None
         )
 
         # if logging is enabled
         # fmt: off
         if env_idx == 0:
             if (
-                (self._conf.training and self._train_conf.csv_output)
-                or (not self._conf.training and self._eval_conf.csv_output)
+                (self._agent_conf.training and self._train_conf.csv_output)
+                or (not self._agent_conf.training and self._eval_conf.csv_output)
             ):
-                env = self._logger_wrapper(env, sub_dir)
+                env = super()._logger_wrapper(env, sub_dir)
 
             # if video recording for training is on record at a specific timestep interval
-            if self._conf.training and self._train_conf.render_mode == "rgb_array":
-                env = self._rec_video_wrapper(
+            if self._agent_conf.training and self._train_conf.render_mode == "rgb_array":
+                env = super()._rec_video_wrapper(
                     env,
                     step_trigger=lambda t: t % self._train_conf.rec_interval == 0,
                     video_length=self._train_conf.rec_length,
@@ -120,15 +119,15 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         # fmt: on
 
         # if video recording for evaluation is on record selected episode
-        if not self._conf.training and self._eval_conf.render_mode == "rgb_array":
-            env = self._rec_video_wrapper(
+        if not self._agent_conf.training and self._eval_conf.render_mode == "rgb_array":
+            env = super()._rec_video_wrapper(
                 env, episode_trigger=lambda t: t == self._eval_conf.rec_episode
             )
 
         return env
 
     def _get_normalized_env(self, env: DummyVecEnv) -> VecNormalize:
-        if self._conf.training and not self._train_conf.continue_training:
+        if self._agent_conf.training and not self._train_conf.continue_training:
             return self._apply_normalize_wrapper(env)
         else:
             return self._load_normalize_wrapper(env)
@@ -141,15 +140,17 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # If we are loading a checkpoint for evaluation or continual training
     def _load_normalize_wrapper(self, env: DummyVecEnv) -> VecNormalize:
-        evn_load_path = self._get_saved_path(self._vec_norm_stats_dir)
-        vec_env = VecNormalize.load(str(evn_load_path), env)
+        vec_norm_stats_path = str(
+            super()._find_latest_saved_path(self._vec_norm_stats_dir)
+        )
+        vec_env = VecNormalize.load(vec_norm_stats_path, env)
         vec_env.training = False
         return vec_env
 
     # === Model === #
 
     def _get_model(self, env: Env | VecEnv, sub_dir: str) -> T:
-        if self._conf.training and not self._train_conf.continue_training:
+        if self._agent_conf.training and not self._train_conf.continue_training:
             return self._create_model(env, sub_dir)
         else:
             return self._load_model(env)
@@ -163,12 +164,12 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                 if self._train_conf.tensorboard_output
                 else None
             ),
-            seed=self._conf.seed,
+            seed=self._agent_conf.seed,
             **self._HYPER_PARAMETERS,
         )
 
     def _load_model(self, env: Env | VecEnv) -> T:
-        model_path = self._get_saved_path(self._model_dir)
+        model_path = super()._find_latest_saved_path(self._model_dir)
         return self._ALGORITHM.load(path=model_path, env=env, **self._HYPER_PARAMETERS)
 
     # === Train === #
@@ -187,13 +188,14 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                 # Train the model
                 model.learn(
                     total_timesteps=self._train_conf.timesteps,
-                    tb_log_name=self._get_model_id(),
+                    tb_log_name=super().get_unique_model_id(),
                     reset_num_timesteps=False,
                     callback=(
                         PlateauCallback(
-                            self._conf.terminate_threshold, self._conf.plateau_threshold
+                            self._agent_conf.terminate_threshold,
+                            self._agent_conf.plateau_threshold,
                         )
-                        if self._conf.plateau_detection
+                        if self._agent_conf.plateau_detection
                         else None
                     ),
                 )
@@ -208,13 +210,13 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _save_model(self, model: T, env):
         if self._train_conf.model_output:
             # Save the model
-            checkpoint = f"{model.num_timesteps}_{self._get_model_id()}.zip"
+            checkpoint = f"{model.num_timesteps}_{super().get_unique_model_id()}.zip"
             model.save(self._model_dir / checkpoint)
             print(f"\nModel saved with {model.num_timesteps} time steps")
 
             vec_normalize = unwrap_vec_normalize(env)
             if vec_normalize is not None:
-                evn_save_path = f"{self._vec_norm_stats_dir}/{model.num_timesteps}_{self._get_model_id()}.pkl"
+                evn_save_path = f"{self._vec_norm_stats_dir}/{model.num_timesteps}_{super().get_unique_model_id()}.pkl"
                 vec_normalize.save(evn_save_path)
                 print(f"VecNormalize stats saved at {model.num_timesteps} timesteps")
 

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from tests.utils.config_helpers import get_test_config, update_conf
@@ -9,23 +10,24 @@ from tests.utils.config_helpers import get_test_config, update_conf
 
 class TestAgentRunner:
     """
-    This test suite verifies that the `AgentRunner` class functions correctly in various scenarios. Specifically, it tests:
+    This test suite verifies that the `AgentRunner` class functions correctly in various scenarios.
+    Specifically, it tests:
     - The initialization of an `AgentRunner` object.
     - Handling of invalid algorithms.
     - Behavior when model steps are not provided.
     - Behavior when no matching model is found for the specified steps.
 
-    Tests are designed to check edge cases, error handling, and correct interactions with the underlying model-loading functionality.
+    Tests are designed to check edge cases, error handling, and correct interactions with
+    the underlying model-loading functionality.
     """
 
     @pytest.fixture
-    def agent_runner(self):
+    def agent_runner(self) -> BaseAgentRunner:
         """
         Fixture to create and return an instance of the `AgentRunner` class for testing.
 
         Returns:
-            AgentRunner: A configured `AgentRunner` instance with a specified environment ("synergy_grid-v0")
-                         and algorithm ("PPO").
+            BaseAgentRunner: A configured `AgentRunner` instance using the PPO algorithm.
         """
 
         full_conf = get_test_config()
@@ -34,24 +36,24 @@ class TestAgentRunner:
             full_conf, {"agent": {"global_agent_conf": {"alg": "PPO"}}}
         )
 
-        world_conf = full_conf.world
-        obs_conf = full_conf.obs
-
-        return ALGORITHMS[full_conf.agent.global_agent_conf.alg](
-            world_conf, obs_conf, full_conf.agent
+        agent_bundle = AgentBundle(
+            world_conf=full_conf.world,
+            obs_conf=full_conf.obs,
+            agent_conf=full_conf.agent,
         )
+
+        return ALGORITHMS[full_conf.agent.global_agent_conf.alg](agent_bundle)
 
     def test_get_model_with_no_agent_steps(self, agent_runner: BaseAgentRunner):
         """
         Tests the behavior when no agent steps are provided to the `get_model` method.
-        Verifies that the program exits with an error (SystemExit) when no agent steps are specified.
-        This test ensures that the `get_model` method handles the missing steps case correctly and prevents further execution.
+        Verifies that a ValueError is raised when no agent steps are specified.
 
         Raises:
-            SystemExit: If no agent steps are provided.
+            ValueError: If no agent steps are provided.
         """
 
-        agent_runner._conf.agent_steps = ""
+        agent_runner._agent_conf.agent_steps = ""
 
         with pytest.raises(ValueError):
-            agent_runner._get_saved_path(Path("null_path"))
+            agent_runner._find_latest_saved_path(Path("null_path"))

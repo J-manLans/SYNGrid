@@ -1,4 +1,4 @@
-from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.sb3 import FrameStackPPO, LstmPPO, StatelessPPO
 
@@ -9,9 +9,7 @@ ALGORITHMS: dict[str, type[BaseAgentRunner]] = {
 }
 
 
-def build_runner(
-    world_conf: WorldConfig, obs_conf: ObsConfig, agent_conf: AgentConfig
-) -> BaseAgentRunner:
+def build_runner(agent_bundle: AgentBundle) -> BaseAgentRunner:
     """
     Instantiate the agent runner class registered for the configured algorithm.
 
@@ -28,10 +26,10 @@ def build_runner(
         KeyError: If the configured algorithm has no registered runner.
     """
 
-    alg = agent_conf.global_agent_conf.alg
+    alg = agent_bundle.agent_conf.global_agent_conf.alg
     if alg not in ALGORITHMS:
         raise KeyError(
             f"No runner registered for algorithm '{alg}'. Available: {list(ALGORITHMS)}"
         )
 
-    return ALGORITHMS[alg](world_conf, obs_conf, agent_conf)
+    return ALGORITHMS[alg](agent_bundle)

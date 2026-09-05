@@ -1,7 +1,7 @@
 import numpy as np
 from sb3_contrib import RecurrentPPO
 
-from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
 
 
@@ -10,9 +10,9 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     #       Init        #
     # ================= #
 
-    def __init__(self, world_conf: WorldConfig, obs_conf: ObsConfig, conf: AgentConfig):
-        policy = self._get_policy_from_perception(
-            obs_conf.observation_handler.perception, True
+    def __init__(self, agent_bundle: AgentBundle):
+        policy = super()._get_policy_from_perception(
+            agent_bundle.obs_conf.observation_handler.perception, True
         )
         hyper_parameters = {
             "policy": policy,
@@ -28,9 +28,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
             },
         }
         super().__init__(
-            world_conf,
-            obs_conf,
-            conf,
+            agent_bundle,
             hyper_parameters,
             RecurrentPPO,
         )
@@ -41,19 +39,21 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     # ================= #
 
     def train(self) -> None:
-        env = self._make_wrapped_dummy_vec_env(
+        env = super()._make_wrapped_dummy_vec_env(
             self._train_conf.render_mode, self._TRAIN
         )
-        env = self._get_normalized_env(env)
-        model = self._get_model(env, self._TRAIN)
+        env = super()._get_normalized_env(env)
+        model = super()._get_model(env, self._TRAIN)
 
-        self._train_model(model, env)
+        super()._train_model(model, env)
 
     def eval(self) -> None:
         # prep model and env
-        env = self._make_wrapped_dummy_vec_env(self._eval_conf.render_mode, self._EVAL)
-        env = self._get_normalized_env(env)
-        model = self._load_model(env)
+        env = super()._make_wrapped_dummy_vec_env(
+            self._eval_conf.render_mode, self._EVAL
+        )
+        env = super()._get_normalized_env(env)
+        model = super()._load_model(env)
 
         # prep lstm variables
         lstm_states = None

@@ -31,7 +31,7 @@ class PygameRenderer:
         - Graphic elements
         """
 
-        self._conf = renderer_conf
+        self._renderer_conf = renderer_conf
 
         pygame.init()  # Initialize pygame
         pygame.display.init()  # initialize the display module
@@ -53,7 +53,7 @@ class PygameRenderer:
         # Define game window size (width, height)
         self.window_size = (
             self._window_width,
-            (self._cell_height * self._conf.grid_rows)
+            (self._cell_height * self._renderer_conf.grid_rows)
             + (self._grid_offset * 3)
             + self._hud_height,
         )
@@ -123,7 +123,7 @@ class PygameRenderer:
 
         self._grid_offset = self._cell_width // 4
         self._window_width = (
-            self._cell_width * self._conf.grid_cols
+            self._cell_width * self._renderer_conf.grid_cols
         ) + self._grid_offset * 2
         self._hud_height = self._cell_height * 4
         self._hud_width = self._cell_width * 5
@@ -133,7 +133,10 @@ class PygameRenderer:
         """Load graphics via the config file"""
 
         self.graphics = {}
-        for field_name, relative_path in self._conf.img_assets.model_dump().items():
+        for (
+            field_name,
+            relative_path,
+        ) in self._renderer_conf.img_assets.model_dump().items():
             full_path = get_package_path(relative_path)
             self.graphics[field_name] = pygame.image.load(full_path)
 
@@ -142,8 +145,8 @@ class PygameRenderer:
     def _draw_floor_and_orbs(self, orb_positions, orb_meta, is_active_statuses):
         """Draw floor tiles and orbs"""
 
-        for r in range(self._conf.grid_rows):
-            for c in range(self._conf.grid_cols):
+        for r in range(self._renderer_conf.grid_rows):
+            for c in range(self._renderer_conf.grid_cols):
                 pos = (
                     (c * self._cell_width) + self._grid_offset,
                     (r * self._cell_height) + self._grid_offset,
@@ -213,8 +216,10 @@ class PygameRenderer:
         hud_img = self.graphics["hud_img"]
         hud_rect = hud_img.get_rect(
             topleft=(
-                self._grid_offset + (self._conf.grid_cols - 5) * self._cell_width // 2,
-                (self._cell_height * self._conf.grid_rows) + self._grid_offset * 2,
+                self._grid_offset
+                + (self._renderer_conf.grid_cols - 5) * self._cell_width // 2,
+                (self._cell_height * self._renderer_conf.grid_rows)
+                + self._grid_offset * 2,
             )
         )
         self.window_surface.blit(hud_img, hud_rect)
