@@ -14,5 +14,3 @@ class GridPixel(BasePerception):
     that infer all state information purely from visual input, with no
     additional spaces or globals.
     """
-
-    pass

@@ -13,12 +13,12 @@ class TestGridWorld:
         Resets the world before each test to ensure a clean state.
         """
 
-        run_conf = get_test_config().world
-        grid_world_conf = run_conf.grid_world_conf
-        orb_manager_conf = run_conf.orb_factory_conf
-        droid_conf = run_conf.droid_conf
-        negative_orb_conf = run_conf.negative_orb_conf
-        tier_orb_conf = run_conf.tier_orb_conf
+        world_conf = get_test_config().world
+        grid_world_conf = world_conf.grid_world_conf
+        orb_manager_conf = world_conf.orb_factory_conf
+        droid_conf = world_conf.droid_conf
+        negative_orb_conf = world_conf.negative_orb_conf
+        tier_orb_conf = world_conf.tier_orb_conf
 
         gw = GridWorld(
             grid_world_conf,

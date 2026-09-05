@@ -18,12 +18,12 @@ class BaseAgentRunner(ABC):
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
+    def __init__(self, world_conf: WorldConfig, obs_conf: ObsConfig, conf: AgentConfig):
         self._conf = conf.global_agent_conf
         self._train_conf = conf.train_agent_conf
         self._eval_conf = conf.eval_agent_conf
         self._obs_conf = obs_conf
-        self._run_conf = run_conf
+        self._world_conf = world_conf
         # Get current date and time to us as id for unique file naming
         self._date = get_date()
 
@@ -81,9 +81,9 @@ class BaseAgentRunner(ABC):
             else ""
         )
         perception = self._obs_conf.observation_handler.perception
-        neg = "_Neg" if self._run_conf.orb_factory_conf.types.negative.enabled else ""
+        neg = "_Neg" if self._world_conf.orb_factory_conf.types.negative.enabled else ""
 
-        if self._run_conf.orb_factory_conf.types.tier.enabled:
+        if self._world_conf.orb_factory_conf.types.tier.enabled:
             self._id = f"{perception}{neg}__{tag}{self._conf.alg}"
         else:
             self._id = f"{perception}_NoTier{neg}__{tag}{self._conf.alg}"
@@ -91,7 +91,7 @@ class BaseAgentRunner(ABC):
     # === Factory === #
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
-        return make(render_mode, self._run_conf, self._obs_conf)
+        return make(render_mode, self._world_conf, self._obs_conf)
 
     # === Wrappers === #
 

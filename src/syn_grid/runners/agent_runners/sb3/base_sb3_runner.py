@@ -28,13 +28,13 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     def __init__(
         self,
-        conf: AgentConfig,
+        world_conf: WorldConfig,
         obs_conf: ObsConfig,
-        run_conf: WorldConfig,
+        conf: AgentConfig,
         hyper_parameters: dict[str, Any],
         algorithm: type[T],
     ):
-        super().__init__(conf, obs_conf, run_conf)
+        super().__init__(world_conf, obs_conf, conf)
         self._HYPER_PARAMETERS = hyper_parameters
         self._ALGORITHM = algorithm
         self._writer = None

@@ -10,7 +10,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
+    def __init__(self, world_conf: WorldConfig, obs_conf: ObsConfig, conf: AgentConfig):
         policy = self._get_policy_from_perception(
             obs_conf.observation_handler.perception, True
         )
@@ -28,9 +28,9 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
             },
         }
         super().__init__(
-            conf,
+            world_conf,
             obs_conf,
-            run_conf,
+            conf,
             hyper_parameters,
             RecurrentPPO,
         )

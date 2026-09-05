@@ -16,13 +16,13 @@ def register_env() -> None:
         )
 
 
-def make(render_mode: str | None, run_conf: WorldConfig, obs_conf: ObsConfig) -> Env:
+def make(render_mode: str | None, world_conf: WorldConfig, obs_conf: ObsConfig) -> Env:
     """
     Creates the registered environment and check it for correctness, used when training or evaluating the agent.
     """
 
     return gym.make(
-        "syn_grid-v0", render_mode=render_mode, run_conf=run_conf, obs_conf=obs_conf
+        "syn_grid-v0", render_mode=render_mode, world_conf=world_conf, obs_conf=obs_conf
     )
 
 

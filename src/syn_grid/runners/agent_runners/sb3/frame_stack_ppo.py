@@ -11,8 +11,8 @@ class FrameStackPPO(StatelessPPO):
 
     _N_STACK = 4
 
-    def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
-        super().__init__(conf, obs_conf, run_conf)
+    def __init__(self, world_conf: WorldConfig, obs_conf: ObsConfig, conf: AgentConfig):
+        super().__init__(world_conf, obs_conf, conf)
         print("Adding frame stacking on top...")
 
     # ================= #

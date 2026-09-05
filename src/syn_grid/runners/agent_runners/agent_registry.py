@@ -10,7 +10,7 @@ ALGORITHMS: dict[str, type[BaseAgentRunner]] = {
 
 
 def build_runner(
-    run_conf: WorldConfig, obs_conf: ObsConfig, agent_conf: AgentConfig
+    world_conf: WorldConfig, obs_conf: ObsConfig, agent_conf: AgentConfig
 ) -> BaseAgentRunner:
     """
     Instantiate the agent runner class registered for the configured algorithm.
@@ -18,7 +18,7 @@ def build_runner(
     Args:
         agent_conf: Agent configuration, including which algorithm to run.
         obs_conf: Observation space configuration.
-        run_conf: World/environment configuration.
+        world_conf: World/environment configuration.
 
     Returns:
         An instance of the BaseAgentRunner subclass registered under
@@ -34,4 +34,4 @@ def build_runner(
             f"No runner registered for algorithm '{alg}'. Available: {list(ALGORITHMS)}"
         )
 
-    return ALGORITHMS[alg](agent_conf, obs_conf, run_conf)
+    return ALGORITHMS[alg](world_conf, obs_conf, agent_conf)

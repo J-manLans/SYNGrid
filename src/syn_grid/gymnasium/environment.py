@@ -35,7 +35,7 @@ class SYNGridEnv(gym.Env):
 
     def __init__(
         self,
-        run_conf: WorldConfig,
+        world_conf: WorldConfig,
         obs_conf: ObsConfig,
         render_mode: str | None = None,
     ):
@@ -44,20 +44,20 @@ class SYNGridEnv(gym.Env):
 
         # TODO: starting to look like episode termination could need its own method for storing
         # these...or make it a class
-        self.delay_mode = run_conf.grid_world_conf.delay_mode
-        self.chain_break_penalty = run_conf.droid_conf.chain_break_penalty
+        self.delay_mode = world_conf.grid_world_conf.delay_mode
+        self.chain_break_penalty = world_conf.droid_conf.chain_break_penalty
 
         self.world = GridWorld(
-            run_conf.grid_world_conf,
-            run_conf.orb_factory_conf,
-            run_conf.droid_conf,
-            run_conf.negative_orb_conf,
-            run_conf.tier_orb_conf,
+            world_conf.grid_world_conf,
+            world_conf.orb_factory_conf,
+            world_conf.droid_conf,
+            world_conf.negative_orb_conf,
+            world_conf.tier_orb_conf,
         )
 
         if self.render_mode in self.metadata["render_modes"]:
             self.renderer = PygameRenderer(
-                run_conf.renderer_conf, self.metadata["render_fps"]
+                world_conf.renderer_conf, self.metadata["render_fps"]
             )
 
         # Set up Gymnasium environment:

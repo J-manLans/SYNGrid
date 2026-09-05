@@ -34,11 +34,11 @@ class TestAgentRunner:
             full_conf, {"agent": {"global_agent_conf": {"alg": "PPO"}}}
         )
 
-        run_conf = full_conf.world
+        world_conf = full_conf.world
         obs_conf = full_conf.obs
 
         return ALGORITHMS[full_conf.agent.global_agent_conf.alg](
-            full_conf.agent, obs_conf, run_conf
+            world_conf, obs_conf, full_conf.agent
         )
 
     def test_get_model_with_no_agent_steps(self, agent_runner: BaseAgentRunner):

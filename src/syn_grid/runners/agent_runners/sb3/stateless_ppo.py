@@ -10,7 +10,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: AgentConfig, obs_conf: ObsConfig, run_conf: WorldConfig):
+    def __init__(self, world_conf: WorldConfig, obs_conf: ObsConfig, conf: AgentConfig):
         policy = self._get_policy_from_perception(
             obs_conf.observation_handler.perception
         )
@@ -22,7 +22,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
             "batch_size": 128,
             "n_epochs": 4,
         }
-        super().__init__(conf, obs_conf, run_conf, hyper_parameters, PPO)
+        super().__init__(world_conf, obs_conf, conf, hyper_parameters, PPO)
         print("Initializing stateless PPO...")
 
     # ================= #

@@ -16,18 +16,18 @@ class HumanRunner:
     #       Init        #
     # ================= #
 
-    def __init__(self, run_conf: WorldConfig, steps_left: int):
-        self._renderer = PygameRenderer(run_conf.renderer_conf, 60)
+    def __init__(self, world_conf: WorldConfig, steps_left: int):
+        self._renderer = PygameRenderer(world_conf.renderer_conf, 60)
 
-        self.delay_mode = run_conf.grid_world_conf.delay_mode
-        self.chain_break_penalty = run_conf.droid_conf.chain_break_penalty
+        self.delay_mode = world_conf.grid_world_conf.delay_mode
+        self.chain_break_penalty = world_conf.droid_conf.chain_break_penalty
 
         self._world = GridWorld(
-            run_conf.grid_world_conf,
-            run_conf.orb_factory_conf,
-            run_conf.droid_conf,
-            run_conf.negative_orb_conf,
-            run_conf.tier_orb_conf,
+            world_conf.grid_world_conf,
+            world_conf.orb_factory_conf,
+            world_conf.droid_conf,
+            world_conf.negative_orb_conf,
+            world_conf.tier_orb_conf,
         )
         self._steps_left = steps_left
 
