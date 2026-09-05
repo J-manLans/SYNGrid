@@ -1,3 +1,5 @@
+# run with ./scripts/run_app.sh
+
 #!/usr/bin/env bash
 set -e
 
