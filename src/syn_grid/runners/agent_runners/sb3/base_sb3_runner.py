@@ -1,18 +1,18 @@
-from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
-from syn_grid.utils.paths_util import get_project_path
-from syn_grid.runners.agent_runners.sb3.utils.plateau_callback import PlateauCallback
+from typing import Any, ClassVar, Generic, TypeVar
 
-import os
-from typing import Type, TypeVar, Any, Generic
+from gymnasium import Env
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import (
     DummyVecEnv,
-    VecNormalize,
     VecEnv,
+    VecNormalize,
     unwrap_vec_normalize,
 )
-from gymnasium import Env
+
+from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.runners.agent_runners.sb3.utils.plateau_callback import PlateauCallback
+from syn_grid.utils.paths_util import get_project_path
 
 T = TypeVar("T", bound=BaseAlgorithm)
 
@@ -22,7 +22,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     #       Init        #
     # ================= #
 
-    _POLICY_MAP = {"vector": "Mlp", "composite": "MultiInput", "grid": "Cnn"}
+    _POLICY_MAP: ClassVar = {"vector": "Mlp", "composite": "MultiInput", "grid": "Cnn"}
     _TRAIN = "train"
     _EVAL = "eval"
 
@@ -32,7 +32,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         obs_conf: ObsConfig,
         run_conf: WorldConfig,
         hyper_parameters: dict[str, Any],
-        algorithm: Type[T],
+        algorithm: type[T],
     ):
         super().__init__(conf, obs_conf, run_conf)
         self._HYPER_PARAMETERS = hyper_parameters
@@ -225,10 +225,11 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         try:
             for i in range(self._eval_conf.num_eval_episodes):
                 while True:
-                    action, states = model.predict(
-                        obs, deterministic=True  # type: ignore[arg-type]
+                    action, _ = model.predict(
+                        obs,  # type: ignore[arg-type]
+                        deterministic=True,
                     )
-                    obs, rewards, dones, info = env.step(action)
+                    obs, _, dones, _ = env.step(action)
 
                     if dones[0]:
                         break

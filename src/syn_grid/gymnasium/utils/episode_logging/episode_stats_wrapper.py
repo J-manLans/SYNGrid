@@ -1,11 +1,12 @@
-from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
-
 import csv
-import gymnasium as gym
-from gymnasium.wrappers import RecordEpisodeStatistics
-from gymnasium.core import ActType, ObsType
-from typing import Any, SupportsFloat
 from pathlib import Path
+from typing import Any, SupportsFloat
+
+import gymnasium as gym
+from gymnasium.core import ActType, ObsType
+from gymnasium.wrappers import RecordEpisodeStatistics
+
+from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
 
 
 class EpisodeStatsWrapper(RecordEpisodeStatistics[ObsType, ActType]):
@@ -18,7 +19,7 @@ class EpisodeStatsWrapper(RecordEpisodeStatistics[ObsType, ActType]):
 
         csv_path = log_dir / f"{model_id}.csv"
         csv_path.parent.mkdir(parents=True, exist_ok=True)
-        self._csv_file = open(csv_path, "w", newline="")
+        self._csv_file = open(csv_path, "w", newline="")  # noqa: SIM115 - Kept open for the wrapper lifetime; closed in close()
         self._csv_writer = csv.DictWriter(self._csv_file, fieldnames=list(LogKey))
         self._csv_writer.writeheader()
 
@@ -46,7 +47,7 @@ class EpisodeStatsWrapper(RecordEpisodeStatistics[ObsType, ActType]):
                     LogKey.REWARD: info[self._stats_key]["r"],
                     LogKey.LENGTH: info[self._stats_key]["l"],
                     LogKey.CHAINS_BROKEN: self._broken_chains,
-                    LogKey.CHAIN_PROGRESSED: self._completed_chains,
+                    LogKey.CHAIN_PROGRESSED: self._chain_progress_step,
                     LogKey.CHAINS_COMPLETED: self._completed_chains,
                 }
             )

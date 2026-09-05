@@ -1,10 +1,10 @@
-from syn_grid.gymnasium.environment import SYNGridEnv
-
-from tests.utils.config_helpers import get_test_config, update_conf
+from typing import Any
 
 import numpy as np
 import pytest
-from typing import Any
+
+from syn_grid.gymnasium.environment import SYNGridEnv
+from tests.utils.config_helpers import get_test_config, update_conf
 
 
 class TestEnvironment:

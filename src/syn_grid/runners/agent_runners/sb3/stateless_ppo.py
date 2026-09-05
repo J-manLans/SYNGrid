@@ -1,8 +1,8 @@
-from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
-from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
-
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import VecNormalize
+
+from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
 
 
 class StatelessPPO(BaseSB3Runner[PPO]):

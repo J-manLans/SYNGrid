@@ -1,9 +1,8 @@
+import pytest
+
 from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS, build_runner
 from syn_grid.runners.agent_runners.sb3.stateless_ppo import StatelessPPO
-
 from tests.utils.config_helpers import get_test_config, update_conf
-
-import pytest
 
 
 class TestBuildRunner:

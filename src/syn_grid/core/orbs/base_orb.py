@@ -1,8 +1,8 @@
-from syn_grid.core.orbs.orb_meta import OrbMeta
-from syn_grid.core.utils.timer import Timer
-
 from abc import ABC
 from typing import Final
+
+from syn_grid.core.orbs.orb_meta import OrbMeta
+from syn_grid.core.utils.timer import Timer
 
 
 class BaseOrb(ABC):

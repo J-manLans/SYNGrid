@@ -1,13 +1,14 @@
-from syn_grid.utils.paths_util import get_project_path
-from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
+import re
+from enum import Enum
+from pathlib import Path
 
 import matplotlib.pyplot as plt
-from pathlib import Path
 import pandas as pd
 from pandas import DataFrame
-from enum import Enum
-import re
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+
+from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
+from syn_grid.utils.paths_util import get_project_path
 
 # ================= #
 #     Constants     #
@@ -328,9 +329,10 @@ def time_line(plots_dir: Path):
     Data transcribed from GitHub Projects roadmap screenshot (verify dates against repo).
     Regenerate: python roadmap_gantt.py
     """
-    import matplotlib.pyplot as plt
-    import matplotlib.dates as mdates
     from datetime import date
+
+    import matplotlib.dates as mdates
+    import matplotlib.pyplot as plt
 
     # (label, issue_no, start, end)
     items = [
@@ -436,7 +438,6 @@ def time_line(plots_dir: Path):
     EDGE = "#e6b800"
     TEXT = "#000000"
     NUMC = "#888888"
-    GRID = "#d9d9d9"
 
     fig, ax = plt.subplots(figsize=(9.2, 6.4))
 

@@ -1,14 +1,12 @@
 from syn_grid.plot.plot_utils import (
     _BASE_LOG_DIR,
     _BASE_PLOT_DIR,
-    plot_reward,
-    plot_episode_length,
-    plot_average_reward,
     plot_chain_progression_steps,
-    plot_chain_outcomes,
     plot_completion_rate,
-    plot_success,
+    plot_episode_length,
     plot_failure,
+    plot_reward,
+    plot_success,
 )
 
 _EVAL = "eval"

@@ -1,9 +1,9 @@
+from typing import Final
+
 from syn_grid.config.models import DroidConf
+from syn_grid.core.droid.digestion_engine import DigestionEngine
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.gymnasium.action_space import DroidAction
-from syn_grid.core.droid.digestion_engine import DigestionEngine
-
-from typing import Final
 
 
 class SynergyDroid:
@@ -96,7 +96,8 @@ class SynergyDroid:
     def _apply_reward(self, reward: float):
         self.score += reward
 
-        if self.score < 0:
-            self.score = 0  # clip to 0 if we go negative at the end of an episode
+        self.score = max(
+            self.score, 0
+        )  # clip to 0 if we go negative at the end of an episode
 
         return reward

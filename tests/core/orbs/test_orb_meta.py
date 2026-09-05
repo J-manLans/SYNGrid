@@ -1,4 +1,5 @@
 import pytest
+
 from syn_grid.core.orbs.orb_meta import (
     DirectType,
     OrbCategory,

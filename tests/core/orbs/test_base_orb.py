@@ -1,13 +1,13 @@
-from syn_grid.core.utils.timer import Timer
+import numpy as np
+import pytest
+
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
-    SynergyType,
-    OrbMeta,
     OrbCategory,
+    OrbMeta,
+    SynergyType,
 )
-
-import pytest
-import numpy as np
+from syn_grid.core.utils.timer import Timer
 
 
 class DummyOrb(BaseOrb):

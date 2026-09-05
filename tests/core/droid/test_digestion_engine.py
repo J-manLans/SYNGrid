@@ -1,10 +1,9 @@
+import pytest
+
+from syn_grid.core.droid.digestion_engine import DigestionEngine
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
-from syn_grid.core.droid.digestion_engine import DigestionEngine
-
 from tests.utils.config_helpers import get_test_config
-
-import pytest
 
 
 class TestDigestionEngine:

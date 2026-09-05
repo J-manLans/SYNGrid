@@ -1,10 +1,8 @@
-from syn_grid.runners.agent_runners.sb3 import StatelessPPO, LstmPPO, FrameStackPPO
-from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.runners.agent_runners.sb3 import FrameStackPPO, LstmPPO, StatelessPPO
 
-from typing import Type
-
-ALGORITHMS: dict[str, Type[BaseAgentRunner]] = {
+ALGORITHMS: dict[str, type[BaseAgentRunner]] = {
     "PPO": StatelessPPO,
     "FSPPO": FrameStackPPO,
     "RPPO": LstmPPO,

@@ -12,7 +12,7 @@ Usage:
 
 from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models import FullConf
-from syn_grid.gymnasium.utils.env_factory import register_env, make, check_my_env
+from syn_grid.gymnasium.utils.env_factory import check_my_env, make, register_env
 
 
 def main() -> None:

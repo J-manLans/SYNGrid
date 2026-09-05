@@ -68,20 +68,20 @@ def train_agent(
 
 ```python
 def _empty_spawn_cell(self, position: list[np.int64]) -> bool:
-        # Check against agent
-        if position == self._agent.position:
+    # Check against agent
+    if position == self._agent.position:
+        return False
+
+    # If there are no active orbs we can spawn right away
+    if len(self._active_orbs) == 0:
+        return True
+
+    # Else check against all active orbs
+    for r in self._active_orbs:
+        if position == r.position:
             return False
 
-        # If there are no active orbs we can spawn right away
-        if len(self._active_orbs) == 0:
-            return True
-
-        # Else check against all active orbs
-        for r in self._active_orbs:
-            if position == r.position:
-                return False
-
-        return True
+    return True
 ```
 
 - Use inline comments sparingly, only for clarification, not obvious code.

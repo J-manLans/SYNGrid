@@ -1,14 +1,13 @@
-from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
-    BasePerception,
-)
-from syn_grid.core.grid_world import GridWorld
-
 import numpy as np
 from gymnasium import spaces
 
+from syn_grid.core.grid_world import GridWorld
+from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
+    BasePerception,
+)
+
 
 class VectorMarkovianEasy(BasePerception):
-
     # ================= #
     #        API        #
     # ================= #

@@ -1,9 +1,9 @@
+from typing import Any, TypeVar
+
+from pydantic import BaseModel
+
 from src.syn_grid.config.config_manager import ConfigManager
 from src.syn_grid.config.models import FullConf
-
-from typing import Any
-from typing import TypeVar, Any
-from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
 

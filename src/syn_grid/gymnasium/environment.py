@@ -1,17 +1,18 @@
-from syn_grid.config.models import WorldConfig, ObsConfig
-from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
+from typing import Any
+
+import gymnasium as gym
+import numpy as np
+from gymnasium import spaces
+
+from syn_grid.config.models import ObsConfig, WorldConfig
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
+from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
-
-import gymnasium as gym
-from gymnasium import spaces
-from typing import Any
-import numpy as np
+from syn_grid.rendering.pygame_renderer import PygameRenderer
 
 
 class SYNGridEnv(gym.Env):
@@ -30,7 +31,7 @@ class SYNGridEnv(gym.Env):
     # render_fps caps the update rate of render(); each call corresponds to one logic step, not the
     # full game framerate. Simply put: render_fps controls the speed of the environment’s logic,
     # while a sub-loop in the renderer would handle smooth animation between steps.
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 8}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 8}  # noqa: RUF012 - Required by Gymnasium API
 
     def __init__(
         self,

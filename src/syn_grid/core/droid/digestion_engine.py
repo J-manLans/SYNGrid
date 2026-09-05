@@ -1,7 +1,7 @@
+from typing import Final
+
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
-
-from typing import Final
 
 
 class DigestionEngine:

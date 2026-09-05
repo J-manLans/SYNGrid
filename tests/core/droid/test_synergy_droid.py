@@ -1,15 +1,14 @@
+import pytest
+
 from syn_grid.core.droid.synergy_droid import DroidAction, SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
-    OrbMeta,
-    OrbCategory,
     DirectType,
+    OrbCategory,
+    OrbMeta,
     SynergyType,
 )
-
 from tests.utils.config_helpers import get_test_config
-
-import pytest
 
 
 class DummyPositiveOrb(BaseOrb):

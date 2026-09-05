@@ -55,12 +55,13 @@ dependencies = [
 [project.optional-dependencies]
 # Used for users who wants the extra functionalities but don't need the [dev] setup.
 extra = [
-    "matplotlib>=3.10"
+    "matplotlib>=3.10",
+    "pandas>=2.3"
 ]
 
 dev = [
     "pytest>=9.0.2",
-    "black>=26.1" # For automatic code formatting. Usage: black path/to/file.py or black src/syn_grid for the whole module
+    "ruff>=0.16" # For linting and removing unused imports. Formatting: ruff format path/to/file.py or ruff format path/to/package, removing unused imports: ruff check --select F401 --fix src/syn_grid
 ]
 
 [tool.setuptools.packages.find]
@@ -72,3 +73,6 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 "syn_grid" = ["assets/**/*"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]

@@ -1,6 +1,7 @@
-from syn_grid.runners.agent_runners.sb3.stateless_ppo import StatelessPPO
-from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
 from stable_baselines3.common.vec_env import VecFrameStack
+
+from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.sb3.stateless_ppo import StatelessPPO
 
 
 class FrameStackPPO(StatelessPPO):

@@ -1,11 +1,10 @@
 from syn_grid.config.models import TierConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
-    OrbMeta,
     OrbCategory,
+    OrbMeta,
     SynergyType,
 )
-from typing import Final
 
 
 class TierOrb(BaseOrb):

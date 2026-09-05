@@ -5,7 +5,7 @@
 snapshot:
   # Snapshot settings:
   # - enabled: whether to save a snapshot of the full config for replicating scenario
-  enabled: true
+  enabled: false
 
 ###########################
 #   World Configuration   #

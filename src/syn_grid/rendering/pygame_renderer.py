@@ -1,16 +1,17 @@
+import sys
+
+import numpy as np
+import pygame
+
 from syn_grid.config.models import RendererConf
 from syn_grid.core.orbs.orb_meta import (
-    OrbMeta,
-    OrbCategory,
     DirectType,
+    OrbCategory,
+    OrbMeta,
     SynergyType,
 )
-from syn_grid.utils.paths_util import get_package_path
 from syn_grid.gymnasium.action_space import DroidAction
-
-import pygame
-import sys
-import numpy as np
+from syn_grid.utils.paths_util import get_package_path
 
 
 class PygameRenderer:
@@ -230,7 +231,7 @@ class PygameRenderer:
                 chained_tiers, hud_rect.x + 33, hud_rect.y + (hud_rect.height - 68)
             )
 
-    def _draw_life_bar(self, current_score: int | float, hud_rect: pygame.Rect):
+    def _draw_life_bar(self, current_score: float, hud_rect: pygame.Rect):
         """
         Draw a dynamic life bar inside hud_rect.
         Bar fills relative to highest score reached so far (max_seen_score).
@@ -263,7 +264,7 @@ class PygameRenderer:
 
         self._draw_hud_stat(round(current_score, 2), hud_rect.x + 120, hud_rect.y + 45)
 
-    def _draw_moves_bar(self, remaining_moves: int | float, hud_rect: pygame.Rect):
+    def _draw_moves_bar(self, remaining_moves: float, hud_rect: pygame.Rect):
         """
         Draw a dynamic life bar inside hud_rect.
         Bar fills relative to highest score reached so far (max_seen_score).
@@ -293,7 +294,7 @@ class PygameRenderer:
         status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
         pygame.draw.rect(self.window_surface, (75, 75, 75), status_rect, 2)
 
-    def _draw_hud_stat(self, stat: int | float, x, y):
+    def _draw_hud_stat(self, stat: float, x, y):
         """
         Draw a numeric stat centered at position (x,y) in the HUD.
 

@@ -15,4 +15,4 @@ class GridPixel(BasePerception):
     additional spaces or globals.
     """
 
-    NotImplementedError()
+    raise NotImplementedError()

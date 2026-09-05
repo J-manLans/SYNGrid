@@ -1,15 +1,16 @@
-from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
-from syn_grid.utils.paths_util import get_project_path
-from syn_grid.utils.date_utils import get_date
-from syn_grid.gymnasium.utils.env_factory import make, check_my_env
+from abc import ABC, abstractmethod
+from pathlib import Path
+
+from gymnasium import Env
+from gymnasium.wrappers import RecordVideo
+
+from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.gymnasium.utils.env_factory import make
 from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
     EpisodeStatsWrapper,
 )
-
-from pathlib import Path
-from abc import ABC, abstractmethod
-from gymnasium import Env
-from gymnasium.wrappers import RecordVideo
+from syn_grid.utils.date_utils import get_date
+from syn_grid.utils.paths_util import get_project_path
 
 
 class BaseAgentRunner(ABC):
@@ -83,9 +84,9 @@ class BaseAgentRunner(ABC):
         neg = "_Neg" if self._run_conf.orb_factory_conf.types.negative.enabled else ""
 
         if self._run_conf.orb_factory_conf.types.tier.enabled:
-            self._id = f"{perception}{neg}__" f"{tag}{self._conf.alg}"
+            self._id = f"{perception}{neg}__{tag}{self._conf.alg}"
         else:
-            self._id = f"{perception}_NoTier{neg}__" f"{tag}{self._conf.alg}"
+            self._id = f"{perception}_NoTier{neg}__{tag}{self._conf.alg}"
 
     # === Factory === #
 

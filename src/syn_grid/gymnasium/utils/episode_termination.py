@@ -48,9 +48,8 @@ def _single_chain_mode_termination(
     reward: float,
 ) -> tuple[bool, bool, float]:
     # === tier chain broken ===#
-    if world.droid.digestion_engine.tier_chain_broken:
-        if not delay_mode:
-            terminated = True
+    if world.droid.digestion_engine.tier_chain_broken and not delay_mode:
+        terminated = True
 
     # === max steps reached === #
     if steps_left <= 0:

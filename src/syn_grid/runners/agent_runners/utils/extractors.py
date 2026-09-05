@@ -1,8 +1,9 @@
-import torch as th
-import torch.nn as nn
-from gymnasium import spaces
 from typing import Any
+
+import torch as th
+from gymnasium import spaces
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from torch import nn
 
 # TODO: look over these. TinyGridCNN works and can train CnnPolicy, but I haven't checked the logic
 # yet. GroupedMetaExtractor is for learning the agent to process a dict in its logically structured

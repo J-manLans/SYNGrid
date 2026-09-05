@@ -1,10 +1,9 @@
-from syn_grid.core.orbs.synergy.tier_orb import TierOrb
-from syn_grid.core.orbs.base_orb import BaseOrb
-
-from tests.utils.config_helpers import get_test_config
-
-import pytest
 import numpy as np
+import pytest
+
+from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.synergy.tier_orb import TierOrb
+from tests.utils.config_helpers import get_test_config
 
 
 class TestTierOrb:

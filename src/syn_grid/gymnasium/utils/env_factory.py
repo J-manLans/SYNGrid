@@ -1,9 +1,9 @@
-from syn_grid.config.models import WorldConfig, ObsConfig
-
 import gymnasium as gym
 from gymnasium import Env
-from gymnasium.envs.registration import registry, register
+from gymnasium.envs.registration import register, registry
 from gymnasium.utils.env_checker import check_env
+
+from syn_grid.config.models import ObsConfig, WorldConfig
 
 
 def register_env() -> None:

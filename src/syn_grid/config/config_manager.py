@@ -1,9 +1,10 @@
-from syn_grid.utils.paths_util import get_package_path, get_project_path
-from syn_grid.utils.date_utils import get_date
+from typing import TypeVar
 
 import yaml
-from typing import Type, TypeVar
 from pydantic import BaseModel
+
+from syn_grid.utils.date_utils import get_date
+from syn_grid.utils.paths_util import get_package_path, get_project_path
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -26,7 +27,7 @@ class ConfigManager:
     #       API        #
     # ================= #
 
-    def load_config(self, model_class: Type[T]) -> T:
+    def load_config(self, model_class: type[T]) -> T:
         """
         Load a YAML file into a Pydantic model instance.
 

@@ -1,9 +1,9 @@
 from syn_grid.config.models import NegativeConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
-    OrbMeta,
-    OrbCategory,
     DirectType,
+    OrbCategory,
+    OrbMeta,
 )
 
 

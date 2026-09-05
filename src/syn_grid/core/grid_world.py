@@ -1,18 +1,19 @@
-from syn_grid.config.models import (
-    GridWorldConf,
-    OrbFactoryConf,
-    DroidConf,
-    NegativeConf,
-    TierConf,
-)
-from syn_grid.gymnasium.action_space import DroidAction
-from syn_grid.core.droid.synergy_droid import SynergyDroid
-from syn_grid.core.orbs.orb_meta import OrbMeta
-from syn_grid.core.orbs.orb_factory import OrbFactory
-from syn_grid.core.orbs.base_orb import BaseOrb
+from typing import Final
 
 from numpy.random import Generator, default_rng
-from typing import Final
+
+from syn_grid.config.models import (
+    DroidConf,
+    GridWorldConf,
+    NegativeConf,
+    OrbFactoryConf,
+    TierConf,
+)
+from syn_grid.core.droid.synergy_droid import SynergyDroid
+from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.orb_factory import OrbFactory
+from syn_grid.core.orbs.orb_meta import OrbMeta
+from syn_grid.gymnasium.action_space import DroidAction
 
 
 class GridWorld:
@@ -107,9 +108,11 @@ class GridWorld:
 
         if self._conf.single_chain_mode and self._conf.delay_mode:
             self._reactivate_all_orbs()
-        elif not self._conf.single_chain_mode:
-            if len(self._active_orbs) < self._conf.max_active_orbs:
-                self._spawn_random_orb_if_ready()
+        elif (
+            not self._conf.single_chain_mode
+            and len(self._active_orbs) < self._conf.max_active_orbs
+        ):
+            self._spawn_random_orb_if_ready()
 
         return step_penalty + reward
 

@@ -1,12 +1,12 @@
 from syn_grid.plot.plot_utils import (
     _BASE_LOG_DIR,
     _BASE_PLOT_DIR,
-    plot_reward,
     plot_average_reward,
-    plot_episode_length,
-    plot_chain_progression_steps,
     plot_chain_outcomes,
+    plot_chain_progression_steps,
     plot_completion_rate,
+    plot_episode_length,
+    plot_reward,
 )
 
 _TRAIN = "train"

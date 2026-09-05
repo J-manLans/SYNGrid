@@ -1,15 +1,15 @@
-from syn_grid.app import load_experiment_config, dispatch, ExperimentBundle
+from unittest.mock import MagicMock
+
+import pytest
+
+from syn_grid.app import ExperimentBundle, dispatch, load_experiment_config
 from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models import (
-    ExperimentConfig,
-    FullConf,
-    WorldConfig,
-    ObsConfig,
     AgentConfig,
+    ExperimentConfig,
+    ObsConfig,
+    WorldConfig,
 )
-
-from unittest.mock import MagicMock
-import pytest
 
 # ================= #
 #  Global Fixtures  #
@@ -58,9 +58,11 @@ class TestDispatch:
         self, runner, config_manager, bundle, capsys
     ):
         bundle.experiments_conf = bundle.experiments_conf.model_copy(
-            update={"snapshot": bundle.experiments_conf.snapshot.model_copy(
-                update={"enabled": True}
-            )}
+            update={
+                "snapshot": bundle.experiments_conf.snapshot.model_copy(
+                    update={"enabled": True}
+                )
+            }
         )
         save_snapshot = MagicMock()
         config_manager.save_snapshot = save_snapshot

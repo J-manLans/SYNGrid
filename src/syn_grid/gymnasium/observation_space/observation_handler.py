@@ -1,24 +1,25 @@
+from typing import Any, Final
+
+from gymnasium import spaces
+
+from syn_grid.config.models import ObsConfig
+from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
-from syn_grid.gymnasium.observation_space.perceptions.vector import (
-    VectorMarkovianEasy,
-    VectorMarkovian,
-    VectorFogOfWar,
-)
 from syn_grid.gymnasium.observation_space.perceptions.composite import (
-    CompositeMarkovian,
     CompositeFullyPOMDP,
     CompositeGridMarkovian,
+    CompositeMarkovian,
 )
 from syn_grid.gymnasium.observation_space.perceptions.spatial import (
     GridPixel,
 )
-from syn_grid.config.models import ObsConfig
-from syn_grid.core.grid_world import GridWorld
-
-from gymnasium import spaces
-from typing import Final, Type, Any
+from syn_grid.gymnasium.observation_space.perceptions.vector import (
+    VectorFogOfWar,
+    VectorMarkovian,
+    VectorMarkovianEasy,
+)
 
 PERCEPTIONS = {
     "vector_markovian_easy": VectorMarkovianEasy,
@@ -38,7 +39,7 @@ class ObservationHandler:
 
     def __init__(self, conf: ObsConfig, orbs: int, max_identity: int) -> None:
         self._max_steps: Final[int] = conf.observation_handler.max_steps
-        perception_type: Type[BasePerception] = PERCEPTIONS[
+        perception_type: type[BasePerception] = PERCEPTIONS[
             conf.observation_handler.perception
         ]
         self.perception: Final[BasePerception] = perception_type(

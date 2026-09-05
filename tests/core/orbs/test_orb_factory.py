@@ -1,10 +1,9 @@
-from syn_grid.config.models import OrbFactoryConf
-from syn_grid.core.orbs.orb_factory import OrbFactory
-from syn_grid.core.orbs.base_orb import BaseOrb
-from tests.utils.config_helpers import get_test_config, update_conf
+from collections import Counter
 
 import pytest
-from collections import Counter
+
+from syn_grid.core.orbs.orb_factory import OrbFactory
+from tests.utils.config_helpers import get_test_config, update_conf
 
 
 class TestOrbFactory:

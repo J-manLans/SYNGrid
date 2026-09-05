@@ -1,8 +1,8 @@
-from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
-from syn_grid.config.models import AgentConfig, WorldConfig, ObsConfig
-
 import numpy as np
 from sb3_contrib import RecurrentPPO
+
+from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
 
 
 class LstmPPO(BaseSB3Runner[RecurrentPPO]):
@@ -73,7 +73,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
                         episode_start=episode_starts,
                         deterministic=True,
                     )
-                    obs, rewards, dones, infos = env.step(action)
+                    obs, _, dones, _ = env.step(action)
 
                     episode_starts = dones
                     if dones[0]:

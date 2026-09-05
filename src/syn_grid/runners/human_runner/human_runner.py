@@ -1,7 +1,7 @@
 from syn_grid.config.models import WorldConfig
-from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
+from syn_grid.rendering.pygame_renderer import PygameRenderer
 
 # NOTE: This whole class is to a large extent stitched together, code duplication I think etc. When
 # I go full GUI, this needs to be connected to that in a better way because after loading or
