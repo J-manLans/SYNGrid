@@ -49,7 +49,8 @@ dependencies = [
     "numpy>=2.2",
     "pygame>=2.6",
     "PyYAML>=6.0",
-    "pydantic>=2.12.5"
+    "pydantic>=2.12",
+    "moviepy>=2.2"
 ]
 
 [project.optional-dependencies]

@@ -229,6 +229,11 @@ class TrainAgentConf(BaseModel, frozen=False):
     def validate_config(self):
         if self.render_mode not in ["human", "rgb_array", None]:
             raise ValueError("The value of render mode is not allowed")
+        if self.render_mode == "human" and self.n_envs > 1:
+            raise ValueError(
+                "render_mode 'human' requires n_envs=1 (live rendering doesn't "
+                "support parallel environments)"
+            )
         return self
 
 

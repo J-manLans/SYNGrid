@@ -97,7 +97,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         # a render_mode mismatch when training with multiple environments. So need to
         # rethink this one.
         env = super()._make_raw_env(
-            render_mode if (not self._agent_conf.training or env_idx == 0) else None
+            render_mode
         )
 
         # if logging is enabled
