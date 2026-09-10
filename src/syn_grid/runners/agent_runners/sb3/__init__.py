@@ -1,3 +1,3 @@
-from .frame_stack_ppo_v2 import FrameStackPPO
-from .lstm_ppo_v2 import LstmPPO
-from .stateless_ppo_v2 import StatelessPPO
+from .frame_stack_ppo import FrameStackPPO
+from .lstm_ppo import LstmPPO
+from .stateless_ppo import StatelessPPO

@@ -18,6 +18,9 @@ from gymnasium import Env
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import VecEnv, VecNormalize, unwrap_vec_normalize
 
+# NOTE: there was some python version that simplified this pattern, was it 12 ,13 or 14? because I
+# think I want it, I don't like locking at this, look into it when the time for upgrading version
+# comes.
 T = TypeVar("T", bound=BaseAlgorithm)
 
 
@@ -48,13 +51,16 @@ class ArtifactManager(Generic[T]):
 
     def create_normalize_wrapper(self, env: VecEnv) -> VecNormalize:
         """Wrap a fresh env for training from scratch."""
+
         return VecNormalize(env, norm_obs=True, norm_reward=False)
 
     def load_normalize_wrapper(self, env: VecEnv) -> VecNormalize:
         """Load saved normalization stats onto an env, for eval or resumed training."""
+
         stats_path = str(self._find_latest_saved_path(self._vec_norm_stats_dir))
         vec_env = VecNormalize.load(stats_path, env)
         vec_env.training = False
+
         return vec_env
 
     # === Model === #
@@ -72,13 +78,14 @@ class ArtifactManager(Generic[T]):
 
     def load_model(self, env: Env | VecEnv) -> T:
         model_path = self._find_latest_saved_path(self._model_dir)
+
         return self._algorithm.load(path=model_path, env=env, **self._hyper_parameters)
 
-    def save_model(self, model: T, env, unique_model_id: str) -> Path:
+    def save_model(self, model: T, env, unique_model_id: str) -> None:
         checkpoint = f"{model.num_timesteps}_{unique_model_id}.zip"
         model_path = self._model_dir / checkpoint
         model.save(model_path)
-        print(f"\nModel saved with {model.num_timesteps} time steps")
+        print(f"\nModel saved with {model.num_timesteps} timesteps to:\n{model_path}")
 
         vec_normalize = unwrap_vec_normalize(env)
         if vec_normalize is not None:
@@ -87,6 +94,6 @@ class ArtifactManager(Generic[T]):
                 / f"{model.num_timesteps}_{unique_model_id}.pkl"
             )
             vec_normalize.save(str(stats_path))
-            print(f"VecNormalize stats saved at {model.num_timesteps} timesteps")
-
-        return model_path
+            print(
+                f"VecNormalize stats saved at {model.num_timesteps} timesteps to:\n{self._vec_norm_stats_dir}"
+            )

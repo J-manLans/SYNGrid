@@ -19,7 +19,9 @@ class PygameRenderer:
     #       Init        #
     # ================= #
 
-    def __init__(self, renderer_conf: RendererConf, render_mode: str | None, fps: int) -> None:
+    def __init__(
+        self, renderer_conf: RendererConf, render_mode: str | None, fps: int
+    ) -> None:
         """
         Initializes the Pygame renderer.
 

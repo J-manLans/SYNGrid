@@ -29,8 +29,6 @@ class GridWorldConf(BaseModel, frozen=True):
 
     @model_validator(mode="after")
     def validate_config(self):
-        if self.grid_rows <= 0 or self.grid_cols <= 0:
-            raise ValueError("grid_cols and grid_rows should be larger than 0")
         if self.max_active_orbs <= 0:
             raise ValueError("max_active_orbs should be larger than 0")
         if self.single_chain_mode:
@@ -80,8 +78,15 @@ class DroidConf(BaseModel, frozen=True):
 
     @model_validator(mode="after")
     def validate_config(self):
-        if self.tier_consumption_penalty > 0:
-            raise ValueError("tier_consumption_penalty must be 0 or negative")
+        penalties = {
+            "step_penalty": self.step_penalty,
+            "boundary_penalty": self.boundary_penalty,
+            "chain_break_penalty": self.chain_break_penalty,
+            "tier_consumption_penalty": self.tier_consumption_penalty,
+        }
+        positive_penalty = [name for name, value in penalties.items() if value > 0]
+        if positive_penalty:
+            raise ValueError(f"{', '.join(positive_penalty)} must be 0 or negative")
         return self
 
 
@@ -143,6 +148,8 @@ class TierConf(BaseModel, frozen=True):
             raise ValueError("At least one of the scoring modes need to be set to true")
         elif sum(1 for score_mode in scoring_modes if score_mode) > 1:
             raise ValueError("Only one of the scoring modes can be set to true")
+        if self.growth_factor <= 0:
+            raise ValueError(f"{self.growth_factor} must be a positive value.")
         return self
 
 
@@ -230,6 +237,10 @@ class TrainAgentConf(BaseModel, frozen=False):
     def validate_config(self):
         if self.render_mode not in ["human", "rgb_array", None]:
             raise ValueError("The value of render mode is not allowed")
+        if self.n_envs <= 0:
+            raise ValueError(
+                f"envs:{self.n_envs}. Can't train if there isn't an environment to train on."
+            )
         if self.render_mode == "human" and self.n_envs > 1:
             raise ValueError(
                 "render_mode 'human' requires n_envs=1 (live rendering doesn't "
@@ -294,3 +305,50 @@ class FullConf(BaseModel):
     world: WorldConfig
     obs: ObsConfig
     agent: AgentConfig
+
+    @model_validator(mode="after")
+    def validate_config(self):
+        grid_dimensions = {
+            "grid_world_conf": (
+                self.world.grid_world_conf.grid_rows,
+                self.world.grid_world_conf.grid_cols,
+            ),
+            "orb_factory_conf": (
+                self.world.orb_factory_conf.grid_rows,
+                self.world.orb_factory_conf.grid_cols,
+            ),
+            "renderer_conf": (
+                self.world.renderer_conf.grid_rows,
+                self.world.renderer_conf.grid_cols,
+            ),
+            "droid_conf": (
+                self.world.droid_conf.grid_rows,
+                self.world.droid_conf.grid_cols,
+            ),
+            "perception": (
+                self.obs.perception.grid_rows,
+                self.obs.perception.grid_cols,
+            ),
+        }
+
+        # Check grid size bigger than 0
+        invalid = {
+            name: dims
+            for name, dims in grid_dimensions.items()
+            if dims[0] <= 0 or dims[1] <= 0
+        }
+        if invalid:
+            raise ValueError(f"grid_rows/grid_cols must be larger than 0: {invalid}")
+
+        # Check that all grid_row/col are equal across configurations
+        reference = grid_dimensions["grid_world_conf"]
+        mismatched = {
+            name: dims for name, dims in grid_dimensions.items() if dims != reference
+        }
+
+        if mismatched:
+            raise ValueError(
+                f"grid_rows/grid_cols mismatch: grid_world_conf has {reference}, "
+                f"but these blocks differ: {mismatched}"
+            )
+        return self

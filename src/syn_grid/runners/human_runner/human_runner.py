@@ -17,7 +17,7 @@ class HumanRunner:
     # ================= #
 
     def __init__(self, world_conf: WorldConfig, steps_left: int):
-        self._renderer = PygameRenderer(world_conf.renderer_conf, 'human', 60)
+        self._renderer = PygameRenderer(world_conf.renderer_conf, "human", 60)
 
         self.delay_mode = world_conf.grid_world_conf.delay_mode
         self.chain_break_penalty = world_conf.droid_conf.chain_break_penalty

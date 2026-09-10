@@ -65,7 +65,7 @@ class GridWorld:
         for orb in self.ALL_ORBS:
             orb.reset()
 
-        if rng == None:
+        if rng is None:
             rng = default_rng()
 
         self._rng = rng

@@ -116,16 +116,20 @@ class BaseAgentRunner(ABC):
             else self._eval_conf.csv_output
         )
 
-        return EpisodeStatsWrapper(
-            env,
-            self._log_dir / sub_dir,
-            self.get_unique_model_id()
-        ) if csv_output else env
+        return (
+            EpisodeStatsWrapper(
+                env, self._log_dir / sub_dir, self.get_unique_model_id()
+            )
+            if csv_output
+            else env
+        )
 
     # --- Video recording ---#
 
     def _wrap_training_video(self, env: Env) -> Env:
-        local_interval = max(1, self._train_conf.rec_interval // self._train_conf.n_envs)
+        local_interval = max(
+            1, self._train_conf.rec_interval // self._train_conf.n_envs
+        )
 
         return self._rec_video_wrapper(
             env,
@@ -140,7 +144,9 @@ class BaseAgentRunner(ABC):
         )
 
     def _rec_video_wrapper(self, env: Env, **trigger) -> RecordVideo:
-        video_output = get_project_path("output", "results", "videos") / self.get_unique_model_id()
+        video_output = (
+            get_project_path("output", "results", "videos") / self.get_unique_model_id()
+        )
 
         return RecordVideo(
             env,

@@ -60,10 +60,14 @@ class RecurrentExecutionStrategy:
         self._episode_starts: NDArray | None = None
 
     def reset(self, num_envs: int) -> None:
+        """Reset recurrent state and initialize all environments as new episodes."""
+
         self._lstm_states = None
         self._episode_starts = np.ones((num_envs,), dtype=bool)
 
     def predict(self, model: BaseAlgorithm, obs) -> NDArray:
+        """Predict an action while preserving LSTM state between steps."""
+
         action, self._lstm_states = model.predict(
             obs,
             state=self._lstm_states,
@@ -73,4 +77,6 @@ class RecurrentExecutionStrategy:
         return action
 
     def on_step(self, dones: NDArray) -> None:
+        """Update episode-start flags based on environments that have finished."""
+
         self._episode_starts = dones

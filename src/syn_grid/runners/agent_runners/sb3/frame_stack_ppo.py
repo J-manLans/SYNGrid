@@ -1,42 +1,45 @@
-from stable_baselines3.common.vec_env import VecFrameStack
+from typing import Any, Final
+
+from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import VecEnv, VecFrameStack
 
 from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
-from syn_grid.runners.agent_runners.sb3.stateless_ppo import StatelessPPO
+from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
+from syn_grid.runners.agent_runners.sb3.execution_strategy import (
+    StatelessExecutionStrategy,
+)
+from syn_grid.runners.agent_runners.sb3.policy_resolver import resolve_policy
 
 
-class FrameStackPPO(StatelessPPO):
+class FrameStackPPO(BaseSB3Runner[PPO]):
+    """PPO with a fixed window of stacked observations for short-term memory."""
+
     # ================= #
     #       Init        #
     # ================= #
 
-    _N_STACK = 4
+    _N_STACK: Final[int] = 4
+    _HYPER_PARAMETERS: Final[dict[str, Any]] = {
+        **BaseSB3Runner._SHARED_HYPER_PARAMETERS,
+        "device": "cpu",
+    }
 
     def __init__(self, agent_bundle: AgentBundle):
-        super().__init__(agent_bundle)
-        print("Adding frame stacking on top...")
+        policy = resolve_policy(agent_bundle.obs_conf.observation_handler.perception)
+        hyper_parameters = {"policy": policy, **self._HYPER_PARAMETERS}
+
+        super().__init__(
+            agent_bundle,
+            hyper_parameters,
+            PPO,
+            execution_strategy=StatelessExecutionStrategy(),
+        )
+        print("Initializing stateless PPO with frame stacking...")
 
     # ================= #
-    #        API        #
+    #       Hooks       #
     # ================= #
 
-    def train(self) -> None:
-        env = super()._wrap_env(self._train_conf.render_mode, self._TRAIN)
-        env = self._get_frame_stacked_env(env)
-        model = super()._get_model(env, self._TRAIN)
-
-        super()._train_model(model, env)
-
-    def eval(self) -> None:
-        # prep model and env
-        env = super()._wrap_env(self._eval_conf.render_mode, self._EVAL)
-        env = self._get_frame_stacked_env(env)
-        model = super()._load_model(env)
-
-        super()._eval_model(env, model)
-
-    # ================= #
-    #      Helpers      #
-    # ================= #
-
-    def _get_frame_stacked_env(self, env):
+    def _build_env(self, render_mode: str | None, sub_dir: str) -> VecEnv:
+        env = super()._build_env(render_mode, sub_dir)
         return VecFrameStack(env, self._N_STACK)
