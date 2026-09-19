@@ -10,7 +10,6 @@ from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
-from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 
@@ -110,15 +109,13 @@ class SYNGridEnv(gym.Env):
 
         self.obs = self._observation_handler.get_observation(self.world)
 
-        info = self._get_state_info()
-
         # Return observation, reward, terminated, truncated and info
         return (
             self.obs,
             reward,
             terminated,
             truncated,
-            info,
+            {}, # info - just an empty dict as of now, logger not yet fully implemented
         )
 
     def render(self) -> np.ndarray | None:
@@ -150,10 +147,3 @@ class SYNGridEnv(gym.Env):
         hud_data["current tier chain"] = self.world.droid.digestion_engine.chained_tiers
 
         return hud_data
-
-    def _get_state_info(self) -> dict[str, Any]:
-        return {
-            LogKey.CHAINS_BROKEN: self.world.droid.digestion_engine.tier_chain_broken,
-            LogKey.CHAIN_PROGRESSED: self.world.droid.digestion_engine.chain_progressed,
-            LogKey.CHAINS_COMPLETED: self.world.droid.digestion_engine.max_tier_reached,
-        }
