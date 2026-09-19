@@ -5,6 +5,9 @@ from gymnasium import Env
 from gymnasium.wrappers import RecordVideo
 
 from syn_grid.gymnasium.utils.env_factory import make
+from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
+    EpisodeStatsWrapper,
+)
 from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.utils.date_utils import get_date
 from syn_grid.utils.paths_util import get_project_path
@@ -97,9 +100,33 @@ class BaseAgentRunner(ABC):
 
     # === Wrappers === #
 
+    # --- Logger ---#
+
+    def _maybe_wrap_logger(self, env: Env, sub_dir: str) -> Env:
+        """
+        If csv_output is enabled — wrap the environment with EpisodeStatsWrapper for logging.
+        Tracks episode metrics and saves them to a CSV for training and eval analysis.
+        """
+        # NOTE: when looking over the EpisodeStatsWrapper, decide how to deal with this
+
+        # Resolve csv_output depending on if we're training or evaluating
+        csv_output = (
+            self._train_conf.csv_output
+            if self._agent_conf.training
+            else self._eval_conf.csv_output
+        )
+
+        return (
+            EpisodeStatsWrapper(
+                env, self._log_dir / sub_dir, self.get_unique_model_id()
+            )
+            if csv_output
+            else env
+        )
+
     # --- Video recording ---#
 
-    def _wrap_video(self, env: Env) -> Env:
+    def _maybe_wrap_video(self, env: Env) -> Env:
         # Training video
         if self._agent_conf.training and self._train_conf.record_video:
             local_interval = max(

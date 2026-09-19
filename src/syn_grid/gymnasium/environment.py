@@ -4,6 +4,8 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
+from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
+
 from syn_grid.config.models import ObsConfig, WorldConfig
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
@@ -108,6 +110,7 @@ class SYNGridEnv(gym.Env):
             self.render()
 
         self.obs = self._observation_handler.get_observation(self.world)
+        info = self._get_state_info()
 
         # Return observation, reward, terminated, truncated and info
         return (
@@ -115,7 +118,7 @@ class SYNGridEnv(gym.Env):
             reward,
             terminated,
             truncated,
-            {}, # info - just an empty dict as of now, logger not yet fully implemented
+            info,
         )
 
     def render(self) -> np.ndarray | None:
@@ -147,3 +150,10 @@ class SYNGridEnv(gym.Env):
         hud_data["current tier chain"] = self.world.droid.digestion_engine.chained_tiers
 
         return hud_data
+
+    def _get_state_info(self) -> dict[str, Any]:
+        return {
+            LogKey.CHAINS_BROKEN: self.world.droid.digestion_engine.tier_chain_broken,
+            LogKey.CHAIN_PROGRESSED: self.world.droid.digestion_engine.chain_progressed,
+            LogKey.CHAINS_COMPLETED: self.world.droid.digestion_engine.max_tier_reached,
+        }
