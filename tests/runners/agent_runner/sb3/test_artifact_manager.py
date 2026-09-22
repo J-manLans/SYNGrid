@@ -11,7 +11,9 @@ def _make_env() -> DummyVecEnv:
 
 
 @pytest.mark.parametrize("training", [True, False])
-def test_loaded_normalization_wrapper_preserves_requested_mode(tmp_path, training: bool):
+def test_loaded_normalization_wrapper_preserves_requested_mode(
+    tmp_path, training: bool
+):
     stats_path = tmp_path / "vec_normalize.pkl"
     VecNormalize(_make_env()).save(str(stats_path))
 

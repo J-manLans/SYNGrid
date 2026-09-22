@@ -1,0 +1,39 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    validate:
+        runs-on: ubuntu-latest
+
+        steps:
+            # =========== #
+            #    Setup    #
+            # =========== #
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Set up Python
+              uses: actions/setup-python@v7
+              with:
+                python-version: "3.10"
+
+            - name: Install dependencies
+              run: pip install -e ".[dev]"
+
+            # =========== #
+            #    Tests    #
+            # =========== #
+            - name: Run tests
+              run: pytest
+
+            # =========== #
+            #    Linter   #
+            # =========== #
+            - name: Check lint
+              run: ruff check src/syn_grid tests
+
+            - name: Check formatting
+              run: ruff format --check src/syn_grid tests
