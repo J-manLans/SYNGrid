@@ -183,7 +183,7 @@ agent:
     # - rec_interval: only applicable if render mode is set to "rgb_array", decides at what step intervals to start record the training
     # - rec_length: only applicable if render mode is set to "rgb_array", decides how many steps the recording should be
     continue_training: false
-    csv_output: false
+    csv_output: true
     tensorboard_output: true
     model_output: true
     n_envs: 16

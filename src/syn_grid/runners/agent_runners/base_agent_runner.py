@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from gymnasium import Env
-from gymnasium.wrappers import RecordVideo
+from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo
 
 from syn_grid.gymnasium.utils.env_factory import make
-from syn_grid.gymnasium.utils.episode_logging.episode_stats_wrapper import (
-    EpisodeStatsWrapper,
+from syn_grid.gymnasium.utils.episode_logging.csv_episode_logger import (
+    CSVEpisodeLogger,
 )
 from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.utils.date_utils import get_date
@@ -102,26 +102,31 @@ class BaseAgentRunner(ABC):
 
     # --- Logger ---#
 
-    def _maybe_wrap_logger(self, env: Env, sub_dir: str) -> Env:
+    def _wrap_record_episode_statistics(self, env: Env) -> Env:
         """
-        If csv_output is enabled — wrap the environment with EpisodeStatsWrapper for logging.
-        Tracks episode metrics and saves them to a CSV for training and eval analysis.
+        Wrap the environment with Gymnasium's episode statistics wrapper. It records episode reward, length, and elapsed time.
         """
-        # NOTE: when looking over the EpisodeStatsWrapper, decide how to deal with this
 
-        # Resolve csv_output depending on if we're training or evaluating
-        csv_output = (
-            self._train_conf.csv_output
-            if self._agent_conf.training
-            else self._eval_conf.csv_output
-        )
+        return RecordEpisodeStatistics(env)
 
-        return (
-            EpisodeStatsWrapper(
-                env, self._log_dir / sub_dir, self.get_unique_model_id()
-            )
-            if csv_output
-            else env
+    def _wrap_episode_csv_logger(self, env: Env, sub_dir: str, env_idx: int = 0) -> Env:
+        """
+        Log standard and SYNGrid episode statistics to CSV.
+
+        Expects the environment to provide episode statistics through
+        ``RecordEpisodeStatistics``.
+
+        Args:
+            env: Environment to wrap.
+            sub_dir: Sub-directory (under the run's log dir) to write the CSV into.
+            env_idx: Index of this environment among parallel environments, if
+                running more than one. Appended to the filename so each parallel
+                environment writes to its own file instead of colliding on one.
+                Defaults to 0, which is all a single-environment runner needs.
+        """
+
+        return CSVEpisodeLogger(
+            env, self._log_dir / sub_dir, self.get_unique_model_id(), env_idx
         )
 
     # --- Video recording ---#

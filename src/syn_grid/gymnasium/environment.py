@@ -10,7 +10,7 @@ from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
-from syn_grid.gymnasium.utils.episode_logging.keys import LogKey, STATS_KEY
+from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY, LogKey
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 
@@ -111,7 +111,7 @@ class SYNGridEnv(gym.Env):
         # So think about how to handle this. Either just keep it (a cheap calculation), or disable
         # recording in the digestive engine when not enabled
         if terminated or truncated:
-            info[STATS_KEY] = self._get_state_info()
+            info[SYN_STATS_KEY] = self._get_state_info()
 
         if self.render_mode in self.metadata["render_modes"]:
             self.render()

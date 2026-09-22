@@ -66,7 +66,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     def train(self) -> None:
         env = self._build_env(self._train_conf.render_mode, self._TRAIN)
-        model = self._resolve_model(env, self._TRAIN)
+        model = self._resolve_training_model(env)
 
         self._train_model(model, env)
 
@@ -89,7 +89,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         first to layer additional wrappers on top (see FrameStackPPO).
         """
 
-        env = self._make_wrapped_dummy_vec_env(render_mode, sub_dir)
+        env = self._make_dummy_vec_env(render_mode, sub_dir)
         return self._resolve_normalized_env(env)
 
     # ================= #
@@ -121,9 +121,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Env === #
 
-    def _make_wrapped_dummy_vec_env(
-        self, render_mode: str | None, sub_dir: str
-    ) -> DummyVecEnv:
+    def _make_dummy_vec_env(self, render_mode: str | None, sub_dir: str) -> DummyVecEnv:
         # If we are training, create as many envs that the config specifies.
         # If we're evaluating a trained agent — just create one env since no batching is needed.
         n_envs = self._train_conf.n_envs if self._agent_conf.training else 1
@@ -139,14 +137,28 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         """
         Create the environment with logging and optional video recording.
 
-        Logging and video recording are applied only to the first environment
-        to avoid duplicate output when running multiple environments in parallel.
+        Video recording is applied only to the first environment to avoid
+        duplicate video output when running multiple environments in parallel.
         """
 
         env = self._make_raw_env(render_mode)
 
+        csv_output = (
+            self._train_conf.csv_output
+            if self._agent_conf.training
+            else self._eval_conf.csv_output
+        )
+        # Training always needs RecordEpisodeStatistics since tensorboard depends on it to log rew
+        # and length, eval only uses it if we write to csv.
+        record_episode_stats = self._agent_conf.training or csv_output
+
+        if record_episode_stats:
+            env = self._wrap_record_episode_statistics(env)
+
+        if csv_output:
+            env = self._wrap_episode_csv_logger(env, sub_dir, env_idx)
+
         if env_idx == 0:
-            env = self._maybe_wrap_logger(env, sub_dir)
             env = self._maybe_wrap_video(env)
 
         return env
@@ -166,11 +178,11 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Model === #
 
-    def _resolve_model(self, env: Env | VecEnv, sub_dir: str) -> T:
+    def _resolve_training_model(self, env: Env | VecEnv) -> T:
         if self._is_fresh_training_run:
             # If enabled, start TensorBoard with: tensorboard --logdir results/logs/<env_name>
             tensorboard_log = (
-                str(self._log_dir / sub_dir)
+                str(self._log_dir / self._TRAIN)
                 if self._train_conf.tensorboard_output
                 else None
             )
@@ -190,7 +202,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             for i in range(1, self._train_conf.iterations + 1):
                 model.learn(
                     total_timesteps=self._train_conf.timesteps,
-                    tb_log_name=super().get_unique_model_id(),
+                    tb_log_name=self.get_unique_model_id(),
                     reset_num_timesteps=False,
                     callback=(
                         PlateauCallback(

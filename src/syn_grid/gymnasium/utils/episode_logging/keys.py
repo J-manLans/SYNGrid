@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import Final
 
-STATS_KEY: Final[str] = "syn_grid_episode"
+STATS_KEY: Final[str] = "episode"  # Mirrors RecordEpisodeStatistics variable
+SYN_STATS_KEY: Final[str] = "syn_grid_episode"
 
 
 class LogKey(str, Enum):
