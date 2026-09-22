@@ -40,6 +40,11 @@ class TestTrainAgentConfValidators:
         with pytest.raises(ValidationError, match="render mode"):
             TrainAgentConf(**base_kwargs)
 
+    def test_record_video_defaults_to_false(self, base_kwargs):
+        base_kwargs.pop("record_video")
+
+        assert TrainAgentConf(**base_kwargs).record_video is False
+
     def test_human_mode_with_multiple_envs_raises(self, base_kwargs):
         base_kwargs["render_mode"] = "human"
         base_kwargs["n_envs"] = 4
@@ -102,6 +107,11 @@ class TestEvalAgentConfValidators:
 
         with pytest.raises(ValidationError, match="render mode"):
             EvalAgentConf(**base_kwargs)
+
+    def test_record_video_defaults_to_false_for_legacy_configs(self, base_kwargs):
+        base_kwargs.pop("record_video")
+
+        assert EvalAgentConf(**base_kwargs).record_video is False
 
     @pytest.mark.parametrize(
         ("render_mode", "record_video", "should_raise"),

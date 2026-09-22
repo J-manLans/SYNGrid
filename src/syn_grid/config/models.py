@@ -229,7 +229,7 @@ class TrainAgentConf(BaseModel, frozen=False):
     timesteps: int
     iterations: int
     render_mode: str | None
-    record_video: bool
+    record_video: bool = False
     rec_interval: int
     rec_length: int
 
@@ -254,7 +254,7 @@ class TrainAgentConf(BaseModel, frozen=False):
 class EvalAgentConf(BaseModel, frozen=False):
     num_eval_episodes: int
     render_mode: str | None
-    record_video: bool
+    record_video: bool = False
     rec_episode: int
     csv_output: bool
 

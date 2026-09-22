@@ -54,12 +54,12 @@ class ArtifactManager(Generic[T]):
 
         return VecNormalize(env, norm_obs=True, norm_reward=False)
 
-    def load_normalize_wrapper(self, env: VecEnv) -> VecNormalize:
-        """Load saved normalization stats onto an env, for eval or resumed training."""
+    def load_normalize_wrapper(self, env: VecEnv, training: bool) -> VecNormalize:
+        """Load saved normalization stats onto an env for evaluation or resumed training."""
 
         stats_path = str(self._find_latest_saved_path(self._vec_norm_stats_dir))
         vec_env = VecNormalize.load(stats_path, env)
-        vec_env.training = False
+        vec_env.training = training
 
         return vec_env
 

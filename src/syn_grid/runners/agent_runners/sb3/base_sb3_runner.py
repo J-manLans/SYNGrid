@@ -174,7 +174,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         if self._is_fresh_training_run:
             return self._artifact_manager.create_normalize_wrapper(env)
         else:
-            return self._artifact_manager.load_normalize_wrapper(env)
+            return self._artifact_manager.load_normalize_wrapper(
+                env, training=self._agent_conf.training
+            )
 
     # === Model === #
 
