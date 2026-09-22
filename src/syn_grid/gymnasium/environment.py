@@ -4,14 +4,13 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.gymnasium.utils.episode_logging.log_keys import LogKey
-
 from syn_grid.config.models import ObsConfig, WorldConfig
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
+from syn_grid.gymnasium.utils.episode_logging.keys import LogKey, STATS_KEY
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 
@@ -95,6 +94,8 @@ class SYNGridEnv(gym.Env):
         return self.obs, {}
 
     def step(self, action: int):
+        info: dict[str, Any] = {}
+
         # Perform action and adjust variables affected by it
         reward = self.world.perform_droid_action(DroidAction(action))
         self._observation_handler.steps_left -= 1
@@ -106,11 +107,16 @@ class SYNGridEnv(gym.Env):
             reward,
         )
 
-        if self.render_mode == "human":
+        # TODO: this should only emit if csv output is enabled in the agent for evaluation.
+        # So think about how to handle this. Either just keep it (a cheap calculation), or disable
+        # recording in the digestive engine when not enabled
+        if terminated or truncated:
+            info[STATS_KEY] = self._get_state_info()
+
+        if self.render_mode in self.metadata["render_modes"]:
             self.render()
 
         self.obs = self._observation_handler.get_observation(self.world)
-        info = self._get_state_info()
 
         # Return observation, reward, terminated, truncated and info
         return (
@@ -152,8 +158,10 @@ class SYNGridEnv(gym.Env):
         return hud_data
 
     def _get_state_info(self) -> dict[str, Any]:
+        stats = self.world.droid.digestion_engine.stats
+
         return {
-            LogKey.CHAINS_BROKEN: self.world.droid.digestion_engine.tier_chain_broken,
-            LogKey.CHAIN_PROGRESSED: self.world.droid.digestion_engine.chain_progressed,
-            LogKey.CHAINS_COMPLETED: self.world.droid.digestion_engine.max_tier_reached,
+            LogKey.CHAINS_BROKEN: stats["chains_broken"],
+            LogKey.CHAIN_PROGRESSED: stats["chains_progressed"],
+            LogKey.CHAINS_COMPLETED: stats["chains_completed"],
         }

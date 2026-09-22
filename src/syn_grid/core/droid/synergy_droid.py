@@ -45,9 +45,6 @@ class SynergyDroid:
     def perform_action(self, agent_action: DroidAction) -> float:
         """Performs current action"""
 
-        # Reset these. They are used for logging and each step demands a clean slate
-        self.digestion_engine.reset_tier_chain_flags()
-
         # Move droid to the next cell
         match agent_action:
             case DroidAction.LEFT:

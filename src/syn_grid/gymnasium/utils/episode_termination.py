@@ -1,4 +1,5 @@
 from syn_grid.core.grid_world import GridWorld
+from syn_grid.gymnasium.utils.episode_logging.keys import LogKey
 
 
 def check_episode_end(
@@ -48,7 +49,9 @@ def _single_chain_mode_termination(
     reward: float,
 ) -> tuple[bool, bool, float]:
     # === tier chain broken ===#
-    if world.droid.digestion_engine.tier_chain_broken and not delay_mode:
+    # TODO: will be changed moving forward...somehow, not sure yet into what, think this whole
+    # class needs rework
+    if world.droid.digestion_engine.stats[LogKey.CHAINS_BROKEN] > 0 and not delay_mode:
         terminated = True
 
     # === max steps reached === #
@@ -62,7 +65,8 @@ def _single_chain_mode_termination(
         terminated = True
 
     # === max tier reached ===#
-    elif world.droid.digestion_engine.max_tier_reached:
+    # TODO: will be changed moving forward...somehow, not sure yet into what, think this whole class needs rework
+    elif world.droid.digestion_engine.stats[LogKey.CHAINS_COMPLETED] > 0:
         if not world._conf.curriculum_training and world._conf.max_tier_scoring:
             # Overrides the reward from the consumption to a fixed ceiling
             reward = 10.0
