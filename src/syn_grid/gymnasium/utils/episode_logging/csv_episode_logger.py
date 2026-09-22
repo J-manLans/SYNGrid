@@ -61,7 +61,7 @@ class CSVEpisodeLogger(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
 
         super().__init__(env)
 
-        csv_path = log_dir / f"{model_id}_env{env_idx}.csv"
+        csv_path = log_dir / f"{model_id}" / f"_env{env_idx}.csv"
         csv_path.parent.mkdir(parents=True, exist_ok=True)
 
         # The file is kept open for the wrapper lifetime; closed in the close() override. A `with`

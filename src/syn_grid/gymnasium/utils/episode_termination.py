@@ -58,6 +58,8 @@ def _single_chain_mode_termination(
     if steps_left <= 0:
         if not world._conf.max_tier_scoring:
             reward = world.droid.digestion_engine._pending_reward
+        else:
+            reward = timeout_penalty
 
         if delay_mode:
             reward = timeout_penalty
