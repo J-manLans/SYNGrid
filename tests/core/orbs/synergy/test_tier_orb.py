@@ -3,7 +3,7 @@ import pytest
 
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
-from tests.utils.config_helpers import get_test_config
+from tests.utils.config_helpers import get_test_config, update_conf
 
 
 class TestTierOrb:
@@ -57,10 +57,37 @@ class TestTierOrb:
     def test_stepwise_reward_is_correct(self, orb: TierOrb):
         assert orb.META.TIER * orb._tier_base_reward == orb.REWARD
 
-    def test_factor_reward_is_correct(self, orb: TierOrb):
-        orb.step_wise_scoring = False
+    def test_factor_reward_is_correct(self):
+        """
+        Non-linear growth: reward = round(base_reward * tier ** growth_factor).
 
-        assert (orb._tier_base_reward * (orb._growth_factor * (self._TIER - 1))) + 0.5
+        The branch is selected by `linear_reward_growth`, not by any scoring flag,
+        and the reward is fixed at construction time, so the orb has to be built
+        from a config with linear growth disabled.
+        """
+
+        conf = update_conf(
+            get_test_config().world.tier_orb_conf, {"linear_reward_growth": False}
+        )
+        BaseOrb.set_life_span(self._GRID_ROWS, self._GRID_COLS)
+        TierOrb.max_tier = self._MAX_TIER
+
+        orb = TierOrb(self._TIER, conf)
+
+        assert orb.REWARD == round(conf.base_reward * self._TIER**conf.growth_factor)
+
+    def test_factor_reward_forced_linear_for_tier_one(self):
+        """Tier 1 always takes the linear branch, even with growth disabled."""
+
+        conf = update_conf(
+            get_test_config().world.tier_orb_conf, {"linear_reward_growth": False}
+        )
+        BaseOrb.set_life_span(self._GRID_ROWS, self._GRID_COLS)
+        TierOrb.max_tier = self._MAX_TIER
+
+        orb = TierOrb(1, conf)
+
+        assert orb.REWARD == conf.base_reward
 
     def test_active_orb_is_correct(self, orb: TierOrb):
         position = [

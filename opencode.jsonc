@@ -1,0 +1,66 @@
+// DEFAULTS
+//
+// [
+//   { "action": "*", "resource": "*", "effect": "allow" },
+//   { "action": "external_directory", "resource": "*", "effect": "ask" },
+//   { "action": "read", "resource": "*.env", "effect": "ask" },
+//   { "action": "read", "resource": "*.env.*", "effect": "ask" },
+//   { "action": "read", "resource": "*.env.example", "effect": "allow" }
+// ]
+
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    // =============== //
+    //      SHELL      //
+    // =============== //
+    { "action": "shell", "resource": "*", "effect": "allow" },
+    // --- Git --- //
+    { "action": "shell", "resource": "git rebase *", "effect": "ask" },
+    { "action": "shell", "resource": "git merge *", "effect": "ask" },
+    { "action": "shell", "resource": "git fetch *", "effect": "ask" },
+    { "action": "shell", "resource": "git pull *", "effect": "ask" },
+    { "action": "shell", "resource": "git cherry-pick *", "effect": "ask" },
+
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+    { "action": "shell", "resource": "git reset *", "effect": "deny" },
+    { "action": "shell", "resource": "git clean *", "effect": "deny" },
+    { "action": "shell", "resource": "git restore *", "effect": "deny" },
+    // --- Remote code execution --- //
+    { "action": "shell", "resource": "curl *", "effect": "ask" },
+    { "action": "shell", "resource": "curl *|*sh*", "effect": "deny" },
+    { "action": "shell", "resource": "wget *", "effect": "ask" },
+    { "action": "shell", "resource": "wget *|*sh*", "effect": "deny" },
+    // --- Misc --- //
+    { "action": "shell", "resource": "pip install *", "effect": "ask" },
+    { "action": "shell", "resource": "npm install *", "effect": "ask" },
+
+    { "action": "shell", "resource": "sudo *", "effect": "deny" },
+    { "action": "shell", "resource": "rm *", "effect": "deny" },
+    // =============== //
+    //       READ      //
+    // =============== //
+    // --- Env --- //
+    { "action": "read", "resource": "*.env", "effect": "deny" },
+    { "action": "read", "resource": "*.env.*", "effect": "deny" },
+    { "action": "read", "resource": "*.env.example", "effect": "allow" },
+    // =============== //
+    //       EDIT      //
+    // =============== //
+    { "action": "edit", "resource": "opencode.jsonc", "effect": "deny" },
+    // =============== //
+    //       Web       //
+    // =============== //
+    { "action": "websearch", "resource": "*", "effect": "allow" }
+  ],
+  "watcher": {
+    "ignore": [
+      "reproduction_package/**",
+      "output/**",
+      ".venv/**",
+      ".ruff_cache/**",
+      ".pytest_cache/**",
+      "**/__pycache__/**"
+    ]
+  }
+}

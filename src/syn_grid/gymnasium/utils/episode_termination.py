@@ -55,11 +55,11 @@ def _single_chain_mode_termination(
         terminated = True
 
     # === max steps reached === #
-    if steps_left <= 0:
+    elif steps_left <= 0:
         if not world._conf.max_tier_scoring:
             reward = world.droid.digestion_engine._pending_reward
         else:
-            reward = timeout_penalty
+            reward = -1  # timeout_penalty TODO: checking if this is what ruins the spatial scenario (have been using the timeout_penalty which is at -0.1, a hundred magnitude difference in learning signal, if it is a more robust solution must be found, can be worth to rewrite this whole module file into something more robust, like i mean...i pass world in here, this was definitely a last, sort of, minute fix for the thesis
 
         if delay_mode:
             reward = timeout_penalty

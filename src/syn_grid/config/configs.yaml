@@ -60,7 +60,7 @@ world:
     starting_score: 50
     step_penalty: &step_penalty -0.001
     boundary_penalty: -1.0
-    chain_break_penalty: -0.01
+    chain_break_penalty: 0.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -161,8 +161,8 @@ agent:
     alg: "RPPO"
     agent_steps: "16001024"
     id_tag: 'spatial_5x5'
-    save_folder: 'reproduction_package/spatial/rppo'
-    seed: 3
+    save_folder: 'test'
+    seed: 7
     human_control: false
     training: true
     check_env: false
@@ -187,7 +187,7 @@ agent:
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 8458880
+    timesteps: 3_000_000
     iterations: 1
     render_mode: null
     record_video: false

@@ -143,19 +143,42 @@ needs the ceiling, but don't assume a newer interpreter works.
 
 ## Replay harness
 
-`scripts/replay_probe.py` replays a fixed seeded action sequence through any
-revision and dumps the `(obs, reward, terminated, truncated)` stream;
-`replay_sweep.sh` sweeps history via sparse worktrees and `replay_diff.py`
-reports the first differing step. Use it to compare revisions without training.
+Three standalone scripts for answering "did environment behaviour change between
+two commits?" without training. Not a test suite, and not CI-bound.
 
-Gotchas learned the hard way, encoded in the script:
-- Source the config from `--config-src`, **not** the target revision's own
-  `test_configs.yaml` — historical revisions ship YAML with undefined anchors,
-  and older schemas require fields the current one dropped.
-- Pin `chain_break_penalty` in **both** config blocks; hold it constant when
-  comparing revisions, or you will "confirm" nothing.
+```bash
+python scripts/replay_probe.py --label pre-sc --single-chain true --episodes 300
+python scripts/replay_diff.py output/replay_diff/pre-sc.npz output/replay_diff/post-sc.npz
+bash scripts/replay_sweep.sh 15c225f              # from that commit to HEAD
+bash scripts/replay_sweep.sh 15c225f d439509      # explicit range, oldest first
+```
+
+`replay_probe.py` feeds a fixed seeded action tape to the env and records every
+response. `replay_diff.py` names the first index where two recordings diverge.
+`replay_sweep.sh` loops the probe over a commit range using sparse worktrees.
+Each has a usage header; read it rather than guessing flags.
+
+It is a *change detector*. It cannot tell you whether an agent learns — the tape
+is a random walk, not a policy. Gotchas, all encoded in the probe:
+- Source config from `--config-src`, **not** the target commit's own
+  `test_configs.yaml` — historical commits ship YAML with undefined anchors, and
+  older schemas require fields the current one dropped.
+- Pin `chain_break_penalty` in **both** config blocks and hold it constant when
+  comparing commits, or you will "confirm" nothing.
 - Pin `starting_score` high, or the droid's score drains on wall contact and
   every episode ends early — silently skipping the timeout branch entirely.
+- Comparisons are exact, no epsilon, so a float-reassociating refactor shows
+  `1e-16` differences. Read the magnitudes before calling them behavioural.
+
+## OpenCode config
+
+`opencode.jsonc` is checked in. Its `watcher.ignore` is load-bearing — without it
+the file watcher tracks 246 committed binaries. Its `permissions` block is
+currently **mis-ordered and does not do what it appears to**: the broad
+`{"action":"shell","resource":"*","effect":"ask"}` sits *after* the `deny` rules,
+and the last matching rule wins, so every `deny` is overridden to `ask`. Treat
+those denies as documentation, not enforcement, until the array is reordered
+broad-rule-first.
 
 ## Pygame
 
@@ -165,11 +188,16 @@ Constructing a `render_mode="human"` env needs a video device; CI sets
 
 ## In-flight work
 
+Notes on current work live in `docs/dev/`.
+
+`docs/dev/rppo-regression.md` is **closed** — RPPO stopped reproducing the May
+spatial result; cause was `chain_break_penalty`, and `0.0` restores the
+thesis-era curves. Read it before touching the reward path anyway: it records
+which causes are already ruled out, that the timeout-penalty question is still
+open, and that the mechanism is a hypothesis pending the seed sweep.
+
 `docs/dev/todo.md` is the current v1.0.0 list, ordered by dependency.
-`docs/dev/rppo-regression.md` is an in-flight bug hunt (RPPO stopped reproducing
-the May spatial result) with the evidence, ruled-out causes and open suspects —
-read it before touching the reward path, and do not resolve the timeout-penalty
-question without checking what it records.
+
 `docs/code_style.md` documents conventions, but its §3 mandates Black — the repo
 actually uses ruff, and it names a path (`src/synergygrid`) that does not exist.
 Trust `scripts/tidy.sh` and CI. `docs/workflow.md` describes a two-person

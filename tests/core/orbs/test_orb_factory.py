@@ -80,6 +80,11 @@ class TestOrbFactory:
         [(1, 10), (1, 2), (1, 3), (1, 5), (4, 20), (30, 23123)],
     )
     def test_orb_factory_neg_vs_tier_ratio(self, neg_weight, tier_weight):
+        """
+        Each orb type's share of the pool must match its configured weight,
+        to within one orb of the exact proportional split.
+        """
+
         factory = self._make_adjusted_factory(
             neg_weight=neg_weight, tier_weight=tier_weight
         )
@@ -91,28 +96,77 @@ class TestOrbFactory:
         ]
 
         total_weight = neg_weight + tier_weight
-        ratios = [neg_weight / total_weight, tier_weight / total_weight]
-        counts_expected = factory._scale_ratios_to_counts(ratios)
-        counts_expected = factory._ensure_min_pool_size(counts_expected, ratios)
+        pool_size = len(orbs)
+        expected = [
+            pool_size * neg_weight / total_weight,
+            pool_size * tier_weight / total_weight,
+        ]
 
-        assert counts_actual == counts_expected
+        for actual, ideal in zip(counts_actual, expected):
+            assert abs(actual - ideal) <= 1, (
+                f"orb count {actual} is more than 1 away from the "
+                f"weight-implied share {ideal:.2f}"
+            )
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "OrbFactory._normalize_counts sorts the count list before distributing "
+            "the remainder, which destroys the index-to-orb-type mapping whenever the "
+            "first enabled type outweighs the second. Weights end up inverted. "
+            "Correct behaviour is largest-remainder apportionment that does not reorder."
+        ),
+    )
+    @pytest.mark.parametrize(
+        "neg_weight, tier_weight",
+        [(3, 1), (4, 1), (5, 1), (5, 2)],
+    )
+    def test_orb_factory_ratio_when_negative_outweighs_tier(
+        self, neg_weight, tier_weight
+    ):
+        """Same proportional-share contract, for the weight ordering that breaks it."""
+
+        factory = self._make_adjusted_factory(
+            neg_weight=neg_weight, tier_weight=tier_weight
+        )
+        orbs = factory.create_orbs()
+
+        counts_actual = [
+            sum(1 for orb in orbs if orb.META.TIER == 0),
+            sum(1 for orb in orbs if orb.META.TIER != 0),
+        ]
+
+        total_weight = neg_weight + tier_weight
+        pool_size = len(orbs)
+        expected = [
+            pool_size * neg_weight / total_weight,
+            pool_size * tier_weight / total_weight,
+        ]
+
+        for actual, ideal in zip(counts_actual, expected):
+            assert abs(actual - ideal) <= 1, (
+                f"orb count {actual} is more than 1 away from the "
+                f"weight-implied share {ideal:.2f}"
+            )
 
     @pytest.mark.parametrize("max_tier", [7, 8])
     def test_tier_orb_distribution_at_min_pool_boundary(self, max_tier):
+        """
+        With only tier orbs enabled, every tier must be represented and the
+        surplus orbs (pool size exceeds the tier count) spread as evenly as the
+        tier count allows.
+        """
+
         factory = self._make_adjusted_factory(
             max_tier=max_tier, max_active_orbs=3, neg_enabled=False
         )
         orbs = factory.create_orbs()
 
-        expected_counts = self._expected_tier_counts(
-            factory._orb_factory_conf.max_tier + 1, len(orbs)
-        )
-        if max_tier == 7:
-            for tier, count in expected_counts.items():
-                assert count == 2 if tier == 0 else 1
-        else:
-            for count in expected_counts.values():
-                assert count == 1
+        counts = Counter(orb.META.TIER for orb in orbs)
+
+        assert set(counts) == set(range(1, max_tier + 1))
+        assert sum(counts.values()) == len(orbs)
+        assert max(counts.values()) - min(counts.values()) <= 1
 
     @pytest.mark.parametrize("neg_weight", [1, 2, 3, 5, 20, 30, 23123])
     def test_negative_orbs_fill_min_pool_and_ignores_weight(self, neg_weight):
