@@ -156,11 +156,12 @@ class DigestionEngine:
 
         if self.chained_tiers == current_tier - 1:
             if current_tier != consumed_orb.max_tier:
-                # build on current chain
+                # Build on current chain
                 self._mark_progressed()
                 self.chained_tiers = current_tier
                 return 0.0
 
+            # Return reward for completed chain
             self._mark_completed()
             return consumed_orb.REWARD
 

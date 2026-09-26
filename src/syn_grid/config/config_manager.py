@@ -3,7 +3,7 @@ from typing import TypeVar
 import yaml
 from pydantic import BaseModel
 
-from syn_grid.utils.paths_util import get_package_path, get_project_path
+from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -17,7 +17,7 @@ class ConfigManager:
     # ================= #
 
     def __init__(self, config_file: str):
-        self.yaml_path = get_package_path("config", config_file)
+        self.yaml_path = get_syn_grid_path("config", config_file)
         self.save_conf_path = get_project_path("output", "saved_configs")
         if not self.yaml_path.exists():
             raise FileNotFoundError(f"Config file not found: {self.yaml_path}")

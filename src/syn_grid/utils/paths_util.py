@@ -1,7 +1,7 @@
 from pathlib import Path
 
 
-def get_package_path(*relative_path_parts: str) -> Path:
+def get_syn_grid_path(*relative_path_parts: str) -> Path:
     """
     Returns an absolute path to a file inside the package,
     works whether installed editable or normally.

@@ -179,6 +179,7 @@ agent:
     # - timesteps: number of timesteps per iteration (a checkpoint is saved after this many steps)
     # - iterations: total number of training iterations
     # - render_mode (null, "human" or "rgb_array"): null is default, change to human if you want visual feedback for debugging or "rgb_array" if you want to record at certain intervals
+    # - record_video: when true we record a video if 'rgb_array' is set as render_mode
     # - rec_interval: only applicable if render mode is set to "rgb_array", decides at what step intervals to start record the training
     # - rec_length: only applicable if render mode is set to "rgb_array", decides how many steps the recording should be
     continue_training: false
@@ -189,15 +190,18 @@ agent:
     timesteps: 10160128
     iterations: 1
     render_mode: null
+    record_video: false
     rec_interval: 10000
     rec_length: 100
 
   eval_agent_conf:
     # - num_eval_episodes: how many episodes to evaluate
     # - render_mode (null, "human" or "rgb_array"): set to null if you don't want visual feedback during evaluation and "rgb_array" if you want to record runs
+    # - record_video: when true we record a video if 'rgb_array' is set as render_mode
     # - rec_episode: only applicable if render mode is set to "rgb_array", decides which episode to record
     # - csv_output: if you want to use the custom logger to persist results from the runs.
     num_eval_episodes: 300
     render_mode: 'human'
+    record_video: false
     rec_episode: 100
     csv_output: false

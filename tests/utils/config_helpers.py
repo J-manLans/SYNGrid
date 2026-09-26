@@ -2,8 +2,8 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
-from src.syn_grid.config.config_manager import ConfigManager
-from src.syn_grid.config.models import FullConf
+from syn_grid.config.config_manager import ConfigManager
+from syn_grid.config.models import FullConf
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -11,7 +11,7 @@ T = TypeVar("T", bound=BaseModel)
 def get_test_config(path: str = "test_configs.yaml") -> FullConf:
     """Load and return a FullConf from a test config file."""
 
-    return ConfigManager("test_configs.yaml").load_config(FullConf)
+    return ConfigManager(path).load_config(FullConf)
 
 
 def update_conf(conf: T, updates: dict[str, Any]) -> T:

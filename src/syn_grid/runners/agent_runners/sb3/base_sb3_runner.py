@@ -1,5 +1,6 @@
 from typing import Any, Final, Generic, TypeVar
 
+import pygame
 from gymnasium import Env
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, VecNormalize
@@ -11,7 +12,7 @@ from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     ExecutionStrategy,
 )
 from syn_grid.runners.agent_runners.sb3.utils.plateau_callback import PlateauCallback
-from syn_grid.utils.paths_util import get_project_path
+from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
 T = TypeVar("T", bound=BaseAlgorithm)
 
@@ -223,10 +224,25 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             self._maybe_save_model(model, env)
         finally:
             env.close()
+            self.play_training_stopped_sound()
 
     def _maybe_save_model(self, model: T, env: VecEnv) -> None:
         if self._train_conf.model_output:
             self._artifact_manager.save_model(model, env, self.get_unique_model_id())
+
+    def play_training_stopped_sound(self) -> None:
+        # Play a sound to signal training is done.
+        # TODO: maybe remove this in the final version...we'll see.
+
+        pygame.mixer.init()
+        try:
+            sound = pygame.mixer.Sound(
+                f"{get_syn_grid_path('assets', 'sounds')}/training_complete.wav"
+            )
+            sound.play()
+            pygame.time.wait(int(sound.get_length() * 1000))
+        finally:
+            pygame.mixer.quit()
 
     # === Eval === #
 

@@ -11,7 +11,7 @@ from syn_grid.core.orbs.orb_meta import (
     SynergyType,
 )
 from syn_grid.gymnasium.action_space import DroidAction
-from syn_grid.utils.paths_util import get_package_path
+from syn_grid.utils.paths_util import get_syn_grid_path
 
 
 class PygameRenderer:
@@ -39,10 +39,10 @@ class PygameRenderer:
         # Default font
         pygame.font.init()
         self._tier_font = pygame.font.Font(
-            get_package_path("assets", "fonts", "Minecraft.ttf"), 20
+            get_syn_grid_path("assets", "fonts", "Minecraft.ttf"), 20
         )
         self._hud_font = pygame.font.Font(
-            get_package_path("assets", "fonts", "Minecraft.ttf"), 30
+            get_syn_grid_path("assets", "fonts", "Minecraft.ttf"), 30
         )
 
         # Initialize assets
@@ -146,7 +146,7 @@ class PygameRenderer:
             field_name,
             relative_path,
         ) in self._renderer_conf.img_assets.model_dump().items():
-            full_path = get_package_path(relative_path)
+            full_path = get_syn_grid_path(relative_path)
             self.graphics[field_name] = pygame.image.load(full_path)
 
     # === API ===#

@@ -8,6 +8,13 @@ jobs:
     validate:
         runs-on: ubuntu-latest
 
+        env:
+            # Tests construct render_mode="human" environments.
+            # Use SDL's dummy video driver because CI has no display.
+            SDL_VIDEODRIVER: dummy
+            # CI runners have no audio device.
+            SDL_AUDIODRIVER: dummy
+
         steps:
             # =========== #
             #    Setup    #

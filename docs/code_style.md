@@ -26,13 +26,14 @@ _chained_tiers: Final[list[int]] = []
 - Class names should use PascalCase.
 
 ## 3. Automatic Formatting
-- Use Black for code formatting.
-- Run Black before committing:
+- Use Ruff for code formatting.
+- Run Ruff before committing, or use `scripts/tidy.sh` to format and lint everything
+  at once:
 
-```python
-black path/to/file.py
-# or
-black src/synergygrid
+```bash
+ruff format path/to/file.py
+# or, for the whole project (matches what CI enforces):
+./scripts/tidy.sh
 ```
 
 ## 4. Docstrings and Comments
