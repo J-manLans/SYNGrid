@@ -211,6 +211,6 @@ __marimo__/
 ###################
 output/
 AGENTS.md
-opencode.json
+opencode.jsonc
 .vscode/
 !.vscode/launch.json
