@@ -11,7 +11,6 @@ from syn_grid.runners.agent_runners.sb3.artifact_manager import ArtifactManager
 from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     ExecutionStrategy,
 )
-from syn_grid.runners.agent_runners.sb3.utils.plateau_callback import PlateauCallback
 from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
 T = TypeVar("T", bound=BaseAlgorithm)
@@ -50,6 +49,13 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         algorithm: type[T],
         execution_strategy: ExecutionStrategy,
     ):
+        if not hyper_parameters.get("device"):
+            raise ValueError(
+                "You must specify 'device' in the agent's hyper parameters. It is the "
+                "only hyperparameter SB3 excludes from the artifact, so it cannot be "
+                "recovered when continuing from a checkpoint or when evaluating."
+            )
+
         super().__init__(agent_bundle)
         self._execution_strategy = execution_strategy
 
@@ -73,7 +79,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     def eval(self) -> None:
         env = self._build_env(self._eval_conf.render_mode, self._EVAL)
-        model = self._artifact_manager.load_model(env)
+        model = self._artifact_manager.load_model(env, self._agent_conf.seed)
 
         self._eval_model(env, model)
 
@@ -194,7 +200,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                 env, tensorboard_log=tensorboard_log, seed=self._agent_conf.seed
             )
         else:
-            return self._artifact_manager.load_model(env)
+            return self._artifact_manager.load_model(env, self._agent_conf.seed)
 
     # === Train === #
 
@@ -207,14 +213,6 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                     total_timesteps=self._train_conf.timesteps,
                     tb_log_name=self.get_unique_model_id(),
                     reset_num_timesteps=False,
-                    callback=(
-                        PlateauCallback(
-                            self._agent_conf.terminate_threshold,
-                            self._agent_conf.plateau_threshold,
-                        )
-                        if self._agent_conf.plateau_detection
-                        else None
-                    ),
                 )
 
                 self._maybe_save_model(model, env)

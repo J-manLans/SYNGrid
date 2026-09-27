@@ -45,7 +45,7 @@ class SYNGridEnv(gym.Env):
         # TODO: starting to look like episode termination could need its own method for storing
         # these...or make it a class
         self.delay_mode = world_conf.grid_world_conf.delay_mode
-        self.chain_break_penalty = world_conf.droid_conf.chain_break_penalty
+        self.timeout_penalty = world_conf.droid_conf.timeout_penalty
 
         self.world = GridWorld(
             world_conf.grid_world_conf,
@@ -103,7 +103,7 @@ class SYNGridEnv(gym.Env):
             self.world,
             self._observation_handler.steps_left,
             self.delay_mode,
-            self.chain_break_penalty,
+            self.timeout_penalty,
             reward,
         )
 

@@ -108,15 +108,6 @@ class TestOrbFactory:
                 f"weight-implied share {ideal:.2f}"
             )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "OrbFactory._normalize_counts sorts the count list before distributing "
-            "the remainder, which destroys the index-to-orb-type mapping whenever the "
-            "first enabled type outweighs the second. Weights end up inverted. "
-            "Correct behaviour is largest-remainder apportionment that does not reorder."
-        ),
-    )
     @pytest.mark.parametrize(
         "neg_weight, tier_weight",
         [(3, 1), (4, 1), (5, 1), (5, 2)],

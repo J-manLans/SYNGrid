@@ -7,7 +7,7 @@ from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
 T = TypeVar("T", bound=BaseModel)
 
-# NOTE: this one probably also needs some restructuring, especially since the goal is to move
+# TODO: this one probably also needs some restructuring, especially since the goal is to move
 # towards a GUI, but I will do that job whenever I cross that river.
 
 

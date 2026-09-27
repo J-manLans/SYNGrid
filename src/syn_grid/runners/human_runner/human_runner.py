@@ -3,7 +3,7 @@ from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 
-# NOTE: This whole class is to a large extent stitched together, code duplication I think etc. When
+# TODO: This whole class is to a large extent stitched together, code duplication I think etc. When
 # I go full GUI, this needs to be connected to that in a better way because after loading or
 # customizing a scenario, the ability to play or train will be available, so either this will start
 # or the training...and it feels...I don't know, a little bit apart, like how rewards are
@@ -20,7 +20,8 @@ class HumanRunner:
         self._renderer = PygameRenderer(world_conf.renderer_conf, "human", 60)
 
         self.delay_mode = world_conf.grid_world_conf.delay_mode
-        self.chain_break_penalty = world_conf.droid_conf.chain_break_penalty
+        self.timeout_penalty = world_conf.droid_conf.timeout_penalty
+        self._steps_left = steps_left
 
         self._world = GridWorld(
             world_conf.grid_world_conf,
@@ -29,7 +30,6 @@ class HumanRunner:
             world_conf.negative_orb_conf,
             world_conf.tier_orb_conf,
         )
-        self._steps_left = steps_left
 
     # ================= #
     #        API        #
@@ -48,7 +48,7 @@ class HumanRunner:
                     self._world,
                     self._steps_left,
                     self.delay_mode,
-                    self.chain_break_penalty,
+                    self.timeout_penalty,
                     rew,
                 )
                 self._render()

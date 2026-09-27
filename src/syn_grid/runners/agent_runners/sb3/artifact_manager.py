@@ -18,7 +18,7 @@ from gymnasium import Env
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import VecEnv, VecNormalize, unwrap_vec_normalize
 
-# NOTE: there was some python version that simplified this pattern, was it 12 ,13 or 14? because I
+# TODO: there was some python version that simplified this pattern, was it 12 ,13 or 14? because I
 # think I want it, I don't like locking at this, look into it when the time for upgrading version
 # comes.
 T = TypeVar("T", bound=BaseAlgorithm)
@@ -76,10 +76,18 @@ class ArtifactManager(Generic[T]):
             **self._hyper_parameters,
         )
 
-    def load_model(self, env: Env | VecEnv) -> T:
+    def load_model(self, env: Env | VecEnv, seed: int | None) -> T:
         model_path = self._find_latest_saved_path(self._model_dir)
+        model = self._algorithm.load(
+            path=model_path, env=env, device=self._hyper_parameters["device"]
+        )
 
-        return self._algorithm.load(path=model_path, env=env, **self._hyper_parameters)
+        if seed is not None and model.seed is not None and model.seed != seed:
+            print(
+                f"Config seed {seed} != checkpoint seed {model.seed}. "
+                "The checkpoint's seed is authoritative and has been applied."
+            )
+        return model
 
     def save_model(self, model: T, env, unique_model_id: str) -> None:
         checkpoint = f"{model.num_timesteps}_{unique_model_id}.zip"

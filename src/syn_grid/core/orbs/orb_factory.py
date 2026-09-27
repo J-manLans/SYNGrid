@@ -96,17 +96,24 @@ class OrbFactory:
         return self._normalize_counts(scaled)
 
     def _normalize_counts(self, counts: list[float]) -> list[int]:
+        """
+        Index correspondence is load-bearing: counts[i] is built from the weight of the i-th enabled orb type and the caller reads the result back the same way, so the returned list must not be reordered. Rank the indices, never sort the counts themselves.
+        """
+
         counts_int = [int(c) for c in counts]
         diff = self._min_pool_size - sum(counts_int)
 
         if diff == 0:
             return counts_int
 
-        counts_int.sort()
-        for i in range(diff):
-            # Distribute +1 starting from the largest counts,
-            # wrapping around if diff > len(counts)
-            counts_int[-(i % len(counts_int) + 1)] += 1
+        # Largest-remainder apportionment. Rank by fractional part only --
+        # counts_int itself must never be reordered, because index i has to keep
+        # referring to the orb type it was given on entry.
+        remainders = [c - int(c) for c in counts]
+        order = sorted(range(len(counts)), key=lambda i: remainders[i], reverse=True)
+
+        for k in range(abs(diff)):
+            counts_int[order[k % len(order)]] += 1
 
         return counts_int
 

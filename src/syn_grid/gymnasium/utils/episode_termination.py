@@ -9,6 +9,16 @@ def check_episode_end(
     timeout_penalty: float,
     reward: float,
 ) -> tuple[bool, bool, float]:
+    """
+    Decide whether the episode is over, and settle the terminal reward.
+
+    :param world: The core env.
+    :param steps_left: Number of steps left in the episode.
+    :param delay_mode: Whether or not we're running the delay scenario.
+    :param timeout_penalty: Penalty for reaching the step limit unfinished.
+    :param reward: The episode reward.
+    """
+
     terminated = False
     truncated = False
 
@@ -50,7 +60,7 @@ def _single_chain_mode_termination(
 ) -> tuple[bool, bool, float]:
     # === tier chain broken ===#
     # TODO: will be changed moving forward...somehow, not sure yet into what, think this whole
-    # class needs rework
+    # module needs rework
     if world.droid.digestion_engine.stats[LogKey.CHAINS_BROKEN] > 0 and not delay_mode:
         terminated = True
 
@@ -59,7 +69,12 @@ def _single_chain_mode_termination(
         if not world._conf.max_tier_scoring:
             reward = world.droid.digestion_engine._pending_reward
         else:
-            reward = -1  # timeout_penalty TODO: checking if this is what ruins the spatial scenario (have been using the timeout_penalty which is at -0.1, a hundred magnitude difference in learning signal, if it is a more robust solution must be found, can be worth to rewrite this whole module file into something more robust, like i mean...i pass world in here, this was definitely a last, sort of, minute fix for the thesis. EDIT: It seems to be, after a complete run over all models, refactor this so its more sturdy and add regression tests to back it up.
+            # Max-tier scoring never accumulates a partial reward, so there is
+            # nothing to settle up and the timeout reward is simply the
+            # configured penalty. This used to be a hardcoded -1, which made the
+            # timeout magnitude untunable and silently coupled it to whatever
+            # chain_break_penalty happened to be set to.
+            reward = timeout_penalty
 
         if delay_mode:
             reward = timeout_penalty
@@ -67,7 +82,7 @@ def _single_chain_mode_termination(
         terminated = True
 
     # === max tier reached ===#
-    # TODO: will be changed moving forward...somehow, not sure yet into what, think this whole class needs rework
+    # TODO: will be changed moving forward...somehow, not sure yet into what, think this whole module needs rework
     elif world.droid.digestion_engine.stats[LogKey.CHAINS_COMPLETED] > 0:
         if not world._conf.curriculum_training and world._conf.max_tier_scoring:
             # Overrides the reward from the consumption to a fixed ceiling
@@ -78,7 +93,13 @@ def _single_chain_mode_termination(
     # === last orb consumed in delay mode ===#
     elif delay_mode and len(world._active_orbs) == 0:
         terminated = True
-        reward = timeout_penalty // 2
+        # True division: floor division collapsed any small negative penalty to
+        # -1.0 (e.g. -0.01 // 2 == -1.0), amplifying the penalty ~100x.
+        # NOTE: why do I use a penalty as reward for this scenario though? The elif branch is messy
+        # and I think a clear refactor of this module is in place. Look into a strategy design
+        # pattern? Seems that when we reach this, is when we're in delay mode, steps remaining, and
+        # no chain is completed, but perhaps the chain is broken? Or does this happen on every step?
+        reward = timeout_penalty / 2
 
     return terminated, truncated, reward
 

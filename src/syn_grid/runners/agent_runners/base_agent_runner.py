@@ -88,9 +88,13 @@ class BaseAgentRunner(ABC):
         )
         tier_suffix = "" if tier else "_NoTier"
         negative_suffix = "_Neg" if negative else ""
+        # The glob this feeds must not match a checkpoint trained on a different grid — the observation vector is a fixed length at every grid size.
+        grid = self._world_conf.grid_world_conf
+        grid_suffix = f"_{grid.grid_rows}x{grid.grid_cols}"
 
         self._id = (
-            f"{perception}{tier_suffix}{negative_suffix}__{tag}{self._agent_conf.alg}"
+            f"{perception}{grid_suffix}{tier_suffix}{negative_suffix}"
+            f"__{tag}{self._agent_conf.alg}"
         )
 
     # === Env factory === #

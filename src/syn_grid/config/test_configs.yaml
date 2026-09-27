@@ -62,6 +62,7 @@ world:
     # - chain_break_penalty (passed to digestion engine): the cost of consuming orbs in wrong order
     # - tier_consumption_penalty (passed to digestion engine): (only applicable if step_wise_scoring is true) punishment for consuming tier orbs in the wrong order
     # - reward_multiplier (passed to digestion engine): multiplier applied to rewards when threshold scoring in tier_orb_conf is activated, a sensible default is 1.0, then experiment if reward magnitudes get's to large for higher max tiers
+    # - timeout_penalty: the cost of reaching the step limit without finishing the objective. Separate from chain_break_penalty on purpose: the ratio between the two is what decides whether finishing beats running out the clock, so they must be tunable independently.
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 30
@@ -70,6 +71,7 @@ world:
     chain_break_penalty: 0.0
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
+    timeout_penalty: -1.0
 
   orb_factory_conf:
     # - grid_rows / grid_cols (set in grid_world_conf): used to set orbs life span
@@ -168,14 +170,11 @@ agent:
     alg: "PPO"
     agent_steps: "1605632"
     id_tag: 'combo_reward'
-    save_folder: 'ppo'
+    save_folder: 'pytest'
     seed: 3
     human_control: true
     training: true
     check_env: false
-    plateau_detection: false
-    plateau_threshold: 10000000
-    terminate_threshold: 2000000
 
   train_agent_conf:
     # - continue_training: continue from a previously saved model

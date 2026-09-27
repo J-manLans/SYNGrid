@@ -75,6 +75,7 @@ class DroidConf(BaseModel, frozen=True):
     chain_break_penalty: float
     tier_consumption_penalty: float
     reward_multiplier: float
+    timeout_penalty: float
 
     @model_validator(mode="after")
     def validate_config(self):
@@ -83,6 +84,7 @@ class DroidConf(BaseModel, frozen=True):
             "boundary_penalty": self.boundary_penalty,
             "chain_break_penalty": self.chain_break_penalty,
             "tier_consumption_penalty": self.tier_consumption_penalty,
+            "timeout_penalty": self.timeout_penalty,
         }
         positive_penalty = [name for name, value in penalties.items() if value > 0]
         if positive_penalty:
@@ -215,9 +217,6 @@ class GlobalAgentConf(BaseModel, frozen=False):
     seed: int
     human_control: bool
     training: bool
-    plateau_detection: bool
-    plateau_threshold: int
-    terminate_threshold: int
 
 
 class TrainAgentConf(BaseModel, frozen=False):
