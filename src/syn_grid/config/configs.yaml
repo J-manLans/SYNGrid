@@ -60,7 +60,7 @@ world:
     starting_score: 50
     step_penalty: &step_penalty -0.001
     boundary_penalty: -1.0
-    chain_break_penalty: 0.0
+    chain_break_penalty: -0.01
     tier_consumption_penalty: *step_penalty
     reward_multiplier: 1.0
 
@@ -162,7 +162,7 @@ agent:
     agent_steps: "16001024"
     id_tag: 'spatial_5x5'
     save_folder: 'test'
-    seed: 7
+    seed: 3
     human_control: false
     training: true
     check_env: false
