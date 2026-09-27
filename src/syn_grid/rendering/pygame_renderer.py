@@ -109,6 +109,30 @@ class PygameRenderer:
                 pygame.surfarray.array3d(self._window_surface), axes=(1, 0, 2)
             )
 
+    def get_user_action(self) -> DroidAction | None:
+        """Used when controlling the droid in HumanRunner mode"""
+
+        action = None
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                elif event.key == pygame.K_LEFT:
+                    action = DroidAction(0)
+                elif event.key == pygame.K_DOWN:
+                    action = DroidAction(1)
+                elif event.key == pygame.K_RIGHT:
+                    action = DroidAction(2)
+                elif event.key == pygame.K_UP:
+                    action = DroidAction(3)
+
+        return action
+
     # ================= #
     #      Helpers      #
     # ================= #
@@ -332,25 +356,3 @@ class PygameRenderer:
 
         pygame.display.update()
         self._clock.tick(self._step_fps)
-
-    def get_user_action(self) -> DroidAction | None:
-        action = None
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == pygame.K_LEFT:
-                    action = DroidAction(0)
-                if event.key == pygame.K_DOWN:
-                    action = DroidAction(1)
-                if event.key == pygame.K_RIGHT:
-                    action = DroidAction(2)
-                if event.key == pygame.K_UP:
-                    action = DroidAction(3)
-
-        return action

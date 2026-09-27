@@ -136,9 +136,6 @@ class SYNGridEnv(gym.Env):
             self._get_hud_data(),
         )
 
-        if self.render_mode == "human":
-            self.renderer.get_user_action()
-
         if self.render_mode == "rgb_array":
             return frame
 
