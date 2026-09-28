@@ -1,0 +1,295 @@
+{
+  "_comment": [
+    "Behaviour baseline for the Scenario refactor. Run with:",
+    "    python scripts/scenario_lock.py --verify scripts/scenario_lock_baseline.json",
+    "",
+    "Each entry names a config under src/syn_grid/config/scenarios/, the",
+    "overrides held constant across the refactor, and the digests recorded from",
+    "the PRE-refactor implementation. Every scenario must reproduce its",
+    "digests exactly. A difference is behaviour the refactor moved, not noise.",
+    "",
+    "starting_score is raised on every scenario that would otherwise end on",
+    "score debt, so the timeout branch is actually reached. continuous_score_debt",
+    "inverts that on purpose: it is the only entry that exercises the",
+    "score <= 0 termination branch.",
+    "",
+    "Re-baseline with --record only when a behaviour change is intended and",
+    "separately justified. For an architectural refactor, it should never be."
+  ],
+  "scenarios": {
+    "goal_tier_chain_spatial": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_spatial.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "3ecdcccf41346f18",
+        "obs_digest": "f09409aae4f42db1",
+        "reward_digest": "3683a9cd208a2757",
+        "obs_signature": "array(22,):float32",
+        "reward_sum": -3164.93,
+        "terminated_count": 101,
+        "timeouts": 19,
+        "mean_ep_len": 23.05
+      }
+    },
+    "goal_tier_chain_delay": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_delay.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "e795338839808483",
+        "obs_digest": "f6d6fc05953bed59",
+        "reward_digest": "af0c122c076fb287",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -8677.0,
+        "terminated_count": 0,
+        "timeouts": 120,
+        "mean_ep_len": 60.0
+      }
+    },
+    "goal_tier_chain_delay_fast": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_delay_fast.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "ddd739f6b77352be",
+        "obs_digest": "ce99ddec4731bf15",
+        "reward_digest": "449eaf0bdc5dd942",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -7774.0,
+        "terminated_count": 30,
+        "timeouts": 90,
+        "mean_ep_len": 53.983333333333334
+      }
+    },
+    "goal_tier_chain_scaling_dense": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_scaling_dense.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "fd09b6e25e4d47f9",
+        "obs_digest": "d228fbeef336479a",
+        "reward_digest": "f048d6663eadb311",
+        "obs_signature": "array(26,):float32",
+        "reward_sum": -1088.0,
+        "terminated_count": 119,
+        "timeouts": 1,
+        "mean_ep_len": 8.241666666666667
+      }
+    },
+    "goal_tier_chain_scaling_sparse": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_scaling_sparse.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "34294b08ccd6e344",
+        "obs_digest": "826fbbe0ffaf3d99",
+        "reward_digest": "9ef56742a3ada7ee",
+        "obs_signature": "array(22,):float32",
+        "reward_sum": -1307.6999999999998,
+        "terminated_count": 117,
+        "timeouts": 3,
+        "mean_ep_len": 9.533333333333333
+      }
+    },
+    "goal_tier_chain_spatial_composite": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_spatial_composite.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "0c49a56d341f251b",
+        "obs_digest": "93208541fee60f14",
+        "reward_digest": "3683a9cd208a2757",
+        "obs_signature": "dict{\"global_data\": [3], \"grid_data\": [6, 6, 4]}",
+        "reward_sum": -3164.93,
+        "terminated_count": 101,
+        "timeouts": 19,
+        "mean_ep_len": 23.05
+      }
+    },
+    "goal_tier_chain_spatial_fully_pomdp": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_spatial_fully_pomdp.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "5528769763d97d8a",
+        "obs_digest": "f95ff1b5aa5e0b07",
+        "reward_digest": "3683a9cd208a2757",
+        "obs_signature": "dict{\"droid_data\": [2], \"orb_data\": [5, 4]}",
+        "reward_sum": -3164.93,
+        "terminated_count": 101,
+        "timeouts": 19,
+        "mean_ep_len": 23.05
+      }
+    },
+    "goal_tier_chain_spatial_markovian": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_spatial_markovian.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "20d52f30c20976f8",
+        "obs_digest": "a05d858612940ab5",
+        "reward_digest": "3683a9cd208a2757",
+        "obs_signature": "array(22,):float32",
+        "reward_sum": -3164.93,
+        "terminated_count": 101,
+        "timeouts": 19,
+        "mean_ep_len": 23.05
+      }
+    },
+    "goal_tier_chain_spatial_easy": {
+      "config": "src/syn_grid/config/scenarios/tier_chain_spatial_easy.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "7827810ae311b9cc",
+        "obs_digest": "a36bc69b6b4ff06c",
+        "reward_digest": "3683a9cd208a2757",
+        "obs_signature": "array(25,):float32",
+        "reward_sum": -3164.93,
+        "terminated_count": 101,
+        "timeouts": 19,
+        "mean_ep_len": 23.05
+      }
+    },
+    "continuous_step_wise": {
+      "config": "src/syn_grid/config/scenarios/continuous_step_wise.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "2c53dc6bfd903eb5",
+        "obs_digest": "fe1928301eb2a79a",
+        "reward_digest": "d789bea519d031a1",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -8321.0,
+        "terminated_count": 0,
+        "timeouts": 120,
+        "mean_ep_len": 60.0
+      }
+    },
+    "continuous_threshold": {
+      "config": "src/syn_grid/config/scenarios/continuous_threshold.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "f8a196431bcb5618",
+        "obs_digest": "fe1928301eb2a79a",
+        "reward_digest": "8885d799d75848ac",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -8562.0,
+        "terminated_count": 0,
+        "timeouts": 120,
+        "mean_ep_len": 60.0
+      }
+    },
+    "continuous_max_tier": {
+      "config": "src/syn_grid/config/scenarios/continuous_max_tier.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "3de614ead19d6b72",
+        "obs_digest": "fe1928301eb2a79a",
+        "reward_digest": "16400303ac6dc772",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -8754.0,
+        "terminated_count": 0,
+        "timeouts": 120,
+        "mean_ep_len": 60.0
+      }
+    },
+    "continuous_no_negative": {
+      "config": "src/syn_grid/config/scenarios/continuous_no_negative.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "8da138ca96eda0d2",
+        "obs_digest": "3c6c460534baf64d",
+        "reward_digest": "da66a4b7a41ccb36",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -8139.0,
+        "terminated_count": 0,
+        "timeouts": 120,
+        "mean_ep_len": 60.0
+      }
+    },
+    "continuous_de_spawn": {
+      "config": "src/syn_grid/config/scenarios/continuous_de_spawn.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "0629561c4e7cb977",
+        "obs_digest": "f20d0469cf6588a4",
+        "reward_digest": "e9c6064412a35119",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -8683.0,
+        "terminated_count": 0,
+        "timeouts": 120,
+        "mean_ep_len": 60.0
+      }
+    },
+    "continuous_curriculum": {
+      "config": "src/syn_grid/config/scenarios/continuous_curriculum.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "2c53dc6bfd903eb5",
+        "obs_digest": "fe1928301eb2a79a",
+        "reward_digest": "d789bea519d031a1",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -8321.0,
+        "terminated_count": 0,
+        "timeouts": 120,
+        "mean_ep_len": 60.0
+      }
+    },
+    "continuous_score_debt": {
+      "config": "src/syn_grid/config/scenarios/continuous_step_wise.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 0.4,
+        "world.droid_conf.step_penalty": -0.05
+      },
+      "expected": {
+        "stream_digest": "d25d68aec1e05ff0",
+        "obs_digest": "7078416975715667",
+        "reward_digest": "9136548ab2293e8d",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -153.09999999999997,
+        "terminated_count": 120,
+        "timeouts": 0,
+        "mean_ep_len": 7.016666666666667
+      }
+    },
+    "continuous_delay": {
+      "_comment": "Recorded against cleanup-after-versioning via a worktree, not against the refactor. delay_mode used to be an independent flag so continuous+delay was reachable, but no shipped config set it and nothing had recorded what it did.",
+      "config": "src/syn_grid/config/scenarios/continuous_delay.yaml",
+      "overrides": {
+        "world.droid_conf.starting_score": 100000.0
+      },
+      "expected": {
+        "stream_digest": "b0b807259b36368b",
+        "obs_digest": "4f5c35400b009732",
+        "reward_digest": "5377d99b3e696c0b",
+        "obs_signature": "array(14,):float32",
+        "reward_sum": -8565.0,
+        "terminated_count": 0,
+        "timeouts": 120,
+        "mean_ep_len": 60.0
+      }
+    }
+  }
+}

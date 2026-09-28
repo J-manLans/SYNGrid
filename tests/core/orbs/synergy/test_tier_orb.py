@@ -17,11 +17,9 @@ class TestTierOrb:
     Unit tests for the TierOrb class.
 
     Verifies:
-    - Step-wise reward behavior for correctly chained tiers
-    - Step-wise reward behavior for incomplete or invalid tier chains
-    - Combo reward behavior for correctly chained tiers
-    - Combo reward behavior for incomplete or invalid tier chains
-    - That the orb updates _chained_tiers correctly during consumption
+    - The reward shape, linear and growth-based
+    - The tier ceiling is enforced at construction
+    - Spawn and consume round-trip
     """
 
     # ================= #
@@ -35,8 +33,7 @@ class TestTierOrb:
         """
 
         BaseOrb.set_life_span(self._GRID_ROWS, self._GRID_COLS)
-        TierOrb.max_tier = self._MAX_TIER
-        t = TierOrb(self._TIER, get_test_config().world.tier_orb_conf)
+        t = TierOrb(self._TIER, get_test_config().world.tier_orb_conf, self._MAX_TIER)
         t.reset()
 
         return t
@@ -61,7 +58,7 @@ class TestTierOrb:
         """
         Non-linear growth: reward = round(base_reward * tier ** growth_factor).
 
-        The branch is selected by `linear_reward_growth`, not by any scoring flag,
+        The branch is selected by `linear_reward_growth`, not by the scoring mode,
         and the reward is fixed at construction time, so the orb has to be built
         from a config with linear growth disabled.
         """
@@ -70,9 +67,8 @@ class TestTierOrb:
             get_test_config().world.tier_orb_conf, {"linear_reward_growth": False}
         )
         BaseOrb.set_life_span(self._GRID_ROWS, self._GRID_COLS)
-        TierOrb.max_tier = self._MAX_TIER
 
-        orb = TierOrb(self._TIER, conf)
+        orb = TierOrb(self._TIER, conf, self._MAX_TIER)
 
         assert orb.REWARD == round(conf.base_reward * self._TIER**conf.growth_factor)
 
@@ -83,9 +79,8 @@ class TestTierOrb:
             get_test_config().world.tier_orb_conf, {"linear_reward_growth": False}
         )
         BaseOrb.set_life_span(self._GRID_ROWS, self._GRID_COLS)
-        TierOrb.max_tier = self._MAX_TIER
 
-        orb = TierOrb(1, conf)
+        orb = TierOrb(1, conf, self._MAX_TIER)
 
         assert orb.REWARD == conf.base_reward
 
@@ -102,16 +97,27 @@ class TestTierOrb:
 
     def test_creating_orb_with_negative_tier(self):
         with pytest.raises(ValueError):
-            TierOrb(-1, get_test_config().world.tier_orb_conf)
+            TierOrb(-1, get_test_config().world.tier_orb_conf, self._MAX_TIER)
 
     def test_creating_orb_with_high_tier_gets_correct_reward(self):
-        TierOrb.max_tier = 999
-        orb = TierOrb(666, get_test_config().world.tier_orb_conf)
+        orb = TierOrb(666, get_test_config().world.tier_orb_conf, 999)
 
         assert orb.META.TIER * orb._tier_base_reward == orb.REWARD
 
     def test_creating_orb_with_to_high_tier(self):
-        TierOrb.max_tier = self._MAX_TIER
-
         with pytest.raises(ValueError):
-            TierOrb(666, get_test_config().world.tier_orb_conf)
+            TierOrb(666, get_test_config().world.tier_orb_conf, self._MAX_TIER)
+
+    def test_the_ceiling_comes_from_the_caller_not_the_class(self):
+        """Two orbs of the same tier in the same process can sit in worlds with
+        different ceilings. That was the reason max_tier was a class attribute, and
+        it meant one world's construction silently rewrote another's."""
+
+        BaseOrb.set_life_span(self._GRID_ROWS, self._GRID_COLS)
+        conf = get_test_config().world.tier_orb_conf
+
+        small = TierOrb(3, conf, 4)
+        large = TierOrb(9, conf, 10)
+
+        assert small.max_tier == 4
+        assert large.max_tier == 10

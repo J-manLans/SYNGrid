@@ -11,8 +11,9 @@ from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
 from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY, LogKey
-from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 from syn_grid.rendering.pygame_renderer import PygameRenderer
+from syn_grid.scenario.registry import build_scenario
+from syn_grid.scenario.scenario import Scenario
 
 
 class SYNGridEnv(gym.Env):
@@ -35,6 +36,7 @@ class SYNGridEnv(gym.Env):
 
     def __init__(
         self,
+        scenario_name: str,
         world_conf: WorldConfig,
         obs_conf: ObsConfig,
         render_mode: str | None = None,
@@ -42,12 +44,15 @@ class SYNGridEnv(gym.Env):
         # Set up bench environment;
         self.render_mode = render_mode
 
-        # TODO: starting to look like episode termination could need its own method for storing
-        # these...or make it a class
-        self.delay_mode = world_conf.grid_world_conf.delay_mode
-        self.timeout_penalty = world_conf.droid_conf.timeout_penalty
+        # The scenario is the one place that knows what kind of world this is.
+        # Everything below asks it rather than reading a flag: the environment
+        # used to collect delay_mode and timeout_penalty into attributes purely
+        # so it could hand them to the termination check, which is the shape of
+        # the problem this boundary removes.
+        self.scenario: Scenario = build_scenario(scenario_name, world_conf, obs_conf)
 
         self.world = GridWorld(
+            self.scenario,
             world_conf.grid_world_conf,
             world_conf.orb_factory_conf,
             world_conf.droid_conf,
@@ -69,7 +74,10 @@ class SYNGridEnv(gym.Env):
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.
         self._observation_handler = ObservationHandler(
-            obs_conf, len(self.world.ALL_ORBS), self.world.max_identity
+            obs_conf,
+            self.scenario.observation,
+            len(self.world.ALL_ORBS),
+            self.world.max_identity,
         )
         self.observation_space = self._observation_handler.setup_obs_space()
 
@@ -99,18 +107,14 @@ class SYNGridEnv(gym.Env):
         # Perform action and adjust variables affected by it
         reward = self.world.perform_droid_action(DroidAction(action))
         self._observation_handler.steps_left -= 1
-        terminated, truncated, reward = check_episode_end(
-            self.world,
-            self._observation_handler.steps_left,
-            self.delay_mode,
-            self.timeout_penalty,
-            reward,
+        outcome = self.scenario.termination.evaluate(
+            self.world, self._observation_handler.steps_left, reward
         )
 
         # TODO: this should only emit if csv output is enabled in the agent for evaluation.
         # So think about how to handle this. Either just keep it (a cheap calculation), or disable
         # recording in the digestive engine when not enabled
-        if terminated or truncated:
+        if outcome.terminated or outcome.truncated:
             info[SYN_STATS_KEY] = self._get_state_info()
 
         if self.render_mode in self.metadata["render_modes"]:
@@ -121,9 +125,9 @@ class SYNGridEnv(gym.Env):
         # Return observation, reward, terminated, truncated and info
         return (
             self.obs,
-            reward,
-            terminated,
-            truncated,
+            outcome.reward,
+            outcome.terminated,
+            outcome.truncated,
             info,
         )
 

@@ -21,7 +21,7 @@ def main() -> None:
     config_manager = ConfigManager("configs.yaml")
     full_conf = config_manager.load_config(FullConf)
 
-    env = make(None, full_conf.world, full_conf.obs)
+    env = make(None, full_conf.scenario, full_conf.world, full_conf.obs)
     try:
         check_my_env(env)
         print("Environment is fine.")

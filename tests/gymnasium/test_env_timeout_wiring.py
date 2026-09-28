@@ -1,19 +1,20 @@
 """Wiring test: does `DroidConf.timeout_penalty` actually reach the terminal reward?
 
-The unit tests in `tests/gymnasium/utils/test_episode_termination.py` call
-`check_episode_end` directly, so they cannot see whether the environment passes
-the configured value or the wrong one. They all pass even if `environment.py`
-hands the function something else entirely.
+The unit tests in `tests/scenario/rules/test_termination.py` construct the rules
+directly, so they cannot see whether the environment hands the configured value
+to them or the wrong one. They all pass even if `environment.py` builds the
+scenario from a different penalty.
 
 That gap is exactly where the original defect lived: the parameter was named
 `timeout_penalty` but the caller passed `chain_break_penalty`, and nothing failed
 for a long time. These tests drive the real environment to the step limit so the
-whole path -- YAML -> FullConf -> SYNGridEnv -> check_episode_end -- is covered.
+whole path -- YAML -> FullConf -> SYNGridEnv -> scenario -> termination -- is
+covered.
 
-Note on isolation: constructing the env sets orb class attributes (see AGENTS.md,
-"Global mutable state"). The config is therefore held constant across the
-parametrised cases and only `timeout_penalty` varies, so the orb state observed
-here is the same in every case.
+Note on isolation: constructing the env sets an orb class attribute (see
+AGENTS.md, "Global mutable state"). The config is therefore held constant across
+the parametrised cases and only `timeout_penalty` varies, so the orb state
+observed here is the same in every case.
 """
 
 from pathlib import Path
@@ -23,6 +24,7 @@ import yaml
 
 from syn_grid.config.models import FullConf
 from syn_grid.gymnasium.utils.env_factory import make, register_env
+from syn_grid.scenario.rules.termination import GoalTermination
 
 CONFIG = Path("src/syn_grid/config/configs.yaml")
 
@@ -46,7 +48,7 @@ def _register() -> None:
 
 
 def _terminal_reward(conf: FullConf) -> float:
-    env = make(None, conf.world, conf.obs)
+    env = make(None, conf.scenario, conf.world, conf.obs)
     try:
         env.reset(seed=7)
         horizon = conf.obs.observation_handler.max_steps
@@ -81,15 +83,26 @@ def test_terminal_reward_tracks_config_rather_than_a_constant():
     assert harsh == pytest.approx(-5.0)
 
 
-def test_env_exposes_both_penalties_separately():
-    """The env must carry the timeout penalty as its own attribute, not reuse
-    the chain-break value under a confusing name."""
+def test_the_scenario_carries_the_timeout_penalty_and_not_the_chain_break_one():
+    """The two penalties must reach the termination rules as separate values.
+
+    The environment used to collect `timeout_penalty` into an attribute purely to
+    hand it to a free function, which is what let a `chain_break_penalty` reach a
+    parameter named `timeout_penalty` unnoticed. The env no longer carries either
+    value; the scenario's termination rules hold the timeout one, and it is
+    distinct from the chain-break one in the same config.
+    """
 
     conf = _conf(-2.5)
+
     assert conf.world.droid_conf.chain_break_penalty == -0.01
-    env = make(None, conf.world, conf.obs)
+
+    env = make(None, conf.scenario, conf.world, conf.obs)
     try:
-        assert env.unwrapped.timeout_penalty == -2.5
-        assert not hasattr(env.unwrapped, "chain_break_penalty")
+        rules = env.unwrapped.scenario.termination
+
+        assert isinstance(rules, GoalTermination)
+        assert rules.timeout_penalty == -2.5
+        assert rules.timeout_penalty != conf.world.droid_conf.chain_break_penalty
     finally:
         env.close()

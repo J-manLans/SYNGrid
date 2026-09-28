@@ -14,15 +14,27 @@ from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_factory import OrbFactory
 from syn_grid.core.orbs.orb_meta import OrbMeta
 from syn_grid.gymnasium.action_space import DroidAction
+from syn_grid.scenario.rules.spawning import SpawningRules
+from syn_grid.scenario.scenario import Scenario
 
 
 class GridWorld:
+    """The simulation.
+
+    Generic mechanics only: move, tick timers, spawn, consume, score. Every
+    decision about *how* those behave belongs to the scenario, which arrives
+    already composed. There is no conditional in this class whose answer depends
+    on which scenario is running -- that is the whole point of the boundary, and
+    it used to be three of them.
+    """
+
     # ================= #
     #       Init        #
     # ================= #
 
     def __init__(
         self,
+        scenario: Scenario,
         conf: GridWorldConf,
         orb_manager_conf: OrbFactoryConf,
         droid_conf: DroidConf,
@@ -31,21 +43,22 @@ class GridWorld:
     ):
         """
         Initializes the grid world. Defines the game world's size and initializes the droid and orbs.
+
+        :param scenario: the rules defining how this world's orbs behave.
         """
 
         # World
         self._conf: Final[GridWorldConf] = conf
+        self._spawning: Final[SpawningRules] = scenario.spawning
 
         # Droid
-        self.droid: Final[SynergyDroid] = SynergyDroid(
-            droid_conf, conf.single_chain_mode
-        )
+        self.droid: Final[SynergyDroid] = SynergyDroid(droid_conf)
 
         # Orbs
         self._active_orbs: Final[list[BaseOrb]] = []
         self._inactive_orbs: list[BaseOrb] = []
         self.ALL_ORBS: Final[list[BaseOrb]] = OrbFactory(
-            orb_manager_conf, negative_orb_conf, tier_orb_conf
+            orb_manager_conf, negative_orb_conf, tier_orb_conf, scenario.population
         ).create_orbs()
 
         self._remap_sparse_identities_to_dense()
@@ -70,13 +83,7 @@ class GridWorld:
 
         self._rng = rng
 
-        if self._conf.single_chain_mode:
-            # spawn all orbs
-            for _ in range(self._conf.max_active_orbs):
-                self._spawn_random_orb_if_ready()
-        else:
-            # Spawn the first orb
-            self._spawn_random_orb_if_ready()
+        self._spawning.on_reset(self)
 
     # ================= #
     #        API        #
@@ -90,8 +97,9 @@ class GridWorld:
 
         for orb in self.ALL_ORBS:
             if orb.is_active:
-                # only decrease timer for tier orbs if de-spawning is activated in the configs
-                if orb.META.TIER == 0 or self._conf.de_spawn_tiers:
+                # Tier orbs only age if the scenario lets them; a tier chain
+                # holds its sequence still, a continuous world may not.
+                if orb.META.TIER == 0 or self._spawning.tier_orb_expires:
                     orb.TIMER.tick()
                 if orb.TIMER.is_completed():
                     orb.de_spawn()
@@ -100,23 +108,24 @@ class GridWorld:
                     # consume orb
                     reward = self.droid.consume_orb(orb)
                     self._toggle_orb_to_inactive(orb)
-                    if self._conf.delay_mode:
-                        self._deactivate_all_orbs()
+                    self._spawning.on_orb_consumed(self)
             else:
                 # decrease the cooldown for inactive orbs
                 orb.TIMER.tick()
 
-        if self._conf.single_chain_mode and self._conf.delay_mode:
-            self._reactivate_all_orbs()
-        elif (
-            not self._conf.single_chain_mode
-            and len(self._active_orbs) < self._conf.max_active_orbs
-        ):
-            self._spawn_random_orb_if_ready()
+        self._spawning.after_step(self)
 
         return step_penalty + reward
 
     # === Getters === #
+
+    @property
+    def active_orbs(self) -> list[BaseOrb]:
+        return self._active_orbs
+
+    @property
+    def max_active_orbs(self) -> int:
+        return self._spawning.max_active_orbs
 
     def get_orb_positions(self, only_active: bool) -> list[list[int]]:
         if only_active:
@@ -161,26 +170,13 @@ class GridWorld:
 
         self.max_identity = next_dense - 1
 
-    # === API === #
+    # === Orb field ===
+    # Invoked by the scenario's spawning rules, and public because the rules
+    # are not part of this class.
 
-    def _deactivate_all_orbs(self) -> None:
-        for orb in self._active_orbs:
-            orb.reset()
-            orb.TIMER.set(self._conf.delay)
+    def spawn_orb_if_ready(self) -> None:
+        """Place one ready orb on a random empty cell, if any is ready."""
 
-    def _reactivate_all_orbs(self) -> None:
-        for orb in self._active_orbs:
-            if orb.TIMER.is_completed():
-                orb.spawn(orb.position)
-
-    def _toggle_orb_to_inactive(self, orb: BaseOrb) -> None:
-        idx = self._active_orbs.index(orb)
-        depleted = self._active_orbs.pop(idx)
-        self._inactive_orbs.append(depleted)
-
-    # === Global === #
-
-    def _spawn_random_orb_if_ready(self) -> None:
         ready_orbs = [o for o in self._inactive_orbs if o.TIMER.is_completed()]
         if not ready_orbs:
             return
@@ -198,6 +194,29 @@ class GridWorld:
                 orb.spawn(position)
                 self._active_orbs.append(orb)
                 break
+
+    def deactivate_all_orbs(self) -> None:
+        """Put the whole field on cooldown, where it sits."""
+
+        for orb in self._active_orbs:
+            orb.reset()
+            orb.TIMER.set(self._conf.delay)
+
+    def reactivate_all_orbs(self) -> None:
+        """Bring back every orb whose cooldown has run out, where it was."""
+
+        for orb in self._active_orbs:
+            if orb.TIMER.is_completed():
+                orb.spawn(orb.position)
+
+    # === API === #
+
+    def _toggle_orb_to_inactive(self, orb: BaseOrb) -> None:
+        idx = self._active_orbs.index(orb)
+        depleted = self._active_orbs.pop(idx)
+        self._inactive_orbs.append(depleted)
+
+    # === Global === #
 
     def _empty_spawn_cell(self, position: list[int]) -> bool:
         # Check against droid

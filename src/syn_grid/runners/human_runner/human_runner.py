@@ -22,7 +22,12 @@ class HumanRunner:
     def __init__(self, agent_bundle: AgentBundle):
         self._env = cast(
             SYNGridEnv,
-            make("human", agent_bundle.world_conf, agent_bundle.obs_conf).unwrapped,
+            make(
+                "human",
+                agent_bundle.scenario,
+                agent_bundle.world_conf,
+                agent_bundle.obs_conf,
+            ).unwrapped,
         )
 
     # ================= #

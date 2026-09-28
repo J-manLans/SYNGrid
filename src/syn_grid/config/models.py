@@ -1,4 +1,21 @@
+from enum import Enum
+
 from pydantic import BaseModel, model_validator
+
+
+class ScoringMode(Enum):
+    """How a tier chain's reward is paid out.
+
+    One value rather than three mutually exclusive booleans. The booleans had
+    to be validated against each other on every load, and a fourth copy of the
+    question lived in the world config where the digestion engine could not see
+    it and episode termination read the wrong one.
+    """
+
+    STEP_WISE = "step_wise"
+    THRESHOLD = "threshold"
+    MAX_TIER = "max_tier"
+
 
 # ======================= #
 #   Experiment Settings   #
@@ -15,35 +32,35 @@ class SnapshotConf(BaseModel, frozen=True):
 
 
 class GridWorldConf(BaseModel, frozen=True):
+    """World geometry and orb-field tunables.
+
+    Deliberately holds no field that identifies a scenario. Which of these
+    values are meaningful, and what they mean, is the scenario's business -- a
+    tier chain refuses ``de_spawn_tiers`` and a chain that cannot terminate on
+    completion is not a goal -- and those rules live with the scenario rather
+    than here, where they used to have to be written as one conditional over a
+    flag that named none of them.
+
+    ``delay_mode`` used to be here. It is not any more: delay is what makes
+    ``goal_tier_chain_delay`` a different scenario from
+    ``goal_tier_chain_spatial``, so a flag restating that could only ever
+    contradict the scenario name. ``delay``, the length of the cooldown, stays,
+    because how long is a tunable and whether there is one is not.
+
+    ``termination_on_max_tier`` was here too and was worse: validated, then read
+    by nothing. A completed chain ended the episode because the scoring mode
+    said so, and the flag could only disagree with that in silence.
+
+    The validator is gone with them. It existed to reject combinations of
+    scenario flags, and the scenario now rejects them against itself.
+    """
+
     grid_rows: int
     grid_cols: int
-    single_chain_mode: bool
-    delay_mode: bool
     delay: int
-    max_tier_scoring: bool
-    termination_on_max_tier: bool
-    curriculum_training: bool
     de_spawn_tiers: bool
     max_tier: int
     max_active_orbs: int
-
-    @model_validator(mode="after")
-    def validate_config(self):
-        if self.max_active_orbs <= 0:
-            raise ValueError("max_active_orbs should be larger than 0")
-        if self.single_chain_mode:
-            if self.max_tier >= (self.grid_rows * self.grid_cols):
-                raise ValueError(
-                    "max_tier can't be higher than number of cells in the grid, there will be no space for orbs"
-                )
-            if self.de_spawn_tiers or not self.termination_on_max_tier:
-                raise ValueError(
-                    "de_spawn_tiers must be false and termination_on_max_tier must be true when single_chain_mode is true"
-                )
-
-            object.__setattr__(self, "max_active_orbs", self.max_tier)
-
-        return self
 
 
 # === Renderer START === #
@@ -110,7 +127,6 @@ class OrbFactoryConf(BaseModel, frozen=True):
     grid_cols: int
     max_active_orbs: int
     max_tier: int
-    single_chain_mode: bool
     types: TypesConf
 
     @model_validator(mode="after")
@@ -131,25 +147,13 @@ class NegativeConf(BaseModel, frozen=True):
 
 class TierConf(BaseModel, frozen=True):
     linear_reward_growth: bool
-    step_wise_scoring: bool
-    threshold_scoring: bool
-    max_tier_scoring: bool
+    scoring: ScoringMode
     growth_factor: float
     base_reward: float
     cool_down: int
 
     @model_validator(mode="after")
     def validate_config(self):
-        scoring_modes = [
-            self.step_wise_scoring,
-            self.threshold_scoring,
-            self.max_tier_scoring,
-        ]
-
-        if not any(scoring_modes):
-            raise ValueError("At least one of the scoring modes need to be set to true")
-        elif sum(1 for score_mode in scoring_modes if score_mode) > 1:
-            raise ValueError("Only one of the scoring modes can be set to true")
         if self.growth_factor <= 0:
             raise ValueError(f"{self.growth_factor} must be a positive value.")
         return self
@@ -188,16 +192,21 @@ class EnabledOrbsConf(BaseModel, frozen=True):
 
 
 class PerceptionConf(BaseModel, frozen=True):
+    """How an observation is encoded.
+
+    The world-derived counts are not here. How many orb slots an observation
+    holds and how far its tier channel reaches are properties of the world,
+    which the scenario already describes; this block used to carry a second
+    copy of each that had to be kept in step by hand through YAML anchors, and
+    an observation space was only fully knowable by reading four files at once.
+    """
+
     max_score: int
     max_steps: int
-    max_tier: int
     grid_rows: int
     grid_cols: int
-    max_active_orbs: int
     include_timer: bool
-    single_chain_mode: bool
     enabled_orbs: EnabledOrbsConf
-    curriculum_training: bool
     tiers: int
 
 
@@ -301,12 +310,39 @@ class ExperimentConfig(BaseModel, frozen=True):
 
 
 class FullConf(BaseModel):
+    """A complete experiment.
+
+    ``scenario`` selects which scenario the world implements. Everything below
+    it is a tunable: a parameter the selected scenario reads, not a combination
+    that identifies it. That distinction is the whole point. A config used to
+    define its own scenario through a set of booleans which six separate places
+    then had to interpret consistently, and any two of them could disagree
+    about what the same file meant.
+    """
+
+    scenario: str
     world: WorldConfig
     obs: ObsConfig
     agent: AgentConfig
 
     @model_validator(mode="after")
-    def validate_config(self):
+    def validate_scenario(self):
+        # Imported here rather than at module scope: the registry builds
+        # scenarios out of these very models, so a top-level import would be
+        # circular. Resolving during validation means a config naming a
+        # scenario that does not exist, or one whose parameters its scenario
+        # rejects, fails at load rather than at environment setup.
+        from syn_grid.scenario.registry import build_scenario
+
+        try:
+            build_scenario(self.scenario, self.world, self.obs)
+        except KeyError as exc:
+            raise ValueError(str(exc)) from exc
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_grid_dimensions(self):
         grid_dimensions = {
             "grid_world_conf": (
                 self.world.grid_world_conf.grid_rows,

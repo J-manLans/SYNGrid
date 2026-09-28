@@ -7,6 +7,7 @@ from syn_grid.core.orbs.orb_meta import DirectType, SynergyType
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
+from syn_grid.scenario.rules.observation import ObservationRules
 
 
 class CompositeGridMarkovian(BasePerception):
@@ -20,8 +21,14 @@ class CompositeGridMarkovian(BasePerception):
     _GLOBAL_KEY = "global_data"
     _GRID_KEY = "grid_data"
 
-    def __init__(self, conf: PerceptionConf, orbs: int, max_identity: int):
-        super().__init__(conf, orbs, max_identity)
+    def __init__(
+        self,
+        conf: PerceptionConf,
+        observation_rules: ObservationRules,
+        orbs: int,
+        max_identity: int,
+    ):
+        super().__init__(conf, observation_rules, orbs, max_identity)
         self._orb_type_channels = self._build_orb_type_channel_map()
 
     # ================= #
@@ -39,7 +46,7 @@ class CompositeGridMarkovian(BasePerception):
             [
                 np.array([self._ACTIVE_FLAG], dtype=np.float32),
                 self._get_max_orb_type_flags(),
-                np.array([self._perception_conf.max_tier], dtype=np.float32),
+                np.array([self._observation_rules.max_tier], dtype=np.float32),
                 self._get_max_orb_extended(),
             ]
         )

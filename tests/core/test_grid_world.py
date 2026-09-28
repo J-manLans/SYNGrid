@@ -2,7 +2,7 @@ import pytest
 
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.core.orbs.orb_meta import DirectType, SynergyType
-from tests.utils.config_helpers import get_test_config
+from tests.utils.config_helpers import get_scenario, get_test_config
 
 
 class TestGridWorld:
@@ -13,19 +13,16 @@ class TestGridWorld:
         Resets the world before each test to ensure a clean state.
         """
 
-        world_conf = get_test_config().world
-        grid_world_conf = world_conf.grid_world_conf
-        orb_manager_conf = world_conf.orb_factory_conf
-        droid_conf = world_conf.droid_conf
-        negative_orb_conf = world_conf.negative_orb_conf
-        tier_orb_conf = world_conf.tier_orb_conf
+        conf = get_test_config()
+        world_conf = conf.world
 
         gw = GridWorld(
-            grid_world_conf,
-            orb_manager_conf,
-            droid_conf,
-            negative_orb_conf,
-            tier_orb_conf,
+            get_scenario(conf),
+            world_conf.grid_world_conf,
+            world_conf.orb_factory_conf,
+            world_conf.droid_conf,
+            world_conf.negative_orb_conf,
+            world_conf.tier_orb_conf,
         )
         gw.reset()
 

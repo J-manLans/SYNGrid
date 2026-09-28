@@ -24,6 +24,7 @@ class BaseAgentRunner(ABC):
         self._eval_conf = agent_bundle.agent_conf.eval_agent_conf
         self._obs_conf = agent_bundle.obs_conf
         self._world_conf = agent_bundle.world_conf
+        self._scenario = agent_bundle.scenario
         # Get current date and time to us as id for unique file naming
         self._date = get_date()
 
@@ -100,7 +101,7 @@ class BaseAgentRunner(ABC):
     # === Env factory === #
 
     def _make_raw_env(self, render_mode: str | None) -> Env:
-        return make(render_mode, self._world_conf, self._obs_conf)
+        return make(render_mode, self._scenario, self._world_conf, self._obs_conf)
 
     # === Wrappers === #
 

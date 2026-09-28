@@ -7,9 +7,20 @@ from gymnasium import spaces
 from syn_grid.config.models import PerceptionConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.scenario.rules.observation import ObservationRules
 
 
 class BasePerception(ABC):
+    """Encodes the world for the agent.
+
+    The *shape* of an observation is not a free choice: how many orb slots it
+    holds and how far the tier channel reaches follow from the world, so the
+    scenario states them and this class is told. Perceptions used to re-derive
+    both from a set of scenario booleans carried in the perception config, which
+    meant the observation space a scenario produced was only knowable by
+    reading four files at once.
+    """
+
     # ================= #
     #        Init       #
     # ================= #
@@ -17,8 +28,15 @@ class BasePerception(ABC):
     _MISSING_ORB_VALUE: Final[float] = 0.0
     _ACTIVE_FLAG: Final[float] = 1.0
 
-    def __init__(self, conf: PerceptionConf, orbs: int, max_identity: int) -> None:
+    def __init__(
+        self,
+        conf: PerceptionConf,
+        observation_rules: ObservationRules,
+        orbs: int,
+        max_identity: int,
+    ) -> None:
         self._perception_conf = conf
+        self._observation_rules = observation_rules
 
         # Global values
         self._orbs_in_env = orbs
@@ -39,7 +57,7 @@ class BasePerception(ABC):
             [
                 self._perception_conf.max_steps,
                 self._perception_conf.max_score,
-                self._perception_conf.max_tier,
+                self._observation_rules.max_tier,
             ],
             dtype=np.float32,
         )
@@ -73,21 +91,12 @@ class BasePerception(ABC):
 
     def _get_observable_orb_count(self) -> int:
         """
-        Returns the number of orbs to include in the observation. In single chain mode all orbs up to max tier are always present, so max_tier is used. Otherwise, max_active_orbs is used.
+        Returns the number of orb slots the observation is built to hold, as the
+        scenario defines it. In single chain mode all orbs up to max tier are
+        always present, so max_tier is used. Otherwise, max_active_orbs is used.
         """
 
-        if self._perception_conf.curriculum_training:
-            return (
-                self._perception_conf.tiers
-                if self._perception_conf.single_chain_mode
-                else self._perception_conf.max_active_orbs
-            )
-
-        return (
-            self._perception_conf.max_tier
-            if self._perception_conf.single_chain_mode
-            else self._perception_conf.max_active_orbs
-        )
+        return self._observation_rules.observation_slot_count
 
     # ======= get_observation() helpers ======= #
 
@@ -126,13 +135,7 @@ class BasePerception(ABC):
                 if orb.is_active
                 else float("inf")
             ),
-        )[
-            : (
-                self._perception_conf.max_tier
-                if self._perception_conf.single_chain_mode
-                else self._perception_conf.max_active_orbs
-            )
-        ]
+        )[: self._observation_rules.sort_limit]
 
     # ================= #
     #  Abstract methods #
