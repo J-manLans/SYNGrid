@@ -1,10 +1,21 @@
 from typing import Final
 
+from syn_grid.config.models import ScoringMode
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 
 
 class DigestionEngine:
+    """Scores orb consumption.
+
+    Generic mechanics: it knows how a chain progresses, breaks and completes,
+    and how each scoring mode pays out. What it does *not* know is which
+    scenario it is scoring, because nothing about the three scoring modes is
+    scenario-specific -- every scenario can use any of them. The engine is
+    therefore not owned by a scenario, and forcing a scenario boundary here
+    would have been a claim the behaviour does not support.
+    """
+
     _NO_CHAIN: Final[int] = 0
     _BASE_TIER: Final[int] = 1
 
@@ -51,6 +62,27 @@ class DigestionEngine:
             "chains_completed": self._chains_completed,
         }
 
+    # Named accessors, so callers that want one counter do not have to go via
+    # the logging dict. Episode termination used to reach into `_pending_reward`
+    # directly from another package.
+
+    @property
+    def chains_progressed(self) -> int:
+        return self._chains_progressed
+
+    @property
+    def chains_broken(self) -> int:
+        return self._chains_broken
+
+    @property
+    def chains_completed(self) -> int:
+        return self._chains_completed
+
+    @property
+    def pending_reward(self) -> float:
+        """Reward accumulated on the current chain but not yet paid out."""
+        return self._pending_reward
+
     def digest(self, consumed_orb: BaseOrb) -> float:
         """
         Process a consumed orb and return the resulting reward.
@@ -67,17 +99,17 @@ class DigestionEngine:
         # Handle tier-based orbs with progression logic
         if isinstance(consumed_orb, TierOrb):
             # Step-wise scoring: reward only if progression is correct
-            if consumed_orb.step_wise_scoring:
+            if consumed_orb.scoring is ScoringMode.STEP_WISE:
                 return self._step_wise_scoring(consumed_orb)
 
             # Threshold scoring: accumulate reward silently on correct progression.
             # If the chain breaks or max tier is reached, flush the pending reward and return it.
-            if consumed_orb.threshold_scoring:
+            if consumed_orb.scoring is ScoringMode.THRESHOLD:
                 return self._threshold_scoring(consumed_orb)
 
             # Max tier scoring: only give rewards when reaching max tier, for more controlled
             # scenarios
-            if consumed_orb.max_tier_scoring:
+            if consumed_orb.scoring is ScoringMode.MAX_TIER:
                 return self._max_tier_scoring(consumed_orb)
 
             raise ValueError("The scoring type for this orb isn't implemented")

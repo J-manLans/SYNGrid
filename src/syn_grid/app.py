@@ -52,6 +52,7 @@ def load_experiment_configs(
 
     return (
         AgentBundle(
+            scenario=full_conf.scenario,
             world_conf=full_conf.world,
             obs_conf=full_conf.obs,
             agent_conf=full_conf.agent,

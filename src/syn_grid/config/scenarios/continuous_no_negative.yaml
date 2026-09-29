@@ -1,0 +1,100 @@
+# SYNGrid scenario config, migrated to scenario selection.
+#
+# scenario: continuous
+# The flags that used to imply this scenario are gone. What remains is
+# tunable: geometry, the chain length, penalties, reward shape, and the
+# perception. The scenario decides what those mean.
+snapshot:
+  enabled: false
+  id: ''
+world:
+  grid_world_conf:
+    grid_rows: 5
+    grid_cols: 5
+    delay: 30
+    de_spawn_tiers: false
+    max_tier: 4
+    max_active_orbs: 3
+  renderer_conf:
+    grid_rows: 5
+    grid_cols: 5
+    img_assets:
+      droid_img: assets/sprites/droid.png
+      positive_orb_img: assets/sprites/positive_orb.png
+      negative_orb_img: assets/sprites/negative_orb.png
+      floor_img: assets/tiles/floor.png
+      hud_img: assets/sprites/hud.png
+  droid_conf:
+    grid_rows: 5
+    grid_cols: 5
+    starting_score: 30
+    step_penalty: -1.0
+    boundary_penalty: -1.0
+    chain_break_penalty: 0.0
+    tier_consumption_penalty: -1.0
+    reward_multiplier: 1.0
+    timeout_penalty: -1.0
+  orb_factory_conf:
+    grid_rows: 5
+    grid_cols: 5
+    max_active_orbs: 3
+    max_tier: 4
+    types:
+      negative:
+        enabled: false
+        weight: 1
+      tier:
+        enabled: true
+        weight: 2
+  negative_orb_conf:
+    reward: -3.0
+    cool_down: 10
+  tier_orb_conf:
+    linear_reward_growth: true
+    growth_factor: 1.5
+    base_reward: 3
+    cool_down: 7
+    scoring: step_wise
+obs:
+  observation_handler:
+    perception: vector_markovian
+    max_steps: 100
+  perception:
+    max_score: 100
+    max_steps: 100
+    grid_rows: 5
+    grid_cols: 5
+    include_timer: false
+    tiers: 5
+    enabled_orbs:
+      neg_enabled: false
+      tier_enabled: true
+agent:
+  global_agent_conf:
+    alg: PPO
+    agent_steps: '1605632'
+    id_tag: combo_reward
+    save_folder: pytest
+    seed: 3
+    human_control: false
+    training: false
+    check_env: false
+  train_agent_conf:
+    continue_training: false
+    csv_output: true
+    tensorboard_output: true
+    model_output: true
+    n_envs: 16
+    timesteps: 500000
+    iterations: 1
+    render_mode: null
+    record_video: false
+    rec_interval: 100000
+    rec_length: 100
+  eval_agent_conf:
+    num_eval_episodes: 300
+    render_mode: null
+    record_video: false
+    rec_episode: 100
+    csv_output: false
+scenario: continuous

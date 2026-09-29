@@ -20,6 +20,7 @@ from syn_grid.gymnasium.observation_space.perceptions.vector import (
     VectorMarkovian,
     VectorMarkovianEasy,
 )
+from syn_grid.scenario.rules.observation import ObservationRules
 
 PERCEPTIONS = {
     "vector_markovian_easy": VectorMarkovianEasy,
@@ -37,13 +38,19 @@ class ObservationHandler:
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: ObsConfig, orbs: int, max_identity: int) -> None:
+    def __init__(
+        self,
+        conf: ObsConfig,
+        observation_rules: ObservationRules,
+        orbs: int,
+        max_identity: int,
+    ) -> None:
         self._max_steps: Final[int] = conf.observation_handler.max_steps
         perception_type: type[BasePerception] = PERCEPTIONS[
             conf.observation_handler.perception
         ]
         self.perception: Final[BasePerception] = perception_type(
-            conf.perception, orbs, max_identity
+            conf.perception, observation_rules, orbs, max_identity
         )
 
     # ================= #

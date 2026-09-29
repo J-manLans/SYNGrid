@@ -97,19 +97,24 @@ For detailed setup and reproduction instructions, see [`reproduction_package/inf
 ## Configuration
 SYNGrid experiments are defined through configuration rather than code. Changing benchmark dimensions such as dependency depth, delay, or observability requires only updating the configuration file, not modifying the environment.
 
+An experiment names the **scenario** it runs, and then configures it. Everything below `scenario:` is a tunable: a value the selected scenario reads, not a combination of flags that identifies it.
+
 **Example:**
 
 ```yaml
+scenario: goal_tier_chain_delay
+
 world:
   grid_world_conf:
-    delay_mode: true
     delay: 30
     max_tier: 3
 ```
 
-> Changing only `delay` increases the temporal gap between consuming orbs while leaving the rest of the environment unchanged.
+> Switching to `goal_tier_chain_spatial` changes what the scenario *means* — partial observability, and a completed chain that keeps its own reward. Changing only `delay` increases the temporal gap between consuming orbs while leaving the rest of the environment unchanged.
 
-See [`config/config.yaml`](/src/syn_grid/config/configs.yaml) for all available options.
+The registered scenarios are `goal_tier_chain_spatial`, `goal_tier_chain_delay`, `goal_tier_chain_scaling_dense`, `goal_tier_chain_scaling_sparse`, `continuous`, and `continuous_delay`. Adding one is a new builder in `src/syn_grid/scenario/registry.py`; nothing outside that package needs to learn its name.
+
+See [`config/scenarios/`](/src/syn_grid/config/scenarios) for a worked config per scenario, and [`config/configs.yaml`](/src/syn_grid/config/configs.yaml) for the default.
 
 ---
 

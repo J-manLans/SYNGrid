@@ -3,6 +3,7 @@ from typing import Any
 import numpy as np
 import pytest
 
+from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.environment import SYNGridEnv
 from tests.utils.config_helpers import get_test_config, update_conf
 
@@ -28,7 +29,7 @@ class TestEnvironment:
 
         conf = get_test_config()
 
-        env = SYNGridEnv(conf.world, conf.obs)
+        env = SYNGridEnv(conf.scenario, conf.world, conf.obs)
 
         env.reset()
         return env
@@ -78,8 +79,8 @@ class TestEnvironment:
 
         conf = get_test_config()
 
-        env1 = SYNGridEnv(conf.world, conf.obs)
-        env2 = SYNGridEnv(conf.world, conf.obs)
+        env1 = SYNGridEnv(conf.scenario, conf.world, conf.obs)
+        env2 = SYNGridEnv(conf.scenario, conf.world, conf.obs)
 
         obs1, _ = env1.reset(seed=42)
         obs2, _ = env2.reset(seed=42)
@@ -108,7 +109,7 @@ class TestEnvironment:
         conf = get_test_config()
         obs_conf = update_conf(conf.obs, {"observation_handler": {"max_steps": 5}})
 
-        env = SYNGridEnv(conf.world, obs_conf)
+        env = SYNGridEnv(conf.scenario, conf.world, obs_conf)
         env.reset()
 
         terminated = False
@@ -124,19 +125,30 @@ class TestEnvironment:
 
     def test_environment_terminates(self):
         """
-        Verify that the environment terminates correctly
+        Verify that the environment terminates when the score runs out.
+
+        Stepped to termination rather than asserting on the first step. Neither the
+        reset nor the action was seeded, so on any single step the droid might
+        land on an orb worth more than the score it had left -- under this config
+        a tier-4 orb pays 12 against a starting score of 1 -- and the episode
+        would legitimately continue. The drain is at least a point per step and
+        the pool is finite, so running out of score is the certain outcome.
         """
 
         conf = get_test_config()
         world_conf = update_conf(conf.world, {"droid_conf": {"starting_score": 1}})
 
-        env = SYNGridEnv(world_conf, conf.obs)
-        env.reset()
+        env = SYNGridEnv(conf.scenario, world_conf, conf.obs)
+        env.reset(seed=3)
 
-        terminated = False
-        _, _, terminated, _, _ = env.step(env.action_space.sample())
+        horizon = conf.obs.observation_handler.max_steps
+        for step in range(horizon):
+            _, _, terminated, truncated, _ = env.step(step % len(DroidAction))
+            if terminated or truncated:
+                assert terminated, "score depletion terminates, it does not truncate"
+                return
 
-        assert terminated
+        pytest.fail(f"episode did not end within {horizon} steps")
 
     def test_render_without_human_mode_returns_none_or_str(self):
         """
@@ -146,7 +158,7 @@ class TestEnvironment:
 
         conf = get_test_config()
 
-        env = SYNGridEnv(conf.world, conf.obs, render_mode="human")
+        env = SYNGridEnv(conf.scenario, conf.world, conf.obs, render_mode="human")
         env.reset()
 
         assert hasattr(env, "renderer")
@@ -155,12 +167,12 @@ class TestEnvironment:
         conf = get_test_config()
         world_conf = update_conf(conf.world, {"droid_conf": {"starting_score": 99999}})
 
-        baseline_env = SYNGridEnv(world_conf, conf.obs)
+        baseline_env = SYNGridEnv(conf.scenario, world_conf, conf.obs)
         baseline_env.reset()
 
         baseline_state = self._capture_state(baseline_env)
 
-        env = SYNGridEnv(world_conf, conf.obs)
+        env = SYNGridEnv(conf.scenario, world_conf, conf.obs)
         env.reset()
 
         done = False
@@ -178,10 +190,10 @@ class TestEnvironment:
         conf = get_test_config()
         world_conf = update_conf(conf.world, {"droid_conf": {"starting_score": 99999}})
 
-        env1 = SYNGridEnv(world_conf, conf.obs)
+        env1 = SYNGridEnv(conf.scenario, world_conf, conf.obs)
         env1.reset(seed=42)
 
-        env2 = SYNGridEnv(world_conf, conf.obs)
+        env2 = SYNGridEnv(conf.scenario, world_conf, conf.obs)
         env2.reset(seed=42)
 
         for _ in range(70):

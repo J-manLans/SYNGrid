@@ -23,6 +23,8 @@ Usage:
     --max-steps N       episode cap. Default: 60
     --single-chain      "true" exercises the chain-break path and gives short
                         episodes; "false" exercises the timeout path.
+                        Selects a scenario: goal_tier_chain_spatial or
+                        continuous.
                         Default: false
 
 Examples:
@@ -89,6 +91,16 @@ N_ACTIONS = 4  # LEFT, DOWN, RIGHT, UP
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_CONFIG_SRC = REPO / "src" / "syn_grid" / "config" / "test_configs.yaml"
 
+# Scenario identity used to be pinned as a set of world-config flags. It is now
+# a single `scenario` key, so --single-chain selects a scenario instead of
+# writing flags that a scenario has to be told not to contradict. The two modes
+# keep their old meanings: a goal scenario exercises the chain-break path and
+# gives short episodes, continuous exercises the timeout path.
+SCENARIO_FOR_MODE = {
+    True: "goal_tier_chain_spatial",
+    False: "continuous",
+}
+
 # Spatial-scenario parameters. Pinned as raw dotted paths and applied before
 # validation, so a key a revision's schema lacks is ignored by pydantic rather
 # than raising, and the sidecar reports which pins that happened for.
@@ -96,9 +108,6 @@ PINS: dict[str, Any] = {
     "world.grid_world_conf.grid_rows": 5,
     "world.grid_world_conf.grid_cols": 5,
     "world.grid_world_conf.max_tier": 3,
-    "world.grid_world_conf.max_tier_scoring": True,
-    "world.grid_world_conf.delay_mode": False,
-    "world.grid_world_conf.delay": 0,
     "world.grid_world_conf.de_spawn_tiers": False,
     "world.renderer_conf.grid_rows": 5,
     "world.renderer_conf.grid_cols": 5,
@@ -140,13 +149,11 @@ def build_conf(args: argparse.Namespace) -> tuple[Any, list[str]]:
         deep_set(data, k, v)
 
     single_chain = args.single_chain == "true"
-    mode_pins = {
-        "world.grid_world_conf.single_chain_mode": single_chain,
-        "world.grid_world_conf.curriculum_training": single_chain,
-        "world.grid_world_conf.termination_on_max_tier": single_chain,
-        "world.orb_factory_conf.single_chain_mode": single_chain,
-        "obs.perception.single_chain_mode": single_chain,
-        "obs.perception.curriculum_training": single_chain,
+    data["scenario"] = SCENARIO_FOR_MODE[single_chain]
+    # Recorded so a revision predating scenario selection is visible in the
+    # sidecar rather than silently probing whatever its defaults imply.
+    mode_pins: dict[str, Any] = {
+        "scenario": data["scenario"],
         "obs.observation_handler.max_steps": args.max_steps,
         "obs.perception.max_steps": args.max_steps,
     }
@@ -189,7 +196,17 @@ def main() -> int:
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    env = SYNGridEnv(conf.world, conf.obs)
+    # Scenario selection is a signature difference across the Scenario refactor:
+    # before it the environment took (world, obs), after it (scenario, world, obs).
+    # Both are accepted so this script can still drive a pre-refactor revision,
+    # which is the only reason it is worth having during a refactor. The tape,
+    # the seeds and the digests are identical either way.
+    scenario = getattr(conf, "scenario", None)
+    env = (
+        SYNGridEnv(scenario, conf.world, conf.obs)
+        if scenario is not None
+        else SYNGridEnv(conf.world, conf.obs)
+    )
     # Narrow before reading .n: env.action_space carries no annotation, so a type
     # checker sees the gymnasium base class Space, which has no .n. Asserting the
     # concrete type also gives a far better message than an AttributeError.

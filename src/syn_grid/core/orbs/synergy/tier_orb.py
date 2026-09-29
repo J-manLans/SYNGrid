@@ -19,18 +19,30 @@ class TierOrb(BaseOrb):
     #       Init        #
     # ================= #
 
-    max_tier: int
+    def __init__(self, tier: int, conf: TierConf, max_tier: int):
+        """``max_tier`` is passed in rather than read off the class.
 
-    def __init__(self, tier: int, conf: TierConf):
-        if tier > self.max_tier:
+        It used to be a class attribute written by OrbFactory before every pool
+        was built, which meant constructing a TierOrb was only legal immediately
+        after constructing a factory -- so the code that decides *which orbs a
+        scenario has* could not be exercised without also standing up the thing
+        that calls it. Two worlds in one process would also overwrite each
+        other's ceiling, which is the same shared-state hazard as the orb
+        lifespan.
+        """
+
+        if tier > max_tier:
             raise ValueError("Tier is higher than the allowed max")
+
+        # Kept as an instance attribute because the digestion engine compares a
+        # consumed orb's tier against the world's ceiling to decide whether the
+        # chain is complete.
+        self.max_tier = max_tier
 
         self._linear_reward_growth = conf.linear_reward_growth
         self._tier_base_reward = conf.base_reward
         self._growth_factor = conf.growth_factor
-        self.step_wise_scoring = conf.step_wise_scoring
-        self.threshold_scoring = conf.threshold_scoring
-        self.max_tier_scoring = conf.max_tier_scoring
+        self.scoring = conf.scoring
 
         super().__init__(
             self._calculate_reward(tier),
