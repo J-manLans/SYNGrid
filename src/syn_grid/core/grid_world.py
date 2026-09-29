@@ -4,7 +4,7 @@ from numpy.random import Generator, default_rng
 
 from syn_grid.config.models import (
     DroidConf,
-    GridWorldConf,
+    GridConf,
     NegativeConf,
     OrbFactoryConf,
     TierConf,
@@ -36,7 +36,7 @@ class GridWorld:
     def __init__(
         self,
         scenario: Scenario,
-        world_conf: GridWorldConf,
+        world_conf: GridConf,
         orb_manager_conf: OrbFactoryConf,
         droid_conf: DroidConf,
         negative_orb_conf: NegativeConf,
@@ -49,7 +49,7 @@ class GridWorld:
         """
 
         # World
-        self._world_conf: Final[GridWorldConf] = world_conf
+        self._world_conf: Final[GridConf] = world_conf
         self._spawning: Final[SpawningRules] = scenario.spawning
 
         # Droid

@@ -25,7 +25,7 @@ from syn_grid.scenario.rules.termination import (
     ContinuousTermination,
     GoalTermination,
 )
-from syn_grid.scenario.scenario import ScenarioKind
+from syn_grid.scenario.scenario import ScenarioType
 
 CONFIG_DIR = "src/syn_grid/config/scenarios"
 
@@ -59,7 +59,7 @@ class TestSelection:
         scenario = build_scenario(conf.scenario, conf.world, conf.obs)
 
         assert scenario.name == conf.scenario == "goal_tier_chain_spatial"
-        assert scenario.kind is ScenarioKind.GOAL
+        assert scenario.type is ScenarioType.GOAL
 
     @pytest.mark.parametrize("name", sorted(SCENARIOS))
     def test_every_registered_scenario_builds_from_its_own_config(self, name: str):
@@ -98,8 +98,8 @@ class TestSelection:
         goal = _scenario(_load("tier_chain_spatial"))
         continuous = _scenario(_load("continuous_step_wise"))
 
-        assert goal.is_goal and goal.kind is ScenarioKind.GOAL
-        assert not continuous.is_goal and continuous.kind is ScenarioKind.CONTINUOUS
+        assert goal.is_goal and goal.type is ScenarioType.GOAL
+        assert not continuous.is_goal and continuous.type is ScenarioType.CONTINUOUS
 
 
 # ============ #
@@ -135,8 +135,8 @@ class TestGoalComposition:
 
         conf = _load("tier_chain_scaling_sparse")
 
-        assert conf.world.grid_world_conf.max_active_orbs == 3
-        assert conf.world.grid_world_conf.max_tier == 5
+        assert conf.world.grid_conf.max_active_orbs == 3
+        assert conf.world.grid_conf.max_tier == 5
 
         scenario = build_scenario(conf.scenario, conf.world, conf.obs)
 
@@ -150,8 +150,8 @@ class TestGoalComposition:
         conf = _load("tier_chain_spatial")
         rules = build_scenario(conf.scenario, conf.world, conf.obs).observation
 
-        assert conf.obs.perception.tiers == 5
-        assert conf.world.grid_world_conf.max_tier == 3
+        assert conf.obs.perception_conf.tiers == 5
+        assert conf.world.grid_conf.max_tier == 3
         assert rules.observation_slot_count == 5
         assert rules.sort_limit == 3
 
@@ -180,7 +180,7 @@ class TestContinuousComposition:
 
         assert (
             scenario.spawning.max_active_orbs
-            == conf.world.grid_world_conf.max_active_orbs
+            == conf.world.grid_conf.max_active_orbs
         )
 
     def test_tier_orbs_may_expiry_depending_on_the_config(self):
@@ -309,7 +309,7 @@ def _scenario(conf: FullConf):
 
 
 def _with_grid(conf: FullConf, **updates):
-    grid = conf.world.grid_world_conf.model_copy(update=updates)
+    grid = conf.world.grid_conf.model_copy(update=updates)
     return conf.model_copy(
         update={"world": conf.world.model_copy(update={"grid_world_conf": grid})}
     )

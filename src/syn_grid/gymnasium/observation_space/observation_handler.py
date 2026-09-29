@@ -45,12 +45,12 @@ class ObservationHandler:
         orbs: int,
         max_identity: int,
     ) -> None:
-        self._max_steps: Final[int] = conf.observation_handler.max_steps
+        self._max_steps: Final[int] = conf.observation_handler_conf.max_steps
         perception_type: type[BasePerception] = PERCEPTIONS[
-            conf.observation_handler.perception
+            conf.observation_handler_conf.perception
         ]
         self.perception: Final[BasePerception] = perception_type(
-            conf.perception, observation_rules, orbs, max_identity
+            conf.perception_conf, observation_rules, orbs, max_identity
         )
 
     # ================= #

@@ -78,7 +78,7 @@ class BaseAgentRunner(ABC):
         self._log_dir.mkdir(parents=True, exist_ok=True)
 
     def _set_models_base_id(self) -> None:
-        perception = self._obs_conf.observation_handler.perception
+        perception = self._obs_conf.observation_handler_conf.perception
         tier = self._world_conf.orb_factory_conf.types.tier.enabled
         negative = self._world_conf.orb_factory_conf.types.negative.enabled
 
@@ -90,7 +90,7 @@ class BaseAgentRunner(ABC):
         tier_suffix = "" if tier else "_NoTier"
         negative_suffix = "_Neg" if negative else ""
         # The glob this feeds must not match a checkpoint trained on a different grid — the observation vector is a fixed length at every grid size.
-        grid = self._world_conf.grid_world_conf
+        grid = self._world_conf.grid_conf
         grid_suffix = f"_{grid.grid_rows}x{grid.grid_cols}"
 
         self._id = (

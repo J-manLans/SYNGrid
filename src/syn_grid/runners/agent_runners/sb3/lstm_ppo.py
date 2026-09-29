@@ -29,7 +29,7 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
 
     def __init__(self, agent_bundle: AgentBundle):
         policy = resolve_policy(
-            agent_bundle.obs_conf.observation_handler.perception, use_lstm=True
+            agent_bundle.obs_conf.observation_handler_conf.perception, use_lstm=True
         )
         hyper_parameters = {"policy": policy, **self._HYPER_PARAMETERS}
 

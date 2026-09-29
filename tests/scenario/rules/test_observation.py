@@ -48,7 +48,7 @@ def _rules(name: str):
 
 
 def _perception(cls, conf: FullConf, rules, orbs: int, max_identity: int = 3):
-    p = cls(conf.obs.perception, rules, orbs, max_identity)
+    p = cls(conf.obs.perception_conf, rules, orbs, max_identity)
     p.setup_obs_space()
     p.reset()
     return p
@@ -58,7 +58,7 @@ def _world(conf: FullConf) -> GridWorld:
     scenario = build_scenario(conf.scenario, conf.world, conf.obs)
     world = GridWorld(
         scenario,
-        conf.world.grid_world_conf,
+        conf.world.grid_conf,
         conf.world.orb_factory_conf,
         conf.world.droid_conf,
         conf.world.negative_orb_conf,
@@ -242,7 +242,7 @@ class TestSpaces:
             "max_active_orbs",
             "max_tier",
         ):
-            assert not hasattr(conf.obs.perception, gone)
+            assert not hasattr(conf.obs.perception_conf, gone)
 
         narrow = _perception(
             VectorMarkovian, conf, _rules("continuous"), 3, world_identity := 3

@@ -26,7 +26,8 @@ class OrbPopulation(Protocol):
 
 
 class TierChainPopulation:
-    """One orb per tier, tiers 1..max_tier, nothing weighted.
+    """
+    One orb per tier, tiers 1..max_tier, nothing weighted.
 
     A tier chain is a fixed sequence, so the pool is the sequence. ``max_tier``
     is the pool size, which is why a tier chain spawns ``max_tier`` orbs at

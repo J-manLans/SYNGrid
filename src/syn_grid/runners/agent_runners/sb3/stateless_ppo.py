@@ -23,7 +23,7 @@ class StatelessPPO(BaseSB3Runner[PPO]):
     }
 
     def __init__(self, agent_bundle: AgentBundle):
-        policy = resolve_policy(agent_bundle.obs_conf.observation_handler.perception)
+        policy = resolve_policy(agent_bundle.obs_conf.observation_handler_conf.perception)
         hyper_parameters = {"policy": policy, **self._HYPER_PARAMETERS}
 
         super().__init__(

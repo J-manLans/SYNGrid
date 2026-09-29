@@ -115,7 +115,7 @@ class TestEnvironment:
         terminated = False
 
         # Run for more steps than the allowed maximum
-        for _ in range(obs_conf.perception.max_steps + 1):
+        for _ in range(obs_conf.perception_conf.max_steps + 1):
             _, _, terminated, _, _ = env.step(env.action_space.sample())
 
             if terminated:
@@ -141,7 +141,7 @@ class TestEnvironment:
         env = SYNGridEnv(conf.scenario, world_conf, conf.obs)
         env.reset(seed=3)
 
-        horizon = conf.obs.observation_handler.max_steps
+        horizon = conf.obs.observation_handler_conf.max_steps
         for step in range(horizon):
             _, _, terminated, truncated, _ = env.step(step % len(DroidAction))
             if terminated or truncated:

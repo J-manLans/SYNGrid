@@ -12,7 +12,7 @@ from syn_grid.scenario.rules.termination import (
     EpisodeOutcome,
     TerminationRules,
 )
-from syn_grid.scenario.scenario import Scenario, ScenarioKind
+from syn_grid.scenario.scenario import Scenario, ScenarioType
 
 __all__ = [
     "SCENARIOS",
@@ -20,7 +20,7 @@ __all__ = [
     "ObservationRules",
     "OrbPopulation",
     "Scenario",
-    "ScenarioKind",
+    "ScenarioType",
     "SpawningRules",
     "TerminationRules",
     "build_scenario",

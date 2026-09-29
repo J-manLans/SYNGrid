@@ -51,7 +51,7 @@ def _terminal_reward(conf: FullConf) -> float:
     env = make(None, conf.scenario, conf.world, conf.obs)
     try:
         env.reset(seed=7)
-        horizon = conf.obs.observation_handler.max_steps
+        horizon = conf.obs.observation_handler_conf.max_steps
         reward = 0.0
         for _ in range(horizon + 5):
             _, reward, terminated, truncated, _ = env.step(1)

@@ -34,7 +34,7 @@ def _world(scenario=None, seed: int = 0, spawning=None) -> GridWorld:
     conf = get_test_config()
     world = GridWorld(
         scenario or get_scenario(conf),
-        conf.world.grid_world_conf,
+        conf.world.grid_conf,
         conf.world.orb_factory_conf,
         conf.world.droid_conf,
         conf.world.negative_orb_conf,
@@ -383,7 +383,7 @@ class TestScenarioWiring:
         conf = get_test_config()
         world_conf = conf.world.model_copy(
             update={
-                "grid_world_conf": conf.world.grid_world_conf.model_copy(
+                "grid_world_conf": conf.world.grid_conf.model_copy(
                     update={"max_tier": 3, "max_active_orbs": 3}
                 )
             }
@@ -393,7 +393,7 @@ class TestScenarioWiring:
 
         world = GridWorld(
             scenario,
-            world_conf.grid_world_conf,
+            world_conf.grid_conf,
             world_conf.orb_factory_conf,
             world_conf.droid_conf,
             world_conf.negative_orb_conf,

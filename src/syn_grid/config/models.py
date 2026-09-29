@@ -31,7 +31,7 @@ class SnapshotConf(BaseModel, frozen=True):
 # ----------------------- #
 
 
-class GridWorldConf(BaseModel, frozen=True):
+class GridConf(BaseModel, frozen=True):
     """World geometry and orb-field tunables.
 
     Deliberately holds no field that identifies a scenario. Which of these
@@ -281,7 +281,7 @@ class EvalAgentConf(BaseModel, frozen=False):
 
 
 class WorldConfig(BaseModel, frozen=True):
-    grid_world_conf: GridWorldConf
+    grid_conf: GridConf
     orb_factory_conf: OrbFactoryConf
     renderer_conf: RendererConf
     droid_conf: DroidConf
@@ -290,8 +290,8 @@ class WorldConfig(BaseModel, frozen=True):
 
 
 class ObsConfig(BaseModel, frozen=True):
-    observation_handler: ObservationHandlerConf
-    perception: PerceptionConf
+    observation_handler_conf: ObservationHandlerConf
+    perception_conf: PerceptionConf
 
 
 class AgentConfig(BaseModel, frozen=False):
@@ -345,8 +345,8 @@ class FullConf(BaseModel):
     def validate_grid_dimensions(self):
         grid_dimensions = {
             "grid_world_conf": (
-                self.world.grid_world_conf.grid_rows,
-                self.world.grid_world_conf.grid_cols,
+                self.world.grid_conf.grid_rows,
+                self.world.grid_conf.grid_cols,
             ),
             "orb_factory_conf": (
                 self.world.orb_factory_conf.grid_rows,
@@ -361,8 +361,8 @@ class FullConf(BaseModel):
                 self.world.droid_conf.grid_cols,
             ),
             "perception": (
-                self.obs.perception.grid_rows,
-                self.obs.perception.grid_cols,
+                self.obs.perception_conf.grid_rows,
+                self.obs.perception_conf.grid_cols,
             ),
         }
 

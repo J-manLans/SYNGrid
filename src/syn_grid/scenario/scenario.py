@@ -31,7 +31,7 @@ from syn_grid.scenario.rules.spawning import SpawningRules
 from syn_grid.scenario.rules.termination import TerminationRules
 
 
-class ScenarioKind(Enum):
+class ScenarioType(Enum):
     """The two roots of the scenario hierarchy.
 
     ``GOAL`` scenarios have an objective and end when it is met or lost.
@@ -59,7 +59,7 @@ class Scenario:
     """
 
     name: str
-    kind: ScenarioKind
+    type: ScenarioType
     population: OrbPopulation
     spawning: SpawningRules
     observation: ObservationRules
@@ -67,4 +67,4 @@ class Scenario:
 
     @property
     def is_goal(self) -> bool:
-        return self.kind is ScenarioKind.GOAL
+        return self.type is ScenarioType.GOAL

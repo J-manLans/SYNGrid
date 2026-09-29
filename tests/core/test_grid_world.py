@@ -18,7 +18,7 @@ class TestGridWorld:
 
         gw = GridWorld(
             get_scenario(conf),
-            world_conf.grid_world_conf,
+            world_conf.grid_conf,
             world_conf.orb_factory_conf,
             world_conf.droid_conf,
             world_conf.negative_orb_conf,

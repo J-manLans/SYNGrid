@@ -33,14 +33,19 @@ from syn_grid.scenario.rules.termination import (
     GoalTermination,
     TerminationRules,
 )
-from syn_grid.scenario.scenario import Scenario, ScenarioKind
+from syn_grid.scenario.scenario import Scenario, ScenarioType
 
 ScenarioBuilder = Callable[[WorldConfig, ObsConfig], Scenario]
 
 
-# ============ #
-#    Goal      #
-# ============ #
+# ===================== #
+#    Goal Scenarios     #
+# ===================== #
+
+
+# --------------------- #
+#    Tier Scenarios     #
+# --------------------- #
 
 
 def _tier_chain(
@@ -51,40 +56,35 @@ def _tier_chain(
     delay: bool,
     curriculum: bool,
 ) -> Scenario:
-    """Goal/Tier Chain: collect every tier in order before the clock runs out.
+    """
+    Goal/Tier Chain: collect every tier in order before the episode steps are used up.
 
-    The chain is the objective, so the world's shape follows from it. The pool
-    is one orb per tier, all present from the first step, and nothing expires
-    off the board -- a chain that loses a link to a timer is not a chain.
-
-    ``delay`` and ``curriculum`` are the two variations the shipped scenarios
-    use, and they are independent: delay changes what ends an episode and what
-    a timeout pays, curriculum changes the reward a completed chain gets and
-    how wide the observation is.
+    The chain is the objective, so the world's shape follows from it. The pool is one orb per tier,
+    all present from the first step, and nothing expires off the grid during the episode.
     """
 
-    grid = world_conf.grid_world_conf
-    perception = obs_conf.perception
+    grid_conf = world_conf.grid_conf
+    perception_conf = obs_conf.perception_conf
 
-    if grid.de_spawn_tiers:
+    if grid_conf.de_spawn_tiers:
         raise ValueError(
-            f"Scenario '{name}' is a tier chain and cannot de-spawn tiers: a chain "
-            "that loses a link to a timer is not a chain. Disable de_spawn_tiers."
+            f"Scenario '{name}' cannot de-spawn tiers: an orb "
+            "that de-spawns because of a timer would ruin the chain. Disable de_spawn_tiers."
         )
 
     # A chain's orb count is its length. The old schema expressed this by
     # overwriting max_active_orbs with max_tier inside a validator, so the YAML
     # value was routinely a lie. The scenario states it outright.
-    max_active_orbs = grid.max_tier
+    max_active_orbs = grid_conf.max_tier
 
-    if grid.max_tier >= grid.grid_rows * grid.grid_cols:
+    if grid_conf.max_tier >= grid_conf.grid_rows * grid_conf.grid_cols:
         raise ValueError(
             "max_tier can't be higher than number of cells in the grid, there will "
             "be no space for orbs"
         )
 
     population: OrbPopulation = TierChainPopulation(
-        grid.max_tier, world_conf.tier_orb_conf
+        grid_conf.max_tier, world_conf.tier_orb_conf
     )
 
     spawning = SpawningRules(
@@ -101,9 +101,9 @@ def _tier_chain(
     # those slots has never followed that setting, so the trailing slots stay
     # zero. See ObservationRules.
     observation = ObservationRules(
-        observation_slot_count=perception.tiers if curriculum else grid.max_tier,
-        sort_limit=grid.max_tier,
-        max_tier=grid.max_tier,
+        observation_slot_count=perception_conf.tiers if curriculum else grid_conf.max_tier,
+        sort_limit=grid_conf.max_tier,
+        max_tier=grid_conf.max_tier,
     )
 
     termination = GoalTermination(
@@ -114,22 +114,26 @@ def _tier_chain(
     )
 
     return Scenario(
-        name=name,
-        kind=ScenarioKind.GOAL,
-        population=population,
-        spawning=spawning,
-        observation=observation,
-        termination=termination,
+        name,
+        ScenarioType.GOAL,
+        population,
+        spawning,
+        observation,
+        termination,
     )
 
 
 def build_tier_chain_spatial(world_conf: WorldConfig, obs_conf: ObsConfig) -> Scenario:
-    """Tier Chain, Spatial: the chain is laid out across a grid.
+    """
+    Tier Chain, Spatial: the chain is laid out across the grid, but the droid only
+    sees a 3x3 window around itself.
 
-    Curriculum training is on, so a completed chain keeps the engine's reward
-    rather than being replaced by the ceiling, and the observation is sized
-    wider than the chain so its shape is constant as difficulty is staged by
-    grid size.
+    This scenario tests spatial memory under partial observability. The droid may
+    walk past a later tier while collecting an earlier one, and once it's out of
+    the window, it's out of sight. It's like searching a dark room with a small
+    flashlight: without remembering what the beam already passed over, you keep
+    searching the same spots. The task never changes, only the grid size does, so
+    grid size works as a standalone difficulty axis.
     """
 
     return _tier_chain(
@@ -138,13 +142,15 @@ def build_tier_chain_spatial(world_conf: WorldConfig, obs_conf: ObsConfig) -> Sc
 
 
 def build_tier_chain_delay(world_conf: WorldConfig, obs_conf: ObsConfig) -> Scenario:
-    """Tier Chain, Delay: consuming an orb puts the whole field on cooldown.
+    """
+    Tier Chain, Delay: consuming an orb puts the whole field on cooldown, first after that cooldown
+    the orb spawns back in.
 
-    Because the field is on cooldown, a broken chain is recoverable and does not
-    end the episode. Reaching the step limit pays the timeout penalty rather
-    than settling a partial reward, and emptying the field early pays half of
-    it -- the objective ran out of material, which is not the same as running
-    out of time.
+    This scenario tests temporal delay with empty visual feedback. The reward only arrives once the
+    full chain is done, so it has to travel back across every silent stretch to reach the first
+    correct orb, weakening with each step. It's like giving a dog its treat an hour after the
+    trick: by then the link is faint. The task never changes, only the gap does, so delay works as
+    a standalone difficulty axis.
     """
 
     return _tier_chain(
@@ -152,33 +158,18 @@ def build_tier_chain_delay(world_conf: WorldConfig, obs_conf: ObsConfig) -> Scen
     )
 
 
-def build_tier_chain_scaling_dense(
-    world_conf: WorldConfig, obs_conf: ObsConfig
-) -> Scenario:
-    """Tier Chain, Tier Scaling (dense): long chains under threshold scoring.
-
-    Threshold scoring accumulates reward as the chain grows and pays it out on
-    completion or hands back a partial amount when the chain breaks, which is
-    what makes a long chain worth attempting.
-    """
-
-    _require_scoring(world_conf, ScoringMode.THRESHOLD, "tier_chain_scaling_dense")
-    return _tier_chain(
-        "goal_tier_chain_scaling_dense",
-        world_conf,
-        obs_conf,
-        delay=False,
-        curriculum=False,
-    )
-
-
 def build_tier_chain_scaling_sparse(
     world_conf: WorldConfig, obs_conf: ObsConfig
 ) -> Scenario:
-    """Tier Chain, Tier Scaling (sparse): long chains under max-tier scoring.
+    """
+    Tier Chain, Scaling (dense): same layout as the sparse variant, but each correctly consumed orb
+    earns reward, paid out when the chain breaks or completes.
 
-    Nothing is paid until the chain completes, so a broken chain is worth
-    nothing at all and the only reward in the world is the full chain.
+    This scenario uses a dense scoring mode to strengthen the reward signal, so every correct orb
+    counts even if the chain breaks before the end. (Same lock as the sparse variant, but now it
+    clicks for every digit you get right.) Can be run at the tier where the sparse variant stops
+    learning to confirm the task itself is learnable. If performance recovers, sparsity was the
+    limit, not the chain.
     """
 
     _require_scoring(world_conf, ScoringMode.MAX_TIER, "tier_chain_scaling_sparse")
@@ -191,9 +182,29 @@ def build_tier_chain_scaling_sparse(
     )
 
 
-# ============ #
-#  Continuous  #
-# ============ #
+def build_tier_chain_scaling_dense(
+    world_conf: WorldConfig, obs_conf: ObsConfig
+) -> Scenario:
+    """
+    Tier Chain, Tier Scaling (dense): long chains under threshold scoring.
+
+    Threshold scoring accumulates reward as the chain grows and pays it out on completion or hands
+    back a partial amount when the chain breaks, which is what makes a long chain worth attempting.
+    """
+
+    _require_scoring(world_conf, ScoringMode.THRESHOLD, "tier_chain_scaling_dense")
+    return _tier_chain(
+        "goal_tier_chain_scaling_dense",
+        world_conf,
+        obs_conf,
+        delay=False,
+        curriculum=False,
+    )
+
+
+# ====================== #
+#  Continuous Scenarios  #
+# ====================== #
 
 
 def _continuous(
@@ -211,7 +222,7 @@ def _continuous(
     difficulty knob, and it is the one thing a tier chain is not allowed to do.
     """
 
-    grid = world_conf.grid_world_conf
+    grid = world_conf.grid_conf
     max_active_orbs = grid.max_active_orbs
 
     if max_active_orbs <= 0:
@@ -245,7 +256,7 @@ def _continuous(
 
     return Scenario(
         name=name,
-        kind=ScenarioKind.CONTINUOUS,
+        type=ScenarioType.CONTINUOUS,
         population=population,
         spawning=spawning,
         observation=observation,
@@ -298,7 +309,6 @@ SCENARIOS: dict[str, ScenarioBuilder] = {
     "goal_tier_chain_scaling_dense": build_tier_chain_scaling_dense,
     "goal_tier_chain_scaling_sparse": build_tier_chain_scaling_sparse,
     "continuous": build_continuous,
-    "continuous_delay": build_continuous_delay,
 }
 
 
