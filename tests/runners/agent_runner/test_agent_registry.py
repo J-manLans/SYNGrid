@@ -1,7 +1,7 @@
 import pytest
 
 from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
-from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS, build_runner
+from syn_grid.runners.agent_runners.agent_registry import RUNNER, build_runner
 from syn_grid.runners.agent_runners.sb3.stateless_ppo import StatelessPPO
 from tests.utils.config_helpers import get_test_config, update_conf
 
@@ -37,11 +37,11 @@ class TestBuildRunner:
 
         assert isinstance(runner, StatelessPPO)
 
-    @pytest.mark.parametrize("alg", list(ALGORITHMS.keys()))
+    @pytest.mark.parametrize("alg", list(RUNNER.keys()))
     def test_builds_every_registered_algorithm(self, make_agent_bundle, alg: str):
         runner = build_runner(make_agent_bundle(alg))
 
-        assert isinstance(runner, ALGORITHMS[alg])
+        assert isinstance(runner, RUNNER[alg])
 
     def test_raises_key_error_for_unregistered_algorithm(self, make_agent_bundle):
         with pytest.raises(KeyError, match="not_a_real_algo"):

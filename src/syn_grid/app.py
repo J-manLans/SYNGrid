@@ -18,15 +18,9 @@ def main() -> None:
     register_env()
 
     config_manager = ConfigManager("configs.yaml")
-
     agent_bundle, experiment_conf = load_experiment_configs(config_manager)
-
-    if agent_bundle.agent_conf.global_agent_conf.human_control:
-        runner = HumanRunner(agent_bundle)
-        runner.human_player_loop()
-        return
-
     runner = build_runner(agent_bundle)
+
     dispatch(runner, config_manager, agent_bundle, experiment_conf)
 
 

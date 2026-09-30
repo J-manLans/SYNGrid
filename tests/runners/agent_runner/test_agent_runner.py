@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
-from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS
+from syn_grid.runners.agent_runners.agent_registry import RUNNER
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from tests.utils.config_helpers import get_test_config, update_conf
 
@@ -43,7 +43,7 @@ class TestAgentRunner:
             agent_conf=full_conf.agent,
         )
 
-        return ALGORITHMS[full_conf.agent.global_agent_conf.alg](agent_bundle)
+        return RUNNER[full_conf.agent.global_agent_conf.alg](agent_bundle)
 
     def test_get_model_with_no_agent_steps(self, agent_runner: BaseAgentRunner):
         """

@@ -3,9 +3,10 @@ from typing import cast
 from syn_grid.gymnasium.environment import SYNGridEnv
 from syn_grid.gymnasium.utils.env_factory import make
 from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 
 
-class HumanRunner:
+class HumanRunner(BaseAgentRunner):
     """
     Play a scenario by hand through a real SYNGridEnv.
 
@@ -33,8 +34,12 @@ class HumanRunner:
     # ================= #
     #        API        #
     # ================= #
+    def train(self) -> None:
+        raise ValueError(
+            "HumanRunner does not support training; set training=False in your config."
+        )
 
-    def human_player_loop(self) -> None:
+    def eval(self) -> None:
         """Play one episode, blocking until it ends or the player quits."""
 
         try:
