@@ -26,6 +26,10 @@ class SnapshotConf(BaseModel, frozen=True):
     enabled: bool
 
 
+class ScenarioConf(BaseModel, frozen=True):
+    scenario: str
+
+
 # ----------------------- #
 #   World Configuration   #
 # ----------------------- #
@@ -298,10 +302,12 @@ class AgentConfig(BaseModel, frozen=False):
 
 class ExperimentConfig(BaseModel, frozen=True):
     snapshot: SnapshotConf
+    scenario: ScenarioConf
 
 
 class FullConf(BaseModel):
-    """A complete experiment.
+    """
+    A complete experiment.
 
     ``scenario`` selects which scenario the world implements. Everything below
     it is a tunable: a parameter the selected scenario reads, not a combination
@@ -311,26 +317,9 @@ class FullConf(BaseModel):
     about what the same file meant.
     """
 
-    scenario: str
     world: WorldConfig
     obs: ObsConfig
     agent: AgentConfig
-
-    @model_validator(mode="after")
-    def validate_scenario(self):
-        # Imported here rather than at module scope: the registry builds
-        # scenarios out of these very models, so a top-level import would be
-        # circular. Resolving during validation means a config naming a
-        # scenario that does not exist, or one whose parameters its scenario
-        # rejects, fails at load rather than at environment setup.
-        from syn_grid.scenario.registry import build_scenario
-
-        try:
-            build_scenario(self.scenario, self.world, self.obs)
-        except KeyError as exc:
-            raise ValueError(str(exc)) from exc
-
-        return self
 
     @model_validator(mode="after")
     def validate_grid_dimensions(self):

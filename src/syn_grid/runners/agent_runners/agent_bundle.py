@@ -16,7 +16,6 @@ class AgentBundle:
     reassembled from the parameters that happen to describe it.
     """
 
-    scenario: str
     world_conf: WorldConfig
     obs_conf: ObsConfig
     agent_conf: AgentConfig
