@@ -101,7 +101,9 @@ def _tier_chain(
     # those slots has never followed that setting, so the trailing slots stay
     # zero. See ObservationRules.
     observation = ObservationRules(
-        observation_slot_count=perception_conf.tiers if curriculum else grid_conf.max_tier,
+        observation_slot_count=perception_conf.tiers
+        if curriculum
+        else grid_conf.max_tier,
         sort_limit=grid_conf.max_tier,
         max_tier=grid_conf.max_tier,
     )

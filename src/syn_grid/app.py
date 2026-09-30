@@ -7,7 +7,6 @@ from syn_grid.gymnasium.utils.env_factory import register_env
 from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.runners.agent_runners.agent_registry import build_runner
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.runners.human_runner.human_runner import HumanRunner
 
 # ================= #
 #        APP        #

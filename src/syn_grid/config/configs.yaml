@@ -18,12 +18,6 @@ world:
   renderer_conf:
     grid_rows: 5
     grid_cols: 5
-    img_assets:
-      droid_img: assets/sprites/droid.png
-      positive_orb_img: assets/sprites/positive_orb.png
-      negative_orb_img: assets/sprites/negative_orb.png
-      floor_img: assets/tiles/floor.png
-      hud_img: assets/sprites/hud.png
   droid_conf:
     grid_rows: 5
     grid_cols: 5

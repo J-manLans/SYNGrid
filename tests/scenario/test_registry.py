@@ -178,10 +178,7 @@ class TestContinuousComposition:
         conf = _load("continuous_step_wise")
         scenario = build_scenario(conf.scenario, conf.world, conf.obs)
 
-        assert (
-            scenario.spawning.max_active_orbs
-            == conf.world.grid_conf.max_active_orbs
-        )
+        assert scenario.spawning.max_active_orbs == conf.world.grid_conf.max_active_orbs
 
     def test_tier_orbs_may_expiry_depending_on_the_config(self):
         conf = _load("continuous_de_spawn")

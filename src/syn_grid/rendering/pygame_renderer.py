@@ -1,4 +1,5 @@
 import sys
+from typing import Final
 
 import numpy as np
 import pygame
@@ -15,6 +16,14 @@ from syn_grid.utils.paths_util import get_syn_grid_path
 
 
 class PygameRenderer:
+    _GRAPHIC_RESOURCES: Final[dict[str, str]] = {
+        "droid_img": "assets/sprites/droid.png",
+        "positive_orb_img": "assets/sprites/positive_orb.png",
+        "negative_orb_img": "assets/sprites/negative_orb.png",
+        "floor_img": "assets/tiles/floor.png",
+        "hud_img": "assets/sprites/hud.png",
+    }
+
     # ================= #
     #       Init        #
     # ================= #
@@ -163,15 +172,12 @@ class PygameRenderer:
         self._padding = 10
 
     def _load_graphics(self) -> None:
-        """Load graphics via the config file"""
+        """Load the application's static graphics."""
 
-        self.graphics = {}
-        for (
-            field_name,
-            relative_path,
-        ) in self._renderer_conf.img_assets.model_dump().items():
-            full_path = get_syn_grid_path(relative_path)
-            self.graphics[field_name] = pygame.image.load(full_path)
+        self.graphics = {
+            name: pygame.image.load(get_syn_grid_path(path))
+            for name, path in self._GRAPHIC_RESOURCES.items()
+        }
 
     # === API ===#
 

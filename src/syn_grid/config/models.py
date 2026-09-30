@@ -66,18 +66,9 @@ class GridConf(BaseModel, frozen=True):
 # === Renderer START === #
 
 
-class AssetsConf(BaseModel, frozen=True):
-    droid_img: str
-    positive_orb_img: str
-    negative_orb_img: str
-    floor_img: str
-    hud_img: str
-
-
 class RendererConf(BaseModel, frozen=True):
     grid_rows: int
     grid_cols: int
-    img_assets: AssetsConf
 
 
 # === Renderer END === #
