@@ -1,0 +1,54 @@
+# SYNGrid scenario config, migrated to scenario selection.
+#
+# scenario: goal_tier_chain_spatial
+# The flags that used to imply this scenario are gone. What remains is
+# tunable: geometry, the chain length, penalties, reward shape, and the
+# perception. The scenario decides what those mean.
+world:
+  grid_world_conf:
+    grid_rows: 5
+    grid_cols: 5
+    max_active_orbs: 3
+
+  droid_conf:
+    starting_score: 50
+    step_penalty: -0.001
+    boundary_penalty: -1.0
+    reward_multiplier: 1.0
+    timeout_penalty: -1.0
+    chain_break_penalty: -0.01
+    tier_consumption_penalty: -0.001
+
+  orb_factory_conf:
+    types:
+      negative:
+        enabled: false
+        weight: 1
+      tier:
+        enabled: true
+        weight: 2
+
+  negative_orb_conf:
+    reward: -3.0
+    cool_down: 10
+
+  tier_orb_conf:
+    max_tier: 3
+    de_spawn_tiers: false
+    linear_reward_growth: true
+    scoring: max_tier
+    delay: 30
+    growth_factor: 1.5
+    base_reward: 3
+    cool_down: 7
+
+obs:
+  observation_handler_conf:
+    perception: vector_fog_of_war
+    max_steps: 100
+
+  perception_conf:
+    max_score: 100
+    max_steps: 100
+    include_timer: false
+    tiers: 5

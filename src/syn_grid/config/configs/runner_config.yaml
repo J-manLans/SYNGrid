@@ -1,0 +1,33 @@
+# SYNGrid scenario config, migrated to scenario selection.
+#
+# scenario: goal_tier_chain_spatial
+# The flags that used to imply this scenario are gone. What remains is
+# tunable: geometry, the chain length, penalties, reward shape, and the
+# perception. The scenario decides what those mean.
+run:
+  common_conf:
+    alg: PPO
+    agent_steps: '1605632'
+    id_tag: combo_reward
+    save_folder: pytest
+    seed: 3
+    training: false
+    check_env: false
+  train_conf:
+    continue_training: false
+    csv_output: true
+    tensorboard_output: true
+    model_output: true
+    n_envs: 16
+    timesteps: 500000
+    iterations: 1
+    render_mode: null
+    record_video: false
+    rec_interval: 100000
+    rec_length: 100
+  eval_conf:
+    num_eval_episodes: 300
+    render_mode: null
+    record_video: false
+    rec_episode: 100
+    csv_output: false
