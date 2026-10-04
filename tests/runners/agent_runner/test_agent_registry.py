@@ -1,6 +1,6 @@
 import pytest
 
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.agent_registry import RUNNER, build_runner
 from syn_grid.runners.agent_runners.sb3.stateless_ppo import StatelessPPO
 from tests.utils.config_helpers import get_test_config, update_conf
@@ -13,17 +13,17 @@ class TestBuildRunner:
 
     @pytest.fixture
     def make_agent_bundle(self):
-        def _make(alg: str) -> AgentBundle:
+        def _make(alg: str) -> RunnerBundle:
             full_conf = get_test_config()
             full_conf = update_conf(
                 full_conf, {"agent": {"global_agent_conf": {"alg": alg}}}
             )
 
-            return AgentBundle(
+            return RunnerBundle(
                 scenario=full_conf.scenario,
                 world_conf=full_conf.world,
                 obs_conf=full_conf.obs,
-                agent_conf=full_conf.agent,
+                runner_conf=full_conf.agent,
             )
 
         return _make

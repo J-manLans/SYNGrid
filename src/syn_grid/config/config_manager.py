@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import TypeVar
 
 import yaml
@@ -16,35 +17,33 @@ class ConfigManager:
     #       Init        #
     # ================= #
 
-    def __init__(self, config_file: str):
-        self.yaml_path = get_syn_grid_path("config", config_file)
+    def __init__(self):
         self.save_conf_path = get_project_path("output", "saved_configs")
-        if not self.yaml_path.exists():
-            raise FileNotFoundError(f"Config file not found: {self.yaml_path}")
 
     # ================= #
-    #       API        #
+    #        API        #
     # ================= #
 
-    def load_config(self, model_class: type[T]) -> T:
+    def load_config(self, config_name: str, model_class: type[T]) -> T:
         """
         Load a YAML file into a Pydantic model instance.
 
-        This method reads the YAML file specified in `self.yaml_path` and
-        parses it into an instance of the given Pydantic model class.
-
         Args:
-            model_class: A subclass of `BaseModel` that the YAML data will be parsed into.
+            config_name: Name of the YAML configuration file.
+            model_class: Pydantic model class used to validate the configuration.
+
         Returns:
-            An instance of `model_class` populated with data from the YAML file.
+            An instance of `model_class` populated with the YAML data.
         """
 
-        with self.yaml_path.open("r") as f:
+        yaml_path = self._create_yaml_path(config_name)
+
+        with yaml_path.open("r") as f:
             raw = yaml.safe_load(f)
 
         return model_class(**raw)
 
-    def save_snapshot(self, save_conf_id: str) -> None:
+    def save_snapshot(self, config_name: str, save_conf_id: str) -> None:
         """
         Save a timestamped snapshot of the config file to the saved_configs folder.
 
@@ -55,5 +54,18 @@ class ConfigManager:
         self.save_conf_path.mkdir(parents=True, exist_ok=True)
 
         snapshot_file = self.save_conf_path / f"{save_conf_id}.yaml"
+        yaml_path = self._create_yaml_path(config_name)
 
-        snapshot_file.write_bytes(self.yaml_path.read_bytes())
+        snapshot_file.write_bytes(yaml_path.read_bytes())
+
+    # ================= #
+    #      Helpers      #
+    # ================= #
+
+    def _create_yaml_path(self, config_name: str) -> Path:
+        yaml_path = get_syn_grid_path("config", 'yaml', config_name)
+
+        if not yaml_path.exists():
+            raise FileNotFoundError(f"Config file not found: {yaml_path}")
+
+        return yaml_path

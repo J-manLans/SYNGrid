@@ -2,7 +2,7 @@ from typing import Any, Final
 
 from stable_baselines3 import PPO
 
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
 from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     StatelessExecutionStrategy,
@@ -22,14 +22,14 @@ class StatelessPPO(BaseSB3Runner[PPO]):
         "device": "cpu",
     }
 
-    def __init__(self, agent_bundle: AgentBundle):
+    def __init__(self, runner_bundle: RunnerBundle):
         policy = resolve_policy(
-            agent_bundle.obs_conf.observation_handler_conf.perception
+            runner_bundle.scenario.perception
         )
         hyper_parameters = {"policy": policy, **self._HYPER_PARAMETERS}
 
         super().__init__(
-            agent_bundle,
+            runner_bundle,
             hyper_parameters,
             PPO,
             execution_strategy=StatelessExecutionStrategy(),

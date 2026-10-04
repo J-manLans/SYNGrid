@@ -10,7 +10,7 @@ from syn_grid.config.models import (
     ObsConfig,
     WorldConfig,
 )
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 
 # ================= #
 #  Global Fixtures  #
@@ -44,7 +44,7 @@ class TestDispatch:
     @pytest.fixture
     def bundle(
         self, config_manager: ConfigManager
-    ) -> tuple[AgentBundle, ExperimentConfig]:
+    ) -> tuple[RunnerBundle, ExperimentConfig]:
         agent_bundle, experiments_conf = load_experiment_configs(config_manager)
         return agent_bundle, experiments_conf
 
@@ -62,7 +62,7 @@ class TestDispatch:
         self,
         runner: MagicMock,
         config_manager: ConfigManager,
-        bundle: tuple[AgentBundle, ExperimentConfig],
+        bundle: tuple[RunnerBundle, ExperimentConfig],
         capsys,
     ):
         agent_bundle, experiment_conf = bundle
@@ -94,10 +94,10 @@ class TestDispatch:
         self,
         runner: MagicMock,
         config_manager: ConfigManager,
-        bundle: tuple[AgentBundle, ExperimentConfig],
+        bundle: tuple[RunnerBundle, ExperimentConfig],
     ):
         agent_bundle, experiment_conf = bundle
-        agent_bundle.agent_conf.global_agent_conf.training = True
+        agent_bundle.runner_conf.global_agent_conf.training = True
 
         dispatch(runner, config_manager, agent_bundle, experiment_conf)
 
@@ -108,10 +108,10 @@ class TestDispatch:
         self,
         runner: MagicMock,
         config_manager: ConfigManager,
-        bundle: tuple[AgentBundle, ExperimentConfig],
+        bundle: tuple[RunnerBundle, ExperimentConfig],
     ):
         agent_bundle, experiment_conf = bundle
-        agent_bundle.agent_conf.global_agent_conf.training = False
+        agent_bundle.runner_conf.global_agent_conf.training = False
 
         dispatch(runner, config_manager, agent_bundle, experiment_conf)
 

@@ -33,15 +33,7 @@ class GridWorld:
     #       Init        #
     # ================= #
 
-    def __init__(
-        self,
-        scenario: Scenario,
-        world_conf: GridConf,
-        orb_manager_conf: OrbFactoryConf,
-        droid_conf: DroidConf,
-        negative_orb_conf: NegativeConf,
-        tier_orb_conf: TierConf,
-    ):
+    def __init__(self, scenario: Scenario):
         """
         Initializes the grid world. Defines the game world's size and initializes the droid and orbs.
 

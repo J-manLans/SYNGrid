@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.config.models import ObsConfig, WorldConfig
+from syn_grid.config.models.scenario_models import ObsConf, WorldConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
@@ -34,35 +34,15 @@ class SYNGridEnv(gym.Env):
     # while a sub-loop in the renderer would handle smooth animation between steps.
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 8}  # noqa: RUF012 - Required by Gymnasium API
 
-    def __init__(
-        self,
-        scenario_name: str,
-        world_conf: WorldConfig,
-        obs_conf: ObsConfig,
-        render_mode: str | None = None,
-    ):
+    def __init__(self, scenario: Scenario, render_mode: str | None = None):
         # Set up bench environment;
         self.render_mode = render_mode
 
-        # The scenario is the one place that knows what kind of world this is.
-        # Everything below asks it rather than reading a flag: the environment
-        # used to collect delay_mode and timeout_penalty into attributes purely
-        # so it could hand them to the termination check, which is the shape of
-        # the problem this boundary removes.
-        self.scenario: Scenario = build_scenario(scenario_name, world_conf, obs_conf)
-
-        self.world = GridWorld(
-            self.scenario,
-            world_conf.grid_conf,
-            world_conf.orb_factory_conf,
-            world_conf.droid_conf,
-            world_conf.negative_orb_conf,
-            world_conf.tier_orb_conf,
-        )
+        self.world = GridWorld(scenario)
 
         if self.render_mode in self.metadata["render_modes"]:
-            self.renderer = PygameRenderer(
-                world_conf.renderer_conf, render_mode, self.metadata["render_fps"]
+            self.renderer = PygameRenderer(scenario.
+                render_mode, self.metadata["render_fps"]
             )
 
         # Set up Gymnasium environment:

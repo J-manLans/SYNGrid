@@ -12,10 +12,11 @@ old flag name is not carried forward.
 """
 
 from __future__ import annotations
-
+from typing import cast
 from collections.abc import Callable
+from syn_grid.config.models.global_models import Scenario_name
 
-from syn_grid.config.models import ObsConfig, ScoringMode, WorldConfig
+from syn_grid.config.models.scenario_models import ScenarioConf, TierScenarioConf, ObsConf, ScoringMode, WorldConf
 from syn_grid.scenario.rules.observation import ObservationRules
 from syn_grid.scenario.rules.population import (
     OrbPopulation,
@@ -35,7 +36,7 @@ from syn_grid.scenario.rules.termination import (
 )
 from syn_grid.scenario.scenario import Scenario, ScenarioType
 
-ScenarioBuilder = Callable[[WorldConfig, ObsConfig], Scenario]
+ScenarioBuilder = Callable[[Scenario_name, ScenarioConf], Scenario]
 
 
 # ===================== #
@@ -48,10 +49,10 @@ ScenarioBuilder = Callable[[WorldConfig, ObsConfig], Scenario]
 # --------------------- #
 
 
-def _tier_chain(
+def _tier_chain_scenario(
     name: str,
-    world_conf: WorldConfig,
-    obs_conf: ObsConfig,
+    scenario_tag: str,
+    scenario_conf: TierScenarioConf,
     *,
     delay: bool,
     curriculum: bool,
@@ -63,28 +64,13 @@ def _tier_chain(
     all present from the first step, and nothing expires off the grid during the episode.
     """
 
-    grid_conf = world_conf.grid_conf
-    perception_conf = obs_conf.perception_conf
-
-    if grid_conf.de_spawn_tiers:
-        raise ValueError(
-            f"Scenario '{name}' cannot de-spawn tiers: an orb "
-            "that de-spawns because of a timer would ruin the chain. Disable de_spawn_tiers."
-        )
-
     # A chain's orb count is its length. The old schema expressed this by
     # overwriting max_active_orbs with max_tier inside a validator, so the YAML
     # value was routinely a lie. The scenario states it outright.
-    max_active_orbs = grid_conf.max_tier
-
-    if grid_conf.max_tier >= grid_conf.grid_rows * grid_conf.grid_cols:
-        raise ValueError(
-            "max_tier can't be higher than number of cells in the grid, there will "
-            "be no space for orbs"
-        )
+    max_active_orbs = scenario_conf.world_conf.tier_orb_conf.max_tier
 
     population: OrbPopulation = TierChainPopulation(
-        grid_conf.max_tier, world_conf.tier_orb_conf
+        scenario_conf.world_conf.tier_orb_conf.max_tier, scenario_conf.world_conf.tier_orb_conf
     )
 
     spawning = SpawningRules(
@@ -101,31 +87,41 @@ def _tier_chain(
     # those slots has never followed that setting, so the trailing slots stay
     # zero. See ObservationRules.
     observation = ObservationRules(
-        observation_slot_count=perception_conf.tiers
+        observation_slot_count=scenario_conf.obs_conf.perception_conf.tiers
         if curriculum
-        else grid_conf.max_tier,
-        sort_limit=grid_conf.max_tier,
-        max_tier=grid_conf.max_tier,
+        else scenario_conf.world_conf.tier_orb_conf.max_tier,
+        sort_limit=scenario_conf.world_conf.tier_orb_conf.max_tier,
+        max_tier=scenario_conf.world_conf.tier_orb_conf.max_tier,
     )
 
     termination = GoalTermination(
-        timeout_penalty=world_conf.droid_conf.timeout_penalty,
+        timeout_penalty=scenario_conf.world_conf.droid_conf.timeout_penalty,
         delay=delay,
-        scoring=world_conf.tier_orb_conf.scoring,
+        scoring=scenario_conf.world_conf.tier_orb_conf.scoring,
         curriculum=curriculum,
     )
 
     return Scenario(
         name,
+        scenario_tag,
         ScenarioType.GOAL,
+        scenario_conf.obs_conf.observation_handler_conf.perception,
+        (
+            scenario_conf.world_conf.grid_conf.grid_rows,
+            scenario_conf.world_conf.grid_conf.grid_cols
+        ),
         population,
         spawning,
         observation,
         termination,
     )
 
+# ============ #
+#   Builders   #
+# ============ #
 
-def build_tier_chain_spatial(world_conf: WorldConfig, obs_conf: ObsConfig) -> Scenario:
+
+def build_tier_chain_spatial(name: str, scenario_conf: ScenarioConf) -> Scenario:
     """
     Tier Chain, Spatial: the chain is laid out across the grid, but the droid only
     sees a 3x3 window around itself.
@@ -138,31 +134,14 @@ def build_tier_chain_spatial(world_conf: WorldConfig, obs_conf: ObsConfig) -> Sc
     grid size works as a standalone difficulty axis.
     """
 
-    return _tier_chain(
-        "goal_tier_chain_spatial", world_conf, obs_conf, delay=False, curriculum=True
-    )
+    scenario_conf = cast(TierScenarioConf, scenario_conf)
+    grid_conf = scenario_conf.world_conf.grid_conf
+    scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}"
+
+    return _tier_chain_scenario(name, scenario_tag, scenario_conf, delay=False, curriculum=True)
 
 
-def build_tier_chain_delay(world_conf: WorldConfig, obs_conf: ObsConfig) -> Scenario:
-    """
-    Tier Chain, Delay: consuming an orb puts the whole field on cooldown, first after that cooldown
-    the orb spawns back in.
-
-    This scenario tests temporal delay with empty visual feedback. The reward only arrives once the
-    full chain is done, so it has to travel back across every silent stretch to reach the first
-    correct orb, weakening with each step. It's like giving a dog its treat an hour after the
-    trick: by then the link is faint. The task never changes, only the gap does, so delay works as
-    a standalone difficulty axis.
-    """
-
-    return _tier_chain(
-        "goal_tier_chain_delay", world_conf, obs_conf, delay=True, curriculum=False
-    )
-
-
-def build_tier_chain_scaling_sparse(
-    world_conf: WorldConfig, obs_conf: ObsConfig
-) -> Scenario:
+def build_tier_chain_scaling_sparse(name: str, scenario_conf: ScenarioConf) -> Scenario:
     """
     Tier Chain, Scaling (dense): same layout as the sparse variant, but each correctly consumed orb
     earns reward, paid out when the chain breaks or completes.
@@ -174,19 +153,14 @@ def build_tier_chain_scaling_sparse(
     limit, not the chain.
     """
 
-    _require_scoring(world_conf, ScoringMode.MAX_TIER, "tier_chain_scaling_sparse")
-    return _tier_chain(
-        "goal_tier_chain_scaling_sparse",
-        world_conf,
-        obs_conf,
-        delay=False,
-        curriculum=False,
-    )
+    scenario_conf = cast(TierScenarioConf, scenario_conf)
+    scenario_tag = scenario_conf.world_conf.tier_orb_conf.max_tier
+
+    _require_scoring(scenario_conf, ScoringMode.MAX_TIER, name)
+    return _tier_chain_scenario(name, str(scenario_tag), scenario_conf, delay=False, curriculum=False)
 
 
-def build_tier_chain_scaling_dense(
-    world_conf: WorldConfig, obs_conf: ObsConfig
-) -> Scenario:
+def build_tier_chain_scaling_dense(name: str, scenario_conf: ScenarioConf) -> Scenario:
     """
     Tier Chain, Tier Scaling (dense): long chains under threshold scoring.
 
@@ -194,104 +168,39 @@ def build_tier_chain_scaling_dense(
     back a partial amount when the chain breaks, which is what makes a long chain worth attempting.
     """
 
-    _require_scoring(world_conf, ScoringMode.THRESHOLD, "tier_chain_scaling_dense")
-    return _tier_chain(
-        "goal_tier_chain_scaling_dense",
-        world_conf,
-        obs_conf,
-        delay=False,
-        curriculum=False,
-    )
+    scenario_conf = cast(TierScenarioConf, scenario_conf)
+    scenario_tag = scenario_conf.world_conf.tier_orb_conf.max_tier
+
+    _require_scoring(scenario_conf, ScoringMode.THRESHOLD, name)
+    return _tier_chain_scenario(name, str(scenario_tag), scenario_conf, delay=False, curriculum=False)
 
 
-# ====================== #
-#  Continuous Scenarios  #
-# ====================== #
+def build_tier_chain_delay(name: str, scenario_conf: ScenarioConf) -> Scenario:
+    """
+    Tier Chain, Delay: consuming an orb puts the whole field on cooldown, first after that cooldown
+    the orb spawns back in.
 
-
-def _continuous(
-    name: str,
-    world_conf: WorldConfig,
-    obs_conf: ObsConfig,
-    *,
-    delay: bool,
-) -> Scenario:
-    """Continuous: no objective, orbs keep coming, the clock is the only end.
-
-    Orbs are drawn from a weighted pool and the field refills one at a time, so
-    the agent is choosing what to spend its steps on rather than following a
-    fixed sequence. Tier orbs may or may not expire off the board; that is a
-    difficulty knob, and it is the one thing a tier chain is not allowed to do.
+    This scenario tests temporal delay with empty visual feedback. The reward only arrives once the
+    full chain is done, so it has to travel back across every silent stretch to reach the first
+    correct orb, weakening with each step. It's like giving a dog its treat an hour after the
+    trick: by then the link is faint. The task never changes, only the gap does, so delay works as
+    a standalone difficulty axis.
     """
 
-    grid = world_conf.grid_conf
-    max_active_orbs = grid.max_active_orbs
+    scenario_conf = cast(TierScenarioConf, scenario_conf)
+    scenario_tag = scenario_conf.world_conf.tier_orb_conf.delay
 
-    if max_active_orbs <= 0:
-        raise ValueError("max_active_orbs should be larger than 0")
-
-    population: OrbPopulation = WeightedPopulation(
-        world_conf.orb_factory_conf,
-        world_conf.negative_orb_conf,
-        world_conf.tier_orb_conf,
-    )
-
-    spawning = SpawningRules(
-        fill_pool_on_reset=False,
-        max_active_orbs=max_active_orbs,
-        tier_orb_expires=grid.de_spawn_tiers,
-        delay_on_consume=delay,
-        after_action=RefillOrbPool(),
-    )
-
-    # The curriculum setting does not reach a continuous world: the slot count
-    # is max_active_orbs either way, so there is nothing for it to change.
-    observation = ObservationRules(
-        observation_slot_count=max_active_orbs,
-        sort_limit=max_active_orbs,
-        max_tier=grid.max_tier,
-    )
-
-    termination: TerminationRules = ContinuousTermination(
-        scoring=world_conf.tier_orb_conf.scoring
-    )
-
-    return Scenario(
-        name=name,
-        type=ScenarioType.CONTINUOUS,
-        population=population,
-        spawning=spawning,
-        observation=observation,
-        termination=termination,
-    )
-
-
-def build_continuous(world_conf: WorldConfig, obs_conf: ObsConfig) -> Scenario:
-    """Continuous: the orb field is always available."""
-
-    return _continuous("continuous", world_conf, obs_conf, delay=False)
-
-
-def build_continuous_delay(world_conf: WorldConfig, obs_conf: ObsConfig) -> Scenario:
-    """Continuous with delay: consuming an orb puts the whole field on cooldown.
-
-    Distinct from a tier chain with delay in what the cooldown costs. Here the
-    field refills from the weighted pool as the cooldown lapses, so a
-    consumption costs a stretch of empty grid rather than a broken chain.
-    """
-
-    return _continuous("continuous_delay", world_conf, obs_conf, delay=True)
-
+    return _tier_chain_scenario(name, str(scenario_tag), scenario_conf, delay=True, curriculum=False)
 
 # ============ #
-#    Helpers    #
+#    Helpers   #
 # ============ #
 
 
 def _require_scoring(
-    world_conf: WorldConfig, required: ScoringMode, scenario: str
+    scenario_conf: TierScenarioConf, required: ScoringMode, scenario: str
 ) -> None:
-    actual = world_conf.tier_orb_conf.scoring
+    actual = scenario_conf.world_conf.tier_orb_conf.scoring
     if actual is not required:
         raise ValueError(
             f"Scenario '{scenario}' is defined by {required.value} scoring but the "
@@ -301,27 +210,26 @@ def _require_scoring(
 
 
 # ============ #
-#   Registry    #
+#   Registry   #
 # ============ #
 
 
-SCENARIOS: dict[str, ScenarioBuilder] = {
-    "goal_tier_chain_spatial": build_tier_chain_spatial,
-    "goal_tier_chain_delay": build_tier_chain_delay,
-    "goal_tier_chain_scaling_dense": build_tier_chain_scaling_dense,
-    "goal_tier_chain_scaling_sparse": build_tier_chain_scaling_sparse,
-    "continuous": build_continuous,
+SCENARIO_BUILDERS: dict[Scenario_name, ScenarioBuilder] = {
+    Scenario_name.GOAL_TIER_CHAIN_SPATIAL: build_tier_chain_spatial,
+    Scenario_name.GOAL_TIER_CHAIN_TIER_SCALING_SPARSE: build_tier_chain_scaling_sparse,
+    Scenario_name.GOAL_TIER_CHAIN_TIER_SCALING_DENSE: build_tier_chain_scaling_dense,
+    Scenario_name.GOAL_TIER_CHAIN_DELAY: build_tier_chain_delay,
 }
 
 
-def build_scenario(name: str, world_conf: WorldConfig, obs_conf: ObsConfig) -> Scenario:
+def build_scenario(scenario: Scenario_name, scenario_conf: ScenarioConf) -> Scenario:
     """Resolve a scenario name into the rules that define it."""
 
     try:
-        builder = SCENARIOS[name]
+        builder = SCENARIO_BUILDERS[scenario]
     except KeyError:
         raise KeyError(
-            f"Unknown scenario '{name}'. Available: {sorted(SCENARIOS)}"
+            f"Unknown scenario '{scenario}'. Available: {sorted(SCENARIO_BUILDERS)}"
         ) from None
 
-    return builder(world_conf, obs_conf)
+    return builder(scenario, scenario_conf)

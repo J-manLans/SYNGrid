@@ -2,11 +2,12 @@
 
 from dataclasses import dataclass
 
-from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.scenario.scenario import Scenario
+from syn_grid.config.models.runner_models import RunnerConf
 
 
 @dataclass
-class AgentBundle:
+class RunnerBundle:
     """
     Bundled configuration needed for the agent.
 
@@ -16,6 +17,5 @@ class AgentBundle:
     reassembled from the parameters that happen to describe it.
     """
 
-    world_conf: WorldConfig
-    obs_conf: ObsConfig
-    agent_conf: AgentConfig
+    scenario: Scenario
+    runner_conf: RunnerConf

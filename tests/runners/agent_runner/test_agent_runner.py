@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.agent_registry import RUNNER
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from tests.utils.config_helpers import get_test_config, update_conf
@@ -36,11 +36,11 @@ class TestAgentRunner:
             full_conf, {"agent": {"global_agent_conf": {"alg": "PPO"}}}
         )
 
-        agent_bundle = AgentBundle(
+        agent_bundle = RunnerBundle(
             scenario=full_conf.scenario,
             world_conf=full_conf.world,
             obs_conf=full_conf.obs,
-            agent_conf=full_conf.agent,
+            runner_conf=full_conf.agent,
         )
 
         return RUNNER[full_conf.agent.global_agent_conf.alg](agent_bundle)

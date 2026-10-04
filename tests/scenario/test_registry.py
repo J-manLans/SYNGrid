@@ -11,7 +11,7 @@ import pytest
 import yaml
 
 from syn_grid.config.models import FullConf, ScoringMode
-from syn_grid.scenario.registry import SCENARIOS, build_scenario
+from syn_grid.scenario.registry import SCENARIO_BUILDERS, build_scenario
 from syn_grid.scenario.rules.population import (
     TierChainPopulation,
     WeightedPopulation,
@@ -61,7 +61,7 @@ class TestSelection:
         assert scenario.name == conf.scenario == "goal_tier_chain_spatial"
         assert scenario.type is ScenarioType.GOAL
 
-    @pytest.mark.parametrize("name", sorted(SCENARIOS))
+    @pytest.mark.parametrize("name", sorted(SCENARIO_BUILDERS))
     def test_every_registered_scenario_builds_from_its_own_config(self, name: str):
         """Each registered name has a config that selects it, and that config is
         accepted. A registered scenario nobody can configure is a dead entry."""

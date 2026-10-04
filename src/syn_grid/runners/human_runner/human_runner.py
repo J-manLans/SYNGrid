@@ -2,7 +2,7 @@ from typing import cast
 
 from syn_grid.gymnasium.environment import SYNGridEnv
 from syn_grid.gymnasium.utils.env_factory import make
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 
 
@@ -20,15 +20,10 @@ class HumanRunner(BaseAgentRunner):
     #       Init        #
     # ================= #
 
-    def __init__(self, agent_bundle: AgentBundle):
+    def __init__(self, runner_bundle: RunnerBundle):
         self._env = cast(
             SYNGridEnv,
-            make(
-                "human",
-                agent_bundle.scenario,
-                agent_bundle.world_conf,
-                agent_bundle.obs_conf,
-            ).unwrapped,
+            make(runner_bundle.scenario, "human").unwrapped,
         )
 
     # ================= #

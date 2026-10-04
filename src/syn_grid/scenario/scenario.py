@@ -59,7 +59,10 @@ class Scenario:
     """
 
     name: str
+    tag: str
     type: ScenarioType
+    perception: str
+    grid_dimensions: tuple[int, int]
     population: OrbPopulation
     spawning: SpawningRules
     observation: ObservationRules

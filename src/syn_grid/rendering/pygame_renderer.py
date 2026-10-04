@@ -4,7 +4,6 @@ from typing import Final
 import numpy as np
 import pygame
 
-from syn_grid.config.models import RendererConf
 from syn_grid.core.orbs.orb_meta import (
     DirectType,
     OrbCategory,
@@ -29,7 +28,7 @@ class PygameRenderer:
     # ================= #
 
     def __init__(
-        self, renderer_conf: RendererConf, render_mode: str | None, fps: int
+        self, render_mode: str | None, fps: int
     ) -> None:
         """
         Initializes the Pygame renderer.
@@ -42,7 +41,6 @@ class PygameRenderer:
         - Graphic elements
         """
 
-        self._renderer_conf = renderer_conf
         self._render_mode = render_mode
 
         # Default font

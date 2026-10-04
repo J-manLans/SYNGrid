@@ -1,12 +1,14 @@
 from syn_grid.config.config_manager import ConfigManager
-from syn_grid.config.models import (
-    ExperimentConfig,
-    FullConf,
-)
+from syn_grid.config.models.global_models import GlobalConf
+from syn_grid.config.models.runner_models import RunnerConf
+from syn_grid.config.models.scenario_models import ScenarioConf, SCENARIO_MODELS
+from syn_grid.scenario.registry import build_scenario
+from syn_grid.scenario.scenario import Scenario
 from syn_grid.gymnasium.utils.env_factory import register_env
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.agent_registry import build_runner
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from pydantic import BaseModel
 
 # ================= #
 #        APP        #
@@ -15,12 +17,13 @@ from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 
 def main() -> None:
     register_env()
+    config_manager = ConfigManager()
+    global_conf, scenario_conf, runner_conf = load_experiment_configs(config_manager)
+    scenario = build_scenario(global_conf.scenario, scenario_conf)
+    runner_bundle = RunnerBundle(scenario, runner_conf)
+    runner = build_runner(global_conf.human_control, runner_bundle)
 
-    config_manager = ConfigManager("configs.yaml")
-    agent_bundle, experiment_conf = load_experiment_configs(config_manager)
-    runner = build_runner(agent_bundle)
-
-    dispatch(runner, config_manager, agent_bundle, experiment_conf)
+    dispatch(runner, config_manager, (runner_bundle), global_conf)
 
 
 # ================= #
@@ -28,36 +31,36 @@ def main() -> None:
 # ================= #
 
 
-def load_experiment_configs(
-    config_manager: ConfigManager,
-) -> tuple[AgentBundle, ExperimentConfig]:
+def load_experiment_configs(config_manager: ConfigManager) -> tuple[
+    GlobalConf,
+    ScenarioConf,
+    RunnerConf
+]:
     """
-    Load the full experiment configuration.
+    Load the global, scenario, and runner configurations.
 
     Args:
-        config_manager: Manager pointed at the YAML config file to load.
+        config_manager: Manager used to load the YAML configuration files.
 
     Returns:
-        An ExperimentBundle with the world, obs, agent config and experiment settings.
+        A tuple containing the global, scenario and runner configuration.
     """
 
-    full_conf = config_manager.load_config(FullConf)
-
-    return (
-        AgentBundle(
-            world_conf=full_conf.world,
-            obs_conf=full_conf.obs,
-            agent_conf=full_conf.agent,
-        ),
-        config_manager.load_config(ExperimentConfig),
+    global_conf = config_manager.load_config("global_config.yaml", GlobalConf)
+    scenario_conf = config_manager.load_config(
+        f"{global_conf.scenario.value}.yaml",
+        SCENARIO_MODELS[global_conf.scenario]
     )
+    runner_conf = config_manager.load_config("runner_config.yaml", RunnerConf)
+
+    return (global_conf, scenario_conf, runner_conf)
 
 
 def dispatch(
     runner: BaseAgentRunner,
     config_manager: ConfigManager,
-    agent_bundle: AgentBundle,
-    experiment_conf: ExperimentConfig,
+    agent_bundle: RunnerBundle,
+    global_conf: GlobalConf,
 ) -> None:
     """
     Run an agent runner according to the loaded experiment configuration.
@@ -72,12 +75,15 @@ def dispatch(
         bundle: The loaded experiment configuration.
     """
 
-    if experiment_conf.snapshot.enabled:
-        config_manager.save_snapshot(runner.get_unique_model_id())
+    if global_conf.snapshot.enabled:
+        config_manager.save_snapshot(
+            f"{global_conf.scenario.value}.yaml",
+            runner.get_unique_model_id()
+        )
         print("Config snapshot saved. Exiting.")
         return
 
-    if agent_bundle.agent_conf.global_agent_conf.training:
+    if agent_bundle.runner_conf.common_conf.training:
         runner.train()
     else:
         runner.eval()

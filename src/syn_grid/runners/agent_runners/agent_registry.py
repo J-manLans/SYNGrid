@@ -1,7 +1,10 @@
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.sb3 import FrameStackPPO, LstmPPO, StatelessPPO
 from syn_grid.runners.human_runner.human_runner import HumanRunner
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
+from syn_grid.config.models.runner_models import RunnerConf
+from syn_grid.config.models.global_models import GlobalConf
+from syn_grid.scenario.scenario import Scenario
 
 RUNNER: dict[str, type[BaseAgentRunner]] = {
     "PPO": StatelessPPO,
@@ -10,7 +13,7 @@ RUNNER: dict[str, type[BaseAgentRunner]] = {
 }
 
 
-def build_runner(agent_bundle: AgentBundle) -> BaseAgentRunner:
+def build_runner(human_control: bool, runner_bundle: RunnerBundle) -> BaseAgentRunner:
     """
     Instantiate the agent runner class registered for the configured algorithm.
     If human play mode is enabled we return that early.
@@ -28,13 +31,13 @@ def build_runner(agent_bundle: AgentBundle) -> BaseAgentRunner:
         KeyError: If the configured algorithm has no registered runner.
     """
 
-    if agent_bundle.agent_conf.global_agent_conf.human_control:
-        return HumanRunner(agent_bundle)
+    if human_control:
+        return HumanRunner(runner_bundle)
 
-    alg = agent_bundle.agent_conf.global_agent_conf.alg
+    alg = runner_bundle.runner_conf.common_conf.alg
     if alg not in RUNNER:
         raise KeyError(
             f"No runner registered for algorithm '{alg}'. Available: {list(RUNNER)}"
         )
 
-    return RUNNER[alg](agent_bundle)
+    return RUNNER[alg](runner_bundle)

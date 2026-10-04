@@ -5,7 +5,7 @@ from gymnasium import Env
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, VecNormalize
 
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.sb3.artifact_manager import ArtifactManager
 from syn_grid.runners.agent_runners.sb3.execution_strategy import (
@@ -44,7 +44,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     def __init__(
         self,
-        agent_bundle: AgentBundle,
+        runner_bundle: RunnerBundle,
         hyper_parameters: dict[str, Any],
         algorithm: type[T],
         execution_strategy: ExecutionStrategy,
@@ -56,7 +56,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
                 "recovered when continuing from a checkpoint or when evaluating."
             )
 
-        super().__init__(agent_bundle)
+        super().__init__(runner_bundle)
         self._execution_strategy = execution_strategy
 
         self._artifact_manager: ArtifactManager[T] = ArtifactManager(
@@ -119,8 +119,8 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
         base = get_project_path("output", "vec_norm_stats")
         vec_norm_stats_dir = (
-            base / self._agent_conf.save_folder
-            if self._agent_conf.save_folder
+            base / self._save_folder
+            if self._save_folder
             else base
         )
         vec_norm_stats_dir.mkdir(parents=True, exist_ok=True)
