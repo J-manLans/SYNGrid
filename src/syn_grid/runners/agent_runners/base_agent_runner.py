@@ -22,7 +22,6 @@ class BaseAgentRunner(ABC):
         self._runner_conf = runner_bundle.runner_conf.common_conf
         self._train_conf = runner_bundle.runner_conf.train_conf
         self._eval_conf = runner_bundle.runner_conf.eval_conf
-        self._world_conf = runner_bundle.world_conf
         self.scenario = runner_bundle.scenario
         self._save_folder = self.scenario.name
         # Get current date and time to us as id for unique file naming

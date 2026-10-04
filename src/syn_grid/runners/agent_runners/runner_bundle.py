@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass
 
-from syn_grid.scenario.scenario import Scenario
 from syn_grid.config.models.runner_models import RunnerConf
+from syn_grid.scenario.scenario import Scenario
 
 
 @dataclass

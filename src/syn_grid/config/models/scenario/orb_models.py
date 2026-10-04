@@ -1,6 +1,8 @@
 from enum import Enum
+from typing import Annotated
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
+
 
 class ScoringMode(Enum):
     """
@@ -16,21 +18,20 @@ class ScoringMode(Enum):
     THRESHOLD = "threshold"
     MAX_TIER = "max_tier"
 
-class NegativeConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    reward: float | None = None
-    cool_down: int | None = None
-    weight: int | None = None
+class OrbKindConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    cool_down: int
+    weight: int
+
+class NegOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
+    reward: float
 
 
-class TierConf(BaseModel, frozen=True, extra="forbid", strict=True):
+class TierOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
     max_tier: int
     base_reward: float
     growth_factor: float
     linear_reward_growth: bool
-    scoring: ScoringMode
-    cool_down: int
-    weight: int
-
+    scoring: Annotated[ScoringMode, Field(strict=False)]
 
     @model_validator(mode="after")
     def validate_config(self):
@@ -40,3 +41,11 @@ class TierConf(BaseModel, frozen=True, extra="forbid", strict=True):
             raise ValueError("max_tier should be larger than 0")
 
         return self
+
+class OrbPoolConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    max_active_orbs: int
+    negative: NegOrbConf | None = None
+
+class TierOrbPoolConf(OrbPoolConf, frozen=True, extra="forbid", strict=True):
+    tier: TierOrbConf
+    negative: NegOrbConf | None = None

@@ -9,8 +9,8 @@ class CommonConf(BaseModel, frozen=False):
     alg: str
     agent_steps: str
     seed: int
-    human_control: bool
     training: bool
+    check_env: bool
 
 
 class TrainConf(BaseModel, frozen=False):

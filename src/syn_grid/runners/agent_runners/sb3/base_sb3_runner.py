@@ -5,8 +5,8 @@ from gymnasium import Env
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, VecNormalize
 
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.sb3.artifact_manager import ArtifactManager
 from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     ExecutionStrategy,

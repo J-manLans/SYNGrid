@@ -4,7 +4,6 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.config.models.scenario_models import ObsConf, WorldConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
@@ -12,7 +11,6 @@ from syn_grid.gymnasium.observation_space.observation_handler import (
 )
 from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY, LogKey
 from syn_grid.rendering.pygame_renderer import PygameRenderer
-from syn_grid.scenario.registry import build_scenario
 from syn_grid.scenario.scenario import Scenario
 
 

@@ -4,28 +4,28 @@
 # The flags that used to imply this scenario are gone. What remains is
 # tunable: geometry, the chain length, penalties, reward shape, and the
 # perception. The scenario decides what those mean.
-run:
-  common_conf:
-    alg: PPO
-    agent_steps: '1605632'
-    seed: 3
-    training: true
-    check_env: false
-  train_conf:
-    continue_training: false
-    csv_output: true
-    tensorboard_output: true
-    model_output: true
-    n_envs: 16
-    timesteps: 3000000
-    iterations: 1
-    render_mode: null
-    record_video: false
-    rec_interval: 100000
-    rec_length: 100
-  eval_conf:
-    num_eval_episodes: 300
-    render_mode: 'human'
-    record_video: false
-    rec_episode: 100
-    csv_output: false
+
+common_conf:
+  alg: PPO
+  agent_steps: '1605632'
+  seed: 3
+  training: true
+  check_env: false
+train_conf:
+  continue_training: false
+  csv_output: true
+  tensorboard_output: true
+  model_output: true
+  n_envs: 16
+  timesteps: 3000000
+  iterations: 1
+  render_mode: null
+  record_video: false
+  rec_interval: 100000
+  rec_length: 100
+eval_conf:
+  num_eval_episodes: 300
+  render_mode: 'human'
+  record_video: false
+  rec_episode: 100
+  csv_output: false

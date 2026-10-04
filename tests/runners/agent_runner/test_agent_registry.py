@@ -1,7 +1,7 @@
 import pytest
 
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.agent_registry import RUNNER, build_runner
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.sb3.stateless_ppo import StatelessPPO
 from tests.utils.config_helpers import get_test_config, update_conf
 

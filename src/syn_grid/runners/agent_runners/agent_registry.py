@@ -1,10 +1,7 @@
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.sb3 import FrameStackPPO, LstmPPO, StatelessPPO
 from syn_grid.runners.human_runner.human_runner import HumanRunner
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
-from syn_grid.config.models.runner_models import RunnerConf
-from syn_grid.config.models.global_models import GlobalConf
-from syn_grid.scenario.scenario import Scenario
 
 RUNNER: dict[str, type[BaseAgentRunner]] = {
     "PPO": StatelessPPO,

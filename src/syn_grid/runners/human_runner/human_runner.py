@@ -2,8 +2,8 @@ from typing import cast
 
 from syn_grid.gymnasium.environment import SYNGridEnv
 from syn_grid.gymnasium.utils.env_factory import make
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 
 
 class HumanRunner(BaseAgentRunner):

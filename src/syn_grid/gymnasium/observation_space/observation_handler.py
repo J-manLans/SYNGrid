@@ -2,7 +2,7 @@ from typing import Any, Final
 
 from gymnasium import spaces
 
-from syn_grid.config.models import ObsConfig
+from syn_grid.config.models.scenario.scenario_common import ObsConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
@@ -40,7 +40,7 @@ class ObservationHandler:
 
     def __init__(
         self,
-        conf: ObsConfig,
+        conf: ObsConf,
         observation_rules: ObservationRules,
         orbs: int,
         max_identity: int,

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from syn_grid.config.models import NegativeConf, OrbFactoryConf, TierConf
+from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
@@ -34,7 +34,7 @@ class TierChainPopulation:
     reset rather than a configured count.
     """
 
-    def __init__(self, max_tier: int, tier_conf: TierConf) -> None:
+    def __init__(self, max_tier: int, tier_conf: TierOrbConf) -> None:
         self._max_tier = max_tier
         self._tier_conf = tier_conf
 
@@ -56,8 +56,8 @@ class WeightedPopulation:
     def __init__(
         self,
         orb_factory_conf: OrbFactoryConf,
-        negative_conf: NegativeConf,
-        tier_conf: TierConf,
+        negative_conf: NegOrbConf,
+        tier_conf: TierOrbConf,
     ) -> None:
         self._conf = orb_factory_conf
         self._negative_conf = negative_conf

@@ -25,7 +25,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
-from syn_grid.config.models import ScoringMode
+from syn_grid.config.models.scenario.orb_models import ScoringMode
 
 if TYPE_CHECKING:
     from syn_grid.core.grid_world import GridWorld

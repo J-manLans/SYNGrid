@@ -1,4 +1,4 @@
-from syn_grid.config.models import TierConf
+from syn_grid.config.models.scenario.orb_models import TierOrbConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
     OrbCategory,
@@ -19,7 +19,7 @@ class TierOrb(BaseOrb):
     #       Init        #
     # ================= #
 
-    def __init__(self, tier: int, conf: TierConf, max_tier: int):
+    def __init__(self, tier: int, conf: TierOrbConf, max_tier: int):
         """``max_tier`` is passed in rather than read off the class.
 
         It used to be a class attribute written by OrbFactory before every pool

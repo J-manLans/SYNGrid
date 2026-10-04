@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.agent_registry import RUNNER
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from tests.utils.config_helpers import get_test_config, update_conf
 
 

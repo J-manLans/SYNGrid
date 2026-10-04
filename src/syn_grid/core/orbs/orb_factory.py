@@ -1,4 +1,4 @@
-from syn_grid.config.models import NegativeConf, OrbFactoryConf, TierConf
+from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.scenario.rules.population import OrbPopulation
 
@@ -24,12 +24,12 @@ class OrbFactory:
 
     def __init__(
         self,
-        orb_factory_conf: OrbFactoryConf,
-        negative_orb_conf: NegativeConf,
-        tier_orb_conf: TierConf,
+        grid_dimension: tuple[int, int],
+        negative_orb_conf: NegOrbConf,
+        tier_orb_conf: TierOrbConf,
         population: OrbPopulation,
     ):
-        self._orb_factory_conf = orb_factory_conf
+        self._grid_rows, self._grid_cols = grid_dimension
         self.negative_orb_conf = negative_orb_conf
         self.tier_orb_conf = tier_orb_conf
         self._population = population
@@ -43,7 +43,7 @@ class OrbFactory:
 
         # Shared setup
         BaseOrb.set_life_span(
-            self._orb_factory_conf.grid_rows, self._orb_factory_conf.grid_cols
+            self._grid_rows, self._grid_cols
         )
 
         return self._population.create()

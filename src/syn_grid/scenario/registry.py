@@ -12,27 +12,28 @@ old flag name is not carried forward.
 """
 
 from __future__ import annotations
-from typing import cast
-from collections.abc import Callable
-from syn_grid.config.models.global_models import Scenario_name
 
-from syn_grid.config.models.scenario_models import ScenarioConf, TierScenarioConf, ObsConf, ScoringMode, WorldConf
+from collections.abc import Callable
+from typing import cast
+
+from syn_grid.config.models.global_models import Scenario_name
+from syn_grid.config.models.scenario.orb_models import ScoringMode
+from syn_grid.config.models.scenario.scenario_models import (
+    ScenarioConf,
+    TierScenarioConf,
+)
 from syn_grid.scenario.rules.observation import ObservationRules
 from syn_grid.scenario.rules.population import (
     OrbPopulation,
     TierChainPopulation,
-    WeightedPopulation,
 )
 from syn_grid.scenario.rules.spawning import (
     LeaveFieldAlone,
     ReactivateAllOrbs,
-    RefillOrbPool,
     SpawningRules,
 )
 from syn_grid.scenario.rules.termination import (
-    ContinuousTermination,
     GoalTermination,
-    TerminationRules,
 )
 from syn_grid.scenario.scenario import Scenario, ScenarioType
 
@@ -67,10 +68,10 @@ def _tier_chain_scenario(
     # A chain's orb count is its length. The old schema expressed this by
     # overwriting max_active_orbs with max_tier inside a validator, so the YAML
     # value was routinely a lie. The scenario states it outright.
-    max_active_orbs = scenario_conf.world_conf.tier_orb_conf.max_tier
+    max_active_orbs = scenario_conf.world_conf.orb_conf.tier.max_tier
 
     population: OrbPopulation = TierChainPopulation(
-        scenario_conf.world_conf.tier_orb_conf.max_tier, scenario_conf.world_conf.tier_orb_conf
+        scenario_conf.world_conf.orb_conf.tier.max_tier, scenario_conf.world_conf.orb_conf.tier
     )
 
     spawning = SpawningRules(
@@ -89,15 +90,15 @@ def _tier_chain_scenario(
     observation = ObservationRules(
         observation_slot_count=scenario_conf.obs_conf.perception_conf.tiers
         if curriculum
-        else scenario_conf.world_conf.tier_orb_conf.max_tier,
-        sort_limit=scenario_conf.world_conf.tier_orb_conf.max_tier,
-        max_tier=scenario_conf.world_conf.tier_orb_conf.max_tier,
+        else scenario_conf.world_conf.orb_conf.tier.max_tier,
+        sort_limit=scenario_conf.world_conf.orb_conf.tier.max_tier,
+        max_tier=scenario_conf.world_conf.orb_conf.tier.max_tier,
     )
 
     termination = GoalTermination(
         timeout_penalty=scenario_conf.world_conf.droid_conf.timeout_penalty,
         delay=delay,
-        scoring=scenario_conf.world_conf.tier_orb_conf.scoring,
+        scoring=scenario_conf.world_conf.orb_conf.tier.scoring,
         curriculum=curriculum,
     )
 
@@ -136,65 +137,30 @@ def build_tier_chain_spatial(name: str, scenario_conf: ScenarioConf) -> Scenario
 
     scenario_conf = cast(TierScenarioConf, scenario_conf)
     grid_conf = scenario_conf.world_conf.grid_conf
-    scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}"
+    neg_orb = "_Neg" if scenario_conf.world_conf.orb_conf.negative else ""
+    scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}{neg_orb}"
 
     return _tier_chain_scenario(name, scenario_tag, scenario_conf, delay=False, curriculum=True)
 
 
 def build_tier_chain_scaling_sparse(name: str, scenario_conf: ScenarioConf) -> Scenario:
-    """
-    Tier Chain, Scaling (dense): same layout as the sparse variant, but each correctly consumed orb
-    earns reward, paid out when the chain breaks or completes.
-
-    This scenario uses a dense scoring mode to strengthen the reward signal, so every correct orb
-    counts even if the chain breaks before the end. (Same lock as the sparse variant, but now it
-    clicks for every digit you get right.) Can be run at the tier where the sparse variant stops
-    learning to confirm the task itself is learnable. If performance recovers, sparsity was the
-    limit, not the chain.
-    """
-
-    scenario_conf = cast(TierScenarioConf, scenario_conf)
-    scenario_tag = scenario_conf.world_conf.tier_orb_conf.max_tier
-
-    _require_scoring(scenario_conf, ScoringMode.MAX_TIER, name)
-    return _tier_chain_scenario(name, str(scenario_tag), scenario_conf, delay=False, curriculum=False)
+    ...
 
 
 def build_tier_chain_scaling_dense(name: str, scenario_conf: ScenarioConf) -> Scenario:
-    """
-    Tier Chain, Tier Scaling (dense): long chains under threshold scoring.
-
-    Threshold scoring accumulates reward as the chain grows and pays it out on completion or hands
-    back a partial amount when the chain breaks, which is what makes a long chain worth attempting.
-    """
-
-    scenario_conf = cast(TierScenarioConf, scenario_conf)
-    scenario_tag = scenario_conf.world_conf.tier_orb_conf.max_tier
-
-    _require_scoring(scenario_conf, ScoringMode.THRESHOLD, name)
-    return _tier_chain_scenario(name, str(scenario_tag), scenario_conf, delay=False, curriculum=False)
+    ...
 
 
 def build_tier_chain_delay(name: str, scenario_conf: ScenarioConf) -> Scenario:
-    """
-    Tier Chain, Delay: consuming an orb puts the whole field on cooldown, first after that cooldown
-    the orb spawns back in.
-
-    This scenario tests temporal delay with empty visual feedback. The reward only arrives once the
-    full chain is done, so it has to travel back across every silent stretch to reach the first
-    correct orb, weakening with each step. It's like giving a dog its treat an hour after the
-    trick: by then the link is faint. The task never changes, only the gap does, so delay works as
-    a standalone difficulty axis.
-    """
-
-    scenario_conf = cast(TierScenarioConf, scenario_conf)
-    scenario_tag = scenario_conf.world_conf.tier_orb_conf.delay
-
-    return _tier_chain_scenario(name, str(scenario_tag), scenario_conf, delay=True, curriculum=False)
+   ...
 
 # ============ #
 #    Helpers   #
 # ============ #
+
+def neg_orb(self, scenario_conf: ScenarioConf) -> str:
+    return "_Neg" if scenario_conf.world_conf.orb_conf.negative else ""
+
 
 
 def _require_scoring(

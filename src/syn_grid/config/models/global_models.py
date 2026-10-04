@@ -1,6 +1,7 @@
 from enum import Enum
+from typing import Annotated
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 # ======================= #
 #      Helper Types       #
@@ -19,7 +20,7 @@ class Scenario_name(str, Enum):
 
 class SnapshotConf(BaseModel, frozen=True, extra="forbid", strict=True):
     enabled: bool
-    id: str
+    id: str | None
 
     @model_validator(mode="after")
     def validate_config(self):
@@ -40,5 +41,5 @@ class GlobalConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """
 
     snapshot: SnapshotConf
-    scenario: Scenario_name
+    scenario: Annotated[Scenario_name, Field(strict=False)]
     human_control: bool

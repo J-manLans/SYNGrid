@@ -4,11 +4,10 @@
 # The flags that used to imply this scenario are gone. What remains is
 # tunable: geometry, the chain length, penalties, reward shape, and the
 # perception. The scenario decides what those mean.
-world:
-  grid_world_conf:
+world_conf:
+  grid_conf:
     grid_rows: 5
     grid_cols: 5
-    max_active_orbs: 3
 
   droid_conf:
     starting_score: 50
@@ -21,10 +20,10 @@ world:
 
   orb_conf:
     max_active_orbs: 3
-    negative:
-      reward:
-      cool_down:
-      weight:
+    # negative:
+    #   reward:
+    #   cool_down:
+    #   weight:
     tier:
       max_tier: 3
       base_reward: 3
@@ -34,7 +33,7 @@ world:
       cool_down: 7
       weight: 2
 
-obs:
+obs_conf:
   observation_handler_conf:
     perception: vector_fog_of_war
     max_steps: 100
