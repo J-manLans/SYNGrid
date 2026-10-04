@@ -200,7 +200,7 @@ def build_tier_chain_delay(name: str, scenario_conf: ScenarioConf) -> Scenario:
 def _require_scoring(
     scenario_conf: TierScenarioConf, required: ScoringMode, scenario: str
 ) -> None:
-    actual = scenario_conf.world_conf.tier_orb_conf.scoring
+    actual = scenario_conf.world_conf.orb_conf.tier.scoring
     if actual is not required:
         raise ValueError(
             f"Scenario '{scenario}' is defined by {required.value} scoring but the "

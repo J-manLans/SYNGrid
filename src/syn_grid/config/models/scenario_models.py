@@ -3,6 +3,8 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from syn_grid.config.models.global_models import Scenario_name
+from syn_grid.config.models.orb_models import NegativeConf, TierConf
+from syn_grid.config.models.droid_models import TierOrbDroidConf
 
 # ======================= #
 #      Helper Types       #
@@ -16,21 +18,6 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
 
 
-class ScoringMode(Enum):
-    """
-    How a tier chain's reward is paid out.
-
-    One value rather than three mutually exclusive booleans. The booleans had
-    to be validated against each other on every load, and a fourth copy of the
-    question lived in the world config where the digestion engine could not see
-    it and episode termination read the wrong one.
-    """
-
-    STEP_WISE = "step_wise"
-    THRESHOLD = "threshold"
-    MAX_TIER = "max_tier"
-
-
 # ======================= #
 #   World Configuration   #
 # ======================= #
@@ -39,10 +26,6 @@ class ScoringMode(Enum):
 class GridConf(BaseModel, frozen=True, extra="forbid", strict=True):
     grid_rows: int
     grid_cols: int
-    max_active_orbs: int
-
-
-# === DroidConf START === #
 
 
 class DroidConf(BaseModel, frozen=True, extra="forbid", strict=True):
@@ -64,70 +47,10 @@ class DroidConf(BaseModel, frozen=True, extra="forbid", strict=True):
         return self
 
 
-class GoalDroidConf(DroidConf, frozen=True, extra="forbid", strict=True):
-    timeout_penalty: float
-
-
-class TierOrbDroidConf(GoalDroidConf, frozen=True, extra="forbid", strict=True):
-    chain_break_penalty: float
-    tier_consumption_penalty: float
-
-
-# === DroidConf END === #
-
-
-# === OrbFactoryConf START === #
-
-
 class OrbConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    enabled: bool
-    weight: int
-
-
-class TypesConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    negative: OrbConf
-    tier: OrbConf
-
-
-class OrbFactoryConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    types: TypesConf
-
-
-# === OrbFactoryConf END === #
-
-
-class NegativeConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    reward: float
-    cool_down: int
-
-
-class TierConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    base_reward: float
-    cool_down: int
-    growth_factor: float
-    max_tier: int
-    de_spawn_tiers: bool
-    linear_reward_growth: bool
-    scoring: ScoringMode
-    # TODO: figure out how this one should be handled, it's specific for the delay scenario, why
-    # have it as a value anywhere else? This might be true for other variables as well. For
-    # example, no scenario with the negative orb exists yet. So does it have a meaning being here?
-    # Like should orb factory be in the global config instead?
-    delay: int
-
-    @model_validator(mode="after")
-    def validate_config(self):
-        if self.growth_factor <= 0:
-            raise ValueError(f"{self.growth_factor} must be a positive value.")
-        if self.max_tier <= 0:
-            raise ValueError("max_tier should be larger than 0")
-        if self.de_spawn_tiers:
-            raise ValueError(
-                "Tier scenarios cannot de-spawn tiers: an orb that de-spawns "
-                "because of a timer would ruin the chain. Disable de_spawn_tiers."
-            )
-
-        return self
+    max_active_orbs: int
+    negative: NegativeConf | None = None
+    tier: TierConf | None = None
 
 
 # ======================= #
@@ -194,14 +117,15 @@ class WorldConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 class TierWorldConf(WorldConf, frozen=True, extra="forbid", strict=True):
     droid_conf: TierOrbDroidConf
-    # TODO: this is for next session, decide how to handle it. Need to look into the scenario
-    # package as well as the orb factory itself
-    orb_factory_conf: OrbFactoryConf
-    tier_orb_conf: TierConf
+    orb_conf: OrbConf
 
     @model_validator(mode="after")
     def validate_config(self):
-        if self.tier_orb_conf.max_tier >= (
+        tier_conf = self.orb_conf.tier
+        if tier_conf is None:
+            raise ValueError("TierWorldConf requires tier orb configuration")
+
+        if tier_conf.max_tier >= (
             self.grid_conf.grid_rows * self.grid_conf.grid_cols
         ):
             raise ValueError(

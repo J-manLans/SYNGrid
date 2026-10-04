@@ -54,7 +54,7 @@ class TestAgentRunner:
             ValueError: If no agent steps are provided.
         """
 
-        agent_runner._agent_conf.agent_steps = ""
+        agent_runner._runner_conf.agent_steps = ""
 
         with pytest.raises(ValueError):
             agent_runner._find_latest_saved_path(Path("null_path"))

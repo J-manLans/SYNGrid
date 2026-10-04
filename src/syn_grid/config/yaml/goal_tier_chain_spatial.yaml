@@ -19,28 +19,20 @@ world:
     chain_break_penalty: -0.01
     tier_consumption_penalty: -0.001
 
-  orb_factory_conf:
-    types:
-      negative:
-        enabled: false
-        weight: 1
-      tier:
-        enabled: true
-        weight: 2
-
-  negative_orb_conf:
-    reward: -3.0
-    cool_down: 10
-
-  tier_orb_conf:
-    max_tier: 3
-    de_spawn_tiers: false
-    linear_reward_growth: true
-    scoring: max_tier
-    delay: 30
-    growth_factor: 1.5
-    base_reward: 3
-    cool_down: 7
+  orb_conf:
+    max_active_orbs: 3
+    negative:
+      reward:
+      cool_down:
+      weight:
+    tier:
+      max_tier: 3
+      base_reward: 3
+      growth_factor: 1.5
+      linear_reward_growth: true
+      scoring: max_tier
+      cool_down: 7
+      weight: 2
 
 obs:
   observation_handler_conf:

@@ -79,7 +79,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     def eval(self) -> None:
         env = self._build_env(self._eval_conf.render_mode, self._EVAL)
-        model = self._artifact_manager.load_model(env, self._agent_conf.seed)
+        model = self._artifact_manager.load_model(env, self._runner_conf.seed)
 
         self._eval_model(env, model)
 
@@ -107,7 +107,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     @property
     def _is_fresh_training_run(self) -> bool:
-        return self._agent_conf.training and not self._train_conf.continue_training
+        return self._runner_conf.training and not self._train_conf.continue_training
 
     # === Init === #
 
@@ -131,7 +131,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
     def _make_dummy_vec_env(self, render_mode: str | None, sub_dir: str) -> DummyVecEnv:
         # If we are training, create as many envs that the config specifies.
         # If we're evaluating a trained agent — just create one env since no batching is needed.
-        n_envs = self._train_conf.n_envs if self._agent_conf.training else 1
+        n_envs = self._train_conf.n_envs if self._runner_conf.training else 1
 
         return DummyVecEnv(
             [
@@ -152,12 +152,12 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
         csv_output = (
             self._train_conf.csv_output
-            if self._agent_conf.training
+            if self._runner_conf.training
             else self._eval_conf.csv_output
         )
         # Training always needs RecordEpisodeStatistics since tensorboard depends on it to log rew
         # and length, eval only uses it if we write to csv.
-        record_episode_stats = self._agent_conf.training or csv_output
+        record_episode_stats = self._runner_conf.training or csv_output
 
         if record_episode_stats:
             env = self._wrap_record_episode_statistics(env)
@@ -182,7 +182,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             return self._artifact_manager.create_normalize_wrapper(env)
         else:
             return self._artifact_manager.load_normalize_wrapper(
-                env, training=self._agent_conf.training
+                env, training=self._runner_conf.training
             )
 
     # === Model === #
@@ -197,10 +197,10 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             )
 
             return self._artifact_manager.create_model(
-                env, tensorboard_log=tensorboard_log, seed=self._agent_conf.seed
+                env, tensorboard_log=tensorboard_log, seed=self._runner_conf.seed
             )
         else:
-            return self._artifact_manager.load_model(env, self._agent_conf.seed)
+            return self._artifact_manager.load_model(env, self._runner_conf.seed)
 
     # === Train === #
 

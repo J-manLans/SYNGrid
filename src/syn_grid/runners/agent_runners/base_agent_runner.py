@@ -19,7 +19,7 @@ class BaseAgentRunner(ABC):
     # ================= #
 
     def __init__(self, runner_bundle: RunnerBundle):
-        self._agent_conf = runner_bundle.runner_conf.common_conf
+        self._runner_conf = runner_bundle.runner_conf.common_conf
         self._train_conf = runner_bundle.runner_conf.train_conf
         self._eval_conf = runner_bundle.runner_conf.eval_conf
         self._world_conf = runner_bundle.world_conf
@@ -79,25 +79,13 @@ class BaseAgentRunner(ABC):
     def _set_models_base_id(self) -> None:
         perception = self.scenario.perception
 
-        # TODO: got stuck here, this is the last part until I can test the flow of the runners
-        # package after the refactor
-        tier = self._world_conf.orb_factory_conf.types.tier.enabled
-        negative = self._world_conf.orb_factory_conf.types.negative.enabled
-
-        tag = (
-            f"TAG_{self.scenario.tag}_seed{self._agent_conf.seed}_"
-            if self.scenario.tag
-            else ""
-        )
-        tier_suffix = "" if tier else "_NoTier"
-        negative_suffix = "_Neg" if negative else ""
         # The glob this feeds must not match a checkpoint trained on a different grid — the observation vector is a fixed length at every grid size.
         rows, cols = self.scenario.grid_dimensions
         grid_suffix = f"_{rows}x{cols}"
 
         self._id = (
-            f"{perception}{grid_suffix}{tier_suffix}{negative_suffix}"
-            f"__{tag}{self._agent_conf.alg}"
+            f"{perception}_seed{self._runner_conf.seed}_{grid_suffix}"
+            f"__TAG_{self.scenario.tag}_{self._runner_conf.alg}"
         )
 
     # === Env factory === #
@@ -140,7 +128,7 @@ class BaseAgentRunner(ABC):
 
     def _maybe_wrap_video(self, env: Env) -> Env:
         # Training video
-        if self._agent_conf.training and self._train_conf.record_video:
+        if self._runner_conf.training and self._train_conf.record_video:
             local_interval = max(
                 1, self._train_conf.rec_interval // self._train_conf.n_envs
             )
@@ -151,7 +139,7 @@ class BaseAgentRunner(ABC):
                 video_length=self._train_conf.rec_length,
             )
         # Evaluation video
-        elif not self._agent_conf.training and self._eval_conf.record_video:
+        elif not self._runner_conf.training and self._eval_conf.record_video:
             return self._rec_video_wrapper(
                 env,
                 episode_trigger=lambda t: t == self._eval_conf.rec_episode,
@@ -177,10 +165,10 @@ class BaseAgentRunner(ABC):
         Find the most recently modified saved file matching the configured agent steps and ID
         """
 
-        if self._agent_conf.agent_steps == "":
+        if self._runner_conf.agent_steps == "":
             raise ValueError("You forgot to specify the models steps")
 
-        file_name = f"{self._agent_conf.agent_steps}_{self._id}*"
+        file_name = f"{self._runner_conf.agent_steps}_{self._id}*"
 
         matches = list(dir.glob(file_name))
         if not matches:
