@@ -1,8 +1,8 @@
 from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models.global_models import GlobalConf
 from syn_grid.config.models.runner_models import RunnerConf
-from syn_grid.config.models.scenario.scenario_common import ScenarioConf
-from syn_grid.config.models.scenario.scenario_models import SCENARIO_MODELS
+from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.scenario_models import SCENARIO_MODELS
 from syn_grid.gymnasium.utils.env_factory import register_env
 from syn_grid.runners.agent_runners.agent_registry import build_runner
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
@@ -18,8 +18,10 @@ def main() -> None:
     register_env()
     config_manager = ConfigManager()
     global_conf, scenario_conf, runner_conf = load_experiment_configs(config_manager)
+
     scenario = build_scenario(global_conf.scenario, scenario_conf)
     runner_bundle = RunnerBundle(scenario, runner_conf)
+
     runner = build_runner(global_conf.human_control, runner_bundle)
 
     dispatch(runner, config_manager, (runner_bundle), global_conf)

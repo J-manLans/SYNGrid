@@ -2,7 +2,7 @@ from typing import Final
 
 from numpy.random import Generator, default_rng
 
-from syn_grid.config.models.scenario.scenario_common import GridConf
+from syn_grid.config.models.common_models import GridConf
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_factory import OrbFactory

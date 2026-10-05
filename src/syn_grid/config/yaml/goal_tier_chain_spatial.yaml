@@ -40,6 +40,3 @@ obs_conf:
 
   perception_conf:
     max_score: 100
-    max_steps: 100
-    include_timer: false
-    tiers: 5

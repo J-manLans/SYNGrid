@@ -1,0 +1,134 @@
+"""
+The tier chain family: Goal/Tier Chain and every variant built on it.
+
+Four registered scenarios share this hierarchy -- spatial, delay, and the two
+tier-scaling variants -- because they differ in *rules*, not in shape. A fogged
+window, a delay on consume, a longer reward ladder: all of those are things a
+scenario builder does, and none of them change what a config file has to contain.
+So they get one file, and a config that names any of them validates against the
+same models.
+
+The split that matters is family, not scenario name. A scenario earns its own
+file when it needs a field the family does not have -- at which point it is a
+subclass of the block below, defined next to it, and the departure is visible as
+a diff rather than spread across four files.
+
+`continuous` is a different family and does not appear here; see
+`common_models.py` for the vocabulary every family composes.
+"""
+
+from typing import Annotated
+
+from pydantic import Field, model_validator
+
+from syn_grid.config.models.common_models import (
+    GoalDroidConf,
+    NegOrbConf,
+    ObsConf,
+    OrbKindConf,
+    OrbPoolConf,
+    ScenarioConf,
+    ScoringMode,
+    WorldConf,
+)
+
+# ===================== #
+#      Droid Models      #
+# ===================== #
+
+
+class TierDroidConf(GoalDroidConf, frozen=True, extra="forbid", strict=True):
+    """A droid chasing a chain rather than a running score.
+
+    `chain_break_penalty` and `tier_consumption_penalty` only mean anything once
+    there is a chain to lose. Both ratios are deliberate and both were
+    separately identified as the interesting reward knobs -- see
+    `docs/dev/rppo-regression.md` for why the timeout penalty had to become
+    independent of the chain-break one.
+    """
+
+    chain_break_penalty: float
+    tier_consumption_penalty: float
+
+
+# ===================== #
+#       Orb Models       #
+# ===================== #
+
+
+class TierOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
+    """One orb per tier.
+
+    `max_tier` is the length of the chain, and therefore also the number of orbs
+    on the field: a tier chain derives its field size from the chain and ignores
+    `max_active_orbs`. That is why the two are separate numbers rather than one
+    number spelled twice.
+    """
+
+    max_tier: int
+    base_reward: float
+    growth_factor: float
+    linear_reward_growth: bool
+    scoring: Annotated[ScoringMode, Field(strict=False)]
+
+    @model_validator(mode="after")
+    def validate_config(self):
+        if self.growth_factor <= 0:
+            raise ValueError(f"{self.growth_factor} must be a positive value.")
+        if self.max_tier <= 0:
+            raise ValueError("max_tier should be larger than 0")
+
+        return self
+
+
+class TierDelayOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
+    delay: int
+
+
+class TierOrbPoolConf(OrbPoolConf, frozen=True, extra="forbid", strict=True):
+    tier: TierOrbConf
+    negative: NegOrbConf | None = None
+
+
+class TierDelayOrbPoolConf(TierOrbPoolConf, frozen=True, extra="forbid", strict=True):
+    tier: TierDelayOrbConf
+
+
+# ======================= #
+#   World Configuration   #
+# ======================= #
+
+
+class TierWorldConf(WorldConf, frozen=True, extra="forbid", strict=True):
+    droid_conf: TierDroidConf
+    orb_conf: TierOrbPoolConf
+
+    @model_validator(mode="after")
+    def validate_config(self):
+        if self.orb_conf.tier.max_tier >= (
+            self.grid_conf.grid_rows * self.grid_conf.grid_cols
+        ):
+            raise ValueError(
+                "max_tier can't be higher than number of cells in the grid, "
+                "there will be no space for orbs"
+            )
+
+        return self
+
+
+class TierDelayWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True):
+    orb_conf: TierDelayOrbPoolConf
+
+
+# ============================= #
+#    Top-Level Configuration   #
+# ============================= #
+
+
+class TierScenarioConf(ScenarioConf, frozen=True, extra="forbid", strict=True):
+    world_conf: TierWorldConf
+    obs_conf: ObsConf
+
+
+class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
+    world_conf: TierDelayWorldConf

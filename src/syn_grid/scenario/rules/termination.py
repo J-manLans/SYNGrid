@@ -25,7 +25,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
-from syn_grid.config.models.scenario.orb_models import ScoringMode
+from syn_grid.config.models.common_models import ScoringMode
 
 if TYPE_CHECKING:
     from syn_grid.core.grid_world import GridWorld
@@ -72,9 +72,9 @@ class GoalTermination:
     """
 
     timeout_penalty: float
-    delay: bool
+    delay: int | None
     scoring: ScoringMode
-    curriculum: bool
+    curriculum: bool | None
 
     def evaluate(
         self, world: GridWorld, steps_left: int, reward: float
@@ -82,7 +82,7 @@ class GoalTermination:
         engine = world.droid.digestion_engine
         terminated = world.droid.score <= 0
 
-        if engine.chains_broken > 0 and not self.delay:
+        if engine.chains_broken > 0 and self.delay is None:
             # A delay scenario lets a broken chain be recovered from, so the
             # break does not end the episode there.
             terminated = True
@@ -96,7 +96,7 @@ class GoalTermination:
                 reward = COMPLETION_CEILING
             terminated = True
 
-        elif self.delay and len(world.active_orbs) == 0:
+        elif self.delay is not None and len(world.active_orbs) == 0:
             # Delay mode with the field emptied and the clock still running.
             # Not a timeout -- the objective ran out of material first.
             terminated = True
@@ -119,7 +119,7 @@ class GoalTermination:
 
         reward = world.droid.digestion_engine.pending_reward
 
-        if self.delay:
+        if self.delay is not None:
             return self.timeout_penalty
 
         return reward

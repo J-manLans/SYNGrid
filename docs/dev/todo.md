@@ -117,3 +117,58 @@ Scenario architecture: see `scenario-refactor.md`.
     Related to item 12: a run's identity is currently assembled from a
     perception name, a grid size and which orb types are enabled, which is
     exactly the kind of reconstruction the scenario concept exists to stop.
+
+---
+
+## Claude
+
+Ja. Jag skulle koka ner Claudes config-fynd till det här, separerat från de senare `environment.py`/`GridWorld`-problemen:
+
+### Config-modellerna
+
+* **`max_active_orbs` ligger på fel nivå.** Det är inte universellt; tier-chain använder i praktiken `max_tier` som poolstorlek. Det bör därför inte vara ett krav i en generell orb-poolmodell.
+* **`TierOrbPoolConf` deklarerar `negative` igen**, trots att det redan finns i basmodellen. Dubblett → ta bort.
+* **`EnabledOrbsConf` är död kod** och kan tas bort.
+* **`tiers` vs `max_tier`:** båda är avsiktliga — `tiers` är observations/kurrikulum-relaterat och kan vara större än `max_tier` — men det saknas en validator om relationen ska garanteras, t.ex. `tiers >= max_tier`.
+* **`max_steps` finns på två ställen**, `ObservationHandlerConf` och `PerceptionConf`. Kontrollera om båda verkligen behövs eller om det är en kvarleva.
+* **Renderer-konfigurationen har tappat sitt hem.** `RendererConf` låg i den gamla borttagna modellen och renderaren behöver nu en ny plats för den konfigurationen.
+* **`WeightedPopulation` använder fortfarande gamla `OrbFactoryConf`**, alltså kvarleva från den gamla configstrukturen.
+* **`check_env.py` använder fortfarande `FullConf`**, ytterligare en gammal modellreferens.
+
+### Registry / typningen
+
+* **`cast(TierScenarioConf, ...)` finns fortfarande i builders.** Det beror på att `SCENARIO_MODELS` och `SCENARIO_BUILDERS` är två separata register. Ett gemensamt register som kopplar `scenario name → rätt configmodell + builder` skulle kunna ge korrekt typning utan cast.
+* `neg_orb(...)` längst ner är gammal/död kod.
+* `_require_scoring` refererar fortfarande till gamla `tier_orb_conf.scoring`.
+* Tre builders är fortfarande placeholders (`...`).
+
+### Den större arkitekturfrågan
+
+Det viktigaste fyndet är egentligen inte ett enskilt configfel:
+
+> **Config är fortfarande på väg att läcka in i runtime.**
+
+`GridWorld`, `Environment` osv. letar efter gamla `world_conf`, `droid_conf`, `obs_conf` etc. medan den nya riktningen är att config används för att **bygga ett färdigt `Scenario`**, och runtime sedan arbetar med scenario-/regelobjekten.
+
+Det är också därför frågan vi nyss diskuterade om `Scenario` som runtime-root är ganska central. Om vi går den vägen blir mycket av Claudes "hur får Environment tag på confen?" ett icke-problem: **den ska inte ha confen.**
+
+Och jag skulle nog **inte fixa alla punkterna mekaniskt ännu**. Några av dem kommer sannolikt försvinna när du gör Scenario/World-beslutet och städar den nya configmodellen.
+
+---
+
+## Chatty
+Absolut. Jag skulle sammanfatta riktningen så här:
+
+**Scenario-first runtime**
+
+* `app.py` bygger `Scenario` från config.
+* `Scenario` blir runtime-root för den konkreta simulationen.
+* Scenario-specifika komponenter skapas/komponeras där: `Droid`, `GridWorld`, population, spawning, digestion, observation, termination osv.
+* `Env` tar bara emot `Scenario` och fungerar främst som Gymnasium-adapter.
+* Undvik att `Env` tar emot `Scenario` bara för att sedan skicka det vidare till `GridWorld`.
+* Scenario-specifik mekanik kapslas bakom `Scenario`, så calling-kod behöver inte casta för att komma åt tier-specifika detaljer.
+* Behåll `DigestionEngine` tills vidare; om den visar sig bara delegera till scenariot kan den tas bort.
+
+Den centrala principen:
+
+> **Scenario definierar och komponerar den konkreta simulationen. Env exponerar den som en Gymnasium-miljö.**

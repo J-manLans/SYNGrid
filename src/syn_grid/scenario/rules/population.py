@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
+from syn_grid.config.models.common_models import NegOrbConf
+from syn_grid.config.models.tier_chain import TierOrbConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
@@ -27,15 +28,14 @@ class OrbPopulation(Protocol):
 
 class TierChainPopulation:
     """
-    One orb per tier, tiers 1..max_tier, nothing weighted.
+    One orb per tier, tiers 1...max_tier.
 
-    A tier chain is a fixed sequence, so the pool is the sequence. ``max_tier``
-    is the pool size, which is why a tier chain spawns ``max_tier`` orbs at
-    reset rather than a configured count.
+    A tier chain is a fixed sequence, so the pool is the sequence. `max_tier` is the pool size,
+    which is why a tier chain spawns `max_tier` orbs at reset rather than a configured count.
     """
 
-    def __init__(self, max_tier: int, tier_conf: TierOrbConf) -> None:
-        self._max_tier = max_tier
+    def __init__(self, tier_conf: TierOrbConf) -> None:
+        self._max_tier = tier_conf.max_tier
         self._tier_conf = tier_conf
 
     def create(self) -> list[BaseOrb]:

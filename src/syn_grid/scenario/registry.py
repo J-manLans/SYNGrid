@@ -16,10 +16,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import cast
 
-from syn_grid.config.models.global_models import Scenario_name
-from syn_grid.config.models.scenario.orb_models import ScoringMode
-from syn_grid.config.models.scenario.scenario_models import (
+from syn_grid.config.models.global_models import ScenarioName
+from syn_grid.config.models.common_models import ScoringMode
+from syn_grid.config.models.common_models import (
     ScenarioConf,
+)
+from syn_grid.config.models.tier_chain import (
     TierScenarioConf,
 )
 from syn_grid.scenario.rules.observation import ObservationRules
@@ -37,7 +39,7 @@ from syn_grid.scenario.rules.termination import (
 )
 from syn_grid.scenario.scenario import Scenario, ScenarioType
 
-ScenarioBuilder = Callable[[Scenario_name, ScenarioConf], Scenario]
+ScenarioBuilder = Callable[[ScenarioName, ScenarioConf], Scenario]
 
 
 # ===================== #
@@ -55,8 +57,8 @@ def _tier_chain_scenario(
     scenario_tag: str,
     scenario_conf: TierScenarioConf,
     *,
-    delay: bool,
-    curriculum: bool,
+    delay: int | None = None,
+    curriculum: bool | None = None,
 ) -> Scenario:
     """
     Goal/Tier Chain: collect every tier in order before the episode steps are used up.
@@ -65,14 +67,15 @@ def _tier_chain_scenario(
     all present from the first step, and nothing expires off the grid during the episode.
     """
 
+    grid_conf = scenario_conf.world_conf.grid_conf
+    tier_conf = scenario_conf.world_conf.orb_conf.tier
+
     # A chain's orb count is its length. The old schema expressed this by
     # overwriting max_active_orbs with max_tier inside a validator, so the YAML
     # value was routinely a lie. The scenario states it outright.
-    max_active_orbs = scenario_conf.world_conf.orb_conf.tier.max_tier
+    max_active_orbs = tier_conf.max_tier
 
-    population: OrbPopulation = TierChainPopulation(
-        scenario_conf.world_conf.orb_conf.tier.max_tier, scenario_conf.world_conf.orb_conf.tier
-    )
+    population: OrbPopulation = TierChainPopulation(tier_conf)
 
     spawning = SpawningRules(
         fill_pool_on_reset=True,
@@ -90,15 +93,15 @@ def _tier_chain_scenario(
     observation = ObservationRules(
         observation_slot_count=scenario_conf.obs_conf.perception_conf.tiers
         if curriculum
-        else scenario_conf.world_conf.orb_conf.tier.max_tier,
-        sort_limit=scenario_conf.world_conf.orb_conf.tier.max_tier,
-        max_tier=scenario_conf.world_conf.orb_conf.tier.max_tier,
+        else tier_conf.max_tier,
+        sort_limit=tier_conf.max_tier,
+        max_tier=tier_conf.max_tier,
     )
 
     termination = GoalTermination(
         timeout_penalty=scenario_conf.world_conf.droid_conf.timeout_penalty,
         delay=delay,
-        scoring=scenario_conf.world_conf.orb_conf.tier.scoring,
+        scoring=tier_conf.scoring,
         curriculum=curriculum,
     )
 
@@ -108,8 +111,8 @@ def _tier_chain_scenario(
         ScenarioType.GOAL,
         scenario_conf.obs_conf.observation_handler_conf.perception,
         (
-            scenario_conf.world_conf.grid_conf.grid_rows,
-            scenario_conf.world_conf.grid_conf.grid_cols
+            grid_conf.grid_rows,
+            grid_conf.grid_cols
         ),
         population,
         spawning,
@@ -137,10 +140,9 @@ def build_tier_chain_spatial(name: str, scenario_conf: ScenarioConf) -> Scenario
 
     scenario_conf = cast(TierScenarioConf, scenario_conf)
     grid_conf = scenario_conf.world_conf.grid_conf
-    neg_orb = "_Neg" if scenario_conf.world_conf.orb_conf.negative else ""
-    scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}{neg_orb}"
+    scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}{_neg_orb(scenario_conf)}"
 
-    return _tier_chain_scenario(name, scenario_tag, scenario_conf, delay=False, curriculum=True)
+    return _tier_chain_scenario(name, scenario_tag, scenario_conf)
 
 
 def build_tier_chain_scaling_sparse(name: str, scenario_conf: ScenarioConf) -> Scenario:
@@ -158,7 +160,7 @@ def build_tier_chain_delay(name: str, scenario_conf: ScenarioConf) -> Scenario:
 #    Helpers   #
 # ============ #
 
-def neg_orb(self, scenario_conf: ScenarioConf) -> str:
+def _neg_orb(scenario_conf: ScenarioConf) -> str:
     return "_Neg" if scenario_conf.world_conf.orb_conf.negative else ""
 
 
@@ -180,15 +182,15 @@ def _require_scoring(
 # ============ #
 
 
-SCENARIO_BUILDERS: dict[Scenario_name, ScenarioBuilder] = {
-    Scenario_name.GOAL_TIER_CHAIN_SPATIAL: build_tier_chain_spatial,
-    Scenario_name.GOAL_TIER_CHAIN_TIER_SCALING_SPARSE: build_tier_chain_scaling_sparse,
-    Scenario_name.GOAL_TIER_CHAIN_TIER_SCALING_DENSE: build_tier_chain_scaling_dense,
-    Scenario_name.GOAL_TIER_CHAIN_DELAY: build_tier_chain_delay,
+SCENARIO_BUILDERS: dict[ScenarioName, ScenarioBuilder] = {
+    ScenarioName.GOAL_TIER_CHAIN_SPATIAL: build_tier_chain_spatial,
+    ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_SPARSE: build_tier_chain_scaling_sparse,
+    ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_DENSE: build_tier_chain_scaling_dense,
+    ScenarioName.GOAL_TIER_CHAIN_DELAY: build_tier_chain_delay,
 }
 
 
-def build_scenario(scenario: Scenario_name, scenario_conf: ScenarioConf) -> Scenario:
+def build_scenario(scenario: ScenarioName, scenario_conf: ScenarioConf) -> Scenario:
     """Resolve a scenario name into the rules that define it."""
 
     try:

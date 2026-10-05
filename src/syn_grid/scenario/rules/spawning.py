@@ -86,7 +86,7 @@ class SpawningRules:
     fill_pool_on_reset: bool
     max_active_orbs: int
     tier_orb_expires: bool
-    delay_on_consume: bool
+    delay_on_consume: int | None
     after_action: AfterAction
 
     def on_reset(self, world: GridWorld) -> None:
@@ -97,7 +97,7 @@ class SpawningRules:
             world.spawn_orb_if_ready()
 
     def on_orb_consumed(self, world: GridWorld) -> None:
-        if self.delay_on_consume:
+        if self.delay_on_consume is not None:
             world.deactivate_all_orbs()
 
     def after_step(self, world: GridWorld) -> None:

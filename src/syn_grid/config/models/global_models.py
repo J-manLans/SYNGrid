@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 #      Helper Types       #
 # ======================= #
 
-class Scenario_name(str, Enum):
+class ScenarioName(str, Enum):
     GOAL_TIER_CHAIN_SPATIAL = "goal_tier_chain_spatial"
     GOAL_TIER_CHAIN_TIER_SCALING_SPARSE = "goal_tier_chain_tier_scaling_sparse"
     GOAL_TIER_CHAIN_TIER_SCALING_DENSE = "goal_tier_chain_tier_scaling_dense"
@@ -41,5 +41,5 @@ class GlobalConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """
 
     snapshot: SnapshotConf
-    scenario: Annotated[Scenario_name, Field(strict=False)]
+    scenario: Annotated[ScenarioName, Field(strict=False)]
     human_control: bool

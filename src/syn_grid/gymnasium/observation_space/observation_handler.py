@@ -2,7 +2,7 @@ from typing import Any, Final
 
 from gymnasium import spaces
 
-from syn_grid.config.models.scenario.scenario_common import ObsConf
+from syn_grid.config.models.common_models import ObsConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,

@@ -4,7 +4,7 @@ from typing import Any, Final
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.config.models.scenario.scenario_common import PerceptionConf
+from syn_grid.config.models.common_models import PerceptionConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.scenario.rules.observation import ObservationRules
