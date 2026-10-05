@@ -1,4 +1,6 @@
 
+from typing import Literal
+
 from pydantic import BaseModel, model_validator
 
 # ======================= #
@@ -21,15 +23,13 @@ class TrainConf(BaseModel, frozen=True, extra="forbid", strict=True):
     n_envs: int
     timesteps: int
     iterations: int
-    render_mode: str | None
+    render_mode: Literal["human", "rgb_array"] | None
     record_video: bool = False
     rec_interval: int
     rec_length: int
 
     @model_validator(mode="after")
     def validate_config(self):
-        if self.render_mode not in ["human", "rgb_array", None]:
-            raise ValueError("The value of render mode is not allowed")
         if self.n_envs <= 0:
             raise ValueError(
                 f"envs:{self.n_envs}. Can't train if there isn't an environment to train on."
@@ -46,15 +46,13 @@ class TrainConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 class EvalConf(BaseModel, frozen=True, extra="forbid", strict=True):
     num_eval_episodes: int
-    render_mode: str | None
+    render_mode: Literal["human", "rgb_array"] | None
     record_video: bool = False
     rec_episode: int
     csv_output: bool
 
     @model_validator(mode="after")
     def validate_config(self):
-        if self.render_mode not in ["human", "rgb_array", None]:
-            raise ValueError("The value of render mode is not allowed")
         if self.record_video and self.render_mode != "rgb_array":
             raise ValueError("record_video requires render_mode='rgb_array'")
         return self

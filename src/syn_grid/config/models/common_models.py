@@ -27,7 +27,7 @@ from pydantic import BaseModel, Field, model_validator
 # ======================= #
 
 
-class ObservationType(str, Enum):
+class Perception(str, Enum):
     VECTOR_FOG_OF_WAR = "vector_fog_of_war"
     VECTOR_MARKOVIAN = "vector_markovian"
 
@@ -38,8 +38,8 @@ class ObservationType(str, Enum):
 
 
 class GridConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    grid_rows: int
-    grid_cols: int
+    grid_rows: int = Field(gt=0)
+    grid_cols: int = Field(gt=0)
 
 
 # ======================= #
@@ -82,16 +82,15 @@ class GoalDroidConf(DroidConf, frozen=True, extra="forbid", strict=True):
 
 
 class OrbKindConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    cool_down: int
-    weight: int
+    cool_down: int = Field(ge=0)
+    weight: int = Field(gt=0)
 
 
 class NegOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
-    reward: float
+    reward: float = Field(le=0)
 
 
 class OrbPoolConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    max_active_orbs: int
     negative: NegOrbConf | None = None
 
 
@@ -101,8 +100,8 @@ class OrbPoolConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 
 class ObservationHandlerConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    perception: Annotated[ObservationType, Field(strict=False)]
-    max_steps: int
+    perception: Annotated[Perception, Field(strict=False)]
+    max_steps: int = Field(gt=0)
 
 
 class PerceptionConf(BaseModel, frozen=True, extra="forbid", strict=True):

@@ -85,15 +85,8 @@ def _tier_chain_scenario(
         after_action=ReactivateAllOrbs() if delay else LeaveFieldAlone(),
     )
 
-    # Two different counts, and deliberately so. Under curriculum the
-    # observation is sized for `tiers` slots even though the chain is shorter,
-    # so the agent always sees the same width; the distance sort that fills
-    # those slots has never followed that setting, so the trailing slots stay
-    # zero. See ObservationRules.
     observation = ObservationRules(
-        observation_slot_count=scenario_conf.obs_conf.perception_conf.tiers
-        if curriculum
-        else tier_conf.max_tier,
+        observation_slot_count=tier_conf.max_tier,
         sort_limit=tier_conf.max_tier,
         max_tier=tier_conf.max_tier,
     )

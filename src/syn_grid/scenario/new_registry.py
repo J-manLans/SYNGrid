@@ -73,7 +73,7 @@ def build_tier_chain_spatial(
     )
 
     observation = ObservationRules(
-        observation_slot_count=scenario_conf.obs_conf.perception_conf.tiers,
+        observation_slot_count=tier_conf.max_tier,
         sort_limit=tier_conf.max_tier,
         max_tier=tier_conf.max_tier,
     )

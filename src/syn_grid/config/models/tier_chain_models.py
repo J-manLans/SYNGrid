@@ -77,29 +77,18 @@ class TierOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
     """One orb per tier.
 
     `max_tier` is the length of the chain, and therefore also the number of orbs
-    on the field: a tier chain derives its field size from the chain and ignores
-    `max_active_orbs`. That is why the two are separate numbers rather than one
-    number spelled twice.
+    on the field: a tier chain derives its field size from the chain.
     """
 
-    max_tier: int
+    max_tier: int = Field(gt=0)
     base_reward: float
-    growth_factor: float
+    growth_factor: float = Field(gt=0)
     linear_reward_growth: bool
     scoring: Annotated[ScoringMode, Field(strict=False)]
 
-    @model_validator(mode="after")
-    def validate_config(self):
-        if self.growth_factor <= 0:
-            raise ValueError(f"{self.growth_factor} must be a positive value.")
-        if self.max_tier <= 0:
-            raise ValueError("max_tier should be larger than 0")
-
-        return self
-
 
 class TierDelayOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
-    delay: int
+    delay: int = Field(gt=0)
 
 
 class TierOrbPoolConf(OrbPoolConf, frozen=True, extra="forbid", strict=True):
@@ -120,7 +109,7 @@ class TierWorldConf(WorldConf, frozen=True, extra="forbid", strict=True):
     orb_conf: TierOrbPoolConf
 
     @model_validator(mode="after")
-    def validate_config(self):
+    def validate_chain_fits_grid(self):
         if self.orb_conf.tier.max_tier >= (
             self.grid_conf.grid_rows * self.grid_conf.grid_cols
         ):

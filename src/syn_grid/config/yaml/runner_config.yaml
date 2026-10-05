@@ -1,9 +1,7 @@
-# SYNGrid scenario config, migrated to scenario selection.
+# SYNGrid runner config: how an agent is trained and evaluated.
 #
-# scenario: goal_tier_chain_spatial
-# The flags that used to imply this scenario are gone. What remains is
-# tunable: geometry, the chain length, penalties, reward shape, and the
-# perception. The scenario decides what those mean.
+# Nothing here describes the world. The scenario is selected in
+# global_config.yaml and configured in its own file.
 
 common_conf:
   alg: PPO

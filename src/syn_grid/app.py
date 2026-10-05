@@ -2,8 +2,8 @@ from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models.global_models import GlobalConf
 from syn_grid.config.models.runner_models import RunnerConf
 from syn_grid.config.models.common_models import ScenarioConf
-from syn_grid.config.models.scenario_models import SCENARIO_MODELS
-from syn_grid.gymnasium.utils.env_factory import register_env
+from syn_grid.config.models.scenario_registry import SCENARIO_MODELS
+from syn_grid.gymnasium.utils.env_factory import check_my_env, make, register_env
 from syn_grid.runners.agent_runners.agent_registry import build_runner
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
@@ -66,7 +66,7 @@ def dispatch(
     """
     Run an agent runner according to the loaded experiment configuration.
 
-    Handles the snapshot, training, and evaluation modes. Not used for
+    Handles the snapshot, env check, training, and evaluation modes. Not used for
     HumanRunner, which is driven directly via `human_player_loop()`
     since it doesn't participate in snapshot/train/eval dispatch.
 
@@ -82,6 +82,11 @@ def dispatch(
             runner.get_unique_model_id()
         )
         print("Config snapshot saved. Exiting.")
+        return
+
+    if agent_bundle.runner_conf.common_conf.check_env:
+        check_my_env(make(agent_bundle.scenario, render_mode=None))
+        print("Environment is fine. Exiting.")
         return
 
     if agent_bundle.runner_conf.common_conf.training:

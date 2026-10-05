@@ -7,8 +7,8 @@ calls the orb factory.
 
 from __future__ import annotations
 
-from syn_grid.config.models.scenario.droid_models import DroidConf, TierDroidConf
-from syn_grid.config.models.scenario.orb_models import OrbPoolConf, TierOrbPoolConf
+from syn_grid.config.models.common_models import DroidConf, OrbPoolConf
+from syn_grid.config.models.tier_chain_models import TierDroidConf, TierOrbPoolConf
 from syn_grid.core.digestion.new_digestion import OrbDigester
 from syn_grid.core.digestion.new_engine import DigestionEngine
 from syn_grid.core.digestion.new_negative_digester import NegativeDigester

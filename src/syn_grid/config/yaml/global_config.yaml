@@ -1,9 +1,7 @@
-# SYNGrid scenario config, migrated to scenario selection.
+# SYNGrid global config: settings that apply to every run.
 #
-# scenario: goal_tier_chain_spatial
-# The flags that used to imply this scenario are gone. What remains is
-# tunable: geometry, the chain length, penalties, reward shape, and the
-# perception. The scenario decides what those mean.
+# `scenario` names the scenario to run; its tunables live in the YAML file of
+# the same name. `human_control` plays the scenario by hand instead of training.
 snapshot:
   enabled: false
   id:

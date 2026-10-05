@@ -19,7 +19,6 @@ world_conf:
     tier_consumption_penalty: -0.001
 
   orb_conf:
-    max_active_orbs: 3
     # negative:
     #   reward:
     #   cool_down:
