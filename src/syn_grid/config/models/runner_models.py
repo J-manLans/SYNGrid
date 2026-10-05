@@ -5,7 +5,7 @@ from pydantic import BaseModel, model_validator
 #  Nested Configurations   #
 # ======================= #
 
-class CommonConf(BaseModel, frozen=False):
+class CommonConf(BaseModel, frozen=True, extra="forbid", strict=True):
     alg: str
     agent_steps: str
     seed: int
@@ -13,7 +13,7 @@ class CommonConf(BaseModel, frozen=False):
     check_env: bool
 
 
-class TrainConf(BaseModel, frozen=False):
+class TrainConf(BaseModel, frozen=True, extra="forbid", strict=True):
     continue_training: bool
     csv_output: bool
     tensorboard_output: bool
@@ -44,7 +44,7 @@ class TrainConf(BaseModel, frozen=False):
         return self
 
 
-class EvalConf(BaseModel, frozen=False):
+class EvalConf(BaseModel, frozen=True, extra="forbid", strict=True):
     num_eval_episodes: int
     render_mode: str | None
     record_video: bool = False
@@ -63,7 +63,7 @@ class EvalConf(BaseModel, frozen=False):
 #    Top-Level Configurations   #
 # ============================= #
 
-class RunnerConf(BaseModel, frozen=False):
+class RunnerConf(BaseModel, frozen=True, extra="forbid", strict=True):
     common_conf: CommonConf
     train_conf: TrainConf
     eval_conf: EvalConf

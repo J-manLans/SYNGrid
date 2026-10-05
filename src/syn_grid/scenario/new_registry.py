@@ -10,12 +10,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import cast
 
-from syn_grid.config.models.global_models import Scenario_name
-from syn_grid.config.models.scenario.orb_models import ScoringMode
-from syn_grid.config.models.scenario.scenario_models import (
-    ScenarioConf,
-    TierScenarioConf,
-)
+from syn_grid.config.models.global_models import ScenarioName
+from syn_grid.config.models.tier_chain_models import ScoringMode
+from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.tier_chain_models import TierScenarioConf
 from syn_grid.core.digestion.new_builder import build_digestion
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.grid_world import GridWorld
@@ -28,7 +26,7 @@ from syn_grid.scenario.rules.population import (
 from syn_grid.scenario.rules.spawning import LeaveFieldAlone, SpawningRules
 from syn_grid.scenario.rules.termination import GoalTermination
 
-ScenarioBuilder = Callable[[Scenario_name, ScenarioConf], Scenario]
+ScenarioBuilder = Callable[[ScenarioName, ScenarioConf], Scenario]
 
 
 def build_tier_chain_spatial(
@@ -128,16 +126,16 @@ def _require_scoring(
         )
 
 
-SCENARIO_BUILDERS: dict[Scenario_name, ScenarioBuilder] = {
-    Scenario_name.GOAL_TIER_CHAIN_SPATIAL: build_tier_chain_spatial,
-    Scenario_name.GOAL_TIER_CHAIN_TIER_SCALING_SPARSE: build_tier_chain_scaling_sparse,
-    Scenario_name.GOAL_TIER_CHAIN_TIER_SCALING_DENSE: build_tier_chain_scaling_dense,
-    Scenario_name.GOAL_TIER_CHAIN_DELAY: build_tier_chain_delay,
+SCENARIO_BUILDERS: dict[ScenarioName, ScenarioBuilder] = {
+    ScenarioName.GOAL_TIER_CHAIN_SPATIAL: build_tier_chain_spatial,
+    ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_SPARSE: build_tier_chain_scaling_sparse,
+    ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_DENSE: build_tier_chain_scaling_dense,
+    ScenarioName.GOAL_TIER_CHAIN_DELAY: build_tier_chain_delay,
 }
 
 
 def build_scenario(
-    scenario: Scenario_name,
+    scenario: ScenarioName,
     scenario_conf: ScenarioConf,
 ) -> Scenario:
     """Resolve a scenario name into its fully composed scenario."""

@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final
 
-from syn_grid.config.models.scenario.orb_models import ScoringMode
+from syn_grid.config.models.tier_chain_models import ScoringMode
 from syn_grid.core.digestion.new_digestion import DigestionResult, Event, OrbKind
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import OrbCategory, SynergyType

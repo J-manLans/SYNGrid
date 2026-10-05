@@ -17,11 +17,11 @@ from collections.abc import Callable
 from typing import cast
 
 from syn_grid.config.models.global_models import ScenarioName
-from syn_grid.config.models.common_models import ScoringMode
+from syn_grid.config.models.tier_chain_models import ScoringMode
 from syn_grid.config.models.common_models import (
     ScenarioConf,
 )
-from syn_grid.config.models.tier_chain import (
+from syn_grid.config.models.tier_chain_models import (
     TierScenarioConf,
 )
 from syn_grid.scenario.rules.observation import ObservationRules

@@ -1,6 +1,6 @@
 from typing import Final
 
-from syn_grid.config.models.common_models import ScoringMode
+from syn_grid.config.models.tier_chain_models import ScoringMode
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 

@@ -17,20 +17,37 @@ a diff rather than spread across four files.
 `common_models.py` for the vocabulary every family composes.
 """
 
+from enum import Enum
 from typing import Annotated
 
 from pydantic import Field, model_validator
 
 from syn_grid.config.models.common_models import (
     GoalDroidConf,
-    NegOrbConf,
-    ObsConf,
     OrbKindConf,
     OrbPoolConf,
     ScenarioConf,
-    ScoringMode,
     WorldConf,
 )
+
+# ======================= #
+#      Helper Types       #
+# ======================= #
+
+
+class ScoringMode(str, Enum):
+    """
+    How a tier chain's reward is paid out.
+
+    One value rather than three mutually exclusive booleans. The booleans had
+    to be validated against each other on every load, and a fourth copy of the
+    question lived in the world config where the digestion engine could not see
+    it and episode termination read the wrong one.
+    """
+
+    STEP_WISE = "step_wise"
+    THRESHOLD = "threshold"
+    MAX_TIER = "max_tier"
 
 # ===================== #
 #      Droid Models      #
@@ -87,7 +104,6 @@ class TierDelayOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
 
 class TierOrbPoolConf(OrbPoolConf, frozen=True, extra="forbid", strict=True):
     tier: TierOrbConf
-    negative: NegOrbConf | None = None
 
 
 class TierDelayOrbPoolConf(TierOrbPoolConf, frozen=True, extra="forbid", strict=True):
@@ -127,7 +143,6 @@ class TierDelayWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True
 
 class TierScenarioConf(ScenarioConf, frozen=True, extra="forbid", strict=True):
     world_conf: TierWorldConf
-    obs_conf: ObsConf
 
 
 class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):

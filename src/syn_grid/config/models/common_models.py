@@ -20,37 +20,16 @@ from enum import Enum
 from typing import Annotated
 
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 # ======================= #
 #      Helper Types       #
 # ======================= #
 
 
-class StrictModel(BaseModel):
-    # TODO: when everything is working, see if this one can be used instead of explicitly stating
-    # the keywords in each class. think this can be good for the tests, since they can override the
-    # frozen keyword.
-    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
-
 class ObservationType(str, Enum):
     VECTOR_FOG_OF_WAR = "vector_fog_of_war"
     VECTOR_MARKOVIAN = "vector_markovian"
-
-
-class ScoringMode(Enum):
-    """
-    How a tier chain's reward is paid out.
-
-    One value rather than three mutually exclusive booleans. The booleans had
-    to be validated against each other on every load, and a fourth copy of the
-    question lived in the world config where the digestion engine could not see
-    it and episode termination read the wrong one.
-    """
-
-    STEP_WISE = "step_wise"
-    THRESHOLD = "threshold"
-    MAX_TIER = "max_tier"
 
 
 # ======================= #

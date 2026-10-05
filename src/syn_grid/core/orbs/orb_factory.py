@@ -1,5 +1,5 @@
 from syn_grid.config.models.common_models import NegOrbConf
-from syn_grid.config.models.tier_chain import TierOrbConf
+from syn_grid.config.models.tier_chain_models import TierOrbConf
 
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.scenario.rules.population import OrbPopulation
