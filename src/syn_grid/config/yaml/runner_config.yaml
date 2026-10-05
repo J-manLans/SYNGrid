@@ -8,7 +8,6 @@ common_conf:
   agent_steps: '1605632'
   seed: 3
   training: true
-  check_env: false
 train_conf:
   continue_training: false
   csv_output: true

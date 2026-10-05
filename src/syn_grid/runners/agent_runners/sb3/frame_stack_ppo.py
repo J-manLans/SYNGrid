@@ -26,7 +26,7 @@ class FrameStackPPO(BaseSB3Runner[PPO]):
 
     def __init__(self, runner_bundle: RunnerBundle):
         policy = resolve_policy(
-            runner_bundle.scenario.perception
+            runner_bundle.scenario.observation.perception
         )
         hyper_parameters = {"policy": policy, **self._HYPER_PARAMETERS}
 

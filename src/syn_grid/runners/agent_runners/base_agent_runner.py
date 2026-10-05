@@ -76,7 +76,7 @@ class BaseAgentRunner(ABC):
         self._log_dir.mkdir(parents=True, exist_ok=True)
 
     def _set_models_base_id(self) -> None:
-        perception = self.scenario.perception
+        perception = self.scenario.observation.perception.value
 
         # The glob this feeds must not match a checkpoint trained on a different grid — the observation vector is a fixed length at every grid size.
         rows, cols = self.scenario.grid_dimensions

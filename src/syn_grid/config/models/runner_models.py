@@ -12,7 +12,6 @@ class CommonConf(BaseModel, frozen=True, extra="forbid", strict=True):
     agent_steps: str
     seed: int
     training: bool
-    check_env: bool
 
 
 class TrainConf(BaseModel, frozen=True, extra="forbid", strict=True):
