@@ -33,4 +33,3 @@ class Scenario:
     world: GridWorld
     observation: ObservationRules
     termination: TerminationRules
-}

@@ -16,7 +16,7 @@ from syn_grid.config.models.scenario.scenario_models import (
     ScenarioConf,
     TierScenarioConf,
 )
-from syn_grid.core.droid.digestion_engine import DigestionEngine
+from syn_grid.core.digestion.new_builder import build_digestion
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.scenario.new_scenario import Scenario
@@ -51,11 +51,8 @@ def build_tier_chain_spatial(
         tier_conf,
     )
 
-    digestion = DigestionEngine(
-        droid_conf.tier_consumption_penalty,
-        droid_conf.reward_multiplier,
-        droid_conf.chain_break_penalty,
-    )
+    # Which digesters exist follows from the orb config, not from this builder.
+    digestion = build_digestion(orb_conf, droid_conf)
 
     droid = SynergyDroid(
         droid_conf,
