@@ -1,7 +1,7 @@
 from syn_grid.config.config_manager import ConfigManager
+from syn_grid.config.models.common_models import ScenarioConf
 from syn_grid.config.models.global_models import GlobalConf
 from syn_grid.config.models.runner_models import RunnerConf
-from syn_grid.config.models.common_models import ScenarioConf
 from syn_grid.config.models.scenario_registry import SCENARIO_MODELS
 from syn_grid.gymnasium.utils.env_factory import register_env
 from syn_grid.runners.agent_runners.agent_registry import build_runner
@@ -19,8 +19,10 @@ def main() -> None:
     config_manager = ConfigManager()
     global_conf, scenario_conf, runner_conf = load_experiment_configs(config_manager)
 
-    scenario = build_scenario(global_conf.scenario, scenario_conf)
-    runner_bundle = RunnerBundle(scenario, runner_conf)
+    runner_bundle = RunnerBundle(
+        build_scenario(global_conf.scenario, scenario_conf),
+        runner_conf
+    )
 
     runner = build_runner(global_conf.human_control, runner_bundle)
 
@@ -42,7 +44,6 @@ def load_experiment_configs(config_manager: ConfigManager) -> tuple[
 
     Args:
         config_manager: Manager used to load the YAML configuration files.
-
     Returns:
         A tuple containing the global, scenario and runner configuration.
     """

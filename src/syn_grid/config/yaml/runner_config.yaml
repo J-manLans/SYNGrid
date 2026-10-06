@@ -4,10 +4,13 @@
 # global_config.yaml and configured in its own file.
 
 common_conf:
-  alg: PPO
+  alg: RPPO
   agent_steps: '1605632'
   seed: 3
   training: true
+  # Optional. Joined onto the scenario's tag in the run id; set it when you
+  # change something outside the scenario's own axis.
+  tag:
 train_conf:
   continue_training: false
   csv_output: true

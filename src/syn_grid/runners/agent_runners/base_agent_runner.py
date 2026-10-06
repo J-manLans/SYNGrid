@@ -23,7 +23,7 @@ class BaseAgentRunner(ABC):
         self._train_conf = runner_bundle.runner_conf.train_conf
         self._eval_conf = runner_bundle.runner_conf.eval_conf
         self.scenario = runner_bundle.scenario
-        self._save_folder = self.scenario.name
+        self._save_folder = self.scenario.scenario_name
         # Get current date and time to us as id for unique file naming
         self._date = get_date()
 
@@ -78,13 +78,16 @@ class BaseAgentRunner(ABC):
     def _set_models_base_id(self) -> None:
         perception = self.scenario.observation.perception.value
 
-        # The glob this feeds must not match a checkpoint trained on a different grid — the observation vector is a fixed length at every grid size.
-        rows, cols = self.scenario.grid_dimensions
-        grid_suffix = f"_{rows}x{cols}"
+        # The scenario's tag is its own axis; the user's tag, if set, marks a
+        # change outside it. The algorithm closes the id because checkpoints
+        # are found by prefix, so a tag must never come last.
+        tag = self.scenario.scenario_tag
+        if self._runner_conf.tag:
+            tag = f"{tag}_{self._runner_conf.tag}"
 
         self._id = (
-            f"{perception}_seed{self._runner_conf.seed}_{grid_suffix}"
-            f"__TAG_{self.scenario.tag}_{self._runner_conf.alg}"
+            f"{perception}_seed{self._runner_conf.seed}"
+            f"__TAG_{tag}__{self._runner_conf.alg}"
         )
 
     # === Env factory === #

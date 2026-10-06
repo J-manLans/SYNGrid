@@ -2,43 +2,38 @@
 What a scenario lets the agent see.
 
 The scenario owns how many orb slots an observation is built to hold, because
-that is a property of the world rather than of the perception encoding. Two
-different counts are involved and they are not the same number, which is why
-they are named rather than inlined:
-
-* ``observation_slot_count`` sizes the observation vector. Under curriculum
-  training a tier chain reserves more slots than there are orbs, so the agent
-  sees a fixed-width field regardless of how far the world has progressed.
-* ``sort_limit`` caps the distance sort that picks which orbs get written into
-  those slots. This one has never followed the curriculum setting, so with
-  curriculum on, the trailing slots are sized but left at zero. That is
-  existing behaviour and the reason the two are not collapsed into one.
-
-``include_timer`` stays in the observation config rather than moving here. It
-is a choice about encoding, not about the world: only the perceptions that
-have a spare column for it read it, and nothing forces the two to agree.
+that is a property of the world rather than of the perception encoding. It
+also states which perception encodes the world and the bounds that encoding is
+scaled against, so the Gymnasium adapter is told everything it needs and never
+reads a config.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
+from syn_grid.config.models.common_models import Perception
+
 
 @dataclass(frozen=True)
 class ObservationRules:
-    """How many orb slots the agent's observation holds, and how many orbs
-    compete for them.
+    """How the agent's observation is built.
 
     Attributes:
+        perception: which perception encodes the world.
+        max_steps: the episode's step budget.
+        max_score: the upper bound a score is encoded against, or None for
+            a scenario whose observation does not carry the score.
         observation_slot_count: sizes the observation vector.
         sort_limit: caps the distance sort that chooses which orbs are written
             into those slots.
         max_tier: the upper bound a tier value is encoded against, for the
-            perceptions that give tier its own channel. Taken from the world
-            rather than from the observation config, which used to carry a
-            second copy that had to be kept in step by hand.
+            perceptions that give tier its own channel.
     """
 
+    perception: Perception
+    max_steps: int
+    max_score: int | None
     observation_slot_count: int
     sort_limit: int
     max_tier: int

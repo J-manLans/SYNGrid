@@ -41,7 +41,7 @@ spawning rules already built and contains no scenario-specific branches.
 penalties, and passes a consumed orb to its `DigestionEngine`. The engine turns
 "an orb was consumed" into a reward by routing the orb to the digester that
 owns its kind, letting the other digesters notice it, and counting the events
-they report. `TierDigester` carries the chain state and the three scoring
+they report. `TierDigester` carries the chain state and the two scoring
 modes; `NegativeDigester` simply pays the orb's own reward.
 
 Orbs (`orbs/`) are passive objects with a position, a reward, an `OrbMeta`

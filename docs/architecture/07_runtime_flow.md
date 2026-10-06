@@ -27,7 +27,7 @@ SYNGridEnv.step(action)
   │     └─▶ SpawningRules.after_step
   │   ◀── step penalty + orb reward
   ├─  steps_left -= 1
-  ├─▶ GoalTermination.evaluate(world, steps_left, reward)
+  ├─▶ TierChainTermination.evaluate(world, steps_left, reward)
   │   ◀── EpisodeOutcome(terminated, truncated=False, reward)
   ├─▶ ObservationHandler.get_observation
   │      └─▶ VectorFogOfWar.get_observation

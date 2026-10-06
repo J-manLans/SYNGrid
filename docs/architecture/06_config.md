@@ -23,8 +23,7 @@ ScenarioConf ─────────────── TierScenarioConf ─�
 │     ├── droid_conf : DroidConf ── GoalDroidConf ── TierDroidConf
 │     └── orb_conf   : OrbPoolConf ─ TierOrbPoolConf ─ TierDelayOrbPoolConf
 └── obs_conf : ObsConf
-      ├── observation_handler_conf
-      └── perception_conf
+      └── observation_handler_conf
 ```
 
 Configuration is three YAML files in `config/yaml/`, each validated by a

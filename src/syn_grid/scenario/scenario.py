@@ -8,12 +8,10 @@ existed, that knowledge was reconstructed from unrelated booleans at each site
 that needed it, which meant two sites could read the same config and conclude
 different things.
 
-``Scenario`` is a composition root and nothing more: an identity plus the rule
-objects that implement it. It holds no behaviour of its own, and the domain
-hierarchy is expressed by which rules get composed rather than by a class
-hierarchy. Goal/Tier Chain and Continuous share almost no mechanics, and
-Spatial/Delay/Tier Scaling differ only in the rules they are given, so
-inheritance would be a claim the code does not support.
+``Scenario`` is a recipe and nothing more: an identity, the rules the
+Gymnasium adapter needs, and a way to build the world. It holds no behaviour
+and no state of its own, so one scenario can be handed to any number of
+environments and each builds a world nobody else touches.
 
 Adding a scenario is a new builder in ``registry.py`` plus, if it introduces a
 genuinely new mechanic, a new rules module. Nothing outside this package needs
@@ -22,52 +20,33 @@ to learn the scenario's name.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
 
+from syn_grid.core.grid_world import GridWorld
 from syn_grid.scenario.rules.observation import ObservationRules
-from syn_grid.scenario.rules.population import OrbPopulation
-from syn_grid.scenario.rules.spawning import SpawningRules
 from syn_grid.scenario.rules.termination import TerminationRules
-
-
-class ScenarioType(Enum):
-    """The two roots of the scenario hierarchy.
-
-    ``GOAL`` scenarios have an objective and end when it is met or lost.
-    ``CONTINUOUS`` scenarios have no objective and end only when the clock runs
-    out or the score does.
-    """
-
-    GOAL = "goal"
-    CONTINUOUS = "continuous"
 
 
 @dataclass(frozen=True)
 class Scenario:
-    """A named scenario and the rules that define it.
+    """A named scenario, its rules, and how to build its world.
 
     Attributes:
         name: the scenario's registered name, as written in the config's
             ``scenario:`` key. This is the scenario's identity and it is what
             the config selects on.
-        kind: which root of the hierarchy this scenario belongs to.
-        population: how the orb pool is built.
-        spawning: how the orb field behaves over an episode.
-        observation: how much of the orb field the observation holds.
+        tag: where this run sits on the scenario's own axis, for run ids: the
+            grid for spatial, tier and grid for tier scaling, the delay for
+            delay.
+        observation: what the agent sees and how wide the observation is.
         termination: when the episode ends and what the last step pays.
+        build_world: returns a new world, with its own droid, orbs and
+            digestion, on every call.
     """
 
-    name: str
-    tag: str
-    type: ScenarioType
-    perception: str
-    grid_dimensions: tuple[int, int]
-    population: OrbPopulation
-    spawning: SpawningRules
+    scenario_name: str
+    scenario_tag: str
     observation: ObservationRules
     termination: TerminationRules
-
-    @property
-    def is_goal(self) -> bool:
-        return self.type is ScenarioType.GOAL
+    build_world: Callable[[], GridWorld]

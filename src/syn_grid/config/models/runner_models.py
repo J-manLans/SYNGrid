@@ -12,6 +12,7 @@ class CommonConf(BaseModel, frozen=True, extra="forbid", strict=True):
     agent_steps: str
     seed: int
     training: bool
+    tag: str | None = None
 
 
 class TrainConf(BaseModel, frozen=True, extra="forbid", strict=True):

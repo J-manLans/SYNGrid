@@ -19,11 +19,21 @@ from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 
 
+# ################## #
+#     Interface      #
+# ################## #
+
+
 @runtime_checkable
 class OrbPopulation(Protocol):
     """Builds the world's orb pool."""
 
     def create(self) -> list[BaseOrb]: ...
+
+
+# ################## #
+#     Strategies     #
+# ################## #
 
 
 class TierChainPopulation:
@@ -34,13 +44,31 @@ class TierChainPopulation:
     which is why a tier chain spawns `max_tier` orbs at reset rather than a configured count.
     """
 
-    def __init__(self, tier_conf: TierOrbConf) -> None:
-        self._max_tier = tier_conf.max_tier
-        self._tier_conf = tier_conf
+    def __init__(
+        self,
+        max_tier: int,
+        *,
+        base_reward: float,
+        growth_factor: float,
+        linear_reward_growth: bool,
+        cool_down: int,
+    ) -> None:
+        self._max_tier = max_tier
+        self._base_reward = base_reward
+        self._growth_factor = growth_factor
+        self._linear_reward_growth = linear_reward_growth
+        self._cool_down = cool_down
 
     def create(self) -> list[BaseOrb]:
         return [
-            TierOrb(tier, self._tier_conf, self._max_tier)
+            TierOrb(
+                tier,
+                self._max_tier,
+                self._base_reward,
+                self._growth_factor,
+                self._linear_reward_growth,
+                self._cool_down,
+            )
             for tier in range(1, self._max_tier + 1)
         ]
 
@@ -51,7 +79,13 @@ class WeightedPopulation:
     Counts come from the configured weights, scaled so the rarest type gets at
     least one orb and the total is at least ``max_active_orbs * 3`` so there is
     always something to spawn.
+
+    TODO: rebuild this when scenarios that uses it is getting verified
     """
+
+    # ================== #
+    #        Init        #
+    # ================== #
 
     def __init__(
         self,
@@ -63,6 +97,10 @@ class WeightedPopulation:
         self._negative_conf = negative_conf
         self._tier_conf = tier_conf
         self._min_pool_size = orb_factory_conf.max_active_orbs * 3
+
+    # ================== #
+    #        Api         #
+    # ================== #
 
     def create(self) -> list[BaseOrb]:
         enabled_orbs = self._get_conf_enabled_orbs()
@@ -83,7 +121,9 @@ class WeightedPopulation:
 
         return orbs
 
-    # === Helpers === #
+    # ================== #
+    #      Helpers       #
+    # ================== #
 
     def _get_conf_enabled_orbs(self) -> dict[str, int]:
         """Return enabled orb types and their weights from orb_manager_conf"""
