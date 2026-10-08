@@ -22,7 +22,7 @@ SYNGridEnv.step(action)
   │     ├─▶ SynergyDroid.perform_action            move, step/boundary penalty
   │     ├─▶ SynergyDroid.consume_orb               if the droid is on an orb
   │     │      └─▶ DigestionEngine.digest
-  │     │             └─▶ TierDigester.digest      reward + chain events
+  │     │             └─▶ TierOrbDigester.digest   reward + chain events
   │     ├─▶ SpawningRules.on_orb_consumed
   │     └─▶ SpawningRules.after_step
   │   ◀── step penalty + orb reward

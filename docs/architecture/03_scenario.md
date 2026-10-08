@@ -17,7 +17,7 @@ one scenario. `registry.py` is the **construction**: the builders that read a
 scenario config and assemble those objects, and the function that builds a
 world.
 
-A `Scenario` is a frozen recipe: a name and tag, the grid size, the
+A `Scenario` is a frozen recipe: `scenario_name` and `scenario_tag`, the
 `ObservationRules`, the termination rules, and a `build_world` callable. It
 holds no world and no episode state, so one `Scenario` is shared by every
 environment in the process. The rule objects in `rules/` are stateless too —

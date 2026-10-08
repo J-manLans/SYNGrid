@@ -210,7 +210,6 @@ __marimo__/
 # Our own ignores #
 ###################
 output/
-AGENTS.md
 .opencode/
 .vscode/
 !.vscode/launch.json

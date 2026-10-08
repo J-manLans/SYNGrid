@@ -26,7 +26,7 @@ core/
 GridWorld
  ├── droid : SynergyDroid
  │     └── digestion_engine : DigestionEngine
- │            └── digesters (TierDigester, NegativeDigester)
+ │            └── digesters (TierOrbDigester, NegativeDigester)
  ├── ALL_ORBS : list[BaseOrb]
  └── _spawning : SpawningRules   (from the scenario, shared)
 ```
@@ -34,14 +34,15 @@ GridWorld
 `core/` is the simulation, with no knowledge of Gymnasium spaces or training.
 `GridWorld` is the top object: it holds the droid and the orbs and runs one
 step — move the droid, tick orb timers, consume the orb under the droid, then
-let the scenario's spawning rules act. It receives its droid, population and
-spawning rules already built and contains no scenario-specific branches.
+let the scenario's spawning rules act. It receives its grid dimensions, droid,
+orb population and spawning rules already built and contains no
+scenario-specific branches.
 
 `SynergyDroid` owns position and score. It moves, applies step and boundary
 penalties, and passes a consumed orb to its `DigestionEngine`. The engine turns
 "an orb was consumed" into a reward by routing the orb to the digester that
 owns its kind, letting the other digesters notice it, and counting the events
-they report. `TierDigester` carries the chain state and the two scoring
+they report. `TierOrbDigester` carries the chain state and the two scoring
 modes; `NegativeDigester` simply pays the orb's own reward.
 
 Orbs (`orbs/`) are passive objects with a position, a reward, an `OrbMeta`
