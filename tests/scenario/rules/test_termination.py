@@ -12,10 +12,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from syn_grid.config.models import ScoringMode
-from syn_grid.scenario.rules.termination import (
-    ContinuousTermination,
-    GoalTermination,
-)
+from syn_grid.scenario.rules.termination.continuous_termination import ContinuousTermination
+from syn_grid.scenario.rules.termination.tier_chain_termination import TierChainTermination
+
 
 # The value shipped in configs.yaml. Deliberately NOT the primary assertion in
 # the first test below: -1.0 is exactly what the old hardcode was, so a test
@@ -47,10 +46,10 @@ def _goal(
     curriculum: bool = False,
     scoring: ScoringMode = ScoringMode.MAX_TIER,
     timeout_penalty: float = SHIPPED_TIMEOUT,
-) -> GoalTermination:
-    return GoalTermination(
+) -> TierChainTermination:
+    return TierChainTermination(
         timeout_penalty=timeout_penalty,
-        delay=delay,
+        delay_on_consume=delay,
         scoring=scoring,
         curriculum=curriculum,
     )

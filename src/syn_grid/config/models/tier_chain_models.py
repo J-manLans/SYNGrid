@@ -17,37 +17,16 @@ a diff rather than spread across four files.
 `common_models.py` for the vocabulary every family composes.
 """
 
-from enum import Enum
-from typing import Annotated
-
-from pydantic import Field, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from syn_grid.config.models.common_models import (
     GoalDroidConf,
-    OrbKindConf,
+    ObsConf,
     OrbPoolConf,
+    PerceptionConf,
     ScenarioConf,
     WorldConf,
 )
-
-# ======================= #
-#      Helper Types       #
-# ======================= #
-
-
-class ScoringMode(str, Enum):
-    """
-    How a tier chain's reward is paid out.
-
-    One value rather than three mutually exclusive booleans. The booleans had
-    to be validated against each other on every load, and a fourth copy of the
-    question lived in the world config where the digestion engine could not see
-    it and episode termination read the wrong one.
-    """
-
-    STEP_WISE = "step_wise"
-    THRESHOLD = "threshold"
-    MAX_TIER = "max_tier"
 
 # ===================== #
 #      Droid Models      #
@@ -57,15 +36,12 @@ class ScoringMode(str, Enum):
 class TierDroidConf(GoalDroidConf, frozen=True, extra="forbid", strict=True):
     """A droid chasing a chain rather than a running score.
 
-    `chain_break_penalty` and `tier_consumption_penalty` only mean anything once
-    there is a chain to lose. Both ratios are deliberate and both were
-    separately identified as the interesting reward knobs -- see
-    `docs/dev/rppo-regression.md` for why the timeout penalty had to become
-    independent of the chain-break one.
+    `chain_break_penalty` only means anything once there is a chain to lose.
+    Its ratio to the timeout penalty is deliberate -- see
+    `docs/dev/rppo-regression.md` for why the two had to become independent.
     """
 
     chain_break_penalty: float
-    tier_consumption_penalty: float
 
 
 # ===================== #
@@ -73,22 +49,36 @@ class TierDroidConf(GoalDroidConf, frozen=True, extra="forbid", strict=True):
 # ===================== #
 
 
-class TierOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
+class TierOrbConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """One orb per tier.
 
     `max_tier` is the length of the chain, and therefore also the number of orbs
     on the field: a tier chain derives its field size from the chain.
+
+    Not an `OrbKindConf`: a chain's orbs are all present from the first step
+    and never come back, so they have no spawn weight and no cool-down. A
+    per-tier reward ladder is not here either: only a scenario that pays per
+    tier has one, see `TierDenseOrbConf`. How the chain is scored is not a
+    tunable at all; each scenario's builder states it.
     """
 
     max_tier: int = Field(gt=0)
-    base_reward: float
-    growth_factor: float = Field(gt=0)
-    linear_reward_growth: bool
-    scoring: Annotated[ScoringMode, Field(strict=False)]
 
 
 class TierDelayOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
     delay: int = Field(gt=0)
+
+
+class TierDenseOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
+    """Tier orbs that are each worth something: the reward ladder.
+
+    A tier's reward is `base_reward * tier` when growth is linear, and
+    `base_reward * tier ** growth_factor` otherwise.
+    """
+
+    base_reward: float
+    growth_factor: float = Field(gt=0)
+    linear_reward_growth: bool
 
 
 class TierOrbPoolConf(OrbPoolConf, frozen=True, extra="forbid", strict=True):
@@ -97,6 +87,10 @@ class TierOrbPoolConf(OrbPoolConf, frozen=True, extra="forbid", strict=True):
 
 class TierDelayOrbPoolConf(TierOrbPoolConf, frozen=True, extra="forbid", strict=True):
     tier: TierDelayOrbConf
+
+
+class TierDenseOrbPoolConf(TierOrbPoolConf, frozen=True, extra="forbid", strict=True):
+    tier: TierDenseOrbConf
 
 
 # ======================= #
@@ -125,6 +119,14 @@ class TierDelayWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True
     orb_conf: TierDelayOrbPoolConf
 
 
+class TierDenseWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True):
+    orb_conf: TierDenseOrbPoolConf
+
+
+class TierDenseObsConf(ObsConf, frozen=True, extra="forbid", strict=True):
+    perception_conf: PerceptionConf
+
+
 # ============================= #
 #    Top-Level Configuration   #
 # ============================= #
@@ -136,3 +138,8 @@ class TierScenarioConf(ScenarioConf, frozen=True, extra="forbid", strict=True):
 
 class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
     world_conf: TierDelayWorldConf
+
+
+class TierDenseScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
+    world_conf: TierDenseWorldConf
+    obs_conf: TierDenseObsConf

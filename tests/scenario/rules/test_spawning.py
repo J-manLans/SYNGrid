@@ -15,9 +15,9 @@ from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.scenario.registry import build_scenario
 from syn_grid.scenario.rules.population import WeightedPopulation
 from syn_grid.scenario.rules.spawning import (
-    LeaveFieldAlone,
+    LeaveOrbFieldAlone,
     ReactivateAllOrbs,
-    RefillOrbPool,
+    RefillOrbField,
     SpawningRules,
 )
 from tests.utils.config_helpers import get_scenario, get_test_config
@@ -52,7 +52,7 @@ def _spawning(**overrides) -> SpawningRules:
         "max_active_orbs": 3,
         "tier_orb_expires": False,
         "delay_on_consume": False,
-        "after_action": LeaveFieldAlone(),
+        "after_action": LeaveOrbFieldAlone(),
     }
     return SpawningRules(**{**base, **overrides})
 
@@ -163,7 +163,7 @@ class TestTierExpiry:
             spawning=_spawning(
                 fill_pool_on_reset=True,
                 max_active_orbs=pool,
-                after_action=LeaveFieldAlone(),
+                after_action=LeaveOrbFieldAlone(),
                 **overrides,
             )
         )
@@ -217,7 +217,7 @@ class TestTierExpiry:
 class TestDelayOnConsume:
     def test_consumption_leaves_the_field_alone_without_delay(self):
         world = _world(
-            spawning=_spawning(delay_on_consume=False, after_action=RefillOrbPool())
+            spawning=_spawning(delay_on_consume=False, after_action=RefillOrbField())
         )
         orb = _consume_one_orb(world)
 
@@ -234,7 +234,7 @@ class TestDelayOnConsume:
                 fill_pool_on_reset=True,
                 max_active_orbs=3,
                 delay_on_consume=True,
-                after_action=LeaveFieldAlone(),
+                after_action=LeaveOrbFieldAlone(),
             )
         )
         assert len(world.active_orbs) == 3
@@ -247,7 +247,7 @@ class TestDelayOnConsume:
 class TestAfterAction:
     def test_leaving_the_field_alone_changes_nothing(self):
         world = _world(
-            spawning=_spawning(after_action=LeaveFieldAlone(), max_active_orbs=3)
+            spawning=_spawning(after_action=LeaveOrbFieldAlone(), max_active_orbs=3)
         )
         before = len(world.active_orbs)
 
@@ -264,7 +264,7 @@ class TestAfterAction:
         """
 
         world = _world(
-            spawning=_spawning(after_action=RefillOrbPool(), max_active_orbs=5)
+            spawning=_spawning(after_action=RefillOrbField(), max_active_orbs=5)
         )
 
         calls = _count_spawns(world)
@@ -275,7 +275,7 @@ class TestAfterAction:
 
     def test_refilling_grows_the_field_and_stops_at_its_size(self):
         world = _world(
-            spawning=_spawning(after_action=RefillOrbPool(), max_active_orbs=3)
+            spawning=_spawning(after_action=RefillOrbField(), max_active_orbs=3)
         )
         _park_droid(world)
         assert len(world.active_orbs) == 1

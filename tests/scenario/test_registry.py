@@ -17,14 +17,13 @@ from syn_grid.scenario.rules.population import (
     WeightedPopulation,
 )
 from syn_grid.scenario.rules.spawning import (
-    LeaveFieldAlone,
+    LeaveOrbFieldAlone,
     ReactivateAllOrbs,
-    RefillOrbPool,
+    RefillOrbField,
 )
-from syn_grid.scenario.rules.termination import (
-    ContinuousTermination,
-    GoalTermination,
-)
+from syn_grid.scenario.rules.termination.continuous_termination import ContinuousTermination
+from syn_grid.scenario.rules.termination.tier_chain_termination import TierChainTermination
+
 from syn_grid.scenario.scenario import ScenarioType
 
 CONFIG_DIR = "src/syn_grid/config/scenarios"
@@ -118,7 +117,7 @@ class TestGoalComposition:
 
         assert scenario.spawning.fill_pool_on_reset is True
         assert scenario.spawning.tier_orb_expires is False
-        assert isinstance(scenario.spawning.after_action, LeaveFieldAlone)
+        assert isinstance(scenario.spawning.after_action, LeaveOrbFieldAlone)
 
     def test_a_delay_scenario_puts_the_field_on_cooldown_and_reactivates_it(self):
         plain = _scenario(_load("tier_chain_spatial"))
@@ -172,7 +171,7 @@ class TestContinuousComposition:
         scenario = _scenario(_load("continuous_step_wise"))
 
         assert scenario.spawning.fill_pool_on_reset is False
-        assert isinstance(scenario.spawning.after_action, RefillOrbPool)
+        assert isinstance(scenario.spawning.after_action, RefillOrbField)
 
     def test_the_field_size_is_the_configured_count(self):
         conf = _load("continuous_step_wise")
@@ -213,9 +212,9 @@ class TestTerminationComposition:
     def test_a_goal_scenario_gets_goal_termination(self):
         scenario = _scenario(_load("tier_chain_spatial"))
 
-        assert isinstance(scenario.termination, GoalTermination)
+        assert isinstance(scenario.termination, TierChainTermination)
         assert scenario.termination.curriculum is True
-        assert scenario.termination.delay is False
+        assert scenario.termination.delay_on_consume is False
 
     def test_a_continuous_scenario_gets_continuous_termination(self):
         scenario = _scenario(_load("continuous_step_wise"))

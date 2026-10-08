@@ -24,7 +24,8 @@ import yaml
 
 from syn_grid.config.models import FullConf
 from syn_grid.gymnasium.utils.env_factory import make, register_env
-from syn_grid.scenario.rules.termination import GoalTermination
+from syn_grid.scenario.rules.termination.tier_chain_termination import TierChainTermination
+
 
 CONFIG = Path("src/syn_grid/config/configs.yaml")
 
@@ -101,7 +102,7 @@ def test_the_scenario_carries_the_timeout_penalty_and_not_the_chain_break_one():
     try:
         rules = env.unwrapped.scenario.termination
 
-        assert isinstance(rules, GoalTermination)
+        assert isinstance(rules, TierChainTermination)
         assert rules.timeout_penalty == -2.5
         assert rules.timeout_penalty != conf.world.droid_conf.chain_break_penalty
     finally:

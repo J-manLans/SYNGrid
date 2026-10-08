@@ -19,7 +19,6 @@ in `global_models.py` and `runner_models.py`.
 from enum import Enum
 from typing import Annotated
 
-
 from pydantic import BaseModel, Field, model_validator
 
 # ======================= #
@@ -51,8 +50,6 @@ class DroidConf(BaseModel, frozen=True, extra="forbid", strict=True):
     starting_score: float
     step_penalty: float
     boundary_penalty: float
-    # TODO: remember to check whether this one shall be used, and remember — less is more
-    reward_multiplier: float
 
     @model_validator(mode="after")
     def validate_penalties(self):
@@ -71,9 +68,13 @@ class GoalDroidConf(DroidConf, frozen=True, extra="forbid", strict=True):
 
     Scenarios that have no goal -- nothing to finish, so the episode only ends
     when the clock or the score does -- use `DroidConf` on its own.
+
+    `completion_reward` is what reaching the objective pays, and
+    `timeout_penalty` what missing the deadline costs.
     """
 
     timeout_penalty: float
+    completion_reward: float
 
 
 # ======================= #
@@ -130,7 +131,6 @@ class WorldConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 class ObsConf(BaseModel, frozen=True, extra="forbid", strict=True):
     observation_handler_conf: ObservationHandlerConf
-    perception_conf: PerceptionConf
 
 
 class ScenarioConf(BaseModel, frozen=True, extra="forbid", strict=True):
