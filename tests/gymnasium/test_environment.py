@@ -3,7 +3,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from syn_grid.gymnasium.environment import SYNGridEnv
+from syn_grid.legacy.gymnasium_legacy.environment import SYNGridEnv
 from tests.utils.config_helpers import get_test_config, update_conf
 
 

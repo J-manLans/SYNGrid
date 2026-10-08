@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from syn_grid.config.models import AgentConfig, ObsConfig, WorldConfig
+from syn_grid.legacy.config_legacy.models import AgentConfig, ObsConfig, WorldConfig
 
 
 @dataclass

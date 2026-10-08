@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.synergy.tier_orb import TierOrb
+from syn_grid.legacy.core_legacy.orbs.base_orb import BaseOrb
+from syn_grid.legacy.core_legacy.orbs.synergy.tier_orb import TierOrb
 from tests.utils.config_helpers import get_test_config, update_conf
 
 

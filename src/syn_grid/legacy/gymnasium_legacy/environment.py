@@ -1,0 +1,164 @@
+from typing import Any
+
+import gymnasium as gym
+import numpy as np
+from gymnasium import spaces
+
+from syn_grid.legacy.config_legacy.models import ObsConfig, WorldConfig
+from syn_grid.legacy.core_legacy.grid_world import GridWorld
+from syn_grid.legacy.gymnasium_legacy.action_space import DroidAction
+from syn_grid.legacy.gymnasium_legacy.observation_space.observation_handler import (
+    ObservationHandler,
+)
+from syn_grid.legacy.gymnasium_legacy.utils.episode_logging.keys import SYN_STATS_KEY, LogKey
+from syn_grid.legacy.gymnasium_legacy.utils.episode_termination import check_episode_end
+from syn_grid.legacy.rendering_legacy.pygame_renderer import PygameRenderer
+
+
+class SYNGridEnv(gym.Env):
+    """
+    SYNGrid reinforcement learning environment.
+
+    A discrete grid-world environment for benchmarking single-agent RL.
+    """
+
+    # ================= #
+    #       Init        #
+    # ================= #
+
+    # Metadata required by Gym.
+    # "human" for Pygame visualization.
+    # render_fps caps the update rate of render(); each call corresponds to one logic step, not the
+    # full game framerate. Simply put: render_fps controls the speed of the environment’s logic,
+    # while a sub-loop in the renderer would handle smooth animation between steps.
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 8}  # noqa: RUF012 - Required by Gymnasium API
+
+    def __init__(
+        self,
+        world_conf: WorldConfig,
+        obs_conf: ObsConfig,
+        render_mode: str | None = None,
+    ):
+        # Set up bench environment;
+        self.render_mode = render_mode
+
+        # TODO: starting to look like episode termination could need its own method for storing
+        # these...or make it a class
+        self.delay_mode = world_conf.grid_world_conf.delay_mode
+        self.timeout_penalty = world_conf.droid_conf.timeout_penalty
+
+        self.world = GridWorld(
+            world_conf.grid_world_conf,
+            world_conf.orb_factory_conf,
+            world_conf.droid_conf,
+            world_conf.negative_orb_conf,
+            world_conf.tier_orb_conf,
+        )
+
+        if self.render_mode in self.metadata["render_modes"]:
+            self.renderer = PygameRenderer(
+                world_conf.renderer_conf, render_mode, self.metadata["render_fps"]
+            )
+
+        # Set up Gymnasium environment:
+
+        # Gymnasium also requires us to define action_space — which is the agent's possible
+        # actions. Training code can call action_space.sample() to randomly select an action.
+        self.action_space = spaces.Discrete(len(DroidAction))
+
+        # Same goes with observation_space: this provides the agent with a structured view
+        # of the world that it uses to decide its actions.
+        self._observation_handler = ObservationHandler(
+            obs_conf, len(self.world.ALL_ORBS), self.world.max_identity
+        )
+        self.observation_space = self._observation_handler.setup_obs_space()
+
+    # ======================== #
+    #    Gymnasium contract    #
+    # ======================== #
+
+    def reset(self, *, seed=None, options=None):
+        # Gymnasium requires this call to control randomness and reproduce scenarios.
+        super().reset(seed=seed)
+
+        # Reset the environment.
+        self.world.reset(self.np_random)
+        self._observation_handler.reset()
+
+        if self.render_mode == "human":
+            self.render()
+
+        self.obs = self._observation_handler.get_observation(self.world)
+
+        # Return observation and info (not used)
+        return self.obs, {}
+
+    def step(self, action: int):
+        info: dict[str, Any] = {}
+
+        # Perform action and adjust variables affected by it
+        reward = self.world.perform_droid_action(DroidAction(action))
+        self._observation_handler.steps_left -= 1
+        terminated, truncated, reward = check_episode_end(
+            self.world,
+            self._observation_handler.steps_left,
+            self.delay_mode,
+            self.timeout_penalty,
+            reward,
+        )
+
+        # TODO: this should only emit if csv output is enabled in the agent for evaluation.
+        # So think about how to handle this. Either just keep it (a cheap calculation), or disable
+        # recording in the digestive engine when not enabled
+        if terminated or truncated:
+            info[SYN_STATS_KEY] = self._get_state_info()
+
+        if self.render_mode in self.metadata["render_modes"]:
+            self.render()
+
+        self.obs = self._observation_handler.get_observation(self.world)
+
+        # Return observation, reward, terminated, truncated and info
+        return (
+            self.obs,
+            reward,
+            terminated,
+            truncated,
+            info,
+        )
+
+    def render(self) -> np.ndarray | None:
+        frame = self.renderer.render(
+            self.world.droid.position,
+            self.world.get_orb_is_active_status(True),
+            self.world.get_orb_positions(True),
+            self.world.get_orb_meta(True),
+            self._get_hud_data(),
+        )
+
+        if self.render_mode == "rgb_array":
+            return frame
+
+    # ================== #
+    #       Helpers      #
+    # ================== #
+
+    # === Gymnasium contract === #
+
+    def _get_hud_data(self) -> dict[str, int | float]:
+        hud_data: dict[str, int | float] = {}
+
+        hud_data["score"] = self.world.droid.score
+        hud_data["moves"] = self._observation_handler.steps_left
+        hud_data["current tier chain"] = self.world.droid.digestion_engine.chained_tiers
+
+        return hud_data
+
+    def _get_state_info(self) -> dict[str, Any]:
+        stats = self.world.droid.digestion_engine.stats
+
+        return {
+            LogKey.CHAINS_BROKEN: stats["chains_broken"],
+            LogKey.CHAIN_PROGRESSED: stats["chains_progressed"],
+            LogKey.CHAINS_COMPLETED: stats["chains_completed"],
+        }

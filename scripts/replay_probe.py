@@ -131,7 +131,7 @@ def digest(obj: Any) -> str:
 
 
 def build_conf(args: argparse.Namespace) -> tuple[Any, list[str]]:
-    from syn_grid.config.models import FullConf
+    from syn_grid.legacy.config_legacy.models import FullConf
 
     data = yaml.safe_load(Path(args.config_src).read_text())
     data = copy.deepcopy(data)
@@ -182,7 +182,7 @@ def main() -> int:
 
     from gymnasium import spaces
 
-    from syn_grid.gymnasium.environment import SYNGridEnv
+    from syn_grid.legacy.gymnasium_legacy.environment import SYNGridEnv
 
     conf, skipped = build_conf(args)
 

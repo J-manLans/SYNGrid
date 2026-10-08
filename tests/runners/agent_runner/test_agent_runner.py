@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
-from syn_grid.runners.agent_runners.agent_registry import ALGORITHMS
-from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.legacy.runners_legacy.agent_runners.agent_bundle import AgentBundle
+from syn_grid.legacy.runners_legacy.agent_runners.agent_registry import ALGORITHMS
+from syn_grid.legacy.runners_legacy.agent_runners.base_agent_runner import BaseAgentRunner
 from tests.utils.config_helpers import get_test_config, update_conf
 
 

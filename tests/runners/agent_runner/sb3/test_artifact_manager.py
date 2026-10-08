@@ -3,7 +3,7 @@ import pytest
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
-from syn_grid.runners.agent_runners.sb3.artifact_manager import ArtifactManager
+from syn_grid.legacy.runners_legacy.agent_runners.sb3.artifact_manager import ArtifactManager
 
 
 def _make_env() -> DummyVecEnv:

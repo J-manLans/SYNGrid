@@ -1,0 +1,31 @@
+# SYNGrid runner config: how an agent is trained and evaluated.
+#
+# Nothing here describes the world. The scenario is selected in
+# global_config.yaml and configured in its own file.
+
+common_conf:
+  alg: RPPO
+  agent_steps: '1605632'
+  seed: 3
+  training: true
+  # Optional. Joined onto the scenario's tag in the run id; set it when you
+  # change something outside the scenario's own axis.
+  tag:
+train_conf:
+  continue_training: false
+  csv_output: true
+  tensorboard_output: true
+  model_output: true
+  n_envs: 16
+  timesteps: 3000000
+  iterations: 1
+  render_mode: null
+  record_video: false
+  rec_interval: 100000
+  rec_length: 100
+eval_conf:
+  num_eval_episodes: 300
+  render_mode: 'human'
+  record_video: false
+  rec_episode: 100
+  csv_output: false

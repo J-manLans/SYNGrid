@@ -3,8 +3,8 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from syn_grid.core.orbs.orb_meta import OrbCategory, OrbMeta, SynergyType
-from syn_grid.rendering.pygame_renderer import PygameRenderer
+from syn_grid.legacy.core_legacy.orbs.orb_meta import OrbCategory, OrbMeta, SynergyType
+from syn_grid.legacy.rendering_legacy.pygame_renderer import PygameRenderer
 from tests.utils.config_helpers import get_test_config
 
 

@@ -55,7 +55,10 @@ world:
     # - chain_break_penalty (passed to digestion engine): the cost of consuming orbs in wrong order
     # - tier_consumption_penalty (passed to digestion engine): (only applicable if step_wise_scoring is true) punishment for consuming tier orbs in the wrong order
     # - reward_multiplier (passed to digestion engine): multiplier applied to rewards when threshold scoring in tier_orb_conf is activated, a sensible default is 1.0, then experiment if reward magnitudes get's to large for higher max tiers
-    # - timeout_penalty: the cost of reaching the step limit without finishing the objective. Separate from chain_break_penalty on purpose: the ratio between the two is what decides whether finishing beats running out the clock, so they must be tunable independently.
+    # - timeout_penalty: the cost of reaching the step limit without finishing the objective.
+    #   Added retroactively: runs produced before this field existed took the timeout reward
+    #   from a hardcoded -1, and earlier still from chain_break_penalty. Do not read this value
+    #   as proof of what was configured at run time.
     grid_rows: *grid_rows
     grid_cols: *grid_cols
     starting_score: 50
@@ -157,14 +160,20 @@ agent:
     # - human_control: allow human to control the game manually, disables training and eval
     # - training: set to false to evaluate the agent
     # - check_env: set to true if you wanna control your changes in the environment didn't break anything obvious
+    # - plateau_detection: true if you are using automatic training termination
+    # - plateau_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the stale training
+    # - terminate_threshold: (only applicable if plateau_detection is enabled) amount of steps allowed before terminating the plateaued training
     alg: "RPPO"
-    agent_steps: "3000320"
+    agent_steps: "16001024"
     id_tag: 'spatial_5x5'
-    save_folder: 'test'
+    save_folder: 'reproduction_package/spatial/rppo'
     seed: 3
-    human_control: true
-    training: false
+    human_control: false
+    training: true
     check_env: false
+    plateau_detection: false
+    plateau_threshold: 15000000
+    terminate_threshold: 3000000
 
   train_agent_conf:
     # - continue_training: continue from a previously saved model
@@ -183,7 +192,7 @@ agent:
     tensorboard_output: true
     model_output: true
     n_envs: 16
-    timesteps: 3_000_000
+    timesteps: 8458880
     iterations: 1
     render_mode: null
     record_video: false

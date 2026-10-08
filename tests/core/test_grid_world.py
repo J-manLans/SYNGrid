@@ -1,7 +1,7 @@
 import pytest
 
-from syn_grid.core.grid_world import GridWorld
-from syn_grid.core.orbs.orb_meta import DirectType, SynergyType
+from syn_grid.legacy.core_legacy.grid_world import GridWorld
+from syn_grid.legacy.core_legacy.orbs.orb_meta import DirectType, SynergyType
 from tests.utils.config_helpers import get_test_config
 
 

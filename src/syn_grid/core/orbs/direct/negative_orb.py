@@ -1,4 +1,4 @@
-from syn_grid.config.models import NegativeConf
+from syn_grid.config.models.common_models import NegOrbConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
     DirectType,
@@ -16,7 +16,7 @@ class NegativeOrb(BaseOrb):
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: NegativeConf):
+    def __init__(self, conf: NegOrbConf):
         super().__init__(
             conf.reward,
             conf.cool_down,

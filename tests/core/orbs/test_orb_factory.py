@@ -2,7 +2,7 @@ from collections import Counter
 
 import pytest
 
-from syn_grid.core.orbs.orb_factory import OrbFactory
+from syn_grid.legacy.core_legacy.orbs.orb_factory import OrbFactory
 from tests.utils.config_helpers import get_test_config, update_conf
 
 

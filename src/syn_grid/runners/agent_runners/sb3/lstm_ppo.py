@@ -2,7 +2,7 @@ from typing import Any, Final
 
 from sb3_contrib import RecurrentPPO
 
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
 from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     RecurrentExecutionStrategy,
@@ -27,14 +27,14 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
         },
     }
 
-    def __init__(self, agent_bundle: AgentBundle):
+    def __init__(self, runner_bundle: RunnerBundle):
         policy = resolve_policy(
-            agent_bundle.obs_conf.observation_handler.perception, use_lstm=True
+            runner_bundle.scenario.observation.perception, use_lstm=True
         )
         hyper_parameters = {"policy": policy, **self._HYPER_PARAMETERS}
 
         super().__init__(
-            agent_bundle,
+            runner_bundle,
             hyper_parameters,
             RecurrentPPO,
             execution_strategy=RecurrentExecutionStrategy(),

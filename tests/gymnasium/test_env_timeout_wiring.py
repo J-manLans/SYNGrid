@@ -21,8 +21,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from syn_grid.config.models import FullConf
-from syn_grid.gymnasium.utils.env_factory import make, register_env
+from syn_grid.legacy.config_legacy.models import FullConf
+from syn_grid.legacy.gymnasium_legacy.utils.env_factory import make, register_env
 
 CONFIG = Path("src/syn_grid/config/configs.yaml")
 

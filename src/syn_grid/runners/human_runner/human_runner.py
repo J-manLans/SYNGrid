@@ -2,10 +2,11 @@ from typing import cast
 
 from syn_grid.gymnasium.environment import SYNGridEnv
 from syn_grid.gymnasium.utils.env_factory import make
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 
 
-class HumanRunner:
+class HumanRunner(BaseAgentRunner):
     """
     Play a scenario by hand through a real SYNGridEnv.
 
@@ -19,17 +20,21 @@ class HumanRunner:
     #       Init        #
     # ================= #
 
-    def __init__(self, agent_bundle: AgentBundle):
+    def __init__(self, runner_bundle: RunnerBundle):
         self._env = cast(
             SYNGridEnv,
-            make("human", agent_bundle.world_conf, agent_bundle.obs_conf).unwrapped,
+            make(runner_bundle.scenario, "human").unwrapped,
         )
 
     # ================= #
     #        API        #
     # ================= #
+    def train(self) -> None:
+        raise ValueError(
+            "HumanRunner does not support training; set training=False in your config."
+        )
 
-    def human_player_loop(self) -> None:
+    def eval(self) -> None:
         """Play one episode, blocking until it ends or the player quits."""
 
         try:

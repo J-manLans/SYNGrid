@@ -10,18 +10,19 @@ Usage:
     python -m syn_grid.check_env
 """
 
+from syn_grid.app import load_experiment_configs
 from syn_grid.config.config_manager import ConfigManager
-from syn_grid.config.models import FullConf
 from syn_grid.gymnasium.utils.env_factory import check_my_env, make, register_env
+from syn_grid.scenario.registry import build_scenario
 
 
 def main() -> None:
     register_env()
 
-    config_manager = ConfigManager("configs.yaml")
-    full_conf = config_manager.load_config(FullConf)
+    global_conf, scenario_conf, _ = load_experiment_configs(ConfigManager())
+    scenario = build_scenario(global_conf.scenario, scenario_conf)
 
-    env = make(None, full_conf.world, full_conf.obs)
+    env = make(scenario, render_mode=None)
     try:
         check_my_env(env)
         print("Environment is fine.")

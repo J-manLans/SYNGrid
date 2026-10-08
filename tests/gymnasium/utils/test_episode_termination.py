@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from syn_grid.gymnasium.utils.episode_logging.keys import LogKey
-from syn_grid.gymnasium.utils.episode_termination import check_episode_end
+from syn_grid.legacy.gymnasium_legacy.utils.episode_logging.keys import LogKey
+from syn_grid.legacy.gymnasium_legacy.utils.episode_termination import check_episode_end
 
 # The value shipped in configs.yaml. Deliberately NOT used as the primary
 # assertion below: -1.0 is exactly what the old hardcode was, so a test that

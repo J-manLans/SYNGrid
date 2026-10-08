@@ -7,8 +7,8 @@ import pandas as pd
 from pandas import DataFrame
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 
-from syn_grid.gymnasium.utils.episode_logging.keys import LogKey
-from syn_grid.utils.paths_util import get_project_path
+from syn_grid.legacy.gymnasium_legacy.utils.episode_logging.keys import LogKey
+from syn_grid.legacy.utils_legacy.paths_util import get_project_path
 
 # ================= #
 #     Constants     #

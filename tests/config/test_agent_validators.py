@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from syn_grid.config.models import EvalAgentConf, TrainAgentConf
+from syn_grid.legacy.config_legacy.models import EvalAgentConf, TrainAgentConf
 
 
 class TestTrainAgentConfValidators:

@@ -12,7 +12,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from syn_grid.config.models import DroidConf
+from syn_grid.legacy.config_legacy.models import DroidConf
 
 SHIPPED_CONFIG = "src/syn_grid/config/configs.yaml"
 

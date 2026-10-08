@@ -2,8 +2,8 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
-from syn_grid.config.config_manager import ConfigManager
-from syn_grid.config.models import FullConf
+from syn_grid.legacy.config_legacy.config_manager import ConfigManager
+from syn_grid.legacy.config_legacy.models import FullConf
 
 T = TypeVar("T", bound=BaseModel)
 

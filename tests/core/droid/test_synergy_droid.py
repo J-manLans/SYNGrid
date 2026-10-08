@@ -1,8 +1,8 @@
 import pytest
 
-from syn_grid.core.droid.synergy_droid import DroidAction, SynergyDroid
-from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_meta import (
+from syn_grid.legacy.core_legacy.droid.synergy_droid import DroidAction, SynergyDroid
+from syn_grid.legacy.core_legacy.orbs.base_orb import BaseOrb
+from syn_grid.legacy.core_legacy.orbs.orb_meta import (
     DirectType,
     OrbCategory,
     OrbMeta,

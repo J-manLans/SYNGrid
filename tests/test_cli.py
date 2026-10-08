@@ -2,15 +2,15 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from syn_grid.app import dispatch, load_experiment_configs
-from syn_grid.config.config_manager import ConfigManager
-from syn_grid.config.models import (
+from syn_grid.legacy.app_legacy import dispatch, load_experiment_configs
+from syn_grid.legacy.config_legacy.config_manager import ConfigManager
+from syn_grid.legacy.config_legacy.models import (
     AgentConfig,
     ExperimentConfig,
     ObsConfig,
     WorldConfig,
 )
-from syn_grid.runners.agent_runners.agent_bundle import AgentBundle
+from syn_grid.legacy.runners_legacy.agent_runners.agent_bundle import AgentBundle
 
 # ================= #
 #  Global Fixtures  #

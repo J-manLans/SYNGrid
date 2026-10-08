@@ -1,6 +1,6 @@
 import pytest
 
-from syn_grid.core.orbs.orb_meta import (
+from syn_grid.legacy.core_legacy.orbs.orb_meta import (
     DirectType,
     OrbCategory,
     OrbMeta,
