@@ -2,7 +2,6 @@ from typing import Any, Final
 
 from gymnasium import spaces
 
-from syn_grid.config.models.common_models import ObsConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
@@ -20,7 +19,7 @@ from syn_grid.gymnasium.observation_space.perceptions.vector import (
     VectorMarkovian,
     VectorMarkovianEasy,
 )
-from syn_grid.scenario.rules.observation import ObservationRules
+from syn_grid.scenario.blocks.observation import ObservationRules
 
 PERCEPTIONS = {
     "vector_markovian_easy": VectorMarkovianEasy,
@@ -40,17 +39,17 @@ class ObservationHandler:
 
     def __init__(
         self,
-        conf: ObsConf,
         observation_rules: ObservationRules,
+        grid_dimensions: tuple[int, int],
         orbs: int,
         max_identity: int,
     ) -> None:
-        self._max_steps: Final[int] = conf.observation_handler_conf.max_steps
+        self._max_steps: Final[int] = observation_rules.max_steps
         perception_type: type[BasePerception] = PERCEPTIONS[
-            conf.observation_handler_conf.perception
+            observation_rules.perception
         ]
         self.perception: Final[BasePerception] = perception_type(
-            conf.perception_conf, observation_rules, orbs, max_identity
+            observation_rules, grid_dimensions, orbs, max_identity
         )
 
     # ================= #

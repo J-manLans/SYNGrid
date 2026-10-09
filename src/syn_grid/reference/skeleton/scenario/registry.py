@@ -4,8 +4,8 @@ Scenario selection.
 This module is the whole of "which scenario is this". A config names one, a
 builder composes the pieces for it, and nothing downstream re-derives identity
 from the config. The builders live in their family's folder, such as
-``tier_chain/builders.py``. Registering a new scenario means writing its builder
-there and adding it to ``SCENARIO_BUILDERS`` here.
+``goal/tier_chain/builders.py``. Registering a new scenario means writing its
+builder there and adding it to ``SCENARIO_BUILDERS`` here.
 
 Skeleton: structure and signatures only. Each docstring says what the function
 composes; the bodies are left out.

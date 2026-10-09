@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. Last updated 2026-10-08.
+Guidance for AI agents working in this repository. Last updated 2026-10-09.
 Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
@@ -22,8 +22,8 @@ reference.
 
 The pushed branches can be behind the local working tree. Read local files.
 On `refactor-of-scenario-refactor` much of the reference is uncommitted local
-work (the digestion modules, `hud.py`, `metrics.py`, the skeleton), so do not
-discard or stash it carelessly. This file exists on both branches; the copy on
+work (the digestion modules, the `scenario/` reshuffle into `blocks/`, `goal/`
+and `continuous/`, the skeleton), so do not discard or stash it carelessly. This file exists on both branches; the copy on
 the branch you were not working on may be older.
 
 ## How to work with the owner
@@ -102,10 +102,15 @@ paths. The four inits that re-export (`perceptions/vector`, `composite`,
 
 `src/syn_grid/reference/skeleton/` holds the intended structure of the scenario
 layer: modules, classes, protocols and signatures, with no logic. It mirrors the
-real paths (`skeleton/scenario/...`, `skeleton/core/digestion/...`). It lives
-inside the package while it is being written and moves to a top-level
-`reference/` on the new branch. Once agreed, **the skeleton is the working
-truth** and is edited until it fits.
+real paths (`skeleton/scenario/...`). It lives inside the package while it is
+being written and moves to a top-level `reference/` on the new branch.
+
+**Its job is to carry the design to the rebuild branch.** Structure is safe to
+carry, because a file with no logic cannot carry a behaviour bug. Function
+bodies from this branch are not: the agent does not learn here and the cause is
+unknown, so every body is written or copied by the owner on the rebuild branch
+and checked against legacy there. Design changes are implemented on the rebuild
+branch, not here.
 
 Conventions the owner asked for:
 
@@ -115,43 +120,64 @@ Conventions the owner asked for:
   fails lint on purpose; do not re-add it or strip the `...` bodies.
 - Imports use the real package paths (`syn_grid.scenario...`,
   `syn_grid.core.digestion...`), never `syn_grid.reference...`. They therefore
-  resolve to the live modules, not to other skeleton files.
+  resolve to the live modules, not to other skeleton files. A skeleton file that
+  imports something with no live counterpart does not import on this branch;
+  that is expected.
 - Tables that are structure, such as `SCENARIO_BUILDERS`, are filled in.
 - Do not invent Effect orbs or `Cancellation`. They have no implementation.
+
+The layout, shared by the live `scenario/` package and the skeleton since
+2026-10-09:
+
+- `registry.py` holds only the builders table and `build_scenario`.
+- `blocks/` holds what every scenario shares: the interfaces and the small
+  description types.
+- `goal/` and `continuous/` are the two top scenarios. `goal/tier_chain/` is the
+  tier-chain family: its builders, family helper, world builder and world
+  readers in `builders.py`, with its population and termination beside it.
+- `utils/helpers.py` holds `neg_orb`, the run-tag suffix.
 
 Written so far, all under `skeleton/scenario/`:
 
 | File | State |
 |---|---|
-| `registry.py` | signatures and docstrings; keeps the current shape where nothing was agreed |
+| `registry.py` | the table and `build_scenario` |
 | `scenario.py` | `hud` and `metrics` are fields |
-| `rules/observation.py` | `GlobalFeature` added, `global_features` is a field, `max_score` removed |
-| `rules/hud.py`, `rules/metrics.py` | as the owner wrote them, with docstrings |
-| `rules/termination/termination.py` | the interface only |
+| `blocks/observation.py` | `GlobalFeature` added, `global_features` is a field, `max_score` removed |
+| `blocks/hud.py`, `blocks/metrics.py` | as the owner wrote them, with docstrings |
+| `blocks/termination.py` | the interface only |
+| `blocks/orb_bundle.py` | `OrbBundle`; has no live counterpart |
+| `goal/tier_chain/builders.py` | the helper and world builder take bundles; does not import here, because of `orb_bundle` |
+| `utils/helpers.py` | `neg_orb`, with its body |
 
-Not written yet: `rules/population.py`, `rules/spawning.py`,
-`rules/termination/tier_chain_termination.py`,
-`rules/termination/continuous_termination.py`, and all of `core/digestion/`.
+Not written: `goal/tier_chain/population.py` and `termination.py` exist but are
+empty. There is no `blocks/population.py`, `blocks/spawning.py`, `continuous/`
+or `core/digestion/` in the skeleton. A continuous skeleton was sketched and
+deleted on 2026-10-09, to be redone once the bundle exists for real.
 
-Five decisions shape several of those files and should be settled first:
+Decisions that still shape those files:
 
-1. Orbs and digesters: separate `orb_population` and `scoring_mode`, or one
-   per-kind recipe that supplies both.
-2. `Event` and `engine.count()`: keep, rename, or drop in favour of counts on
+1. `Event` and `engine.count()`: keep, rename, or drop in favour of counts on
    the digester.
-3. The cross-kind hook: `notice` on every digester, or a second protocol for
+2. The cross-kind hook: `notice` on every digester, or a second protocol for
    synergy digesters only.
-4. The step clock: where it lives decides what a reader is handed.
-5. Scope: whether the skeleton includes the continuous family's pieces.
+3. The step clock: where it lives decides what a reader is handed.
 
-Open on `registry.py` itself:
+Open on the skeleton's `goal/tier_chain/builders.py`:
 
 1. `max_score` is still a parameter of the family helper, but the skeleton's
    `ObservationRules` no longer has that field.
-2. No negative-orb count anywhere in the helper or the world builder.
+2. How many negative orbs a tier chain holds. `_negative_bundle` says so in its
+   docstring.
 3. Builders take the base `ScenarioConf` and `cast` it, because the models table
    and the builders table are separate.
-4. Whether the world readers belong in the registry or in a tier-chain file.
+4. How the world receives the orbs once there are several bundles. `GridWorld`
+   takes one `OrbPopulation` and calls `create()` once. Passing it the finished
+   list of orbs would also stop `core` importing a type from `scenario`. Not
+   agreed.
+5. `make_digester` needs arguments, so in practice it is a `functools.partial`,
+   and two partials built from the same arguments do not compare equal. The live
+   `build_world` is already a partial, so scenario equality does not hold today.
 
 ## Design direction
 
@@ -173,7 +199,28 @@ Agreed with the owner:
 - **Readers are module-level functions, not lambdas or nested functions,** so
   two scenarios built from the same config compare equal.
 - **Termination is an interface file plus one file per strategy,** so each
-  strategy imports only what its scenario needs.
+  strategy imports only what its scenario needs. The interface is
+  `blocks/termination.py`; a strategy lives in the folder of the scenario that
+  uses it.
+- **Goal and continuous are the two top scenarios.** Tier chain is a family
+  under goal.
+- **The orb side of a scenario is composable: a tuple of `OrbBundle`s, one per
+  orb kind.** A bundle holds the kind's `OrbPopulation` and a function that
+  returns a new digester. It holds the population directly because a population
+  has no episode state, and a factory for the digester because a digester does.
+  The world builder joins the orbs and collects the digesters without asking
+  which kinds they are. This replaces passing `orb_population` and
+  `scoring_mode` separately; the scoring mode belongs to the tier bundle.
+- **In a tier chain the negative bundle is simply added when the config has a
+  `negative` block.** In the skeleton the family helper adds it, so each builder
+  passes only its tier bundle. That placement was the agent's choice and the
+  owner has not confirmed it.
+- **The general continuous scenario is a helper plus a thin builder,** mirroring
+  the tier chain: a `_continuous_scenario` helper that is handed bundles and
+  reads no orb choice from config, and `continuous_sandbox`, the builder that
+  turns whatever the config enables into bundles. Later fixed continuous
+  scenarios pass fixed bundles, and their config has no key for choosing kinds.
+  Discussed and named, not written.
 - **The logger itself comes late.** It is expected to be a localized change.
 - **In digestion, the scoring and routing are fine; the scaffolding is weak:**
   how state is read out, and how digesters are paired with orbs.
@@ -185,14 +232,20 @@ Still open:
   what it is, or move the counts onto the digester and drop it.
 - **The cross-kind hook (`notice`).** It is synergy behaviour. Rename it, or move
   it to a second protocol that only synergy digesters implement.
-- **A per-kind recipe that supplies both the orbs and the digester,** so a kind
-  is added in one place. It must be a recipe, not instances.
+- **What a bundle must carry beyond orbs and digester.** Field size and
+  observation slots depend on each kind's count, and kinds behave differently on
+  the field (negatives expire and return, tier orbs do not). Left until the
+  negative-orb case shows what is needed.
 - **Negative orbs in a tier chain.** Intended: a few sit in the pool, spawn,
   despawn at the end of their lifespan and reappear elsewhere after their
   cool-down; under delay they freeze and return with the field. That needs a
   kind filter on the refill action, a tuple of after-actions, the negative count
   added to field size and observation slots, and a tier-chain negative model
   without `weight`.
+- **Score and life become two separate things** (owner, 2026-10-09). Today
+  `droid.score` is both the running total and what ends an episode at
+  `score <= 0`. Until that split is designed, do not design a replacement for
+  `max_score`, the bound and clamp on the observed score; it stays as it is.
 - **Where the step clock lives.** It is on `ObservationHandler`, so a reader
   that only gets the world cannot supply steps or moves.
 - **HUD form.** A small vocabulary of elements the renderer can draw, or a
@@ -204,23 +257,28 @@ Still open:
 
 One scenario, `goal_tier_chain_spatial`, runs end to end. On 2026-10-08
 `python -m syn_grid.check_env` passed and 20,000 random actions stayed inside
-the declared `Box`. That says nothing about learning.
+the declared `Box`. `check_env` passed again on 2026-10-09 after the move to
+`blocks/` and `goal/tier_chain/`. That says nothing about learning.
 
-Local, unfinished state: `hud` and `metrics` are built in
-`scenario/registry.py` but not passed to `Scenario`, whose two fields are
-commented out. `rules/observation.py` carries the owner's notes for the global
-features, with `GlobalFeature` currently nested inside `ObservationRules`. The
-environment still reads the tier digester directly. The two scenario inits have
-been emptied.
+Local, unfinished state: the `hud` and `metrics` tuples are commented out in
+`scenario/goal/tier_chain/builders.py`, and so are the two fields on
+`Scenario`. `blocks/observation.py` still has `max_score`, with `GlobalFeature`
+nested inside `ObservationRules` and unused. The environment and
+`base_perception` still read the tier digester directly. The live package has no
+`OrbBundle`; the world builder still decides the digesters with an `if` on the
+config's `negative` block. `continuous/population.py` is only a docstring. The
+scenario inits are empty.
 
 How it is put together:
 
 - **Config** is three YAMLs in `src/syn_grid/config/yaml/` (global, runner, and
   one named after the scenario), validated by frozen, strict pydantic models
   that forbid unknown keys. `SCENARIO_MODELS` picks the scenario's schema.
-- **`scenario/registry.py`** is the composition root. `_tier_chain_scenario` is
-  the family helper and `_build_tier_chain_world` builds one world per env.
-  Three of the four builders are placeholders.
+- **`scenario/registry.py`** is the builders table and `build_scenario`.
+  **`scenario/goal/tier_chain/builders.py`** is where a tier-chain scenario is
+  composed: `_tier_chain_scenario` is the family helper and
+  `_build_tier_chain_world` builds one world per env. Three of the four builders
+  are placeholders.
 - **`core/digestion/`** routes a consumed orb to the digester that owns its
   kind. `TierOrbDigester` holds the chain state and two scoring modes.
 - **`docs/architecture/`** describes this branch's design. Treat it and the
@@ -250,7 +308,11 @@ Broken here, deliberately left:
 - Tests fail collection (old schema, deleted modules).
 - `scripts/replay_probe.py`, `replay_sweep.sh` and `scenario_lock.py` target the
   old schema and do not run, so behaviour here is not locked to the baseline.
-- `WeightedPopulation` names a config class that no longer exists.
+- `WeightedPopulation`, now in `scenario/blocks/population.py`, names a config
+  class that no longer exists. The file imports only because its annotations are
+  not evaluated.
+- Some docstrings in the live `scenario/` still say `tier_chain/...` without
+  the `goal/` in front.
 - `config/scenarios/*.yaml` and `reproduction_package/` configs are old-schema.
 
 ## The learning problem
@@ -269,6 +331,14 @@ later, but treat that as likely, not proven.
 - A learning regression is silent: the env still runs and passes `check_env`.
   The check for each rebuilt step is the legacy strain: same config, same seed,
   compare the curves.
+- The owner does not want a step-by-step trace comparison between legacy and the
+  refactor branch to locate the fault (declined on 2026-10-09 as a waste of
+  time). Do not propose it again; the rebuild is the method.
+- Where the refactor branch's scenario layer is known to differ from the stable
+  code for spatial: 3 observation orb slots where there were 5, the `score <= 0`
+  ending commented out, max-tier scoring paid by the digester with tier orbs
+  worth 0.0, and separate timeout and chain-break rewards. None is known to be
+  the cause. Do not treat them as settled when they come up in the rebuild.
 - Legacy behaviour has not been locked with a recording. On the rebuild branch
   `scripts/replay_probe.py` already points at the legacy strain.
   `scripts/scenario_lock.py` and its baseline exist only on the refactor branch

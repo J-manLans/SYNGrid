@@ -4,7 +4,12 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.core.grid_world import GridWorld
+from syn_grid.core.digestion.tier_digester import (
+    ChainBroken,
+    ChainCompleted,
+    ChainProgressed,
+    TierOrbDigester,
+)
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
@@ -35,12 +40,12 @@ class SYNGridEnv(gym.Env):
     def __init__(self, scenario: Scenario, render_mode: str | None = None):
         # Set up bench environment;
         self.render_mode = render_mode
-
-        self.world = GridWorld(scenario)
+        self.scenario = scenario
+        self.world = scenario.build_world()
 
         if self.render_mode in self.metadata["render_modes"]:
-            self.renderer = PygameRenderer(scenario.
-                render_mode, self.metadata["render_fps"]
+            self.renderer = PygameRenderer(
+                self.world.grid_dimensions, render_mode, self.metadata["render_fps"]
             )
 
         # Set up Gymnasium environment:
@@ -52,8 +57,8 @@ class SYNGridEnv(gym.Env):
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.
         self._observation_handler = ObservationHandler(
-            obs_conf,
-            self.scenario.observation,
+            scenario.observation,
+            self.world.grid_dimensions,
             len(self.world.ALL_ORBS),
             self.world.max_identity,
         )
@@ -132,15 +137,17 @@ class SYNGridEnv(gym.Env):
 
         hud_data["score"] = self.world.droid.score
         hud_data["moves"] = self._observation_handler.steps_left
-        hud_data["current tier chain"] = self.world.droid.digestion_engine.chained_tiers
+        hud_data["current tier chain"] = self.world.droid.digestion_engine.get(
+            TierOrbDigester
+        ).chained_tiers
 
         return hud_data
 
     def _get_state_info(self) -> dict[str, Any]:
-        stats = self.world.droid.digestion_engine.stats
+        engine = self.world.droid.digestion_engine
 
         return {
-            LogKey.CHAINS_BROKEN: stats["chains_broken"],
-            LogKey.CHAIN_PROGRESSED: stats["chains_progressed"],
-            LogKey.CHAINS_COMPLETED: stats["chains_completed"],
+            LogKey.CHAINS_BROKEN: engine.count(ChainBroken),
+            LogKey.CHAIN_PROGRESSED: engine.count(ChainProgressed),
+            LogKey.CHAINS_COMPLETED: engine.count(ChainCompleted),
         }

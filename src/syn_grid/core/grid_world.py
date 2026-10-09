@@ -1,15 +1,17 @@
-from typing import Final
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Final
 
 from numpy.random import Generator, default_rng
 
-from syn_grid.config.models.common_models import GridConf
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_factory import OrbFactory
 from syn_grid.core.orbs.orb_meta import OrbMeta
 from syn_grid.gymnasium.action_space import DroidAction
-from syn_grid.scenario.rules.spawning import SpawningRules
-from syn_grid.scenario.scenario import Scenario
+
+if TYPE_CHECKING:
+    from syn_grid.scenario.blocks.population import OrbPopulation
+    from syn_grid.scenario.blocks.spawning import SpawningRules
 
 
 class GridWorld:
@@ -27,26 +29,36 @@ class GridWorld:
     #       Init        #
     # ================= #
 
-    def __init__(self, scenario: Scenario):
+    def __init__(
+        self,
+        grid_dimensions: tuple[int, int],
+        droid: SynergyDroid,
+        orb_population: OrbPopulation,
+        spawning: SpawningRules,
+    ):
         """
-        Initializes the grid world. Defines the game world's size and initializes the droid and orbs.
+        Initializes the grid world from the pieces a scenario composed for it.
 
-        :param scenario: the rules defining how this world's orbs behave.
+        :param grid_dimensions: the world's size as (rows, cols).
+        :param droid: the droid that moves through this world.
+        :param population: builds this world's orb pool.
+        :param spawning: the rules defining how this world's orbs behave.
         """
 
         # World
-        self._world_conf: Final[GridConf] = world_conf
-        self._spawning: Final[SpawningRules] = scenario.spawning
+        self._grid_rows, self._grid_cols = grid_dimensions
+        self._spawning: Final[SpawningRules] = spawning
 
         # Droid
-        self.droid: Final[SynergyDroid] = SynergyDroid(droid_conf)
+        self.droid: Final[SynergyDroid] = droid
 
         # Orbs
         self._active_orbs: Final[list[BaseOrb]] = []
         self._inactive_orbs: list[BaseOrb] = []
-        self.ALL_ORBS: Final[list[BaseOrb]] = OrbFactory(
-            orb_manager_conf, negative_orb_conf, tier_orb_conf, scenario.population
-        ).create_orbs()
+        # Class-wide and shared by every world in the process; it is the grid's
+        # Manhattan diameter, so it is set here rather than by a scenario rule.
+        BaseOrb.set_life_span(self._grid_rows, self._grid_cols)
+        self.ALL_ORBS: Final[list[BaseOrb]] = orb_population.create()
 
         self._remap_sparse_identities_to_dense()
 
@@ -105,6 +117,11 @@ class GridWorld:
         return step_penalty + reward
 
     # === Getters === #
+
+    @property
+    def grid_dimensions(self) -> tuple[int, int]:
+        """The world's size as (rows, cols)."""
+        return self._grid_rows, self._grid_cols
 
     @property
     def active_orbs(self) -> list[BaseOrb]:
@@ -172,8 +189,8 @@ class GridWorld:
 
         while True:
             position = [
-                int(self._rng.integers(0, self._world_conf.grid_rows)),
-                int(self._rng.integers(0, self._world_conf.grid_cols)),
+                int(self._rng.integers(0, self._grid_rows)),
+                int(self._rng.integers(0, self._grid_cols)),
             ]
 
             if self._empty_spawn_cell(position):
@@ -182,12 +199,12 @@ class GridWorld:
                 self._active_orbs.append(orb)
                 break
 
-    def deactivate_all_orbs(self) -> None:
+    def deactivate_all_orbs(self, delay: int) -> None:
         """Put the whole field on cooldown, where it sits."""
 
         for orb in self._active_orbs:
             orb.reset()
-            orb.TIMER.set(self._world_conf.delay)
+            orb.TIMER.set(delay)
 
     def reactivate_all_orbs(self) -> None:
         """Bring back every orb whose cooldown has run out, where it was."""

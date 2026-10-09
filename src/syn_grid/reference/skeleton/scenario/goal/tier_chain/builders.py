@@ -1,9 +1,8 @@
-from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.common_models import NegOrbConf, ScenarioConf
 from syn_grid.scenario.scenario import Scenario
 from syn_grid.config.models.tier_chain_models import TierScenarioConf, TierWorldConf
-from syn_grid.core.digestion.tier_digester import ScoringMode
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.scenario.blocks.population import OrbPopulation
+from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.spawning import SpawningRules
 from syn_grid.scenario.utils.helpers import neg_orb
 
@@ -17,8 +16,7 @@ def _tier_chain_scenario(
     scenario_name: str,
     scenario_tag: str,
     scenario_conf: TierScenarioConf,
-    orb_population: OrbPopulation,
-    scoring_mode: ScoringMode,
+    tier_bundle: OrbBundle,
     delay_on_consume: int | None = None,
     max_score: int | None = None,
 ) -> Scenario:
@@ -26,9 +24,10 @@ def _tier_chain_scenario(
     Goal/Tier Chain: collect every tier in order before the episode steps are used up.
 
     The shared helper for the tier-chain family. A builder decides what differs between its
-    scenario and the others (the orbs, the scoring mode, the delay) and passes it in; this
-    composes everything the family has in common:
+    scenario and the others (the tier bundle, which carries the orbs and the scoring mode, and the
+    delay) and passes it in; this composes everything the family has in common:
 
+    - orb bundles: the tier bundle, plus `_negative_bundle` when the config has a negative block.
     - spawning: the whole chain is on the field from the first step and no tier orb expires.
     - observation: slot count, sort limit and tier bound all follow from `max_tier`.
     - termination: a broken chain, a finished chain, or the clock.
@@ -74,15 +73,25 @@ def _chains_completed(world: GridWorld) -> float:
 
 def _build_tier_chain_world(
     world_conf: TierWorldConf,
-    orb_population: OrbPopulation,
-    scoring_mode: ScoringMode,
+    orb_bundles: tuple[OrbBundle, ...],
     spawning: SpawningRules,
 ) -> GridWorld:
     """
     Build one tier-chain world.
 
     Called once per environment, so everything that holds episode state -- the digesters, the
-    droid, the orbs -- is created here rather than shared through the scenario.
+    droid, the orbs -- is created here rather than shared through the scenario. The orbs are every
+    bundle's orbs joined and the digesters are one per bundle; nothing here asks which kinds they
+    are.
+    """
+    ...
+
+
+def _negative_bundle(negative_conf: NegOrbConf) -> OrbBundle:
+    """
+    The negative orbs and their digester, for a config that has a negative block.
+
+    How many negative orbs a tier chain holds is not decided yet.
     """
     ...
 
@@ -101,6 +110,7 @@ def build_tier_chain_spatial(
 
     Axis and tag: the grid size.
     Scoring: max-tier. Only the completed chain pays, so the orbs are worth nothing on their own.
+    Both are settled here, in the tier bundle this builder makes.
     """
     ...
 

@@ -4,10 +4,10 @@ from typing import Any, Final
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.config.models.common_models import PerceptionConf
+from syn_grid.core.digestion.tier_digester import TierOrbDigester
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.scenario.rules.observation import ObservationRules
+from syn_grid.scenario.blocks.observation import ObservationRules
 
 
 class BasePerception(ABC):
@@ -30,13 +30,13 @@ class BasePerception(ABC):
 
     def __init__(
         self,
-        conf: PerceptionConf,
         observation_rules: ObservationRules,
+        grid_dimensions: tuple[int, int],
         orbs: int,
         max_identity: int,
     ) -> None:
-        self._perception_conf = conf
         self._observation_rules = observation_rules
+        self._grid_rows, self._grid_cols = grid_dimensions
 
         # Global values
         self._orbs_in_env = orbs
@@ -55,8 +55,8 @@ class BasePerception(ABC):
     def _get_max_global_values(self) -> np.ndarray:
         return np.array(
             [
-                self._perception_conf.max_steps,
-                self._perception_conf.max_score,
+                self._observation_rules.max_steps,
+                self._observation_rules.max_score,
                 self._observation_rules.max_tier,
             ],
             dtype=np.float32,
@@ -65,7 +65,7 @@ class BasePerception(ABC):
     # --- Droid data getters --- #
     def _get_max_droid_positions(self) -> np.ndarray:
         return np.array(
-            [self._perception_conf.grid_rows, self._perception_conf.grid_cols],
+            [self._grid_rows, self._grid_cols],
             dtype=np.float32,
         )
 
@@ -73,8 +73,8 @@ class BasePerception(ABC):
     def _get_max_orb_base(self) -> np.ndarray:
         return np.array(
             [
-                self._perception_conf.grid_rows,
-                self._perception_conf.grid_cols,
+                self._grid_rows,
+                self._grid_cols,
                 self._max_identity,
             ],
             dtype=np.float32,
@@ -104,8 +104,8 @@ class BasePerception(ABC):
         return np.array(
             [
                 steps_left,
-                min(state.droid.score, self._perception_conf.max_score),
-                state.droid.digestion_engine.chained_tiers,
+                min(state.droid.score, self._observation_rules.max_score),
+                state.droid.digestion_engine.get(TierOrbDigester).chained_tiers,
             ],
             dtype=np.float32,
         )

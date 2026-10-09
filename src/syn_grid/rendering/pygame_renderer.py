@@ -28,7 +28,7 @@ class PygameRenderer:
     # ================= #
 
     def __init__(
-        self, render_mode: str | None, fps: int
+        self, grid_dimensions: tuple[int, int], render_mode: str | None, fps: int
     ) -> None:
         """
         Initializes the Pygame renderer.
@@ -41,6 +41,7 @@ class PygameRenderer:
         - Graphic elements
         """
 
+        self._grid_rows, self._grid_cols = grid_dimensions
         self._render_mode = render_mode
 
         # Default font
@@ -60,7 +61,7 @@ class PygameRenderer:
         # Define game window size (width, height)
         self.window_size = (
             self._window_width,
-            (self._cell_height * self._renderer_conf.grid_rows)
+            (self._cell_height * self._grid_rows)
             + (self._grid_offset * 3)
             + self._hud_height,
         )
@@ -163,7 +164,7 @@ class PygameRenderer:
         # Different measurements for coherence
         self._grid_offset = self._cell_width // 4
         self._window_width = (
-            self._cell_width * self._renderer_conf.grid_cols
+            self._cell_width * self._grid_cols
         ) + self._grid_offset * 2
         self._hud_height = self._cell_height * 4
         self._hud_width = self._cell_width * 5
@@ -182,8 +183,8 @@ class PygameRenderer:
     def _draw_floor_and_orbs(self, orb_positions, orb_meta, is_active_statuses):
         """Draw floor tiles and orbs"""
 
-        for r in range(self._renderer_conf.grid_rows):
-            for c in range(self._renderer_conf.grid_cols):
+        for r in range(self._grid_rows):
+            for c in range(self._grid_cols):
                 pos = (
                     (c * self._cell_width) + self._grid_offset,
                     (r * self._cell_height) + self._grid_offset,
@@ -254,8 +255,8 @@ class PygameRenderer:
         hud_rect = hud_img.get_rect(
             topleft=(
                 self._grid_offset
-                + (self._renderer_conf.grid_cols - 5) * self._cell_width // 2,
-                (self._cell_height * self._renderer_conf.grid_rows)
+                + (self._grid_cols - 5) * self._cell_width // 2,
+                (self._cell_height * self._grid_rows)
                 + self._grid_offset * 2,
             )
         )
