@@ -1,4 +1,4 @@
-USE_LEGACY = True
+USE_LEGACY = False
 
 if __name__ == "__main__":
     if USE_LEGACY:

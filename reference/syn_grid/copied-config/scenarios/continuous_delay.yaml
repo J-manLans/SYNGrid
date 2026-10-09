@@ -1,0 +1,100 @@
+# SYNGrid scenario: continuous_delay
+#
+# Continuous with a cooldown on consumption. The mechanic existed before the
+# Scenario refactor -- delay_mode was an independent flag, so continuous+delay
+# was reachable -- but no shipped config ever set it, so nothing recorded what
+# it did.
+#
+# Locked against cleanup-after-versioning, so the behaviour of the new
+# continuous_delay scenario is pinned to what the old flag combination did
+# rather than to whatever the refactor happened to produce.
+scenario: continuous_delay
+world:
+  grid_world_conf:
+    grid_rows: 5
+    grid_cols: 5
+    delay: 2
+    de_spawn_tiers: false
+    max_tier: 4
+    max_active_orbs: 3
+  renderer_conf:
+    grid_rows: 5
+    grid_cols: 5
+    img_assets:
+      droid_img: assets/sprites/droid.png
+      positive_orb_img: assets/sprites/positive_orb.png
+      negative_orb_img: assets/sprites/negative_orb.png
+      floor_img: assets/tiles/floor.png
+      hud_img: assets/sprites/hud.png
+  droid_conf:
+    grid_rows: 5
+    grid_cols: 5
+    starting_score: 30
+    step_penalty: -1.0
+    boundary_penalty: -1.0
+    chain_break_penalty: 0.0
+    tier_consumption_penalty: -1.0
+    reward_multiplier: 1.0
+    timeout_penalty: -1.0
+  orb_factory_conf:
+    grid_rows: 5
+    grid_cols: 5
+    max_active_orbs: 3
+    max_tier: 4
+    types:
+      negative:
+        enabled: true
+        weight: 1
+      tier:
+        enabled: true
+        weight: 2
+  negative_orb_conf:
+    reward: -3.0
+    cool_down: 10
+  tier_orb_conf:
+    linear_reward_growth: true
+    scoring: step_wise
+    growth_factor: 1.5
+    base_reward: 3
+    cool_down: 7
+obs:
+  observation_handler:
+    perception: vector_markovian
+    max_steps: 100
+  perception:
+    max_score: 100
+    max_steps: 100
+    grid_rows: 5
+    grid_cols: 5
+    include_timer: false
+    tiers: 5
+    enabled_orbs:
+      neg_enabled: true
+      tier_enabled: true
+agent:
+  global_agent_conf:
+    alg: PPO
+    agent_steps: '0'
+    id_tag: null
+    save_folder: null
+    seed: 3
+    human_control: false
+    training: false
+  train_agent_conf:
+    continue_training: false
+    csv_output: false
+    tensorboard_output: false
+    model_output: false
+    n_envs: 1
+    timesteps: 1000
+    iterations: 1
+    render_mode: null
+    record_video: false
+    rec_interval: 1000
+    rec_length: 10
+  eval_agent_conf:
+    num_eval_episodes: 1
+    render_mode: null
+    record_video: false
+    rec_episode: 1
+    csv_output: false

@@ -1,0 +1,21 @@
+# agent_bundle.py
+
+from dataclasses import dataclass
+
+from syn_grid.config.models.runner_models import RunnerConf
+from syn_grid.scenario.scenario import Scenario
+
+
+@dataclass
+class RunnerBundle:
+    """
+    Bundled configuration needed for the agent.
+
+    ``scenario`` is the selected scenario's name. It travels with the bundle
+    because a runner has to name the environment it is about to build, and
+    because a run's identity should follow from the scenario rather than be
+    reassembled from the parameters that happen to describe it.
+    """
+
+    scenario: Scenario
+    runner_conf: RunnerConf

@@ -1,0 +1,9 @@
+# SYNGrid global config: settings that apply to every run.
+#
+# `scenario` names the scenario to run; its tunables live in the YAML file of
+# the same name. `human_control` plays the scenario by hand instead of training.
+snapshot:
+  enabled: false
+  id:
+scenario: goal_tier_chain_spatial
+human_control: false
