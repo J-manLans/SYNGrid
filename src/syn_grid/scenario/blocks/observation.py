@@ -11,7 +11,9 @@ reads a config.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections.abc import Callable
 
+from syn_grid.core.grid_world import GridWorld
 from syn_grid.config.models.common_models import Perception
 
 
@@ -33,7 +35,14 @@ class ObservationRules:
 
     perception: Perception
     max_steps: int
-    max_score: int | None
+    max_score: int | None # would go away
     observation_slot_count: int
     sort_limit: int
     max_tier: int
+    # global_features: tuple[GlobalFeature, ...]
+
+    @dataclass(frozen=True)
+    class GlobalFeature:
+        high: float                              # static: the Box bound
+        read: Callable[[GridWorld], float]
+

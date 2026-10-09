@@ -12,17 +12,15 @@ import yaml
 
 from syn_grid.config.models import FullConf, ScoringMode
 from syn_grid.scenario.registry import SCENARIO_BUILDERS, build_scenario
-from syn_grid.scenario.rules.population import (
-    TierChainPopulation,
-    WeightedPopulation,
-)
-from syn_grid.scenario.rules.spawning import (
+from syn_grid.scenario.blocks.population import WeightedPopulation
+from syn_grid.scenario.goal.tier_chain.population import TierChainPopulation
+from syn_grid.scenario.blocks.spawning import (
     LeaveOrbFieldAlone,
     ReactivateAllOrbs,
     RefillOrbField,
 )
-from syn_grid.scenario.rules.termination.continuous_termination import ContinuousTermination
-from syn_grid.scenario.rules.termination.tier_chain_termination import TierChainTermination
+from syn_grid.scenario.continuous.termination import ContinuousTermination
+from syn_grid.scenario.goal.tier_chain.termination import TierChainTermination
 
 from syn_grid.scenario.scenario import ScenarioType
 

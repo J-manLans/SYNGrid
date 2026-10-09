@@ -37,7 +37,7 @@ class AfterAction(Protocol):
 
 
 # ################## #
-#     Strategies     #
+#    AfterActions    #
 # ################## #
 
 

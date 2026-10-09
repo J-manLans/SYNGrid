@@ -3,162 +3,26 @@ Scenario selection.
 
 This module is the whole of "which scenario is this". A config names one, a
 builder composes the pieces for it, and nothing downstream re-derives identity
-from the config. Registering a new scenario means adding a builder here.
+from the config. The builders live in their family's folder, such as
+``tier_chain/builders.py``. Registering a new scenario means writing its builder
+there and adding it to ``SCENARIO_BUILDERS`` here.
 
 Skeleton: structure and signatures only. Each docstring says what the function
 composes; the bodies are left out.
 """
 
-from __future__ import annotations
 
 from collections.abc import Callable
 
 from syn_grid.config.models.common_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
-from syn_grid.config.models.tier_chain_models import TierScenarioConf, TierWorldConf
-from syn_grid.core.digestion.tier_digester import ScoringMode
-from syn_grid.core.grid_world import GridWorld
-from syn_grid.scenario.rules.population import OrbPopulation
-from syn_grid.scenario.rules.spawning import SpawningRules
 from syn_grid.scenario.scenario import Scenario
-
-# ===================== #
-#    Goal Scenarios     #
-# ===================== #
-
-
-# ----------------------- #
-#  Tier Chain Scenarios   #
-# ----------------------- #
-
-
-def _tier_chain_scenario(
-    scenario_name: str,
-    scenario_tag: str,
-    scenario_conf: TierScenarioConf,
-    orb_population: OrbPopulation,
-    scoring_mode: ScoringMode,
-    delay_on_consume: int | None = None,
-    max_score: int | None = None,
-) -> Scenario:
-    """
-    Goal/Tier Chain: collect every tier in order before the episode steps are used up.
-
-    The shared helper for the tier-chain family. A builder decides what differs between its
-    scenario and the others (the orbs, the scoring mode, the delay) and passes it in; this
-    composes everything the family has in common:
-
-    - spawning: the whole chain is on the field from the first step and no tier orb expires.
-    - observation: slot count, sort limit and tier bound all follow from `max_tier`.
-    - termination: a broken chain, a finished chain, or the clock.
-    - hud: the current chain length.
-    - metrics: chains broken, progressed and completed.
-    - build_world: `_build_tier_chain_world`, bound to this scenario's pieces.
-    """
-    ...
-
-
-def _build_tier_chain_world(
-    world_conf: TierWorldConf,
-    orb_population: OrbPopulation,
-    scoring_mode: ScoringMode,
-    spawning: SpawningRules,
-) -> GridWorld:
-    """
-    Build one tier-chain world.
-
-    Called once per environment, so everything that holds episode state -- the digesters, the
-    droid, the orbs -- is created here rather than shared through the scenario.
-    """
-    ...
-
-
-# --- World readers --- #
-# Handed to the hud, the metrics and the observation. Module-level so that two scenarios built
-# from the same config hold the same function objects and compare equal.
-
-
-def _chain_progress(world: GridWorld) -> float:
-    """The length of the chain right now."""
-    ...
-
-
-def _chains_broken(world: GridWorld) -> float:
-    """How many chains have broken this episode."""
-    ...
-
-
-def _chains_progressed(world: GridWorld) -> float:
-    """How many times a chain has grown by one tier this episode."""
-    ...
-
-
-def _chains_completed(world: GridWorld) -> float:
-    """How many chains have been completed this episode."""
-    ...
-
-
-# ============ #
-#   Builders   #
-# ============ #
-
-
-def build_tier_chain_spatial(
-    scenario_name: str, scenario_conf: ScenarioConf
-) -> Scenario:
-    """
-    Tier Chain, Spatial: the chain is laid out across the grid, but the droid only sees a 3x3
-    window around itself.
-
-    Axis and tag: the grid size.
-    Scoring: max-tier. Only the completed chain pays, so the orbs are worth nothing on their own.
-    """
-    ...
-
-
-def build_tier_chain_scaling_sparse(
-    scenario_name: str, scenario_conf: ScenarioConf
-) -> Scenario:
-    """
-    Tier Chain, Scaling Sparse.
-
-    Axis and tag: the chain length and the grid size.
-    Scoring: max-tier.
-    """
-    ...
-
-
-def build_tier_chain_scaling_dense(
-    scenario_name: str, scenario_conf: ScenarioConf
-) -> Scenario:
-    """
-    Tier Chain, Scaling Dense.
-
-    Axis and tag: the chain length and the grid size.
-    Scoring: threshold. Each tier is worth something, so this scenario's config carries the
-    reward ladder.
-    """
-    ...
-
-
-def build_tier_chain_delay(scenario_name: str, scenario_conf: ScenarioConf) -> Scenario:
-    """
-    Tier Chain, Delay: consuming an orb puts the whole field on cooldown.
-
-    Axis and tag: the delay.
-    Scoring: threshold.
-    """
-    ...
-
-
-# ============ #
-#   Helpers    #
-# ============ #
-
-
-def _neg_orb(scenario_conf: ScenarioConf) -> str:
-    """The run-tag suffix for a scenario whose config enables negative orbs."""
-    ...
+from syn_grid.scenario.goal.tier_chain.builders import (
+    build_tier_chain_spatial,
+    build_tier_chain_scaling_sparse,
+    build_tier_chain_scaling_dense,
+    build_tier_chain_delay
+)
 
 
 # ============ #

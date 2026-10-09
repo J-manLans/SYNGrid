@@ -11,9 +11,10 @@ state of its own, so one scenario can be handed to any number of environments
 and each builds a world nobody else touches.
 
 Everything that is specific to a scenario and needed outside the world is a
-field here. Adding a scenario is a new builder in ``registry.py`` plus, if it
-introduces a genuinely new mechanic, a new rules module. Nothing outside this
-package needs to learn the scenario's name.
+field here. Adding a scenario is a new builder in its family's folder,
+registered in ``registry.py``, plus a new module beside the builder if it
+introduces a genuinely new mechanic. Nothing outside this package needs to learn
+the scenario's name.
 """
 
 from __future__ import annotations
@@ -22,10 +23,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.scenario.rules.hud import HudElement
-from syn_grid.scenario.rules.metrics import Metric
-from syn_grid.scenario.rules.observation import ObservationRules
-from syn_grid.scenario.rules.termination.termination import TerminationRules
+from syn_grid.scenario.blocks.hud import HudElement
+from syn_grid.scenario.blocks.metrics import Metric
+from syn_grid.scenario.blocks.observation import ObservationRules
+from syn_grid.scenario.blocks.termination import TerminationRules
 
 
 @dataclass(frozen=True)

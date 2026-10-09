@@ -24,7 +24,7 @@ import yaml
 
 from syn_grid.config.models import FullConf
 from syn_grid.gymnasium.utils.env_factory import make, register_env
-from syn_grid.scenario.rules.termination.tier_chain_termination import TierChainTermination
+from syn_grid.scenario.goal.tier_chain.termination import TierChainTermination
 
 
 CONFIG = Path("src/syn_grid/config/configs.yaml")

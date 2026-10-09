@@ -13,8 +13,8 @@ import numpy as np
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.scenario.registry import build_scenario
-from syn_grid.scenario.rules.population import WeightedPopulation
-from syn_grid.scenario.rules.spawning import (
+from syn_grid.scenario.blocks.population import WeightedPopulation
+from syn_grid.scenario.blocks.spawning import (
     LeaveOrbFieldAlone,
     ReactivateAllOrbs,
     RefillOrbField,

@@ -7,7 +7,7 @@ from syn_grid.core.digestion.tier_digester import (
     ChainBroken,
     ChainCompleted,
 )
-from syn_grid.scenario.rules.termination.termination import EpisodeOutcome
+from syn_grid.scenario.blocks.termination import EpisodeOutcome
 
 if TYPE_CHECKING:
     from syn_grid.core.grid_world import GridWorld

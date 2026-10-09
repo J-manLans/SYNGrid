@@ -1,10 +1,13 @@
 """
 When an episode ends, and what the last step is worth.
 
-A termination rule belongs to an objective, not to a kind of scenario. Tier
-chain and continuous are the two that exist. Another goal scenario brings its
-own rule behind ``TerminationRules`` rather than extending one of these: there
-is no shared base class, because the two have too little in common to earn one.
+A termination rule belongs to an objective, not to a kind of scenario. This
+file is the interface only. Each strategy lives in the folder of the scenario
+family that uses it, as ``tier_chain/termination.py`` and
+``continuous/termination.py`` do, and imports only what that family needs.
+Another family brings its own rule behind ``TerminationRules`` rather than
+extending one of these: there is no shared base class, because the strategies
+have too little in common to earn one.
 
 A rule decides when the episode ends and sets the one reward the clock causes.
 A reward caused by consuming an orb comes from digestion and is passed through

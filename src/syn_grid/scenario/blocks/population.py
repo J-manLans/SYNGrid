@@ -6,15 +6,18 @@ difference is not a parameter -- a tier chain has exactly one orb per tier and
 no weighting anywhere, while a continuous world apportions a weighted pool.
 So this is two implementations behind one call, not one implementation with a
 flag.
+
+This file is the call. Each implementation lives in the folder of the scenario
+family that uses it.
 """
 
 from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.config.models.common_models import NegOrbConf
 from syn_grid.config.models.tier_chain_models import TierOrbConf
-from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 
@@ -34,43 +37,6 @@ class OrbPopulation(Protocol):
 # ################## #
 #     Strategies     #
 # ################## #
-
-
-class TierChainPopulation:
-    """
-    One orb per tier, tiers 1...max_tier.
-
-    A tier chain is a fixed sequence, so the pool is the sequence. `max_tier` is the pool size,
-    which is why a tier chain spawns `max_tier` orbs at reset rather than a configured count.
-    """
-
-    def __init__(
-        self,
-        max_tier: int,
-        *,
-        base_reward: float,
-        growth_factor: float,
-        linear_reward_growth: bool,
-        cool_down: int,
-    ) -> None:
-        self._max_tier = max_tier
-        self._base_reward = base_reward
-        self._growth_factor = growth_factor
-        self._linear_reward_growth = linear_reward_growth
-        self._cool_down = cool_down
-
-    def create(self) -> list[BaseOrb]:
-        return [
-            TierOrb(
-                tier,
-                self._max_tier,
-                self._base_reward,
-                self._growth_factor,
-                self._linear_reward_growth,
-                self._cool_down,
-            )
-            for tier in range(1, self._max_tier + 1)
-        ]
 
 
 class WeightedPopulation:
@@ -193,3 +159,6 @@ class WeightedPopulation:
             for i in range(orb_count):
                 tier = (i % self._conf.max_tier) + 1
                 orbs.append(TierOrb(tier, self._tier_conf, self._conf.max_tier))
+
+
+

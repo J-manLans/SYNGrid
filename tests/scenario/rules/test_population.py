@@ -13,10 +13,8 @@ import pytest
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_factory import OrbFactory
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
-from syn_grid.scenario.rules.population import (
-    TierChainPopulation,
-    WeightedPopulation,
-)
+from syn_grid.scenario.blocks.population import WeightedPopulation
+from syn_grid.scenario.goal.tier_chain.population import TierChainPopulation
 from tests.utils.config_helpers import get_test_config, update_conf
 
 

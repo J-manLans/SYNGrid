@@ -12,8 +12,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from syn_grid.config.models import ScoringMode
-from syn_grid.scenario.rules.termination.continuous_termination import ContinuousTermination
-from syn_grid.scenario.rules.termination.tier_chain_termination import TierChainTermination
+from syn_grid.scenario.continuous.termination import ContinuousTermination
+from syn_grid.scenario.goal.tier_chain.termination import TierChainTermination
 
 
 # The value shipped in configs.yaml. Deliberately NOT the primary assertion in
