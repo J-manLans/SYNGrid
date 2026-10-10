@@ -247,7 +247,6 @@ less than before, and each orb kind can be varied without touching the others.
 **Status:** settled. Still open:
 
 - `obs_conf` is two levels of nesting around one field, `perception`.
-- The builders still take the base `ScenarioConf` and `cast` it.
 
 ---
 

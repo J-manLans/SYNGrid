@@ -1,11 +1,15 @@
-from syn_grid.config.models.common_scenario_models import NegOrbConf, ScenarioConf
+from syn_grid.config.models.common_scenario_models import NegOrbConf
 from syn_grid.scenario.scenario import Scenario
-from syn_grid.scenario.goal.tier_chain.config import TierScenarioConf, TierWorldConf
+from syn_grid.scenario.goal.tier_chain.config import (
+    TierDelayScenarioConf,
+    TierDenseScenarioConf,
+    TierScenarioConf,
+    TierWorldConf,
+)
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.spawning import SpawningRules
 from syn_grid.scenario.utils.helpers import neg_orb
-from typing import cast
 
 
 
@@ -104,7 +108,7 @@ def _negative_bundle(negative_conf: NegOrbConf) -> OrbBundle:
 # ============ #
 
 
-def build_tier_chain_spatial(scenario_name: str, scenario_conf: ScenarioConf) -> Scenario:
+def build_tier_chain_spatial(scenario_name: str, scenario_conf: TierScenarioConf) -> Scenario:
     """
     Tier Chain, Spatial: the complete tier chain is laid out across the grid, but the droid only
     sees a 3x3 window around itself.
@@ -119,7 +123,6 @@ def build_tier_chain_spatial(scenario_name: str, scenario_conf: ScenarioConf) ->
     map.
     """
 
-    scenario_conf = cast(TierScenarioConf, scenario_conf)
     grid_conf = scenario_conf.world_conf.grid_conf
     scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}"
 
@@ -128,7 +131,7 @@ def build_tier_chain_spatial(scenario_name: str, scenario_conf: ScenarioConf) ->
     ...
 
 
-def build_tier_chain_scaling_sparse(scenario_name: str, scenario_conf: ScenarioConf) -> Scenario:
+def build_tier_chain_scaling_sparse(scenario_name: str, scenario_conf: TierScenarioConf) -> Scenario:
     """
     Tier Chain, Scaling Sparse.
 
@@ -138,7 +141,7 @@ def build_tier_chain_scaling_sparse(scenario_name: str, scenario_conf: ScenarioC
     ...
 
 
-def build_tier_chain_scaling_dense(scenario_name: str, scenario_conf: ScenarioConf) -> Scenario:
+def build_tier_chain_scaling_dense(scenario_name: str, scenario_conf: TierDenseScenarioConf) -> Scenario:
     """
     Tier Chain, Scaling Dense.
 
@@ -149,7 +152,7 @@ def build_tier_chain_scaling_dense(scenario_name: str, scenario_conf: ScenarioCo
     ...
 
 
-def build_tier_chain_delay(scenario_name: str, scenario_conf: ScenarioConf) -> Scenario:
+def build_tier_chain_delay(scenario_name: str, scenario_conf: TierDelayScenarioConf) -> Scenario:
     """
     Tier Chain, Delay: consuming an orb puts the whole field on cooldown.
 

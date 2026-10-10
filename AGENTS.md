@@ -86,8 +86,8 @@ wherever no change was agreed, which leaves these open on that file:
 1. `orb_population` and `scoring_mode` as two parameters, or one per-kind recipe.
 2. `max_score` on the family helper.
 3. No negative-orb count anywhere in the helper or the world builder.
-4. Builders take the base `ScenarioConf` and `cast` it, because the models table
-   and the builders table are separate.
+4. Settled: `ScenarioEntry` is generic, so each builder takes its own config
+   class, and `entry.build()` checks the config's type once before calling it.
 5. Whether the world readers belong in the registry or in a tier-chain file.
 
 ## Design direction

@@ -14,6 +14,7 @@ field the family lacks, and that subclass lives beside the family it departs fro
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Generic, TypeVar
 
 from syn_grid.config.models.common_scenario_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
@@ -36,17 +37,27 @@ from syn_grid.scenario.goal.tier_chain.config import (
 # ============ #
 
 
-ScenarioBuilder = Callable[[str, ScenarioConf], Scenario]
-'''The method which builds the specified scenario'''
+C = TypeVar("C", bound=ScenarioConf)
 
 
 @dataclass(frozen=True)
-class ScenarioEntry:
+class ScenarioEntry(Generic[C]):
     """What a scenario name stands for: the config class its config file is validated against,
     and the builder that turns that config into a `Scenario`."""
 
-    conf_class: type[ScenarioConf]
-    builder: ScenarioBuilder
+    conf_class: type[C]
+    builder: Callable[[str, C], Scenario]
+
+    def build(self, scenario_name: str, scenario_conf: ScenarioConf) -> Scenario:
+        """Check that the config is this entry's config class, then run the builder on it."""
+
+        if not isinstance(scenario_conf, self.conf_class):
+            raise TypeError(
+                f"Scenario '{scenario_name}' is configured by {self.conf_class.__name__}, "
+                f"but was given a {type(scenario_conf).__name__}"
+            )
+
+        return self.builder(scenario_name, scenario_conf)
 
 
 SCENARIOS: dict[ScenarioName, ScenarioEntry] = {
@@ -66,7 +77,7 @@ SCENARIOS: dict[ScenarioName, ScenarioEntry] = {
 
 
 def build_scenario(scenario: ScenarioName, scenario_conf: ScenarioConf) -> Scenario:
-    """Look the name up in `SCENARIOS` and run its builder."""
+    """Look the name up in `SCENARIOS` and build the scenario through its entry."""
 
     try:
         entry = SCENARIOS[scenario]
@@ -75,4 +86,4 @@ def build_scenario(scenario: ScenarioName, scenario_conf: ScenarioConf) -> Scena
             f"Unknown scenario '{scenario}'. Available: {sorted(SCENARIOS)}"
         ) from None
 
-    return entry.builder(scenario.value, scenario_conf)
+    return entry.build(scenario.value, scenario_conf)

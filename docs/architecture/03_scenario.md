@@ -26,8 +26,9 @@ populated, when orbs spawn, and when an episode ends, and they are handed the
 world as an argument whenever they need to look at it.
 
 `build_scenario` looks the scenario name up in `SCENARIOS`, whose entry holds
-the scenario's config model and its builder, and runs the builder once at
-startup. Each environment then calls `scenario.build_world()`,
-which creates that environment's own digesters, `DigestionEngine`,
+the scenario's config class and its builder. The entry checks that the config
+it is given is that class, then runs the builder, once at startup. Each
+environment then calls `scenario.build_world()`, which creates that
+environment's own digesters, `DigestionEngine`,
 `SynergyDroid` and `GridWorld`. Only `goal_tier_chain_spatial` has a working
 builder; the other three registered names are placeholders.
