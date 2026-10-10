@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from syn_grid.config.models.common_models import Perception
+from syn_grid.config.models.scenarios.common_models import Perception
 from syn_grid.core.grid_world import GridWorld
 
 

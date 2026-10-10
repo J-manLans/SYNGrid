@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from collections.abc import Callable
 
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.config.models.common_models import Perception
+from syn_grid.config.models.scenarios.common_models import Perception
 
 
 @dataclass(frozen=True)

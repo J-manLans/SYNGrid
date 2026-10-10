@@ -19,7 +19,7 @@ a diff rather than spread across four files.
 
 from pydantic import BaseModel, Field, model_validator
 
-from syn_grid.config.models.common_models import (
+from syn_grid.config.models.scenarios.common_models import (
     GoalDroidConf,
     ObsConf,
     OrbPoolConf,

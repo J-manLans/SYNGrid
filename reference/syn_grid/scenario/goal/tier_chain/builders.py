@@ -3,9 +3,9 @@ from __future__ import annotations
 from functools import partial
 from typing import cast
 
-from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.scenarios.common_models import ScenarioConf
 
-from syn_grid.config.models.tier_chain_models import (
+from syn_grid.config.models.scenarios.tier_chain_models import (
     TierScenarioConf,
     TierWorldConf,
 )

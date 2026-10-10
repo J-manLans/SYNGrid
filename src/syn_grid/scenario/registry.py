@@ -10,7 +10,7 @@ scenario means writing its builder there and adding it to ``SCENARIO_BUILDERS`` 
 
 from collections.abc import Callable
 
-from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.scenarios.common_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.scenario.scenario import Scenario
 from syn_grid.scenario.goal.tier_chain.builders import (

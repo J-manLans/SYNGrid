@@ -13,7 +13,7 @@ a mechanism; "tier chain" describes the scenario that uses it, which is why the
 old flag name is not carried forward.
 """
 
-from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.scenarios.common_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
 from collections.abc import Callable
 from syn_grid.scenario.scenario import Scenario

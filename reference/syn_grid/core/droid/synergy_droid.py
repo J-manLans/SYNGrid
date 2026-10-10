@@ -1,6 +1,6 @@
 from typing import Final
 
-from syn_grid.config.models.common_models import DroidConf
+from syn_grid.config.models.scenarios.common_models import DroidConf
 from syn_grid.core.digestion.engine import DigestionEngine
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.gymnasium.action_space import DroidAction

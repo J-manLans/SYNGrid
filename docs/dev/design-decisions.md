@@ -115,3 +115,71 @@ what the types now guarantee.
 
 **Status:** settled. Revisit if a single experiment needs to sweep scoring modes. The lookup would then sit at the
 edge, next to `SCENARIO_MODELS` or in the builders, and wouldn't touch the digesters.
+
+---
+
+## Two orb categories, and an orb meta that stores only type and tier (2026-10-10)
+
+**Decision:** There are two orb categories and there will not be a third.
+
+- **Direct:** changes the score and nothing else, on the step it is eaten. Penalty and reward orbs. The only variety is
+  how the number is decided: fixed, a random draw, or a value that depends on the orb's own age.
+- **Synergy:** everything else. Eating it leaves state behind that changes a later outcome. A tier orb leaves a chain,
+  a timed orb leaves a countdown, an item orb sits in the droid until the next orb, a world orb changes the field.
+
+The test for a new orb: does its digester need anything but the orb itself? If it needs the droid, the world or a
+memory of earlier orbs, it is synergy. So an orb bomb, growing the droid, a teleport, an instant game over and a
+percentage of the current score are all synergy, even though they happen at once.
+
+`OrbMeta` says what an orb is, not how it acts. It stores two things:
+
+- `type`, one member of `DirectType` or `SynergyType`. Every orb that behaves differently gets its own member
+  (`NEGATIVE`, `POSITIVE`, ... and `TIER`, `FLIP_REWARD`, `OBSCURE`, `NULLIFY`, `HAZARD_BORDER`, ...).
+- `tier`, an int for `SynergyType.TIER` and `None` for everything else.
+
+The category is not stored. It follows from which enum the type comes from.
+
+"Effect" is an everyday word for a synergy orb that acts on something other than itself (other orbs' rewards, the
+observation, the next orb, the world), as opposed to a tier orb, which only depends on what came before. It is not a
+type, an enum or a category.
+
+In digestion the routing key is the type alone: `OrbKind = DirectType | SynergyType` and `kind_of(orb)` returns
+`orb.META.TYPE`. The engine and the digesters treat it as an opaque key and never take it apart.
+
+**Where:** `core/orbs/orb_meta.py`, and what reads it: `core/grid_world.py`, `rendering/pygame_renderer.py`,
+`gymnasium/observation_space/perceptions/`. `core/orbs/effects/` moves under `core/orbs/synergy/`. The routing key
+lives in `core/droid/digestion/digestion.py`.
+
+**Alternatives considered:**
+
+- A third `EffectType` enum beside `SynergyType`. Rejected because it reads as if effect orbs were not synergy orbs,
+and nothing in the code needs to ask "is this an effect?".
+- One `SynergyType.EFFECT` member with a sub-field for which effect. Rejected because each effect needs its own
+digester, so the routing key has to tell them apart; this would force a three-part key or one effect digester that
+branches inside.
+- Storing how an effect acts (timed, item, world) in the meta. Rejected because no reader of the meta needs it. Those
+are capabilities of the effect's digester: being ticked, acting before the owning digester runs, or sending something
+out for the world to act on.
+- Direct meaning "happens right away". Rejected because an orb bomb or a teleport happens right away and still changes
+more than the score, which blurs the category.
+- Keeping `CATEGORY` as a stored field. Rejected because the enum already says it, and the validator in `OrbMeta`
+exists only to check that the two stored fields agree.
+
+**Why this one:** Direct stays a small closed set and every interesting mechanic is synergy, which lines up with the
+digester split: a direct digester is stateless, a synergy digester holds episode state. Effect orbs no longer need a
+tier. A new orb is a new enum member and a digester, with no new field on the meta.
+
+**Status:** settled as a design, not built. Digestion is written first and already uses the type alone as its key, so
+it has nothing to update later. The meta itself is redone in its own pass, with the observation or just before it,
+and as the only change in that step so the observation can be compared with legacy. Things that pass has to deal
+with:
+
+- `grid_world.py` uses `TIER == 0` to mean "not a tier orb" when deciding which orbs despawn. With `tier` as `None`
+and more synergy types this has to become a check on the type.
+- The renderer's `orb_meta.TIER is not None` is always true today, because a missing tier is stored as 0.
+- The radix `IDENTITY` is only a sort key; the world replaces it with dense ids when it is built. It could become a
+plain sort on type and tier. Negative has to keep sorting before the tiers or the existing observations change.
+- The world writes the dense id back onto the meta, so the meta can't be frozen until that id lives somewhere else.
+
+Open: whether synergy orbs other than tier orbs despawn and respawn like negative orbs or stay on the field. Revisit
+the "two categories" rule only if an orb turns up that fits neither test.

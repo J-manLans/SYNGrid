@@ -16,8 +16,8 @@ from __future__ import annotations
 from typing import Protocol, runtime_checkable
 
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.config.models.common_models import NegOrbConf
-from syn_grid.config.models.tier_chain_models import TierOrbConf
+from syn_grid.config.models.scenarios.common_models import NegOrbConf
+from syn_grid.config.models.scenarios.tier_chain_models import TierOrbConf
 from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
 from syn_grid.core.orbs.synergy.tier_orb import TierOrb
 

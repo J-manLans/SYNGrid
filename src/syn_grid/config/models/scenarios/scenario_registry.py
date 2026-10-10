@@ -14,9 +14,9 @@ and that subclass lives beside the family it departs from.
 What this must never do is infer a scenario from the values it is given.
 """
 
-from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.scenarios.common_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
-from syn_grid.config.models.tier_chain_models import (
+from syn_grid.config.models.scenarios.tier_chain_models import (
     TierDelayScenarioConf,
     TierDenseScenarioConf,
     TierScenarioConf,

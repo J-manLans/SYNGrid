@@ -14,7 +14,7 @@ composes; the bodies are left out.
 
 from collections.abc import Callable
 
-from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.scenarios.common_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.scenario.scenario import Scenario
 from syn_grid.scenario.goal.tier_chain.builders import (
