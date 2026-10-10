@@ -22,11 +22,11 @@ world_conf:
     max_tier: 3
     chain_break_penalty: -0.01
 
-  # negative orbs is an optional for this scenario, uncomment and fill the values to activate it
+  # A negative orb is optional for this scenario: one orb that spawns, despawns
+  # and returns elsewhere. Uncomment and fill in the values to activate it.
   # neg_orb_conf:
   #   reward:
   #   cool_down:
-  #   weight:
 
 obs_conf:
   observation_handler_conf:

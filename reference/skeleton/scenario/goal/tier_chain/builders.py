@@ -89,9 +89,10 @@ def _build_tier_chain_world(
 
 def _negative_bundle(negative_conf: NegOrbConf) -> OrbBundle:
     """
-    The negative orbs and their digester, for a config that has a negative block.
+    The negative orb and its digester, for a config that has a negative block.
 
-    How many negative orbs a tier chain holds is not decided yet.
+    A tier chain holds one negative orb. It spawns, despawns at the end of its lifespan and
+    returns elsewhere after its cool-down.
     """
     ...
 

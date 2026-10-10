@@ -80,13 +80,15 @@ class DroidConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
 # ======================= #
 
 
-class OrbKindConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    cool_down: int = Field(ge=0)
-    weight: int = Field(gt=0)
+class NegOrbConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    """A negative orb: what eating it costs, and how long it stays away.
 
+    `cool_down` is the number of steps the orb is off the field after it is
+    eaten or despawns, before it can appear again.
+    """
 
-class NegOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
     reward: float = Field(le=0)
+    cool_down: int = Field(ge=0)
 
 
 # ======================= #

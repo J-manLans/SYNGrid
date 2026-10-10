@@ -246,8 +246,6 @@ less than before, and each orb kind can be varied without touching the others.
 
 **Status:** settled. Still open:
 
-- `NegOrbConf` requires `weight`, a spawn weight for a field that refills at random, which a tier-chain negative orb
-isn't meant to have. Nothing says how many negative orbs a tier chain holds.
 - `obs_conf` is two levels of nesting around one field, `perception`.
 - The builders still take the base `ScenarioConf` and `cast` it.
 
@@ -363,3 +361,39 @@ timeout and a break paid the held reward and a completion paid the accumulated l
 
 **Status:** settled. Revisit if a scenario needs a timeout or a completion to replace the step's reward instead of
 adding to it.
+
+---
+
+## A weight belongs to a sampled field, and a tier chain holds one negative orb (2026-10-10)
+
+**Decision:** A field is filled in one of two ways, and that is a separate question from goal or continuous.
+
+- **Fixed:** every orb is stated and present. The tier chain is this kind.
+- **Sampled:** orbs are drawn at random from a pool, and each kind's `weight` sets the mix.
+
+`weight` is a field of an orb kind's block only in a family whose field is sampled. `NegOrbConf` is `reward` and
+`cool_down`, which every negative orb has. A family with a sampled field uses a weighted version of the block that
+adds `weight`, and other kinds in that family carry a weight on their own block the same way.
+
+A tier chain with a negative block holds exactly one negative orb. It spawns, despawns at the end of its lifespan and
+returns elsewhere after its cool-down. The count is not config.
+
+**Where:** `NegOrbConf` in `config/models/common_scenario_models.py`. The weighted version is not written yet; it goes
+in the same file when the first sampled family is built.
+
+**Alternatives considered:**
+
+- `weight` on every negative orb block, as before (`OrbKindConf`). Rejected because a weight means nothing in a fixed
+field, so a tier-chain config had to supply a value nothing read.
+- `weight` as something only continuous scenarios have. Rejected because a goal scenario can have a sampled field
+too: tier orbs spawning in and out beside a separate objective, a target score to reach before the deadline, or a
+fixed goal orb surrounded by a random stream of hazards.
+- One pool block listing every kind's weight. Rejected because a kind's block should stay one self-contained brick,
+and a separate list could name a kind that has no block.
+- A configurable number of negative orbs in a tier chain. Rejected: one is enough.
+
+**Why this one:** Each block holds only what its family reads. A weight is only meaningful relative to the other
+weights in the same pool, so it appears exactly where there is a pool.
+
+**Status:** settled for the tier chain. Revisit when the first sampled family is built, and for delay, where the
+negative orb is meant to freeze and return with the field.

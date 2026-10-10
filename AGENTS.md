@@ -124,12 +124,12 @@ Still open:
   it to a second protocol that only synergy digesters implement.
 - **A per-kind recipe that supplies both the orbs and the digester,** so a kind
   is added in one place. It must be a recipe, not instances.
-- **Negative orbs in a tier chain.** Intended: a few sit in the pool, spawn,
-  despawn at the end of their lifespan and reappear elsewhere after their
-  cool-down; under delay they freeze and return with the field. That needs a
-  kind filter on the refill action, a tuple of after-actions, the negative count
-  added to field size and observation slots, and a tier-chain negative model
-  without `weight`.
+- **Negative orbs in a tier chain.** Decided: one orb, which spawns, despawns
+  at the end of its lifespan and reappears elsewhere after its cool-down.
+  `NegOrbConf` is `reward` and `cool_down`; a weight is only for a family whose
+  field is sampled from a pool. Still to do: under delay it is meant to freeze
+  and return with the field, which needs a kind filter on the refill action, a
+  tuple of after-actions, and one more field cell and observation slot.
 - **Where the step clock lives.** Decided: in the world. `max_steps` is in
   `world_conf`; the count itself is still on `ObservationHandler` and has to
   move into `GridWorld`.
