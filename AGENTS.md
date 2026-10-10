@@ -1,25 +1,43 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. Last updated 2026-10-08.
+Guidance for AI agents working in this repository. Last updated 2026-10-10.
 Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
 
-**The repo is in rebuild mode.** `refactor-of-scenario-refactor` is the product
-of two large multi-model refactors. Parts of it are good, but the whole is
-inconsistent, and the owner no longer has a clear picture of how it fits
-together. It is not being patched further. The owner is rebuilding the scenario
-layer **by hand**, file by file, from a skeleton, using this branch as a
-reference.
+**The repo is in rebuild mode, and the rebuild has started.** The owner is
+rebuilding the scenario layer **by hand**, file by file, on
+`rebuilding-scenario`. `refactor-of-scenario-refactor` is the product of two
+large multi-model refactors. Parts of it are good, but the whole is
+inconsistent, so it is a reference to read and not a base to build on.
 
 | Branch | Role |
 |---|---|
-| `cleanup-after-versioning` | last stable state; the rebuild starts from here |
-| `refactor-of-scenario-refactor` | reference for the rebuild; not a base to build on |
+| `rebuilding-scenario` | the rebuild; branched from `cleanup-after-versioning` at `2f0dcc4` |
+| `cleanup-after-versioning` | last stable state |
+| `refactor-of-scenario-refactor` | reference for the rebuild |
 | `main` | older (v0.4.0) |
 | `scenario-example` | abandoned first scenario refactor; `origin` only |
 
 The pushed branch can be behind the local working tree. Read local files.
+
+Where to look, in this order:
+
+- `docs/dev/scenario-rebuild-roadmap.md` is the order of work and has a table
+  of what is written, empty or still legacy.
+- `docs/dev/design-decisions.md` is what was chosen, what was turned down and
+  why. Read it before giving a design opinion.
+- The other files in `docs/dev/` are logs with a template each
+  (`contract-misalignments.md`, `deferred-decisions.md`, `regressions.md`,
+  `scope-creep.md`) and `codebase-ideas.md`.
+
+State on 2026-10-10: the config models, the registry and the spatial YAML are
+done. `scenario.py` and three of the blocks are written. The other blocks, the
+digestion interface and the digesters are empty files, and the builders are
+signatures and docstrings. `core/`, `gymnasium/` and `rendering/` still import
+the old config, so `import syn_grid.scenario.registry` and
+`python3 -m syn_grid.check_env` fail. The roadmap expects that until its
+phases 4 and 5.
 
 ## How to work with the owner
 
@@ -35,64 +53,59 @@ The pushed branch can be behind the local working tree. Read local files.
   A test that is asked for must fail when its behaviour is broken; reintroduce
   the defect and confirm it goes red.
 
-## The rebuild plan
+## The two strains
 
-Planned by the owner; none of it had been carried out when this was written.
+The working strain is `src/syn_grid/`. A frozen copy of the stable code is in
+`src/syn_grid/legacy/`, so it can be trained exactly as it was and its curves
+compared with the rebuild. Each legacy package and loose file carries a
+`_legacy` suffix (`core_legacy/`, `config_legacy/`, `app_legacy.py`) and
+imports the other legacy copies. `USE_LEGACY` in `src/syn_grid/__main__.py`
+picks which app runs. Nothing under `legacy/` is edited, and it is deleted when
+the rebuild is done.
 
-1. **New branch from `cleanup-after-versioning`.**
-2. **A frozen legacy strain beside the working one.** Every package and loose
-   file gets a `legacy_*` copy with its imports pointing at the other legacy
-   copies. A switch in the entry point runs either the working app or the legacy
-   app, so legacy can be trained exactly as it was and its curves compared with
-   the rebuild. Nothing under `legacy_*` is edited, and it is deleted when the
-   rebuild is done.
-3. **Rebuild the working strain file by file** from the skeleton and from this
-   branch's code. Setting up the surrounding wiring by hand is part of the
-   exercise: it is how the weak joints are meant to be found.
+Things the switch depends on:
 
-Things the legacy switch depends on:
-
-- Only one strain is imported per process. Both register a Gymnasium env.
-- A folder rename rewrites imports, not strings. The Gymnasium entry point and
-  the package paths used to find config and assets must name the legacy folders.
-- Both strains start with the same run-id scheme, so legacy runs need their own
-  tag or output folder.
-- Once the config schemas differ, a comparison only means something if both
+- Only one strain is imported per process. Both register the Gymnasium id
+  `syn_grid-v0`, each with its own entry point.
+- A folder rename rewrites imports, not strings. The legacy config still names
+  its images as `assets/sprites/...` while the folder is `assets_legacy/`, so on
+  2026-10-10 `python -m syn_grid.legacy.check_env_legacy` stopped in the
+  renderer with a `FileNotFoundError`. Whether legacy training, which does not
+  render, is affected was not checked.
+- The legacy run id has its own scheme (`id_tag`, seed, algorithm). Give legacy
+  runs their own tag or output folder.
+- The config schemas differ, so a comparison only means something if both
   config files describe the same world. Compare several seeds per side.
 
-## The reference skeleton
+## The reference material
 
-`src/syn_grid/reference/skeleton/` holds the intended structure of the scenario
-layer: modules, classes, protocols and signatures, with no logic. It mirrors the
-real paths (`skeleton/scenario/...`, `skeleton/core/digestion/...`). It lives
-inside the package while it is being written and moves to a top-level
-`reference/` on the new branch. Once agreed, **the skeleton is the working
-truth** and is edited until it fits.
+`reference/` at the repo root holds three things.
 
-Conventions the owner asked for:
+- **`reference/skeleton/scenario/`** is the intended structure of the scenario
+  layer: modules, classes, protocols and signatures, with no logic. The files in
+  `src/syn_grid/scenario/` started as copies of it and have moved on; where the
+  two differ, `src` is the newer one.
+- **`reference/syn_grid/`** is a copy of the package from
+  `refactor-of-scenario-refactor`. Its config and runner folders are named
+  `copied-config/` and `copied-runners/`, and it contains an older copy of the
+  skeleton.
+- **`reference/scenario-stubs.patch`** holds stubs for the block files that are
+  empty in `src`, and for the builders. It is not committed.
+
+Conventions the owner asked for in skeleton files:
 
 - Every function is a signature, a docstring saying what it does or composes,
   and a `...` body. Ruff's `PIE790` objects to that, so each file carries
   `# ruff: noqa: PIE790`.
 - Imports use the real package paths (`syn_grid.scenario...`,
-  `syn_grid.core.digestion...`), never `syn_grid.reference...`. They therefore
-  resolve to the live modules, not to other skeleton files.
+  `syn_grid.core...`), so they resolve to the live modules.
 - Tables that are structure, such as `SCENARIOS`, are filled in.
 - Do not invent Effect orbs or `Cancellation`. They have no implementation.
 
-Written so far: `scenario/registry.py` only. It keeps the current signatures
-wherever no change was agreed, which leaves these open on that file:
-
-1. `orb_population` and `scoring_mode` as two parameters, or one per-kind recipe.
-2. `max_score` on the family helper.
-3. No negative-orb count anywhere in the helper or the world builder.
-4. Settled: `ScenarioEntry` is generic, so each builder takes its own config
-   class, and `entry.build()` checks the config's type once before calling it.
-5. Whether the world readers belong in the registry or in a tier-chain file.
-
 ## Design direction
 
-Agreed with the owner:
+The decisions and their reasons are in `docs/dev/design-decisions.md`. The
+principles behind them:
 
 - **Everything scenario-specific is a field of `Scenario`,** settled before any
   layer below it is rebuilt. The test for a field is "does the Gymnasium side
@@ -111,60 +124,62 @@ Agreed with the owner:
   two scenarios built from the same config compare equal.
 - **Termination is an interface file plus one file per strategy,** so each
   strategy imports only what its scenario needs.
+- **One orb kind is one brick:** an `OrbBundle` in the scenario layer, carrying
+  the population and a way to make the digester, and a `*_orb_conf` block in the
+  world config.
 - **The logger itself comes late.** It is expected to be a localized change.
-- **In digestion, the scoring and routing are fine; the scaffolding is weak:**
-  how state is read out, and how digesters are paired with orbs.
+
+Settled since the rebuild started, each with an entry in `design-decisions.md`:
+
+- Digestion lives in the droid, at `core/droid/digestion/`, with a `digesters/`
+  folder. The routing key is the orb's type alone.
+- The tier digester is a base class with one subclass per scoring mode. Only
+  max-tier is written first.
+- A new scoring mode is a new registered scenario, not a config setting. The
+  continuous sandbox is the exception.
+- Two orb categories, direct and synergy. `OrbMeta` stores only type and tier,
+  and is redone in the observation pass.
+- Config models live beside what they configure. A scenario config is
+  `world_conf` and `obs_conf`, and each layer adds a block to the world.
+- Energy and score are two numbers. `max_energy` is both the start and the cap,
+  and replaces `starting_score` and `max_score`.
+- The step clock lives in the world. `max_steps` is in `world_conf`; the count
+  itself is still on `ObservationHandler`.
+- The goal and chain values are additive. Termination pays `timeout_penalty` and
+  `completion_reward`; the tier digester pays the orbs and the chain break.
+- A tier chain holds one negative orb. `NegOrbConf` is `reward` and `cool_down`;
+  a weight is only for a family whose field is sampled.
 
 Still open:
 
-- **`Event` and `engine.count()`.** The class is only ever counted, only the
-  tier digester emits any, and a step yields at most one. Options: rename it for
-  what it is, or move the counts onto the digester and drop it.
-- **The cross-kind hook (`notice`).** It is synergy behaviour. Rename it, or move
-  it to a second protocol that only synergy digesters implement.
-- **A per-kind recipe that supplies both the orbs and the digester,** so a kind
-  is added in one place. It must be a recipe, not instances.
-- **Negative orbs in a tier chain.** Decided: one orb, which spawns, despawns
-  at the end of its lifespan and reappears elsewhere after its cool-down.
-  `NegOrbConf` is `reward` and `cool_down`; a weight is only for a family whose
-  field is sampled from a pool. Still to do: under delay it is meant to freeze
-  and return with the field, which needs a kind filter on the refill action, a
-  tuple of after-actions, and one more field cell and observation slot.
-- **Where the step clock lives.** Decided: in the world. `max_steps` is in
-  `world_conf`; the count itself is still on `ObservationHandler` and has to
-  move into `GridWorld`.
+- **Who creates the engine:** `build_world`, the droid, or the scenario. The
+  roadmap suggests `build_world` makes the digesters and the droid builds its
+  engine from them.
+- **Whether a `ScoringMode` enum survives** as a router for the sandbox
+  scenario. Both this and the point above are written as reservations inside
+  entries marked settled.
+- **`Event` and the engine's tally.** The roadmap proposes keeping them, since
+  effect orbs will emit events too.
+- **The cross-kind hook (`notice`).** The roadmap places it in a second protocol
+  that a tier digester implements to react to a negative orb.
+- **The negative orb under delay.** It is meant to freeze and return with the
+  field.
 - **HUD form.** A small vocabulary of elements the renderer can draw, or a
-  drawer per scenario. The current HUD is one sprite with fixed positions.
-- **Generic readers that assume a tier digester:** the env's HUD and log info,
-  and `base_perception`, which every perception inherits.
+  drawer per scenario.
+- **Where the renderer's settings come from.** The old `RendererConf` has no
+  counterpart in the new models.
+- **The shape of `obs_conf`,** which is two levels of nesting around one field.
+- **Whether non-tier synergy orbs despawn** like negative orbs.
 
-## This branch, as a reference
+## Reading the reference
 
-One scenario, `goal_tier_chain_spatial`, runs end to end. On 2026-10-08
-`python -m syn_grid.check_env` passed and 20,000 random actions stayed inside
-the declared `Box`. That says nothing about learning.
+One scenario, `goal_tier_chain_spatial`, runs end to end on
+`refactor-of-scenario-refactor`. On 2026-10-08 `python -m syn_grid.check_env`
+passed there and 20,000 random actions stayed inside the declared `Box`. That
+says nothing about learning.
 
-Local, unfinished state: `hud` and `metrics` are built in
-`scenario/registry.py` but not passed to `Scenario`, whose two fields are
-commented out. The environment still reads the tier digester directly.
-
-How it is put together:
-
-- **Config** is three YAMLs in `src/syn_grid/config/yaml/` (global, runner, and
-  one named after the scenario), validated by frozen, strict pydantic models
-  that forbid unknown keys. `SCENARIOS` in `scenario/registry.py` picks the
-  scenario's schema and its builder. Shared models are in `config/models/`;
-  scenario-specific ones are in a `config.py` beside what they configure, such
-  as `scenario/goal/tier_chain/config.py`.
-- **`scenario/registry.py`** is the composition root. `_tier_chain_scenario` is
-  the family helper and `_build_tier_chain_world` builds one world per env.
-  Three of the four builders are placeholders.
-- **`core/digestion/`** routes a consumed orb to the digester that owns its
-  kind. `TierOrbDigester` holds the chain state and two scoring modes.
-- **`docs/architecture/`** describes this branch's design. Treat it and the
-  docstrings as intent. `docs/dev/scenario-refactor.md` is stale.
-
-Traps when reading it:
+Traps when reading it. They describe the reference, and some are superseded by
+decisions on this branch:
 
 - `delay_on_consume` is `int | None` and `None` means off; `False` turns it on.
 - A `negative` block in a tier-chain config registers a digester but creates no
@@ -174,40 +189,52 @@ Traps when reading it:
   configs in `reproduction_package/delay_scenario/` all set `max_tier_scoring`.
 - In max-tier scoring a completed chain pays `completion_reward`. Tier orbs are
   built worth 0.0, which threshold scoring cannot work with.
-- Threshold scoring and `NegativeDigester` have never been executed here.
+- Threshold scoring and `NegativeDigester` have never been executed there.
 - `engine.get(...)` raises `KeyError` when that digester is not registered.
 - `TierChainTermination` is cut to what spatial reaches, and its `score <= 0`
   ending is commented out. The removed branches are in
   `scenario/rules/termination.py` at `c105f7a`.
-- Run ids come from perception, seed, `scenario.scenario_tag`, the optional
-  runner `tag` and the algorithm, not from the scenario name.
-- `Perception` lists only the two verified perceptions. Five more exist but read
-  a config that is gone; do not add enum members to reach them.
-
-Broken here, deliberately left:
-
-- Tests fail collection (old schema, deleted modules).
-- `scripts/replay_probe.py`, `replay_sweep.sh` and `scenario_lock.py` target the
-  old schema and do not run, so behaviour here is not locked to the baseline.
+- Five perceptions beyond the two in the `Perception` enum exist but read a
+  config that is gone; do not add enum members to reach them.
 - `WeightedPopulation` names a config class that no longer exists.
-- `config/scenarios/*.yaml` and `reproduction_package/` configs are old-schema.
+- Its `docs/dev/scenario-refactor.md` is stale.
+
+## This branch
+
+- **Run ids** come from perception, seed, `scenario.scenario_tag`, the optional
+  runner `tag` and the algorithm, not from the scenario name.
+- **`docs/architecture/`** follows this branch in `00_file_structure.md`,
+  `03_scenario.md` and `06_config.md`. The other files still describe the
+  reference's design; treat them as intent until the roadmap's last phase.
+- **`core/droid/digestion/engine.py`** is still the legacy engine, and
+  `core/orbs/orb_factory.py` and `gymnasium/utils/episode_termination.py` are
+  still present. The roadmap removes both files.
+- **`_tier_chain_scenario` still takes `max_score`.** The roadmap drops it in
+  phase 4.
+- **Tests import the legacy strain.** On 2026-10-10 collection found 230 tests
+  and one error. They were not run.
+- **`scripts/replay_probe.py` imports the legacy strain** on this branch. It was
+  not run.
 
 ## The learning problem
 
-The owner reports that spatial runs on this branch but the agent does not learn
-as it should. No agent has verified this, and the cause is unknown. Do not
-assume the refactor caused it; it may predate it.
+The owner reports that spatial runs on `refactor-of-scenario-refactor` but the
+agent does not learn as it should. No agent has verified this, and the cause is
+unknown. Do not assume the refactor caused it; it may predate it.
 
-- Read `docs/dev/rppo-regression.md` before touching the reward path. Its
-  original conclusion is superseded: the timeout and chain-break rewards used to
-  be the same value, and are independent fields now.
-- Before rebuilding, confirm that `cleanup-after-versioning` learns, and lock
-  its behaviour with the replay scripts, which run there. A learning regression
-  is silent: the env still runs and passes `check_env`.
+- `docs/dev/rppo-regression.md` is not on this branch. Read it with
+  `git show cleanup-after-versioning:docs/dev/rppo-regression.md` before
+  touching the reward path. Its original conclusion is superseded: the timeout
+  and chain-break rewards used to be the same value, and are independent fields
+  now.
+- Phase 0 of the roadmap comes first: confirm that the legacy strain learns
+  spatial over several seeds, and record a step-by-step trace with the replay
+  scripts. A learning regression is silent: the env still runs and passes
+  `check_env`. Whether phase 0 has been done is not recorded anywhere in the
+  repo.
 - When using the replay harness: pin `starting_score` high or episodes end early
   and skip the timeout branch; comparisons are exact, so read the magnitude of a
-  difference before calling it behavioural; spatial's observation here has 3 orb
-  slots where it had 5, so old digests will not match.
+  difference before calling it behavioural.
 
 ## Before trusting a run
 
@@ -218,12 +245,11 @@ different checkout. Check first:
 .venv/bin/python -c "import syn_grid; print(syn_grid.__file__)"
 ```
 
-`PYTHONPATH=src` overrides it for one command. `../syngrid-known-good` is a
-detached commit (`e0e9259`), not `cleanup-after-versioning`.
+`PYTHONPATH=src` overrides it for one command.
 
 ```bash
 pip install -e ".[dev]"                    # required
-python3 -m syn_grid                        # run
+python3 -m syn_grid                        # run; USE_LEGACY in __main__.py picks the strain
 python3 -m syn_grid.check_env              # Gymnasium contract self-check
 ruff check src/syn_grid tests              # lint, CI scope
 ./scripts/tidy.sh                          # check --fix + format
@@ -251,8 +277,8 @@ Each of these cost a wrong conclusion in this repo.
 
 ## Things that bite regardless of the refactor
 
-Observed on this branch, most carried over from the previous version of this
-file. Check them again on the stable one.
+Carried over from earlier versions of this file. The roadmap's phase 3 is where
+the first two are dealt with.
 
 - **`BaseOrb._life_span` is a class attribute** set whenever a world is built,
   and shared by every env in the process.

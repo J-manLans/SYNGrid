@@ -2,33 +2,45 @@
 
 ```text
 scenario/
-├── rules/
+├── blocks/
+│   ├── hud.py
+│   ├── metrics.py
 │   ├── observation.py
+│   ├── orb_bundle.py
 │   ├── population.py
 │   ├── spawning.py
 │   └── termination.py
+├── goal/
+│   ├── tier_chain/
+│   │   ├── builders.py
+│   │   └── config.py
+│   └── config.py
+├── utils/
+│   └── helpers.py
 ├── registry.py
 └── scenario.py
 ```
 
-This package holds two different things. `scenario.py` and `rules/` are the
-**representation**: the `Scenario` dataclass and the rule objects that describe
-one scenario. `registry.py` is the **construction**: the builders that read a
-scenario config and assemble those objects, and the function that builds a
-world.
+This package holds three different things. `scenario.py` and `blocks/` are the
+**representation**: the `Scenario` dataclass and the pieces one scenario is made
+of. `registry.py` is the **selection**: the `SCENARIOS` table, whose entry gives
+a scenario name its config class and its builder. The folders below it, such as
+`goal/tier_chain/`, are the **construction**: a family's config models in
+`config.py` and, in `builders.py`, the builders that turn a config into a
+`Scenario` and the function that builds a world.
 
 A `Scenario` is a frozen recipe: `scenario_name` and `scenario_tag`, the
-`ObservationRules`, the termination rules, and a `build_world` callable. It
-holds no world and no episode state, so one `Scenario` is shared by every
-environment in the process. The rule objects in `rules/` are stateless too —
-they decide what an observation is sized against, how the orb pool is
-populated, when orbs spawn, and when an episode ends, and they are handed the
-world as an argument whenever they need to look at it.
+`ObservationRules`, the termination rules, the `hud` elements, the `metrics`,
+and a `build_world` callable. It holds no world and no episode state, so one
+`Scenario` is shared by every environment in the process. The blocks are
+stateless too. A HUD element and a metric are a static description plus a
+reader that is handed the world. An `OrbBundle` is one orb kind: the population
+that makes its orbs and a way to make its digester, so the world builder joins
+the orbs and collects the digesters without asking which kinds they are.
 
-`build_scenario` looks the scenario name up in `SCENARIOS`, whose entry holds
-the scenario's config class and its builder. The entry checks that the config
-it is given is that class, then runs the builder, once at startup. Each
-environment then calls `scenario.build_world()`, which creates that
-environment's own digesters, `DigestionEngine`,
-`SynergyDroid` and `GridWorld`. Only `goal_tier_chain_spatial` has a working
-builder; the other three registered names are placeholders.
+`build_scenario` looks the scenario name up in `SCENARIOS`. The entry checks
+that the config it is given is its config class, then runs the builder, once at
+startup. Each environment then calls `scenario.build_world()` for a world of
+its own. Four tier-chain names are registered. Their builders are signatures
+and docstrings, and `observation.py`, `population.py`, `spawning.py` and
+`termination.py` are empty, so no scenario builds yet.

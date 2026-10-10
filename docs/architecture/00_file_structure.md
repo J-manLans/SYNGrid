@@ -6,6 +6,7 @@
 SYNGrid/
 ├── docs/
 ├── output/
+├── reference/
 ├── reproduction_package/
 ├── scripts/
 ├── src/syn_grid/
@@ -38,20 +39,23 @@ syn_grid/
 │   └── config_manager.py
 │
 ├── core/
-│   ├── digestion/
-│   │   ├── digestion.py
-│   │   ├── engine.py
-│   │   ├── negative_digester.py
-│   │   └── tier_digester.py
 │   ├── droid/
+│   │   ├── digestion/
+│   │   │   ├── digesters/
+│   │   │   │   ├── neg_digester.py
+│   │   │   │   └── tier_digester.py
+│   │   │   ├── digestion.py
+│   │   │   └── engine.py
 │   │   └── synergy_droid.py
 │   ├── orbs/
 │   │   ├── direct/
 │   │   │   └── negative_orb.py
-│   │   ├── effects/
 │   │   ├── synergy/
-│   │   │   └── tier_orb.py
+│   │   │   ├── chain/
+│   │   │   │   └── tier_orb.py
+│   │   │   └── effect/
 │   │   ├── base_orb.py
+│   │   ├── orb_factory.py
 │   │   └── orb_meta.py
 │   ├── utils/
 │   │   └── timer.py
@@ -76,9 +80,12 @@ syn_grid/
 │   │   ├── episode_logging/
 │   │   │   ├── csv_episode_logger.py
 │   │   │   └── keys.py
-│   │   └── env_factory.py
+│   │   ├── env_factory.py
+│   │   └── episode_termination.py
 │   ├── action_space.py
 │   └── environment.py
+│
+├── legacy/
 │
 ├── plot/
 │   ├── plot_eval.py
@@ -144,6 +151,8 @@ environment asks the scenario for its own world, which is made of the pieces in
 also holds the config models that are specific to a scenario type or family, in
 a `config.py` beside what they configure; `config/models/` keeps only what
 every scenario shares.
+`legacy/` is a frozen copy of the stable code, run instead of the working app
+when `USE_LEGACY` in `__main__.py` is set.
 `core/` is the simulation itself, `gymnasium/` wraps one world as an
 environment and encodes observations, `runners/` trains, evaluates or lets a
 human play, and `rendering/` draws. `plot/`, `utils/` and `assets/` are
