@@ -17,7 +17,7 @@ composes, and `scenario/goal/config.py` for what every goal scenario shares.
 from pydantic import Field, model_validator
 
 from syn_grid.config.models.common_scenario_models import PenaltyCheckedConf
-from syn_grid.scenario.goal.config import GoalScenarioConf, GoalWorldConf
+from syn_grid.scenario.goal.config import GoalConf, GoalScenarioConf, GoalWorldConf
 
 # ===================== #
 #    Tier Orb Models     #
@@ -30,8 +30,9 @@ class TierOrbConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
     `max_tier` is the length of the chain, and therefore also the number of
     tier orbs on the field. All of them are present from the first step.
 
-    `chain_break_penalty` is what breaking the chain costs. It is set
-    independently of the timeout penalty; see `docs/dev/rppo-regression.md`.
+    `chain_break_penalty` is what breaking the chain costs, added to whatever
+    reward the chain was holding. It is set independently of the timeout
+    penalty; see `docs/dev/rppo-regression.md`.
 
     How the chain is scored is stated by each scenario's builder.
     """
@@ -49,11 +50,31 @@ class TierDenseOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
 
     A tier's reward is `base_reward * tier` when growth is linear, and
     `base_reward * tier ** growth_factor` otherwise.
+
+    `chain_break_penalty` defaults to 0, so a broken chain pays the reward it
+    was holding.
     """
 
     base_reward: float
     growth_factor: float = Field(gt=0)
     linear_reward_growth: bool
+    chain_break_penalty: float = 0.0
+
+
+# ===================== #
+#      Goal Models       #
+# ===================== #
+
+
+class TierDenseGoalConf(GoalConf, frozen=True, extra="forbid", strict=True):
+    """The goal of a scenario whose tier orbs pay for themselves.
+
+    Both values default to 0, so a timeout pays the reward the chain was
+    holding and a completed chain pays what its orbs were worth.
+    """
+
+    timeout_penalty: float = 0.0
+    completion_reward: float = 0.0
 
 
 # ======================= #
@@ -82,6 +103,7 @@ class TierDelayWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True
 
 
 class TierDenseWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True):
+    goal_conf: TierDenseGoalConf = TierDenseGoalConf()
     tier_orb_conf: TierDenseOrbConf
 
 

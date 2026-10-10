@@ -244,17 +244,11 @@ top level is kept for the real divide, between the world and how it is observed.
 found in one folder. `world_conf` means what its name says. The orb pool level is gone, so a variant costs one class
 less than before, and each orb kind can be varied without touching the others.
 
-**Status:** the structure is settled; what goes in which block is not. This pass only moved fields, so every scenario
-requires exactly what it required before. Still open:
+**Status:** settled. Still open:
 
-- Whether `completion_reward` and `timeout_penalty` belong to every goal scenario. In the legacy termination, scaling
-dense uses neither: on timeout it pays the held reward.
-- Splitting the scoring inputs out of `tier_orb_conf` into one block per scoring mode, so dense stops requiring
-`completion_reward` and `chain_break_penalty`. Dense is the only threshold-scored goal scenario; spatial, scaling
-sparse and delay are max-tier (the legacy delay configs in `reproduction_package/delay_scenario/` all set
-`max_tier_scoring`), so delay needs no reward ladder.
 - `NegOrbConf` requires `weight`, a spawn weight for a field that refills at random, which a tier-chain negative orb
-isn't meant to have.
+isn't meant to have. Nothing says how many negative orbs a tier chain holds.
+- `obs_conf` is two levels of nesting around one field, `perception`.
 - The builders still take the base `ScenarioConf` and `cast` it.
 
 ---
@@ -323,3 +317,49 @@ reach state through the world. It is still per scenario, since the whole file is
 
 **Status:** settled for the config. Revisit if the clock turns out to need pausing or resetting by something other
 than the world, such as a delay.
+
+---
+
+## Goal and chain values are additive (2026-10-10)
+
+**Decision:** The three values that end or interrupt a goal tier chain are each added to what is already being paid,
+by the same rule in every scenario. Nothing asks which scoring mode is in use.
+
+| Moment | Pays |
+|---|---|
+| Timeout | the reward the chain was holding + `timeout_penalty` |
+| Chain break | the reward the chain was holding + `chain_break_penalty` |
+| Completion | what digestion paid for the orbs + `completion_reward` |
+
+Goal termination pays `timeout_penalty` and `completion_reward`, the two ways a goal episode can end. The tier
+digester pays for the orbs and for breaking the chain; on completion it reports the chain as complete and pays only
+what the orbs were worth.
+
+`timeout_penalty` and `completion_reward` are in `goal_conf`, because any scenario with an objective and a deadline
+has them, whatever its orbs are. `chain_break_penalty` is in `tier_orb_conf`. All three are required, except in dense,
+where they default to 0 and can be left out of the YAML.
+
+**Where:** `GoalConf` in `scenario/goal/config.py`; `TierOrbConf`, `TierDenseOrbConf` and `TierDenseGoalConf` in
+`scenario/goal/tier_chain/config.py`. The termination and digester code still has to be written to this rule, and the
+tier digester has to expose the held reward (0 under max-tier scoring) for termination to read.
+
+**Alternatives considered:**
+
+- A rule per scoring mode, as the old termination had: under max-tier a timeout paid the penalty, under threshold it
+paid the held reward. Rejected because it puts a scoring-mode conditional in termination.
+- Moving the three values into a max-tier scoring block, since dense never used them. Rejected because a timeout
+penalty is a goal-level idea: a goal scenario with other orbs would use it too.
+- Optional fields, `float | None = None`. Rejected because `None` either means the same as 0 or hides a second rule
+behind a value.
+- A default of 0 on the shared fields. Rejected because a `timeout_penalty` forgotten in a max-tier YAML would then
+load and train with none. The defaults are on dense's own classes only.
+- Requiring the values in dense and writing zeros in its YAML. Rejected because the YAML should list what is meant to
+be tuned.
+
+**Why this one:** Max-tier scenarios behave as before, because nothing is ever held and the orbs are worth nothing.
+Dense with the defaults reproduces the thesis runs (`reproduction_package/tier_scaling_scenario/dense/`), where a
+timeout and a break paid the held reward and a completion paid the accumulated ladder. The thesis dense configs set
+`chain_break_penalty: -0.1`, but threshold scoring never read it.
+
+**Status:** settled. Revisit if a scenario needs a timeout or a completion to replace the step's reward instead of
+adding to it.

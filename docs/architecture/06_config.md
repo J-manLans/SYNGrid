@@ -46,6 +46,7 @@ TierScenarioConf ──── TierDelayScenarioConf
 
 TierScenarioConf ──── TierDenseScenarioConf
 └── world_conf ──────── TierDenseWorldConf
+      ├── goal_conf ────── TierDenseGoalConf     (both values default to 0)
       └── tier_orb_conf ── TierDenseOrbConf      (the reward ladder)
 ```
 
@@ -78,6 +79,12 @@ its digester need, and the base world carries the optional `neg_orb_conf`. A
 variant subclasses its block, then narrows the field on its own world model and
 on its own scenario model: the delay variant adds `delay`, and the dense variant
 adds the reward ladder. Dense and delay have models but no YAML yet.
+
+The goal and chain values are additive. A timeout pays the reward the chain was
+holding plus `timeout_penalty`, a broken chain pays the held reward plus
+`chain_break_penalty`, and a completed chain pays what its orbs were worth plus
+`completion_reward`. The three are required everywhere except in dense, where
+they default to 0 and can be left out of the YAML.
 
 Every model is frozen, forbids unknown keys and is strict. Single-field bounds
 are `Field` constraints, and `model_validator`s cover the cross-field rules.
