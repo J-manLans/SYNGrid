@@ -1,5 +1,5 @@
 from syn_grid.config.config_manager import ConfigManager
-from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.common_scenario_models import ScenarioConf
 from syn_grid.config.models.global_models import GlobalConf
 from syn_grid.config.models.runner_models import RunnerConf
 from syn_grid.gymnasium.utils.env_factory import register_env

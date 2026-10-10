@@ -189,3 +189,67 @@ plain sort on type and tier. Negative has to keep sorting before the tiers or th
 
 Open: whether synergy orbs other than tier orbs despawn and respawn like negative orbs or stay on the field. Revisit
 the "two categories" rule only if an orb turns up that fits neither test.
+
+---
+
+## Scenario configs live with the scenario, as blocks at scenario level (2026-10-10)
+
+**Decision:** A config model lives in the folder of the thing it configures, at the level where it is shared.
+
+- `config/models/` keeps what is not specific to a scenario: the global and runner models, and `common_models.py`
+  with the grid, the droid, the negative orb, the observation handler and the base `ScenarioConf`.
+- `scenario/goal/config.py` holds what every goal scenario has. `scenario/continuous/config.py` will do the same for
+  continuous.
+- `scenario/goal/tier_chain/config.py` holds the tier-chain family.
+
+Each layer adds its own block at the top of the scenario config, beside `world_conf` and `obs_conf`:
+
+```
+ScenarioConf                          world_conf, obs_conf, neg_orb_conf (optional)
+  GoalScenarioConf                    + goal_conf       (timeout_penalty, completion_reward)
+    TierScenarioConf                  + tier_orb_conf   (max_tier, chain_break_penalty)
+      TierDelayScenarioConf             tier_orb_conf   + delay
+      TierDenseScenarioConf             tier_orb_conf   + the reward ladder; obs_conf + perception_conf
+```
+
+The world and the droid are the same models in every scenario. A variant is two classes: its block and its scenario
+model.
+
+There is no single orb block to look at. Each orb kind has its own `*_orb_conf` block at scenario level, holding what
+that kind's orbs and its digester need. This mirrors `OrbBundle` in the scenario layer, where a kind's orbs and its
+digester travel together, so a kind is one brick in the config as well.
+
+`scenario/registry.py` holds one table, `SCENARIOS`, whose entry gives a name its config class and its builder.
+
+**Where:** `config/models/common_models.py`, `scenario/goal/config.py`, `scenario/goal/tier_chain/config.py`,
+`scenario/registry.py`, `config/yaml/goal_tier_chain_spatial.yaml`
+
+**Alternatives considered:**
+
+- A separate config tree that mirrors the scenario package. Rejected because two parallel trees can drift apart and
+one can't.
+- Goal and tier values on the droid (`GoalDroidConf`, `TierDroidConf`), with variants made by subclassing down
+`world_conf` → `orb_conf` → `tier`. This is what was there. Rejected because the digester and termination read those
+values, not the droid, and because one new leaf field took four classes (orb, orb pool, world, scenario).
+- One `orb_conf` block holding every orb kind, under `world_conf`. Rejected because a scenario model can only narrow
+a field it holds directly, so a variant of one kind would again need a new pool class and a new world class. The cost
+is that orb settings are spread over several blocks, which the `_orb_conf` suffix makes easy to find.
+- A `mode: goal` field. Rejected because the scenario name already says which type it is.
+
+**Why this one:** The config tree and the scenario tree are the same tree, so a scenario's builder and its config are
+found in one folder. A block at scenario level can be narrowed by the scenario model directly, which is what makes
+combinations of independent choices possible later.
+
+**Status:** the structure is settled; what goes in which block is not. This pass only moved fields, so every scenario
+requires exactly what it required before. Still open:
+
+- Whether `completion_reward` and `timeout_penalty` belong to every goal scenario. In the legacy termination, scaling
+dense uses neither: on timeout it pays the held reward.
+- Splitting the scoring inputs out of `tier_orb_conf` into one block per scoring mode, so dense stops requiring
+`completion_reward` and `chain_break_penalty`. Dense is the only threshold-scored goal scenario; spatial, scaling
+sparse and delay are max-tier (the legacy delay configs in `reproduction_package/delay_scenario/` all set
+`max_tier_scoring`), so delay needs neither a reward ladder nor a `max_score`.
+- `NegOrbConf` requires `weight`, a spawn weight for a field that refills at random, which a tier-chain negative orb
+isn't meant to have.
+- `PerceptionConf` holds only `max_score` and only dense uses it.
+- The builders still take the base `ScenarioConf` and `cast` it.

@@ -1,6 +1,6 @@
-from syn_grid.config.models.common_models import NegOrbConf, ScenarioConf
+from syn_grid.config.models.common_scenario_models import NegOrbConf, ScenarioConf, WorldConf
 from syn_grid.scenario.scenario import Scenario
-from syn_grid.scenario.goal.tier_chain.config import TierScenarioConf, TierWorldConf
+from syn_grid.scenario.goal.tier_chain.config import TierScenarioConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.spawning import SpawningRules
@@ -72,7 +72,7 @@ def _chains_completed(world: GridWorld) -> float:
 
 
 def _build_tier_chain_world(
-    world_conf: TierWorldConf,
+    world_conf: WorldConf,
     orb_bundles: tuple[OrbBundle, ...],
     spawning: SpawningRules,
 ) -> GridWorld:
@@ -145,6 +145,6 @@ def build_tier_chain_delay(scenario_name: str, scenario_conf: ScenarioConf) -> S
     Tier Chain, Delay: consuming an orb puts the whole field on cooldown.
 
     Axis and tag: the delay.
-    Scoring: threshold.
+    Scoring: max-tier.
     """
     ...

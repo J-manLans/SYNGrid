@@ -16,7 +16,7 @@ from. What this must never do is infer a scenario from the values it is given.
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from syn_grid.config.models.common_models import ScenarioConf
+from syn_grid.config.models.common_scenario_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.scenario.scenario import Scenario
 from syn_grid.scenario.goal.tier_chain.builders import (

@@ -44,14 +44,16 @@ class GridConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 
 # ======================= #
-#     Droid Models        #
+#   Penalties and Droid   #
 # ======================= #
 
 
-class DroidConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    starting_score: float
-    step_penalty: float
-    boundary_penalty: float
+class PenaltyCheckedConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    """A block whose penalties must not be positive.
+
+    Every field whose name ends in `_penalty` is checked, on this block and on
+    any block that extends it, so a new penalty is covered by its name alone.
+    """
 
     @model_validator(mode="after")
     def validate_penalties(self):
@@ -63,6 +65,12 @@ class DroidConf(BaseModel, frozen=True, extra="forbid", strict=True):
         if bad:
             raise ValueError(f"{', '.join(bad)} must be 0 or negative")
         return self
+
+
+class DroidConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
+    starting_score: float
+    step_penalty: float
+    boundary_penalty: float
 
 
 # ======================= #
@@ -77,10 +85,6 @@ class OrbKindConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 class NegOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
     reward: float = Field(le=0)
-
-
-class OrbPoolConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    negative: NegOrbConf | None = None
 
 
 # ======================= #
@@ -114,7 +118,6 @@ class PerceptionConf(BaseModel, frozen=True, extra="forbid", strict=True):
 class WorldConf(BaseModel, frozen=True, extra="forbid", strict=True):
     grid_conf: GridConf
     droid_conf: DroidConf
-    orb_conf: OrbPoolConf
 
 
 class ObsConf(BaseModel, frozen=True, extra="forbid", strict=True):
@@ -122,5 +125,15 @@ class ObsConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 
 class ScenarioConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    """What every scenario's configuration has.
+
+    There is no single orb block. Each orb kind a scenario can hold gets its own
+    `*_orb_conf` block at this level, carrying what that kind's orbs and its
+    digester need, so a kind is configured in one place. `neg_orb_conf` is here
+    because any scenario may add negative orbs; a family's own kinds are added
+    by its scenario model.
+    """
+
     world_conf: WorldConf
     obs_conf: ObsConf
+    neg_orb_conf: NegOrbConf | None = None

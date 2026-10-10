@@ -13,20 +13,22 @@ world_conf:
     starting_score: 50 # shown in the HUD; does not end the episode, see TierChainTermination
     step_penalty: -0.001
     boundary_penalty: -1.0
-    timeout_penalty: -1.0
-    completion_reward: 10.0
-    chain_break_penalty: -0.01
-
-  orb_conf:
-  # negative orbs is an optional for this scenario, uncomment and fill the values to activate it
-    # negative:
-    #   reward:
-    #   cool_down:
-    #   weight:
-    tier:
-      max_tier: 3
 
 obs_conf:
   observation_handler_conf:
     perception: vector_fog_of_war
     max_steps: 100
+
+goal_conf:
+  timeout_penalty: -1.0
+  completion_reward: 10.0
+
+tier_orb_conf:
+  max_tier: 3
+  chain_break_penalty: -0.01
+
+# negative orbs is an optional for this scenario, uncomment and fill the values to activate it
+# neg_orb_conf:
+#   reward:
+#   cool_down:
+#   weight:

@@ -168,8 +168,9 @@ Traps when reading it:
 - `delay_on_consume` is `int | None` and `None` means off; `False` turns it on.
 - A `negative` block in a tier-chain config registers a digester but creates no
   orbs, so it has no visible effect.
-- Scoring mode is not config; each builder passes it. Max-tier for spatial and
-  scaling sparse, threshold for scaling dense and delay.
+- Scoring mode is not config; each builder passes it. Max-tier for spatial,
+  scaling sparse and delay, threshold for scaling dense only. The legacy delay
+  configs in `reproduction_package/delay_scenario/` all set `max_tier_scoring`.
 - In max-tier scoring a completed chain pays `completion_reward`. Tier orbs are
   built worth 0.0, which threshold scoring cannot work with.
 - Threshold scoring and `NegativeDigester` have never been executed here.
