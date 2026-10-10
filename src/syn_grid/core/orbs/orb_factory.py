@@ -1,7 +1,7 @@
 from syn_grid.config.models import NegativeConf, OrbFactoryConf, TierConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
-from syn_grid.core.orbs.synergy.tier_orb import TierOrb
+from syn_grid.core.orbs.synergy.chain.tier_orb import TierOrb
 
 
 class OrbFactory:

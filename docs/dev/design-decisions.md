@@ -139,16 +139,20 @@ percentage of the current score are all synergy, even though they happen at once
 
 The category is not stored. It follows from which enum the type comes from.
 
-"Effect" is an everyday word for a synergy orb that acts on something other than itself (other orbs' rewards, the
-observation, the next orb, the world), as opposed to a tier orb, which only depends on what came before. It is not a
-type, an enum or a category.
+Inside synergy there are two groups. They are folders, not types, enums or categories:
+
+- **Chain:** the payoff depends on which orbs of the same kind came before, and in what order. The tier orb is the
+  only one so far; a streak or a collect-the-set orb would be others.
+- **Effect:** eating it changes something other than itself: other orbs' rewards, the observation, the next orb, the
+  world.
 
 In digestion the routing key is the type alone: `OrbKind = DirectType | SynergyType` and `kind_of(orb)` returns
 `orb.META.TYPE`. The engine and the digesters treat it as an opaque key and never take it apart.
 
 **Where:** `core/orbs/orb_meta.py`, and what reads it: `core/grid_world.py`, `rendering/pygame_renderer.py`,
-`gymnasium/observation_space/perceptions/`. `core/orbs/effects/` moves under `core/orbs/synergy/`. The routing key
-lives in `core/droid/digestion/digestion.py`.
+`gymnasium/observation_space/perceptions/`. The orbs are packaged as `core/orbs/direct/`, `core/orbs/synergy/chain/`
+(holding `tier_orb.py`) and `core/orbs/synergy/effect/`. The routing key lives in
+`core/droid/digestion/digestion.py`.
 
 **Alternatives considered:**
 
@@ -162,6 +166,8 @@ are capabilities of the effect's digester: being ticked, acting before the ownin
 out for the world to act on.
 - Direct meaning "happens right away". Rejected because an orb bomb or a teleport happens right away and still changes
 more than the score, which blurs the category.
+- Leaving `tier_orb.py` loose at the top of `synergy/` until a second chain orb exists. Rejected because the `chain/`
+folder tells a later reader how synergy is divided, even with one file in it.
 - Keeping `CATEGORY` as a stored field. Rejected because the enum already says it, and the validator in `OrbMeta`
 exists only to check that the two stored fields agree.
 
