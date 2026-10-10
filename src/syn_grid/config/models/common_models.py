@@ -5,8 +5,10 @@ These are the blocks a scenario composes rather than defines: the grid, the two
 observation blocks, the orb kinds, the droid, and the plain
 `world_conf` / `obs_conf` / `scenario_conf` triple that every scenario's
 configuration is an extension of. A block that names a scenario family's rule --
-a tier chain -- is not here; it lives in that family's file, next to the rest of
-that family's hierarchy.
+a tier chain -- is not here; it lives in that family's `config.py` in the
+scenario package, next to its builders, such as
+`scenario/goal/tier_chain/config.py`. What every goal scenario shares is one
+level up, in `scenario/goal/config.py`.
 
 The split is by family, not by scenario name. Names that are configured
 identically share a file, because splitting them would mean four copies of the
@@ -61,20 +63,6 @@ class DroidConf(BaseModel, frozen=True, extra="forbid", strict=True):
         if bad:
             raise ValueError(f"{', '.join(bad)} must be 0 or negative")
         return self
-
-
-class GoalDroidConf(DroidConf, frozen=True, extra="forbid", strict=True):
-    """A droid with an objective, and therefore a deadline to miss.
-
-    Scenarios that have no goal -- nothing to finish, so the episode only ends
-    when the clock or the score does -- use `DroidConf` on its own.
-
-    `completion_reward` is what reaching the objective pays, and
-    `timeout_penalty` what missing the deadline costs.
-    """
-
-    timeout_penalty: float
-    completion_reward: float
 
 
 # ======================= #

@@ -100,7 +100,7 @@ mode the exception). A different score-mode means a new registered scenario with
 tier-chain helper, and its own config model if the inputs differ. Scaling sparse and scaling dense already work this
 way.
 
-**Where:** `scenario/(goal|continuous)/*/builders.py`, `scenario/registry.py`, `config/models/*_models.py`
+**Where:** `scenario/(goal|continuous)/*/builders.py`, `scenario/(goal|continuous)/*/config.py`, `scenario/registry.py`
 
 **Alternatives considered:** The mode in the YAML, with a lookup from its name to a digester class. Rejected for now
 (allowed for continuous sandbox scenario).
@@ -114,7 +114,7 @@ step-wise need a reward per tier, which only the dense models carry. A switchabl
 what the types now guarantee.
 
 **Status:** settled. Revisit if a single experiment needs to sweep scoring modes. The lookup would then sit at the
-edge, next to `SCENARIO_MODELS` or in the builders, and wouldn't touch the digesters.
+edge, next to `SCENARIOS` or in the builders, and wouldn't touch the digesters.
 
 ---
 

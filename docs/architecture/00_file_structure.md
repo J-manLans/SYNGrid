@@ -30,10 +30,7 @@ syn_grid/
 │   ├── models/
 │   │   ├── common_models.py
 │   │   ├── global_models.py
-│   │   ├── runner_models.py
-│   │   ├── scenario_registry.py
-│   │   └── tier_chain_models.py
-│   ├── scenarios/
+│   │   └── runner_models.py
 │   ├── yaml/
 │   │   ├── global_config.yaml
 │   │   ├── goal_tier_chain_spatial.yaml
@@ -110,11 +107,21 @@ syn_grid/
 │       └── human_runner.py
 │
 ├── scenario/
-│   ├── rules/
+│   ├── blocks/
+│   │   ├── hud.py
+│   │   ├── metrics.py
 │   │   ├── observation.py
+│   │   ├── orb_bundle.py
 │   │   ├── population.py
 │   │   ├── spawning.py
 │   │   └── termination.py
+│   ├── goal/
+│   │   ├── tier_chain/
+│   │   │   ├── builders.py
+│   │   │   └── config.py
+│   │   └── config.py
+│   ├── utils/
+│   │   └── helpers.py
 │   ├── registry.py
 │   └── scenario.py
 │
@@ -133,7 +140,10 @@ and the runner creates the Gymnasium environments in `gymnasium/`. Each
 environment asks the scenario for its own world, which is made of the pieces in
 `core/`.
 
-`scenario/` is the only package that turns config into simulation objects.
+`scenario/` is the only package that turns config into simulation objects. It
+also holds the config models that are specific to a scenario type or family, in
+a `config.py` beside what they configure; `config/models/` keeps only what
+every scenario shares.
 `core/` is the simulation itself, `gymnasium/` wraps one world as an
 environment and encodes observations, `runners/` trains, evaluates or lets a
 human play, and `rendering/` draws. `plot/`, `utils/` and `assets/` are

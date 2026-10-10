@@ -77,7 +77,7 @@ Conventions the owner asked for:
 - Imports use the real package paths (`syn_grid.scenario...`,
   `syn_grid.core.digestion...`), never `syn_grid.reference...`. They therefore
   resolve to the live modules, not to other skeleton files.
-- Tables that are structure, such as `SCENARIO_BUILDERS`, are filled in.
+- Tables that are structure, such as `SCENARIOS`, are filled in.
 - Do not invent Effect orbs or `Cancellation`. They have no implementation.
 
 Written so far: `scenario/registry.py` only. It keeps the current signatures
@@ -151,7 +151,10 @@ How it is put together:
 
 - **Config** is three YAMLs in `src/syn_grid/config/yaml/` (global, runner, and
   one named after the scenario), validated by frozen, strict pydantic models
-  that forbid unknown keys. `SCENARIO_MODELS` picks the scenario's schema.
+  that forbid unknown keys. `SCENARIOS` in `scenario/registry.py` picks the
+  scenario's schema and its builder. Shared models are in `config/models/`;
+  scenario-specific ones are in a `config.py` beside what they configure, such
+  as `scenario/goal/tier_chain/config.py`.
 - **`scenario/registry.py`** is the composition root. `_tier_chain_scenario` is
   the family helper and `_build_tier_chain_world` builds one world per env.
   Three of the four builders are placeholders.

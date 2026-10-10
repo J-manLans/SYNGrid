@@ -2,8 +2,10 @@
 
 ```text
 config/models/
-├── common_models.py
-└── tier_chain_models.py
+└── common_models.py
+
+scenario/goal/tier_chain/
+└── config.py
 
 core/digestion/
 ├── digestion.py

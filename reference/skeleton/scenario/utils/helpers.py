@@ -1,4 +1,4 @@
-from syn_grid.config.models.scenarios.common_models import ScenarioConf
+from syn_grid.config.models.common_models import ScenarioConf
 
 
 def neg_orb(scenario_conf: ScenarioConf) -> str:

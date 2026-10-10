@@ -1,13 +1,12 @@
 from syn_grid.config.config_manager import ConfigManager
-from syn_grid.config.models.scenarios.common_models import ScenarioConf
+from syn_grid.config.models.common_models import ScenarioConf
 from syn_grid.config.models.global_models import GlobalConf
 from syn_grid.config.models.runner_models import RunnerConf
-from syn_grid.config.models.scenarios.scenario_registry import SCENARIO_MODELS
 from syn_grid.gymnasium.utils.env_factory import register_env
 from syn_grid.runners.agent_runners.agent_registry import build_runner
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
-from syn_grid.scenario.registry import build_scenario
+from syn_grid.scenario.registry import SCENARIOS, build_scenario
 
 # ================= #
 #        APP        #
@@ -51,7 +50,7 @@ def load_experiment_configs(config_manager: ConfigManager) -> tuple[
     global_conf = config_manager.load_config("global_config.yaml", GlobalConf)
     scenario_conf = config_manager.load_config(
         f"{global_conf.scenario.value}.yaml",
-        SCENARIO_MODELS[global_conf.scenario]
+        SCENARIOS[global_conf.scenario].conf_class
     )
     runner_conf = config_manager.load_config("runner_config.yaml", RunnerConf)
 

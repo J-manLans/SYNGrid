@@ -14,19 +14,20 @@ subclass of the block below, defined next to it, and the departure is visible as
 a diff rather than spread across four files.
 
 `continuous` is a different family and does not appear here; see
-`common_models.py` for the vocabulary every family composes.
+`config/models/common_models.py` for the vocabulary every family composes, and
+`scenario/goal/config.py` for what every goal scenario shares.
 """
 
 from pydantic import BaseModel, Field, model_validator
 
-from syn_grid.config.models.scenarios.common_models import (
-    GoalDroidConf,
+from syn_grid.config.models.common_models import (
     ObsConf,
     OrbPoolConf,
     PerceptionConf,
     ScenarioConf,
     WorldConf,
 )
+from syn_grid.scenario.goal.config import GoalDroidConf
 
 # ===================== #
 #      Droid Models      #
