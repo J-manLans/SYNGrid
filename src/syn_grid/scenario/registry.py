@@ -7,9 +7,8 @@ downstream re-derives identity from the config. The config classes and the build
 folder, such as ``goal/tier_chain/config.py`` and ``goal/tier_chain/builders.py``. Registering a
 new scenario means writing its builder there and adding an entry to ``SCENARIOS`` here.
 
-The mapping from name to config class is deliberately many-to-one where the schema is. A name gets its own
-config class when it needs a field the family lacks, and that subclass lives beside the family it departs
-from. What this must never do is infer a scenario from the values it is given.
+Names that are configured identically share a config class. A name gets its own when it needs a
+field the family lacks, and that subclass lives beside the family it departs from.
 """
 
 

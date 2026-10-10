@@ -1,6 +1,6 @@
-from syn_grid.config.models.common_scenario_models import NegOrbConf, ScenarioConf, WorldConf
+from syn_grid.config.models.common_scenario_models import NegOrbConf, ScenarioConf
 from syn_grid.scenario.scenario import Scenario
-from syn_grid.scenario.goal.tier_chain.config import TierScenarioConf
+from syn_grid.scenario.goal.tier_chain.config import TierScenarioConf, TierWorldConf
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.spawning import SpawningRules
@@ -72,7 +72,7 @@ def _chains_completed(world: GridWorld) -> float:
 
 
 def _build_tier_chain_world(
-    world_conf: WorldConf,
+    world_conf: TierWorldConf,
     orb_bundles: tuple[OrbBundle, ...],
     spawning: SpawningRules,
 ) -> GridWorld:

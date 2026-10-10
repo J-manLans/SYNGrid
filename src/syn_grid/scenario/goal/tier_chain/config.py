@@ -1,32 +1,23 @@
 """
 The tier chain family: Goal/Tier Chain and every variant built on it.
 
-Four registered scenarios share this hierarchy -- spatial, delay, and the two
-tier-scaling variants -- because they differ in *rules*, not in shape. A fogged
-window, a delay on consume, a longer reward ladder: all of those are things a
-scenario builder does, and none of them change what a config file has to contain.
-So they get one file, and a config that names any of them validates against the
-same models.
+Four registered scenarios share this hierarchy: spatial, delay, and the two
+tier-scaling variants.
 
-What the family adds to a goal scenario is one block, `tier_orb_conf`, beside
-`world_conf`, `obs_conf`, `goal_conf` and the optional `neg_orb_conf`. It holds
-what the tier orbs and their digester need. A variant that needs a field the
-family lacks subclasses that block and narrows `tier_orb_conf` on its scenario
-model, so the departure is two classes defined next to each other here.
+What the family adds to a goal world is one block, `tier_orb_conf`, beside the
+grid, the droid, `goal_conf` and the optional `neg_orb_conf`. It holds what the
+tier orbs and their digester need. A variant that needs a field the family
+lacks subclasses that block, narrows `tier_orb_conf` on its own world model and
+narrows `world_conf` on its own scenario model.
 
-`continuous` is a different family and does not appear here; see
-`config/models/common_models.py` for the vocabulary every family composes, and
-`scenario/goal/config.py` for what every goal scenario shares.
+See `config/models/common_scenario_models.py` for the vocabulary every family
+composes, and `scenario/goal/config.py` for what every goal scenario shares.
 """
 
 from pydantic import Field, model_validator
 
-from syn_grid.config.models.common_scenario_models import (
-    ObsConf,
-    PenaltyCheckedConf,
-    PerceptionConf,
-)
-from syn_grid.scenario.goal.config import GoalScenarioConf
+from syn_grid.config.models.common_scenario_models import PenaltyCheckedConf
+from syn_grid.scenario.goal.config import GoalScenarioConf, GoalWorldConf
 
 # ===================== #
 #    Tier Orb Models     #
@@ -36,18 +27,13 @@ from syn_grid.scenario.goal.config import GoalScenarioConf
 class TierOrbConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
     """The chain: one orb per tier, and what losing it costs.
 
-    `max_tier` is the length of the chain, and therefore also the number of orbs
-    on the field: a tier chain derives its field size from the chain.
+    `max_tier` is the length of the chain, and therefore also the number of
+    tier orbs on the field. All of them are present from the first step.
 
-    `chain_break_penalty` only means anything once there is a chain to lose.
-    Its ratio to the timeout penalty is deliberate -- see
-    `docs/dev/rppo-regression.md` for why the two had to become independent.
+    `chain_break_penalty` is what breaking the chain costs. It is set
+    independently of the timeout penalty; see `docs/dev/rppo-regression.md`.
 
-    Not an `OrbKindConf`: a chain's orbs are all present from the first step
-    and never come back, so they have no spawn weight and no cool-down. A
-    per-tier reward ladder is not here either: only a scenario that pays per
-    tier has one, see `TierDenseOrbConf`. How the chain is scored is not a
-    tunable at all; each scenario's builder states it.
+    How the chain is scored is stated by each scenario's builder.
     """
 
     max_tier: int = Field(gt=0)
@@ -71,27 +57,18 @@ class TierDenseOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
 
 
 # ======================= #
-#    Obs Configuration    #
+#   World Configuration   #
 # ======================= #
 
 
-class TierDenseObsConf(ObsConf, frozen=True, extra="forbid", strict=True):
-    perception_conf: PerceptionConf
-
-
-# ============================= #
-#    Top-Level Configuration   #
-# ============================= #
-
-
-class TierScenarioConf(GoalScenarioConf, frozen=True, extra="forbid", strict=True):
+class TierWorldConf(GoalWorldConf, frozen=True, extra="forbid", strict=True):
     tier_orb_conf: TierOrbConf
 
     @model_validator(mode="after")
     def validate_chain_fits_grid(self):
-        grid_conf = self.world_conf.grid_conf
-
-        if self.tier_orb_conf.max_tier >= (grid_conf.grid_rows * grid_conf.grid_cols):
+        if self.tier_orb_conf.max_tier >= (
+            self.grid_conf.grid_rows * self.grid_conf.grid_cols
+        ):
             raise ValueError(
                 "max_tier can't be higher than number of cells in the grid, "
                 "there will be no space for orbs"
@@ -100,10 +77,26 @@ class TierScenarioConf(GoalScenarioConf, frozen=True, extra="forbid", strict=Tru
         return self
 
 
-class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
+class TierDelayWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True):
     tier_orb_conf: TierDelayOrbConf
 
 
-class TierDenseScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
+class TierDenseWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True):
     tier_orb_conf: TierDenseOrbConf
-    obs_conf: TierDenseObsConf
+
+
+# ============================= #
+#    Top-Level Configuration   #
+# ============================= #
+
+
+class TierScenarioConf(GoalScenarioConf, frozen=True, extra="forbid", strict=True):
+    world_conf: TierWorldConf
+
+
+class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
+    world_conf: TierDelayWorldConf
+
+
+class TierDenseScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
+    world_conf: TierDenseWorldConf

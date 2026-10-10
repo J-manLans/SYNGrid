@@ -130,8 +130,9 @@ Still open:
   kind filter on the refill action, a tuple of after-actions, the negative count
   added to field size and observation slots, and a tier-chain negative model
   without `weight`.
-- **Where the step clock lives.** It is on `ObservationHandler`, so a reader
-  that only gets the world cannot supply steps or moves.
+- **Where the step clock lives.** Decided: in the world. `max_steps` is in
+  `world_conf`; the count itself is still on `ObservationHandler` and has to
+  move into `GridWorld`.
 - **HUD form.** A small vocabulary of elements the renderer can draw, or a
   drawer per scenario. The current HUD is one sprite with fixed positions.
 - **Generic readers that assume a tier digester:** the env's HUD and log info,

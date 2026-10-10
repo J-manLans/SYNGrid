@@ -11,10 +11,9 @@ class RunnerBundle:
     """
     Bundled configuration needed for the agent.
 
-    ``scenario`` is the selected scenario's name. It travels with the bundle
-    because a runner has to name the environment it is about to build, and
-    because a run's identity should follow from the scenario rather than be
-    reassembled from the parameters that happen to describe it.
+    ``scenario`` is the selected scenario. It travels with the bundle because
+    a runner has to build the scenario's environment, and because a run's
+    identity follows from the scenario.
     """
 
     scenario: Scenario

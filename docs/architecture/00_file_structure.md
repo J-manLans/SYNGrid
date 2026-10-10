@@ -28,7 +28,7 @@ syn_grid/
 │
 ├── config/
 │   ├── models/
-│   │   ├── common_models.py
+│   │   ├── common_scenario_models.py
 │   │   ├── global_models.py
 │   │   └── runner_models.py
 │   ├── yaml/

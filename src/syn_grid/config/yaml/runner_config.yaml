@@ -1,7 +1,7 @@
 # SYNGrid runner config: how an agent is trained and evaluated.
 #
-# Nothing here describes the world. The scenario is selected in
-# global_config.yaml and configured in its own file.
+# The scenario is selected in global_config.yaml and configured in its own
+# file.
 
 common_conf:
   alg: RPPO

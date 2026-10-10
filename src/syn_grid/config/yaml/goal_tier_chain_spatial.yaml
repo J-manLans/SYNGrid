@@ -1,34 +1,33 @@
-# SYNGrid scenario config, migrated to scenario selection.
+# SYNGrid scenario config: goal_tier_chain_spatial
 #
-# scenario: goal_tier_chain_spatial
-# The flags that used to imply this scenario are gone. What remains is
-# tunable: geometry, the chain length, penalties, reward shape, and the
-# perception. The scenario decides what those mean.
+# The tunables of this scenario: episode length, geometry, the droid, the goal,
+# the chain, and the perception.
 world_conf:
+  max_steps: 100
+
   grid_conf:
     grid_rows: 5
     grid_cols: 5
 
   droid_conf:
-    starting_score: 50 # shown in the HUD; does not end the episode, see TierChainTermination
+    max_energy: 50 # what the droid starts with and the most it can hold; the episode ends at 0
     step_penalty: -0.001
     boundary_penalty: -1.0
+
+  goal_conf:
+    timeout_penalty: -1.0
+    completion_reward: 10.0
+
+  tier_orb_conf:
+    max_tier: 3
+    chain_break_penalty: -0.01
+
+  # negative orbs is an optional for this scenario, uncomment and fill the values to activate it
+  # neg_orb_conf:
+  #   reward:
+  #   cool_down:
+  #   weight:
 
 obs_conf:
   observation_handler_conf:
     perception: vector_fog_of_war
-    max_steps: 100
-
-goal_conf:
-  timeout_penalty: -1.0
-  completion_reward: 10.0
-
-tier_orb_conf:
-  max_tier: 3
-  chain_break_penalty: -0.01
-
-# negative orbs is an optional for this scenario, uncomment and fill the values to activate it
-# neg_orb_conf:
-#   reward:
-#   cool_down:
-#   weight:

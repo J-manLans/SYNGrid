@@ -36,8 +36,7 @@ class GlobalConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """
     Settings that apply to every run, whatever the scenario or runner.
 
-    `scenario` is only a name. What it means, and which tunables it accepts, is decided by the
-    scenario file and the scenario itself, not here.
+    `scenario` names the scenario to run. Its tunables are in the YAML file of the same name.
     """
 
     snapshot: SnapshotConf

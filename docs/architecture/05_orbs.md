@@ -2,7 +2,7 @@
 
 ```text
 config/models/
-└── common_models.py
+└── common_scenario_models.py
 
 scenario/goal/tier_chain/
 └── config.py

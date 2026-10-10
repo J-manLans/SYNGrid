@@ -192,53 +192,57 @@ the "two categories" rule only if an orb turns up that fits neither test.
 
 ---
 
-## Scenario configs live with the scenario, as blocks at scenario level (2026-10-10)
+## Scenario configs live with the scenario, as blocks in the world (2026-10-10)
 
 **Decision:** A config model lives in the folder of the thing it configures, at the level where it is shared.
 
-- `config/models/` keeps what is not specific to a scenario: the global and runner models, and `common_models.py`
-  with the grid, the droid, the negative orb, the observation handler and the base `ScenarioConf`.
+- `config/models/` keeps what is not specific to a scenario: the global and runner models, and
+  `common_scenario_models.py` with the grid, the droid, the negative orb, the observation handler and the base
+  `WorldConf` and `ScenarioConf`.
 - `scenario/goal/config.py` holds what every goal scenario has. `scenario/continuous/config.py` will do the same for
   continuous.
 - `scenario/goal/tier_chain/config.py` holds the tier-chain family.
 
-Each layer adds its own block at the top of the scenario config, beside `world_conf` and `obs_conf`:
+A scenario config has two halves. `world_conf` is everything the world acts on. `obs_conf` is what the Gymnasium side
+needs to turn the world into an observation, which the world never reads. Each layer adds its own block to the world:
 
 ```
-ScenarioConf                          world_conf, obs_conf, neg_orb_conf (optional)
-  GoalScenarioConf                    + goal_conf       (timeout_penalty, completion_reward)
-    TierScenarioConf                  + tier_orb_conf   (max_tier, chain_break_penalty)
-      TierDelayScenarioConf             tier_orb_conf   + delay
-      TierDenseScenarioConf             tier_orb_conf   + the reward ladder; obs_conf + perception_conf
+ScenarioConf                    world_conf, obs_conf
+  WorldConf                       max_steps, grid_conf, droid_conf, neg_orb_conf (optional)
+    GoalWorldConf                 + goal_conf       (timeout_penalty, completion_reward)
+      TierWorldConf               + tier_orb_conf   (max_tier, chain_break_penalty)
+        TierDelayWorldConf          tier_orb_conf   + delay
+        TierDenseWorldConf          tier_orb_conf   + the reward ladder
 ```
 
-The world and the droid are the same models in every scenario. A variant is two classes: its block and its scenario
+Each world model has a scenario model that narrows `world_conf` to it (`GoalScenarioConf`, `TierScenarioConf`,
+`TierDelayScenarioConf`, `TierDenseScenarioConf`). A variant is three classes: its block, its world and its scenario
 model.
 
-There is no single orb block to look at. Each orb kind has its own `*_orb_conf` block at scenario level, holding what
-that kind's orbs and its digester need. This mirrors `OrbBundle` in the scenario layer, where a kind's orbs and its
+There is no single orb block to look at. Each orb kind has its own `*_orb_conf` block in the world, holding what that
+kind's orbs and its digester need. This mirrors `OrbBundle` in the scenario layer, where a kind's orbs and its
 digester travel together, so a kind is one brick in the config as well.
 
 `scenario/registry.py` holds one table, `SCENARIOS`, whose entry gives a name its config class and its builder.
 
-**Where:** `config/models/common_models.py`, `scenario/goal/config.py`, `scenario/goal/tier_chain/config.py`,
+**Where:** `config/models/common_scenario_models.py`, `scenario/goal/config.py`, `scenario/goal/tier_chain/config.py`,
 `scenario/registry.py`, `config/yaml/goal_tier_chain_spatial.yaml`
 
 **Alternatives considered:**
 
 - A separate config tree that mirrors the scenario package. Rejected because two parallel trees can drift apart and
 one can't.
-- Goal and tier values on the droid (`GoalDroidConf`, `TierDroidConf`), with variants made by subclassing down
-`world_conf` → `orb_conf` → `tier`. This is what was there. Rejected because the digester and termination read those
-values, not the droid, and because one new leaf field took four classes (orb, orb pool, world, scenario).
-- One `orb_conf` block holding every orb kind, under `world_conf`. Rejected because a scenario model can only narrow
-a field it holds directly, so a variant of one kind would again need a new pool class and a new world class. The cost
-is that orb settings are spread over several blocks, which the `_orb_conf` suffix makes easy to find.
+- Goal and tier values on the droid (`GoalDroidConf`, `TierDroidConf`), with the orbs in one `orb_conf` pool under
+`world_conf`. This is what was there. Rejected because the digester and termination read those values, not the droid,
+and because one new leaf field took four classes (orb, orb pool, world, scenario).
+- The goal and orb blocks at the top of the scenario config, beside `world_conf`. Tried first, since a variant is then
+two classes instead of three. Rejected because the world acts on the goal and on the orbs, so they are part of it; the
+top level is kept for the real divide, between the world and how it is observed.
 - A `mode: goal` field. Rejected because the scenario name already says which type it is.
 
 **Why this one:** The config tree and the scenario tree are the same tree, so a scenario's builder and its config are
-found in one folder. A block at scenario level can be narrowed by the scenario model directly, which is what makes
-combinations of independent choices possible later.
+found in one folder. `world_conf` means what its name says. The orb pool level is gone, so a variant costs one class
+less than before, and each orb kind can be varied without touching the others.
 
 **Status:** the structure is settled; what goes in which block is not. This pass only moved fields, so every scenario
 requires exactly what it required before. Still open:
@@ -248,8 +252,74 @@ dense uses neither: on timeout it pays the held reward.
 - Splitting the scoring inputs out of `tier_orb_conf` into one block per scoring mode, so dense stops requiring
 `completion_reward` and `chain_break_penalty`. Dense is the only threshold-scored goal scenario; spatial, scaling
 sparse and delay are max-tier (the legacy delay configs in `reproduction_package/delay_scenario/` all set
-`max_tier_scoring`), so delay needs neither a reward ladder nor a `max_score`.
+`max_tier_scoring`), so delay needs no reward ladder.
 - `NegOrbConf` requires `weight`, a spawn weight for a field that refills at random, which a tier-chain negative orb
 isn't meant to have.
-- `PerceptionConf` holds only `max_score` and only dense uses it.
 - The builders still take the base `ScenarioConf` and `cast` it.
+
+---
+
+## Energy and score are two numbers (2026-10-10)
+
+**Decision:** The droid has an energy and a score. Both move with every reward and penalty.
+
+- **Energy** is what the droid has left. It starts at `max_energy`, stays between 0 and `max_energy`, and the episode
+  ends when it reaches 0, in every scenario. The droid starts fully charged and cannot be overcharged, so one config
+  value is both the start and the cap.
+- **Score** is how the episode went. It always starts at 0, has no bounds and no config.
+
+They move together until the cap bites: a reward at full charge raises the score but not the energy. The score cannot
+fall much below minus `max_energy`, because the episode ends first; the last penalty can overshoot by its own size.
+
+The observation carries energy, in the slot where the old code carried its score. Its bounds are exactly 0 and
+`max_energy`, so there is no separate bound to configure and nothing to clip.
+
+**Where:** `DroidConf.max_energy` in `config/models/common_scenario_models.py`, replacing `starting_score`. The droid,
+the base termination rule and the observation still have to be written to match.
+
+**Alternatives considered:**
+
+- One number, as before: it started at `starting_score`, was clipped at 0 and ended the episode there, so it was a
+score in name and a life in behaviour. Rejected because the two meanings want different bounds and a different start.
+- Only penalties move the energy, rewards only move the score. Rejected: energy should respond to both.
+- Energy with no upper cap, and a `max_score` in the config to bound and clip its observation. This is what was there.
+Rejected because a droid that cannot be overcharged gives an exact bound, which removed `PerceptionConf`,
+`TierDenseObsConf` and `max_score`.
+- "Life" as the name. Rejected in favour of "energy", which suits a droid.
+
+**Why this one:** Energy is the old number under an honest name, so the four goal scenarios behave as before: in each
+of them a positive reward only arrives on the step that ends the episode, so the cap is never reached. The score is
+new and changes no behaviour.
+
+**Status:** settled. Two things to carry forward:
+
+- Continuous changes on purpose when it is rebuilt: the old number could grow without limit, so a droid could bank
+rewards against later penalties. With a cap it can't.
+- In the observation pass, check whether anything scales the observation by its upper bound. The values in that slot
+are unchanged for the goal scenarios, but the bound moves from the old `max_score` to `max_energy`.
+
+---
+
+## The step clock lives in the world (2026-10-10)
+
+**Decision:** `max_steps` is a field of `world_conf`, and the world is what counts the steps of an episode. Anything
+that needs the steps left (termination, the observation, the HUD, the metrics) reads it from the world it is handed.
+
+**Where:** `WorldConf.max_steps` in `config/models/common_scenario_models.py`. The count itself still has to move
+into `GridWorld`; it is on `ObservationHandler` today.
+
+**Alternatives considered:**
+
+- In `obs_conf.observation_handler_conf`, where it was. Rejected because the observation is only one of its readers,
+and a reader that is handed just the world could not get at it.
+- At the top of the scenario config, beside `world_conf`. Rejected because the steps taken are state that changes
+during an episode, and that state belongs in the world.
+- In `grid_conf`. Rejected because that block is the geometry; the episode length is about time and is set
+independently of the grid's shape.
+- In `goal_conf`. Rejected because a continuous episode also ends on the clock.
+
+**Why this one:** It follows the rule that a `Scenario` holds nothing that changes during an episode and that rules
+reach state through the world. It is still per scenario, since the whole file is.
+
+**Status:** settled for the config. Revisit if the clock turns out to need pausing or resetting by something other
+than the world, such as a delay.

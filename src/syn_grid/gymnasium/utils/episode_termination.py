@@ -71,9 +71,7 @@ def _single_chain_mode_termination(
         else:
             # Max-tier scoring never accumulates a partial reward, so there is
             # nothing to settle up and the timeout reward is simply the
-            # configured penalty. This used to be a hardcoded -1, which made the
-            # timeout magnitude untunable and silently coupled it to whatever
-            # chain_break_penalty happened to be set to.
+            # configured penalty.
             reward = timeout_penalty
 
         if delay_mode:
@@ -93,8 +91,6 @@ def _single_chain_mode_termination(
     # === last orb consumed in delay mode ===#
     elif delay_mode and len(world._active_orbs) == 0:
         terminated = True
-        # True division: floor division collapsed any small negative penalty to
-        # -1.0 (e.g. -0.01 // 2 == -1.0), amplifying the penalty ~100x.
         # NOTE: why do I use a penalty as reward for this scenario though? The elif branch is messy
         # and I think a clear refactor of this module is in place. Look into a strategy design
         # pattern? Seems that when we reach this, is when we're in delay mode, steps remaining, and

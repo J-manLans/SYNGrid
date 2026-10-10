@@ -1,21 +1,12 @@
 """
 The vocabulary every scenario is written in.
 
-These are the blocks a scenario composes rather than defines: the grid, the two
-observation blocks, the orb kinds, the droid, and the plain
-`world_conf` / `obs_conf` / `scenario_conf` triple that every scenario's
-configuration is an extension of. A block that names a scenario family's rule --
-a tier chain -- is not here; it lives in that family's `config.py` in the
-scenario package, next to its builders, such as
-`scenario/goal/tier_chain/config.py`. What every goal scenario shares is one
-level up, in `scenario/goal/config.py`.
+These are the blocks every scenario's configuration is built from: the grid,
+the droid, the negative orb, the observation handler, and the base `WorldConf`
+and `ScenarioConf` that each scenario type and family extends.
 
-The split is by family, not by scenario name. Names that are configured
-identically share a file, because splitting them would mean four copies of the
-same validators with four places to forget one.
-
-`GlobalConf` and `RunnerConf` are shared too, but not by scenarios: they live
-in `global_models.py` and `runner_models.py`.
+What every goal scenario shares is in `scenario/goal/config.py`, and a family's
+own models are in its folder, such as `scenario/goal/tier_chain/config.py`.
 """
 
 from enum import Enum
@@ -68,7 +59,18 @@ class PenaltyCheckedConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 
 class DroidConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
-    starting_score: float
+    """The droid's energy and what moving costs it.
+
+    `max_energy` is both what the droid starts an episode with and the most it
+    can hold: it starts fully charged and cannot be overcharged. Every reward
+    and penalty moves the energy, which stays between 0 and `max_energy`, and
+    the episode ends when it reaches 0.
+
+    The score always starts at 0, moves with the same rewards and penalties,
+    and has no bounds.
+    """
+
+    max_energy: float = Field(gt=0)
     step_penalty: float
     boundary_penalty: float
 
@@ -94,20 +96,6 @@ class NegOrbConf(OrbKindConf, frozen=True, extra="forbid", strict=True):
 
 class ObservationHandlerConf(BaseModel, frozen=True, extra="forbid", strict=True):
     perception: Annotated[Perception, Field(strict=False)]
-    max_steps: int = Field(gt=0)
-
-
-class PerceptionConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    """How an observation is encoded.
-
-    The world-derived counts are not here. How many orb slots an observation
-    holds and how far its tier channel reaches are properties of the world,
-    which the scenario already describes; this block used to carry a second
-    copy of each that had to be kept in step by hand through YAML anchors, and
-    an observation space was only fully knowable by reading four files at once.
-    """
-
-    max_score: int
 
 
 # ============================= #
@@ -116,8 +104,20 @@ class PerceptionConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 
 class WorldConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    """The world an episode plays out in, and everything the world acts on.
+
+    `max_steps` is how long an episode can last. The world counts the steps, so
+    anything that is handed the world can read how many are left.
+
+    Each orb kind a world can hold has its own `*_orb_conf` block, carrying what
+    that kind's orbs and its digester need. Any scenario may add negative orbs
+    through `neg_orb_conf`; a family adds its own kinds on its world model.
+    """
+
+    max_steps: int = Field(gt=0)
     grid_conf: GridConf
     droid_conf: DroidConf
+    neg_orb_conf: NegOrbConf | None = None
 
 
 class ObsConf(BaseModel, frozen=True, extra="forbid", strict=True):
@@ -125,15 +125,11 @@ class ObsConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 
 class ScenarioConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    """What every scenario's configuration has.
+    """What every scenario's configuration has: the world, and how it is observed.
 
-    There is no single orb block. Each orb kind a scenario can hold gets its own
-    `*_orb_conf` block at this level, carrying what that kind's orbs and its
-    digester need, so a kind is configured in one place. `neg_orb_conf` is here
-    because any scenario may add negative orbs; a family's own kinds are added
-    by its scenario model.
+    `world_conf` is everything the world acts on. `obs_conf` is what the
+    Gymnasium side needs to turn the world into an observation.
     """
 
     world_conf: WorldConf
     obs_conf: ObsConf
-    neg_orb_conf: NegOrbConf | None = None
