@@ -40,7 +40,7 @@ class DigestionEngine:
 
             self._digesters[digester.kind] = digester
 
-        self._counts: Counter[type[Event]] = Counter()
+        self._event_counts: Counter[type[Event]] = Counter()
 
     # ================= #
     #        API        #
@@ -49,7 +49,7 @@ class DigestionEngine:
     def reset(self) -> None:
         for digester in self._digesters.values():
             digester.reset()
-        self._counts.clear()
+        self._event_counts.clear()
 
     def digest(self, orb: BaseOrb) -> float:
         """Digest a consumed orb and return the resulting reward."""
@@ -62,18 +62,18 @@ class DigestionEngine:
 
         digestion_result = owner.digest(orb)
 
-        self._counts.update(type(event) for event in digestion_result.events)
+        self._event_counts.update(type(event) for event in digestion_result.events)
 
         for digester in self._digesters.values():
             if digester is not owner:
-                self._counts.update(type(event) for event in digester.notice(orb))
+                self._event_counts.update(type(event) for event in digester.notice(orb))
 
         return digestion_result.reward
 
     def count(self, event_type: type[Event]) -> int:
         """How many times this event has occurred since the last reset."""
 
-        return self._counts[event_type]
+        return self._event_counts[event_type]
 
     def get(self, digester_type: type[D]) -> D:
         """The registered digester of this type, for readers that need its state."""

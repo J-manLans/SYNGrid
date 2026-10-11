@@ -6,37 +6,10 @@ about scenarios: each kind has one digester that owns the rules for it, and
 every consumed orb is routed to the digester of its kind.
 """
 
-from dataclasses import dataclass
-from typing import Protocol, TypeAlias, Final
+from typing import Final, Protocol, TypeAlias
 
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import DirectType, SynergyType
-
-# ################## #
-#       Result       #
-# ################## #
-
-
-@dataclass(frozen=True)
-class Event:
-    """Something that happened while an orb was digested.
-
-    A digester defines its own events by subclassing this.
-    """
-
-
-@dataclass(frozen=True)
-class DigestionResult:
-    """What digesting one orb gave.
-
-    Attributes:
-        reward: what the orb was worth to the droid on this step.
-        events: what happened while it was digested, in order.
-    """
-
-    reward: float
-    events: tuple[Event, ...] = ()
-
 
 # ################## #
 #       Routing      #
@@ -62,11 +35,10 @@ class OrbDigester(Protocol):
     KIND: Final[OrbKind]
     """The orb kind this digester owns."""
 
-
     def reset(self) -> None:
         """Clear this digester's episode state, at the start of an episode."""
         ...
 
-    def digest(self, orb: BaseOrb) -> DigestionResult:
-        """Digest an orb of this digester's kind and return what it gave."""
+    def digest(self, orb: BaseOrb) -> float:
+        """Digest an orb of this digester's kind and return its reward."""
         ...
