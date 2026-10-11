@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. Last updated 2026-10-11.
+Guidance for AI agents working in this repository. Last updated 2026-10-12.
 Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
@@ -27,9 +27,12 @@ Where to look, in this order:
   of what is written, empty or still legacy.
 - `docs/dev/design-decisions.md` is what was chosen, what was turned down and
   why. Read it before giving a design opinion.
-- The other files in `docs/dev/` are logs with a template each
-  (`contract-misalignments.md`, `deferred-decisions.md`, `regressions.md`,
-  `scope-creep.md`) and `codebase-ideas.md`.
+- `docs/dev/open-questions.md` is what has not been decided yet.
+- `docs/dev/codebase-ideas.md` is ideas that are not problems to solve now.
+- `docs/dev/glossary.md` is what the words mean. Use its terms, and add a term
+  there when a new one is coined.
+- `docs/dev/regressions.md` is for behaviour that worked before and does not
+  now. It has a template and no entries.
 
 State on 2026-10-11: the config models, the registry and the spatial YAML are
 done. `scenario.py` and the blocks are written, and the spatial builder returns
@@ -48,7 +51,7 @@ phase 5.
 **No file in the working strain is final.** A file can be a stub, half-moved or
 about to change shape, and its docstrings describe what it is meant to be, not
 how far it has come. What is a stub, what is empty and what is still legacy is
-recorded here and in the roadmap's table, and nowhere in the code.
+recorded here and in the roadmap's table, and never in a docstring.
 
 ## How to work with the owner
 
@@ -59,11 +62,15 @@ recorded here and in the roadmap's table, and nowhere in the code.
   missing and what you would create, then wait.
 - **Plain language.** Report what you verified and what you did not.
 - **Mention anything surprising, but don't fix it unless asked.**
-- **No temporary state in docstrings or comments.** Do not write `STUB:`, "not
-  written yet", "until phase N" or "for now" in a source file. A docstring says
-  what the thing is and does, and must still read correctly when the rebuild is
-  finished. Progress goes in this file and the roadmap; reasons and rejected
-  alternatives go in `design-decisions.md`.
+- **No temporary state in docstrings.** Do not write `STUB:`, "not written
+  yet", "until phase N" or "for now" in a docstring. A docstring says what the
+  thing is and does, and must still read correctly when the rebuild is
+  finished. An old solution that slips into a docstring is hard to find again.
+  Progress goes in this file and the roadmap; reasons and rejected alternatives
+  go in `design-decisions.md`.
+- **Work that is still to do goes in a `# TODO` or `# NOTE` comment,** which the
+  owner can search for and tick off. Put a tag in brackets when several belong
+  together, as in `# TODO(phase 3):` and `# TODO(lock):`.
 - **Do not add, migrate or rewrite tests unless explicitly asked.** The owner
   curates the suite. If you think a change needs coverage, say so and leave it.
   A test that is asked for must fail when its behaviour is broken; reintroduce
@@ -195,28 +202,17 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - Reward normalisation stays off in training (`norm_reward=False`).
 - A tier chain holds one negative orb. `NegOrbConf` is `reward` and `cool_down`;
   a weight is only for a family whose field is sampled.
+- A locked scenario loads a small model holding only what a run may choose, and
+  its builder makes the full config from its fixed values. The full models stay
+  as they are, and the sandbox and every scenario that is not locked load them
+  directly. Settled as the direction on 2026-10-12 and not applied: no scenario
+  is locked until it has reproduced its legacy results.
+- A locked scenario offers the perceptions that make sense for it. Spatial
+  offers only ones with a limited view.
 
-Still open:
-
-- **Whether a `ScoringMode` enum survives** as a router for the sandbox
-  scenario. It is written as a reservation inside an entry marked settled.
-- **What a chain holds when the steps run out.** A threshold scenario's
-  termination is meant to pay the digester's `chain_reward`, and a max-tier one
-  must not. How the tier-chain termination tells them apart is not decided.
-- **Properties or plain attributes** for what readers take from a digester.
-  They are plain public attributes now, and the owner may return to properties.
-- **What `engine.get` does** when no digester of the asked class is registered.
-  The reference raises `KeyError`.
-- **`reward_multiplier`,** which legacy threshold applied to each orb's reward.
-  It was not carried over and not discussed to a decision.
-- **The negative orb under delay.** It is meant to freeze and return with the
-  field.
-- **HUD form.** A small vocabulary of elements the renderer can draw, or a
-  drawer per scenario.
-- **Where the renderer's settings come from.** The old `RendererConf` has no
-  counterpart in the new models.
-- **The shape of `obs_conf`,** which is two levels of nesting around one field.
-- **Whether non-tier synergy orbs despawn** like negative orbs.
+What is still open is listed in `docs/dev/open-questions.md`, grouped by the
+roadmap phase that needs the answer. Read it before giving a design opinion, and
+do not treat an item on it as decided.
 
 ## Reading the reference
 

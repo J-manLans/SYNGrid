@@ -1,8 +1,9 @@
 # Design Decisions
 
-Choices made on purpose during the rebuild, with the options that were turned down and the reason. The other files in
-this folder record things that happened (a break, a mismatch, a deferral, a touch). This one records what was chosen,
-so that later nobody has to guess why something is shaped the way it is or put back what was left out deliberately.
+Choices made on purpose during the rebuild, with the options that were turned down and the reason.
+`open-questions.md` lists what is not decided yet, and `regressions.md` what has broken. This one records what was
+chosen, so that later nobody has to guess why something is shaped the way it is or put back what was left out
+deliberately.
 
 Each entry says when it would be worth reopening.
 
@@ -722,3 +723,91 @@ written down; the owner recalls it as a deliberate choice.
 
 **Status:** settled for now, and not tested either way on these scenarios. Revisit for continuous scenarios, where
 the return is many completed chains added together, or if a chain's total goes well beyond a few tens.
+
+---
+
+## A locked scenario loads a small model, and its builder makes the full config (2026-10-12)
+
+**Decision:** The layered models stay as the full description of a world: `TierScenarioConf`, `TierWorldConf`,
+`TierOrbConf`, `GoalConf` and the rest, with their validation. A locked scenario gets one small model of its own,
+frozen, strict and `extra="forbid"`, holding only what a run may choose for it. Its entry in `SCENARIOS` names that
+small model as its config class, so its YAML loads into it and a YAML that states a fixed value is rejected. Its
+builder takes the small model, makes the full config in code from the scenario's fixed values and what the run chose,
+and hands that to the family's shared helper. Nothing below the builder knows whether a scenario is locked.
+
+A scenario that is not locked, and the continuous sandbox, have no small model. Their entry names the full model and
+their YAML states every value.
+
+This is the third of the three sketches in `codebase-ideas.md`, with the registry and the sandbox filled in.
+
+**Where:** not applied. It will touch `scenario/registry.py`, each family's `config.py` and `builders.py`, the
+scenario's YAML, and `load_experiment_configs` in `app.py`.
+
+**Alternatives considered:**
+
+- Split each block into a narrow class and a tunable class that extends it (the first sketch). Rejected because no
+single narrow class suits every scenario: spatial keeps the grid, scaling the grid and the chain length, delay the
+delay.
+- Thin the base models to what every scenario states and move the tunable fields to subclasses (the second sketch).
+Rejected because `_tier_chain_scenario` and `_build_tier_chain_world` read a full config, and would have to take
+their values from two sources.
+- Fixed values as loose constants passed around the builder, with no full model made. Rejected because the values
+then skip validation and everything below the builder takes a pile of arguments.
+- One full model for every scenario, with a GUI choosing which fields to show. Rejected because the GUI would still
+need, per scenario, the list of open fields and the fixed values for the hidden ones, which is the small model and
+the builder's constants kept in the wrong layer. The YAML path could also still set anything.
+- Fixed values as defaults on the models. Turned down on 2026-10-11; see `codebase-ideas.md`.
+
+**Why this one:** The models are what the builder makes, so a locked scenario's fixed values pass the same validation
+as a YAML's. The helper keeps taking one `TierScenarioConf`. The entry's config class says what a run may set for
+that scenario, which is also what a GUI needs to draw a form; `model_json_schema()` on the models carries the types,
+the bounds, the perception's choices and the optional orb block. Frozen models compare equal, so on the day a scenario
+is locked the builder's config can be checked against the one its old YAML loaded.
+
+**Status:** settled as the direction on 2026-10-12, and not applied. A scenario is locked after it has been rebuilt
+and has reproduced its legacy results, so no model changes before then. Open, to settle with the first scenario to be
+locked:
+
+- The common type of a config class. `ScenarioConf` is named by the `TypeVar` bound in `registry.py`,
+  `ScenarioEntry.build`, `build_scenario` and the return type of `load_experiment_configs`, and a small model is not a
+  `ScenarioConf`.
+- How the full config is reached from outside the builder. Today it exists only inside the builder and the `partial`.
+  `ConfigManager.save_snapshot` copies the YAML file, so a locked scenario's snapshot would hold only what the run
+  chose; a GUI showing the fixed values read-only needs the same thing.
+- Where a family's shared fixed values are written, so that four builders do not each state them.
+- Where a rule that spans fields is checked. A check on the full model is raised in the builder and names a block and
+  not a field: a positive `step_penalty` is reported on `droid_conf`, and a chain too long for the grid on
+  `world_conf`.
+- Whether a locked axis has a range, such as an upper bound on the grid.
+- What the small model holds besides the axis. It holds the perception, limited to the ones that suit the scenario;
+  see the next entry. The negative orb would be a yes or no. "Axis model" is then the wrong name for it.
+
+---
+
+## A locked scenario offers the perceptions that make sense for it (2026-10-12)
+
+**Decision:** The perception stays a choice in a locked scenario, among the perceptions that fit what the scenario
+tests. Spatial tests memory under a limited view, so it offers only perceptions where the droid sees part of the
+world, and no fully Markovian one. A scenario whose test does not depend on how much the droid sees can offer any.
+
+**Where:** not applied. The `Perception` enum in `config/models/scenario/common_models.py` has two values, and the
+only one spatial allows is `vector_fog_of_war`. `PERCEPTIONS` in `gymnasium/observation_space/observation_handler.py`
+names seven classes; the five outside the enum come back in the observation pass.
+
+**Alternatives considered:**
+
+- The perception fixed in the builder, as one of a locked scenario's read-only values. Rejected because how the
+world is encoded is a real choice for a run. A composite observation with its own feature extractor can give the
+model a clearer picture than the flat vector, at a cost in speed that matters on weaker hardware, and a user who
+brings a model of their own chooses what it reads.
+- Any perception for any scenario, since the run id starts with the perception. Rejected because a spatial run where
+the droid sees the whole grid does not test what the scenario is named for.
+
+**Why this one:** What a scenario tests decides how much the droid may see, and nothing else about the observation.
+
+**Status:** settled as the rule on 2026-10-12. Open:
+
+- How the rule is written. Either each locked scenario lists the perceptions it allows, or a perception is split into
+  how much the droid sees and how that is encoded, and the scenario fixes the first; see `codebase-ideas.md`. There
+  is nothing to choose between until spatial has a second allowed perception.
+- The pixel observation. `GridPixel` is a docstring with no code, and whether it gets a limited view is not decided.

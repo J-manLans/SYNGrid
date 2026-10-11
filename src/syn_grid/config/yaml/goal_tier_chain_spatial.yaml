@@ -2,6 +2,10 @@
 #
 # The tunables of this scenario: episode length, geometry, the droid, the goal,
 # the chain, and the perception.
+#
+# TODO(lock): once this scenario has reproduced its legacy results, keep only
+# the grid size and the perception here, and fix every other value in its
+# builder.
 world_conf:
   max_steps: 100
 

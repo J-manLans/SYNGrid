@@ -1,0 +1,153 @@
+# Glossary
+
+What the words used in the rebuild mean, in the code and in the other files in this folder. A term is defined once
+here; the reasons behind it are in `design-decisions.md`.
+
+Terms are grouped by area. The last section lists the words that are used in two senses or are not settled.
+
+---
+
+## Scenarios
+
+- **Scenario:** one registered benchmark task, and the `Scenario` object that describes it: a name, a tag, the pieces
+  the Gymnasium side needs and a way to build its world. It holds nothing that changes during an episode.
+- **Goal scenario:** a scenario with an objective to reach and a deadline to miss.
+- **Continuous scenario:** a scenario where reaching nothing ends the episode. None is written.
+- **Family:** the scenarios that share a folder, a config hierarchy and a helper. The tier chain family is spatial,
+  delay, scaling sparse and scaling dense.
+- **Variant:** a scenario in a family that needs a config field the family lacks, and so has models of its own.
+  Delay is the only one.
+- **Sandbox:** the planned continuous scenario where every value can be set and orb kinds can be added. It is not on
+  the roadmap.
+- **Spatial:** the whole chain is on the grid and the droid sees a 3x3 window around itself. Its axis is the grid
+  size.
+- **Scaling sparse, scaling dense:** the same world with max-tier scoring (sparse) and threshold scoring (dense).
+  Their axis is the chain length and the grid size.
+- **Delay:** eating an orb puts the whole field on cooldown. Its axis is the delay.
+- **Axis:** the one thing that varies between runs of a scenario and makes it harder or easier.
+- **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5`.
+- **Locked:** a scenario whose values other than its axis are fixed in its builder and cannot be set from a YAML. A
+  scenario is locked after it has reproduced its legacy results. None is locked.
+- **Full model:** a config model that describes a whole world, such as `TierScenarioConf`.
+- **Small model:** a locked scenario's own config model, holding only what a run may choose.
+
+## Building a scenario
+
+- **Registry:** `SCENARIOS` in `scenario/registry.py`. It gives a scenario name its entry.
+- **Entry:** a scenario's config class and its builder.
+- **Builder:** the function that turns a scenario's config into a `Scenario`. One per registered scenario.
+- **Helper:** the function a family's builders share, which composes what the family has in common.
+- **Block:** see the last section; the word has two senses.
+- **Rules:** a frozen description of one part of a scenario's behaviour: `SpawningRules`, `ObservationRules`,
+  `TerminationRules`.
+- **Strategy:** a family's own implementation of an interface from `scenario/blocks/`, kept in the family's folder,
+  such as `TierChainTermination` and `TierChainPopulation`.
+- **Population:** what makes one orb kind's orbs for a world.
+- **Bundle:** an `OrbBundle`: one orb kind's population and a way to make its digester.
+- **Brick:** one orb kind as a unit: its bundle in the scenario layer and its `*_orb_conf` block in the config.
+- **Reader:** a module-level function that is handed the world and returns a number. The HUD, the metrics and the
+  observation's global features are each a description plus a reader.
+- **`build_world`:** the scenario's field that returns a new world on each call. Everything that changes during an
+  episode is made there.
+
+## The world
+
+- **World:** the `GridWorld`: the grid, the droid, the orbs and the step clock.
+- **Droid:** what the agent moves. It eats orbs and owns digestion.
+- **Field:** the orbs that are on the grid.
+- **Fixed field:** every orb is stated and present, as in a tier chain.
+- **Sampled field:** orbs are drawn at random from a pool, and each kind's weight sets the mix. None is written.
+- **Energy:** what the droid has left. It starts at `max_energy`, stays between 0 and `max_energy`, and the episode
+  ends when it reaches 0.
+- **Score:** how the episode went. It starts at 0 and has no bounds.
+- **Reward:** what one step pays. A negative reward is a penalty.
+- **Penalty:** a config value that must be 0 or negative. Every field whose name ends in `_penalty` is checked.
+- **Step clock:** the count of steps in an episode, up to `max_steps`.
+- **Timeout:** the step clock running out. It ends the episode and costs `timeout_penalty`.
+- **Terminated, truncated:** Gymnasium's two ways for an episode to end. `truncated` is always false here; running
+  out of steps sets `terminated`.
+
+## Orbs
+
+- **Orb:** something on the grid the droid can eat.
+- **Eat, consume:** the same thing. The code says `consume`, the documents mostly say eat.
+- **Type:** what an orb is: a member of `DirectType` or `SynergyType`.
+- **Kind:** the type, as seen by digestion and the config. `OrbKind` is the routing key.
+- **Category:** direct or synergy. It is not stored; it follows from which enum the type belongs to.
+- **Direct orb:** changes the score and nothing else, on the step it is eaten. The negative orb is one.
+- **Synergy orb:** leaves something behind that changes a later outcome. The tier orb is one.
+- **Chain orb, effect orb:** the two groups inside synergy. A chain orb's payoff depends on which orbs of its kind
+  came before. An effect orb changes something other than itself. They are folders, not types, and no effect orb is
+  written.
+- **Tier:** a tier orb's place in the chain, from 1 up to `max_tier`. Every other orb has no tier.
+- **Identity:** the number the agent sees for an orb. Orbs of the same type and tier share it.
+- **Lifespan:** how many steps an orb stays on the field before it despawns.
+- **Despawn:** an orb leaving the field without being eaten.
+- **Cool-down:** how many steps an orb is off the field after it is eaten or despawns.
+
+## Digestion
+
+- **Digestion:** turning an eaten orb into a reward.
+- **Digester:** the rules for one orb kind. It keeps its own episode state and knows no other digester.
+- **Engine:** the router that hands an eaten orb to the digester of its kind.
+- **Chain:** the tiers eaten in order so far. It starts at tier 1 and grows one tier at a time.
+- **Progress:** an eaten tier orb that is the next tier and not the last.
+- **Completion:** an eaten tier orb that is the next tier and the last. The chain is over.
+- **Break:** an eaten tier orb that is any other tier. A tier 1 starts a new chain; any other tier leaves none.
+- **Chain reward:** the summed reward of the orbs in the running chain.
+- **Scoring mode:** when a tier orb's worth is paid. An orb is worth the same in every mode.
+- **Max-tier:** nothing is paid until completion, which pays the whole chain.
+- **Step-wise:** each orb is paid as it is eaten.
+- **Threshold:** nothing is paid on progress; a break or a completion pays what the chain had gathered.
+- **Reward ladder:** what each tier is worth: `base_reward * tier ** growth_factor`.
+
+## Observation
+
+- **Observation:** what the agent is given each step.
+- **Perception:** the class that turns the world into an observation, and the config value that names it, such as
+  `vector_fog_of_war`.
+- **Visibility:** how much of the world a perception shows: all of it, or a window around the droid. It is a way of
+  talking about perceptions and not a setting.
+- **Encoding:** the form the observation takes: a flat vector, a composite of named parts, a grid of cells, or
+  pixels. It is also not a setting.
+- **Markovian:** a perception that shows the whole world, so one observation is enough to act on.
+- **Fog of war:** a perception that shows only the orbs within one cell of the droid.
+- **POMDP:** a task where one observation is not enough, so the agent needs memory. A perception with a limited view
+  makes one.
+- **Slot:** the place for one orb in an observation.
+- **Global feature:** one value in the observation that is not about an orb, such as energy or steps left.
+- **HUD:** what the renderer shows beside the grid. A scenario lists its elements.
+- **Metric:** one named number a scenario reports at the end of an episode.
+
+## Running
+
+- **Runner:** what trains or evaluates an agent on a scenario.
+- **Run id:** the name of a run's outputs, made of the perception, the seed, the scenario tag, the runner's optional
+  tag and the algorithm.
+- **Snapshot:** a copy of the scenario's YAML saved under the run id.
+
+## The rebuild
+
+- **Strain:** one of the two copies of the code. The working strain is `src/syn_grid/`; the legacy strain is the
+  frozen copy in `src/syn_grid/legacy/`.
+- **Legacy:** the stable code from before the rebuild. It is a reference and not a target.
+- **Reference:** the `reference/` folder, and the branch `refactor-of-scenario-refactor` it was copied from.
+- **Skeleton:** `reference/skeleton/scenario/`: the intended structure of the scenario layer, with no logic.
+- **Reproduction package:** `reproduction_package/`, the configs and results of the thesis runs.
+- **Phase:** a step of `scenario-rebuild-roadmap.md`.
+
+---
+
+## Words with two senses, or not settled
+
+- **Block.** It means a `*_conf` model nested in a world config, such as `tier_orb_conf`. It also names the folder
+  `scenario/blocks/`, which holds the pieces a `Scenario` is made of. The two are different things.
+- **Type and kind.** One thing with two names. `OrbMeta` and the enums say type; digestion and the config say kind.
+- **Axis model.** A name used for the small model. The small model also holds the perception, so the name is
+  expected to change.
+- **Perception.** One config value that fixes both the visibility and the encoding. Whether it is split into two
+  settings is in `open-questions.md`.
+- **Pool.** The population file says a scenario "fills the orb pool"; the decisions use pool only for what a sampled
+  field is drawn from.
+- **Sparse and dense.** They name the two scaling scenarios. The scoring modes behind them are max-tier and
+  threshold.

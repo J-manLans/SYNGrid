@@ -20,6 +20,10 @@ from pydantic import Field, model_validator
 from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
 from syn_grid.scenario.goal.config import GoalScenarioConf, GoalWorldConf
 
+# TODO(lock): a locked scenario fixes its penalties, rewards, max_steps and
+# max_energy in its builder. Its models then need only the fields on its
+# difficulty axis, while the sandbox scenario keeps every field tunable.
+
 # ===================== #
 #    Tier Orb Models     #
 # ===================== #

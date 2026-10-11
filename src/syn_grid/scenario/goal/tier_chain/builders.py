@@ -204,6 +204,9 @@ def build_tier_chain_spatial(
     grid_conf = world_conf.grid_conf
     scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}"
 
+    # TODO(lock): fix this scenario's penalties, orb rewards, max_steps and max_energy here, and
+    # read only the grid size and the perception from the config.
+
     # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
     tier_bundle = OrbBundle(
         population=TierChainPopulation(world_conf.tier_orb_conf.max_tier),
