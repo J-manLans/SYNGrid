@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. Last updated 2026-10-10.
+Guidance for AI agents working in this repository. Last updated 2026-10-11.
 Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
@@ -31,13 +31,22 @@ Where to look, in this order:
   (`contract-misalignments.md`, `deferred-decisions.md`, `regressions.md`,
   `scope-creep.md`) and `codebase-ideas.md`.
 
-State on 2026-10-10: the config models, the registry and the spatial YAML are
-done. `scenario.py` and three of the blocks are written. The other blocks, the
-digestion interface and the digesters are empty files, and the builders are
-signatures and docstrings. `core/`, `gymnasium/` and `rendering/` still import
-the old config, so `import syn_grid.scenario.registry` and
+State on 2026-10-11: the config models, the registry and the spatial YAML are
+done. `scenario.py` and the blocks are written, and the spatial builder returns
+a `Scenario`. Its pieces are stubs: the tier-chain population makes no orbs,
+its termination never ends an episode, the spawning hooks have no bodies, and
+`build_world` raises `NotImplementedError`. The other three builders raise too.
+`core/droid/digestion/digestion.py` holds the routing key, the result and the
+digester protocol, and the digesters are empty files. `core/`,
+`gymnasium/` and `rendering/` still import the old config, so
+`import syn_grid.scenario.registry` works while `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail. The roadmap expects that until its
-phases 4 and 5.
+phase 5.
+
+**No file in the working strain is final.** A file can be a stub, half-moved or
+about to change shape, and its docstrings describe what it is meant to be, not
+how far it has come. What is a stub, what is empty and what is still legacy is
+recorded here and in the roadmap's table, and nowhere in the code.
 
 ## How to work with the owner
 
@@ -48,6 +57,11 @@ phases 4 and 5.
   missing and what you would create, then wait.
 - **Plain language.** Report what you verified and what you did not.
 - **Mention anything surprising, but don't fix it unless asked.**
+- **No temporary state in docstrings or comments.** Do not write `STUB:`, "not
+  written yet", "until phase N" or "for now" in a source file. A docstring says
+  what the thing is and does, and must still read correctly when the rebuild is
+  finished. Progress goes in this file and the roadmap; reasons and rejected
+  alternatives go in `design-decisions.md`.
 - **Do not add, migrate or rewrite tests unless explicitly asked.** The owner
   curates the suite. If you think a change needs coverage, say so and leave it.
   A test that is asked for must fail when its behaviour is broken; reintroduce
@@ -69,7 +83,7 @@ Things the switch depends on:
   `syn_grid-v0`, each with its own entry point.
 - A folder rename rewrites imports, not strings. The legacy config still names
   its images as `assets/sprites/...` while the folder is `assets_legacy/`, so on
-  2026-10-10 `python -m syn_grid.legacy.check_env_legacy` stopped in the
+  2026-10-11 `python -m syn_grid.legacy.check_env_legacy` still stopped in the
   renderer with a `FileNotFoundError`. Whether legacy training, which does not
   render, is affected was not checked.
 - The legacy run id has its own scheme (`id_tag`, seed, algorithm). Give legacy
@@ -84,13 +98,16 @@ Things the switch depends on:
 - **`reference/skeleton/scenario/`** is the intended structure of the scenario
   layer: modules, classes, protocols and signatures, with no logic. The files in
   `src/syn_grid/scenario/` started as copies of it and have moved on; where the
-  two differ, `src` is the newer one.
+  two differ, `src` is the newer one. It still imports the config models from
+  `syn_grid.config.models.common_scenario_models` and has a `utils/helpers.py`;
+  both are gone from `src`.
 - **`reference/syn_grid/`** is a copy of the package from
   `refactor-of-scenario-refactor`. Its config and runner folders are named
   `copied-config/` and `copied-runners/`, and it contains an older copy of the
   skeleton.
-- **`reference/scenario-stubs.patch`** holds stubs for the block files that are
-  empty in `src`, and for the builders. It is not committed.
+- **`reference/scenario-stubs.patch`** holds the stubs for the block files, the
+  tier-chain population and termination, and the builders. It is committed and
+  its content is in `src`, which has moved on since, so it no longer applies.
 
 Conventions the owner asked for in skeleton files:
 
@@ -115,6 +132,10 @@ principles behind them:
   `build_world()` returns; rules reach it through the `world` they are handed.
 - **If a conditional exists "because scenario X works differently", it does not
   belong in the component that holds it.**
+- **A mechanic only one scenario uses lives in that scenario's strategy** when
+  it can be written against the world's public API and the orbs' own methods. It
+  becomes a world method only when it must touch the world's private
+  bookkeeping.
 - **One supplied piece per consumer,** each a static description plus a reader
   that is handed the world: `hud` (a tuple of HUD elements), `metrics` (a tuple
   of named readers, the scenario's side of the logger) and the observation's
@@ -138,9 +159,13 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - A new scoring mode is a new registered scenario, not a config setting. The
   continuous sandbox is the exception.
 - Two orb categories, direct and synergy. `OrbMeta` stores only type and tier,
+  and a tier is `None` for every type but a tier orb. The identity is unchanged
   and is redone in the observation pass.
 - Config models live beside what they configure. A scenario config is
   `world_conf` and `obs_conf`, and each layer adds a block to the world.
+- An orb kind's config class is shared in the common models, a family
+  subclasses it for its own use, and each scenario's world model declares the
+  field, optional or mandatory. The base `WorldConf` declares no orb fields.
 - Energy and score are two numbers. `max_energy` is both the start and the cap,
   and replaces `starting_score` and `max_score`.
 - The step clock lives in the world. `max_steps` is in `world_conf`; the count
@@ -203,16 +228,25 @@ decisions on this branch:
 
 - **Run ids** come from perception, seed, `scenario.scenario_tag`, the optional
   runner `tag` and the algorithm, not from the scenario name.
-- **`docs/architecture/`** follows this branch in `00_file_structure.md`,
-  `03_scenario.md` and `06_config.md`. The other files still describe the
-  reference's design; treat them as intent until the roadmap's last phase.
+- **`docs/architecture/`** describes the code as it stood on 2026-10-11,
+  including the parts that are still from before the rebuild and do not import.
+  It does not describe the intended design; that is in the roadmap and
+  `design-decisions.md`.
+- **Scenario config models** are in `config/models/scenario/`: `common_models.py`
+  and `orb_models.py`. A family's own models are in its `config.py`.
 - **`core/droid/digestion/engine.py`** is still the legacy engine, and
   `core/orbs/orb_factory.py` and `gymnasium/utils/episode_termination.py` are
-  still present. The roadmap removes both files.
-- **`_tier_chain_scenario` still takes `max_score`.** The roadmap drops it in
-  phase 4.
-- **Tests import the legacy strain.** On 2026-10-10 collection found 230 tests
-  and one error. They were not run.
+  still present. The roadmap removes both files. The engine picks its scoring
+  mode from flags on the tier orb that `TierOrb` no longer has.
+- **`env_factory.make` passes a `Scenario`,** but `SYNGridEnv` still takes
+  `world_conf` and `obs_conf`.
+- **Two scenarios built from the same config do not compare equal** today. The
+  only differing field is `build_world`, which is a `functools.partial`.
+- **`blocks/spawning.py` is mid-change.** `SpawningRules` has three fields, its
+  docstring still lists `delay_on_consume`, and `OrbFieldUpdate` is declared and
+  unused.
+- **Tests import the legacy strain.** On 2026-10-11 collection found 230 tests
+  and no errors. They were not run.
 - **`scripts/replay_probe.py` imports the legacy strain** on this branch. It was
   not run.
 

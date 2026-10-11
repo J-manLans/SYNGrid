@@ -1,48 +1,53 @@
 # 07 — Runtime flow
 
-Startup, for `python3 -m syn_grid` with the current YAMLs
+Startup, as `app.main()` is written, for the current YAMLs
 (`goal_tier_chain_spatial`, PPO, training):
 
 ```text
 app.main()
+  ├─ register_env()
   ├─ load_experiment_configs()      3 YAMLs -> GlobalConf, TierScenarioConf, RunnerConf
   ├─ build_scenario()               -> Scenario                         (once)
   ├─ build_runner()                 -> StatelessPPO
   └─ dispatch() -> runner.train()
-        ├─ _build_env()             16 × SYNGridEnv, each calls scenario.build_world()
+        ├─ _build_env()             16 × SYNGridEnv
         ├─ create_model()           SB3 PPO on VecNormalize(DummyVecEnv)
         └─ model.learn()            SB3 loop -> SYNGridEnv.step
 ```
 
-One environment step:
+One environment step, as `SYNGridEnv.step` is written:
 
 ```text
 SYNGridEnv.step(action)
   ├─▶ GridWorld.perform_droid_action
   │     ├─▶ SynergyDroid.perform_action            move, step/boundary penalty
+  │     ├─  tick orb timers, despawn expired orbs
   │     ├─▶ SynergyDroid.consume_orb               if the droid is on an orb
-  │     │      └─▶ DigestionEngine.digest
-  │     │             └─▶ TierOrbDigester.digest   reward + chain events
-  │     ├─▶ SpawningRules.on_orb_consumed
-  │     └─▶ SpawningRules.after_step
+  │     │      └─▶ DigestionEngine.digest          reward
+  │     └─  cool down, reactivate or refill        by the world's config flags
   │   ◀── step penalty + orb reward
   ├─  steps_left -= 1
-  ├─▶ TierChainTermination.evaluate(world, steps_left, reward)
-  │   ◀── EpisodeOutcome(terminated, truncated=False, reward)
+  ├─▶ check_episode_end(world, steps_left, delay_mode, timeout_penalty, reward)
+  │   ◀── terminated, truncated=False, reward
   ├─▶ ObservationHandler.get_observation
-  │      └─▶ VectorFogOfWar.get_observation
   └── return obs, reward, terminated, truncated, info
 ```
 
-Config is read once, the scenario is built once, and every environment builds
-its own world from that one scenario. From then on SB3 drives the environments;
-the repo's own code runs inside `SYNGridEnv.reset` and `SYNGridEnv.step`.
+Neither flow runs today. `python3 -m syn_grid` stops at import, because
+`gymnasium/`, `core/` and `rendering/` name config classes that no longer exist.
+Startup is on the new structure as far as the environment: config is read once,
+the scenario is built once, and `env_factory.make` passes that `Scenario` to
+`gym.make`. `SYNGridEnv` still takes `world_conf` and `obs_conf`, and builds its
+world from them.
 
-Within a step the world resolves movement and consumption first and returns a
-raw reward. Termination then decides whether the episode ends and may replace
-that reward (the timeout penalty, for example). The observation is encoded
-last, from the world as it stands after the step.
+The step is the one from before the rebuild. The world resolves movement and
+consumption and returns a raw reward. `check_episode_end` in
+`gymnasium/utils/episode_termination.py` then decides whether the episode ends
+and may replace that reward. The observation is encoded last, from the world as
+it stands after the step.
 
-With the current config an episode ends when the chain is broken, when the
-chain is completed, when the 100 steps run out, or when the droid's score
-reaches zero. `truncated` is always `False`.
+In single-chain mode that function ends an episode when the droid's score
+reaches zero, when the chain is broken (outside delay mode), when the steps run
+out, when the chain is completed, or in delay mode when no orb is left on the
+field. `truncated` is always `False`. The scenario's `TerminationRules` are
+written to replace it and are not called yet.

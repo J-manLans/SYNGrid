@@ -1,65 +1,67 @@
 # 05 — Orbs
 
 ```text
-config/models/
-└── common_scenario_models.py
+config/models/scenario/
+└── orb_models.py
 
-scenario/goal/tier_chain/
-└── config.py
-
-core/digestion/
+core/droid/digestion/
+├── digesters/
+│   ├── neg_digester.py
+│   └── tier_digester.py
 ├── digestion.py
-├── engine.py
-├── negative_digester.py
-└── tier_digester.py
+└── engine.py
 
 core/orbs/
 ├── direct/
 │   └── negative_orb.py
-├── effects/
 ├── synergy/
-│   └── tier_orb.py
+│   ├── chain/
+│   │   └── tier_orb.py
+│   └── effect/
 ├── base_orb.py
+├── orb_factory.py
 └── orb_meta.py
 
-scenario/rules/
+scenario/blocks/
+├── orb_bundle.py
 ├── population.py
 └── spawning.py
+
+scenario/goal/tier_chain/
+├── config.py
+└── population.py
 ```
 
 ```text
 BaseOrb (ABC)
-├── TierOrb
-└── NegativeOrb
+├── NegativeOrb
+└── TierOrb
 ```
 
 ```text
-config (TierOrbConf.max_tier)
+NegOrbConf, TierOrbConf                  orb_models.py, one base class per kind
     ↓
-TierChainPopulation.create()        one TierOrb per tier
+TierWorldConf                            declares tier_orb_conf and neg_orb_conf
     ↓
-GridWorld.ALL_ORBS                  spawned by SpawningRules.on_reset
+OrbBundle(population, make_digester)     one per kind, made by the builder
     ↓
-SynergyDroid.consume_orb(orb)       droid lands on the orb's cell
-    ↓
-DigestionEngine.digest(orb)         routed by kind to TierOrbDigester
-    ↓
-reward + ChainProgressed / ChainBroken / ChainCompleted
+build_world                              joins the orbs, collects the digesters
 ```
 
 Orb code is spread over four packages. `core/orbs/` defines what an orb is:
 `BaseOrb` with position, reward, timer and active flag, and `OrbMeta` carrying
-category, type, tier and the identity the agent sees. An orb's *kind* is its
-`(category, type)` pair, and that is what digestion routes on.
+the type, the tier of a tier orb and the identity the agent sees. An orb's kind
+is its type, and that is what digestion routes on. Config for a kind is a
+base class in `orb_models.py`, extended by a family that needs more and declared
+as a field on the world model of each scenario that holds the kind.
 
-There is no `OrbFactory`. Orbs are created by an `OrbPopulation` from
-`scenario/rules/population.py`; the only one in use is `TierChainPopulation`,
-which builds one `TierOrb` per tier. The builder gives it `max_tier` from
-`TierOrbConf` and states the reward ladder and cool-down itself. `GridWorld`
-calls it once at construction. When orbs appear, cool down or return is decided by
-`SpawningRules`, which calls the world's spawn and reactivate methods.
+In the scenario layer one orb kind is an `OrbBundle`: an `OrbPopulation` that
+makes the orbs and a way to make the kind's digester. The chain above is written
+down to the bundle. `TierChainPopulation` makes no orbs yet, the tier digester
+and the negative bundle raise `NotImplementedError`, and `build_world` raises
+before it joins anything.
 
-An orb does not score itself. When the droid consumes one, the
-`DigestionEngine` hands it to the digester for its kind, which returns the
-reward and the chain events that termination and logging read. Negative orbs
-have a class and a digester but no population creates them at present.
+`core/` does not use any of that yet. `GridWorld` creates its orbs through
+`OrbFactory`, and the old `DigestionEngine` scores them, both from config
+classes that no longer exist. `NegativeOrb` takes a `NegOrbConf`, and `TierOrb`
+takes its tier, reward ladder and cool-down as plain values.

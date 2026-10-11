@@ -29,7 +29,9 @@ syn_grid/
 │
 ├── config/
 │   ├── models/
-│   │   ├── common_scenario_models.py
+│   │   ├── scenario/
+│   │   │   ├── common_models.py
+│   │   │   └── orb_models.py
 │   │   ├── global_models.py
 │   │   └── runner_models.py
 │   ├── yaml/
@@ -125,10 +127,10 @@ syn_grid/
 │   ├── goal/
 │   │   ├── tier_chain/
 │   │   │   ├── builders.py
-│   │   │   └── config.py
+│   │   │   ├── config.py
+│   │   │   ├── population.py
+│   │   │   └── termination.py
 │   │   └── config.py
-│   ├── utils/
-│   │   └── helpers.py
 │   ├── registry.py
 │   └── scenario.py
 │
@@ -143,9 +145,10 @@ syn_grid/
 
 `app.py` is the entry point: it loads the three YAML files through `config/`,
 asks `scenario/` to build one `Scenario`, hands it to a runner from `runners/`,
-and the runner creates the Gymnasium environments in `gymnasium/`. Each
-environment asks the scenario for its own world, which is made of the pieces in
-`core/`.
+and the runner creates the Gymnasium environments in `gymnasium/`. `config/`,
+`scenario/` and `runners/` are on that structure. `core/`, `gymnasium/` and
+`rendering/` are still the code from before the rebuild and name config classes
+that no longer exist, so the app does not start.
 
 `scenario/` is the only package that turns config into simulation objects. It
 also holds the config models that are specific to a scenario type or family, in

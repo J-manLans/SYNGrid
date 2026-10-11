@@ -11,9 +11,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from syn_grid.core.droid.digestion.digestion import OrbDigester
 from syn_grid.scenario.blocks.population import OrbPopulation
+
+if TYPE_CHECKING:
+    from syn_grid.core.droid.digestion.digestion import OrbDigester
 
 
 @dataclass(frozen=True)

@@ -14,17 +14,23 @@ small check.
 
 | Part | State |
 |---|---|
-| Config models, registry, spatial YAML | done; the YAML validates |
+| Config models, registry, spatial YAML | done; the YAML validates. Orb models are in `config/models/scenario/orb_models.py` |
 | `scenario/scenario.py`, `blocks/hud.py`, `blocks/metrics.py`, `blocks/orb_bundle.py` | written, from the skeleton |
-| `blocks/observation.py`, `population.py`, `spawning.py`, `termination.py` | empty |
-| `goal/tier_chain/builders.py` | signatures and docstrings; the spatial builder stops after the tag |
-| `core/droid/digestion/digestion.py`, `digesters/*.py` | empty |
+| `blocks/observation.py`, `population.py`, `termination.py` | written: the rules dataclass and the two protocols |
+| `blocks/spawning.py` | stub: three fields, hooks without bodies, and an unused `OrbFieldUpdate` protocol |
+| `goal/tier_chain/population.py`, `termination.py` | stubs: no orbs are made, and no episode ends |
+| `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario`; `build_world`, the tier digester, the negative bundle and the other three builders raise `NotImplementedError` |
+| `core/droid/digestion/digestion.py` | the routing key, `Event`, `DigestionResult` and the `OrbDigester` protocol; no `kind_of` and no cross-kind hook |
+| `core/droid/digestion/digesters/*.py` | empty |
+| `core/orbs/orb_meta.py` | stores type and tier; the radix identity is unchanged |
 | `core/droid/digestion/engine.py` | still the legacy engine |
-| `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import |
+| `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. `TierOrb` has already lost its scoring flags, which the old engine still reads |
 | Runners, `env_factory.py` | already take a `Scenario` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
-`import syn_grid.scenario.registry` fails today. It starts working at the end of phase 4.
+`import syn_grid.scenario.registry` works and `build_scenario` returns the spatial `Scenario`. Two scenarios built
+from the same config do not compare equal yet, because `build_world` is a `functools.partial`. `import syn_grid.app`
+and `python3 -m syn_grid.check_env` fail until phase 5.
 
 ---
 
@@ -117,7 +123,6 @@ world state in each of its four endings.
 1. `build_tier_chain_spatial`: the tag and the tier bundle (zero-worth tier orbs, a max-tier digester).
 2. `_tier_chain_scenario`: what the family shares.
 3. `_build_tier_chain_world` and the world readers.
-4. Drop the `max_score` parameter.
 
 **Done when:** `import syn_grid.scenario.registry` works, `build_scenario` returns a `Scenario`, two scenarios built
 from the same config compare equal, and `scenario.build_world()` returns a new world on each call.
@@ -175,7 +180,8 @@ did not learn in phase 0, this phase shows the same problem and not a new one.
 
 **Write:**
 
-1. `OrbMeta` storing only type and tier, and everything that reads it.
+1. The orb identity: where the dense id lives, and whether the radix formula becomes a plain sort on type and tier.
+   `OrbMeta` already stores only type and tier.
 2. Global features supplied by the scenario: energy, steps left, chain progress.
 3. The two verified perceptions against the new rules.
 

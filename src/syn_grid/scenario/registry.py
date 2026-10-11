@@ -16,8 +16,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from syn_grid.config.models.common_scenario_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
+from syn_grid.config.models.scenario.common_models import ScenarioConf
 from syn_grid.scenario.scenario import Scenario
 from syn_grid.scenario.goal.tier_chain.builders import (
     build_tier_chain_spatial,

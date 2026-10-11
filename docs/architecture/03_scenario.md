@@ -13,10 +13,10 @@ scenario/
 ├── goal/
 │   ├── tier_chain/
 │   │   ├── builders.py
-│   │   └── config.py
+│   │   ├── config.py
+│   │   ├── population.py
+│   │   └── termination.py
 │   └── config.py
-├── utils/
-│   └── helpers.py
 ├── registry.py
 └── scenario.py
 ```
@@ -26,8 +26,9 @@ This package holds three different things. `scenario.py` and `blocks/` are the
 of. `registry.py` is the **selection**: the `SCENARIOS` table, whose entry gives
 a scenario name its config class and its builder. The folders below it, such as
 `goal/tier_chain/`, are the **construction**: a family's config models in
-`config.py` and, in `builders.py`, the builders that turn a config into a
-`Scenario` and the function that builds a world.
+`config.py`, its own implementations of the block interfaces in
+`population.py` and `termination.py`, and, in `builders.py`, the builders that
+turn a config into a `Scenario` and the function that builds a world.
 
 A `Scenario` is a frozen recipe: `scenario_name` and `scenario_tag`, the
 `ObservationRules`, the termination rules, the `hud` elements, the `metrics`,
@@ -41,6 +42,8 @@ the orbs and collects the digesters without asking which kinds they are.
 `build_scenario` looks the scenario name up in `SCENARIOS`. The entry checks
 that the config it is given is its config class, then runs the builder, once at
 startup. Each environment then calls `scenario.build_world()` for a world of
-its own. Four tier-chain names are registered. Their builders are signatures
-and docstrings, and `observation.py`, `population.py`, `spawning.py` and
-`termination.py` are empty, so no scenario builds yet.
+its own. Four tier-chain names are registered. `build_tier_chain_spatial`
+returns a `Scenario`, and the other three builders raise `NotImplementedError`.
+The pieces the spatial scenario is made of are stubs: the population makes no
+orbs, the termination never ends an episode, the spawning hooks have no bodies,
+and `build_world` raises until `core/` takes pieces instead of config.

@@ -96,7 +96,7 @@ class CompositeGridMarkovian(BasePerception):
                 channel = self._orb_type_channels[orb.META.TYPE]
 
                 self._grid_data[y, x, channel] = self._ACTIVE_FLAG
-                self._grid_data[y, x, -2] = orb.META.TIER
+                self._grid_data[y, x, -2] = orb.META.TIER or 0
                 self._grid_data[y, x, -1] = orb.TIMER.remaining
 
         return {

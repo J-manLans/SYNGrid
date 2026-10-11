@@ -6,7 +6,7 @@ here are the ones that follow from that, whatever the family; a family's own
 models live in its folder, such as `tier_chain/config.py`, and extend these.
 """
 
-from syn_grid.config.models.common_scenario_models import (
+from syn_grid.config.models.scenario.common_models import (
     PenaltyCheckedConf,
     ScenarioConf,
     WorldConf,

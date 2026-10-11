@@ -6,7 +6,6 @@ import pygame
 
 from syn_grid.core.orbs.orb_meta import (
     DirectType,
-    OrbCategory,
     OrbMeta,
     SynergyType,
 )
@@ -200,9 +199,8 @@ class PygameRenderer:
     def _draw_orb(self, orb_meta: OrbMeta, pos: tuple[int, int]):
         """Draw orb at pixel position `pos` (top-left)"""
 
-        if orb_meta.CATEGORY == OrbCategory.DIRECT:
-            if orb_meta.TYPE == DirectType.NEGATIVE:
-                self._window_surface.blit(self.graphics["negative_orb_img"], pos)
+        if orb_meta.TYPE == DirectType.NEGATIVE:
+            self._window_surface.blit(self.graphics["negative_orb_img"], pos)
         else:
             if orb_meta.TYPE == SynergyType.TIER and orb_meta.TIER is not None:
                 self._draw_tier_orb(orb_meta.TIER, pos)

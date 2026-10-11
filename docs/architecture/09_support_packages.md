@@ -31,7 +31,8 @@ utils/
 HUD from the data `SYNGridEnv.render` passes it, either to a window (`human`)
 or to a pixel array (`rgb_array`). It also reads the arrow keys for
 `HumanRunner`. Its images, font and the training-complete sound come from
-`assets/`.
+`assets/`. It takes its grid size and image paths from a `RendererConf`, which
+is no longer in `config/models/`, so it does not import today.
 
 `utils/` resolves paths — package-relative for config and assets, and relative
 to the current working directory for `output/` — and produces the timestamp

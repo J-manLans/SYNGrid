@@ -3,7 +3,9 @@
 ```text
 config/
 ├── models/
-│   ├── common_scenario_models.py
+│   ├── scenario/
+│   │   ├── common_models.py
+│   │   └── orb_models.py
 │   ├── global_models.py
 │   └── runner_models.py
 ├── yaml/
@@ -25,8 +27,7 @@ ScenarioConf
 ├── world_conf : WorldConf
 │     ├── max_steps
 │     ├── grid_conf    : GridConf
-│     ├── droid_conf   : DroidConf
-│     └── neg_orb_conf : NegOrbConf       (optional)
+│     └── droid_conf   : DroidConf
 └── obs_conf : ObsConf
       └── observation_handler_conf
 
@@ -36,7 +37,8 @@ GoalScenarioConf (ScenarioConf)
 
 TierScenarioConf (GoalScenarioConf)
 └── world_conf : TierWorldConf (GoalWorldConf)
-      └── tier_orb_conf : TierOrbConf
+      ├── tier_orb_conf : TierOrbConf
+      └── neg_orb_conf  : NegOrbConf     (optional)
 ```
 
 ```text
@@ -59,11 +61,12 @@ both that file and, through its entry in `SCENARIOS` in `scenario/registry.py`,
 the model it is validated against. The same entry names the scenario's builder.
 
 The models are split by how widely they are shared. `config/models/` holds what
-is not specific to a scenario: the global and runner models, and
-`common_scenario_models.py`, the vocabulary every scenario is written in: grid, droid,
-orb kinds, the observation handler, and the base `ScenarioConf`. What only
-some scenarios have lives in the scenario package, in a `config.py` beside what
-it configures.
+is not specific to a scenario: the global and runner models, and a `scenario/`
+folder with what every scenario is built from. That is
+`common_models.py`, the vocabulary every scenario is written in (grid, droid,
+the observation handler and the base `WorldConf` and `ScenarioConf`), and
+`orb_models.py`, the base class of each orb kind. What only some scenarios have
+lives in the scenario package, in a `config.py` beside what it configures.
 
 A scenario config has two halves. `world_conf` is everything the world acts
 on: how long an episode lasts, the grid, the droid, the goal and the orbs.
@@ -73,12 +76,14 @@ observation.
 Each layer adds its own block to the world. `scenario/goal/config.py` adds
 `goal_conf`, what reaching the objective pays and what missing the deadline
 costs. `scenario/goal/tier_chain/config.py` adds `tier_orb_conf`, the chain
-length and the chain-break penalty. Each orb kind
-has its own `*_orb_conf` block in the world, holding what the kind's orbs and
-its digester need, and the base world carries the optional `neg_orb_conf`. A
-variant subclasses its block, then narrows the field on its own world model and
+length and the chain-break penalty, and the optional `neg_orb_conf`. Each orb
+kind has its own `*_orb_conf` block in the world, holding what the kind's orbs
+and its digester need. The base world declares none of them; a scenario's world
+model declares the kinds it holds. A variant subclasses its block, then narrows
+the field on its own world model and
 on its own scenario model: the delay variant adds `delay`, and the dense variant
-adds the reward ladder. Dense and delay have models but no YAML yet.
+adds the reward ladder. Only spatial has a YAML; the other three registered
+scenarios have models and no file yet.
 
 The goal and chain values are additive. A timeout pays the reward the chain was
 holding plus `timeout_penalty`, a broken chain pays the held reward plus
@@ -92,6 +97,7 @@ Any block that extends `PenaltyCheckedConf` rejects a positive value in a field
 whose name ends in `_penalty`; `TierWorldConf` checks that the chain fits the
 grid; the runner models check that render and video settings agree.
 
-Scenario config is consumed almost entirely in `scenario/registry.py`, which
-turns it into rule objects and world pieces. Below that, only `SynergyDroid`
-and `NegativeOrb` still receive a config block directly.
+Scenario config is consumed in the family's `builders.py`, which turns it into
+rule objects and world pieces. Below that, `NegativeOrb` takes a `NegOrbConf`
+directly. The rest of `core/`, `gymnasium/` and `rendering/` still name config
+classes from before the rebuild, which `config/models/` no longer has.

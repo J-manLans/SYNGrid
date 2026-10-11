@@ -21,12 +21,15 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from syn_grid.core.grid_world import GridWorld
 from syn_grid.scenario.blocks.hud import HudElement
 from syn_grid.scenario.blocks.metrics import Metric
 from syn_grid.scenario.blocks.observation import ObservationRules
 from syn_grid.scenario.blocks.termination import TerminationRules
+
+if TYPE_CHECKING:
+    from syn_grid.core.grid_world import GridWorld
 
 
 @dataclass(frozen=True)

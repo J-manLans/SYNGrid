@@ -2,11 +2,12 @@
 The vocabulary every scenario is written in.
 
 These are the blocks every scenario's configuration is built from: the grid,
-the droid, the negative orb, the observation handler, and the base `WorldConf`
-and `ScenarioConf` that each scenario type and family extends.
+the droid, the observation handler, and the base `WorldConf` and `ScenarioConf`
+that each scenario type and family extends.
 
-What every goal scenario shares is in `scenario/goal/config.py`, and a family's
-own models are in its folder, such as `scenario/goal/tier_chain/config.py`.
+The orb kinds are in `config/models/scenario/orb_models.py`. What every goal scenario
+shares is in `scenario/goal/config.py`, and a family's own models are in its
+folder, such as `scenario/goal/tier_chain/config.py`.
 """
 
 from enum import Enum
@@ -76,22 +77,6 @@ class DroidConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
 
 
 # ======================= #
-#      Orb Models         #
-# ======================= #
-
-
-class NegOrbConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    """A negative orb: what eating it costs, and how long it stays away.
-
-    `cool_down` is the number of steps the orb is off the field after it is
-    eaten or despawns, before it can appear again.
-    """
-
-    reward: float = Field(le=0)
-    cool_down: int = Field(ge=0)
-
-
-# ======================= #
 #    Obs Configuration    #
 # ======================= #
 
@@ -112,14 +97,13 @@ class WorldConf(BaseModel, frozen=True, extra="forbid", strict=True):
     anything that is handed the world can read how many are left.
 
     Each orb kind a world can hold has its own `*_orb_conf` block, carrying what
-    that kind's orbs and its digester need. Any scenario may add negative orbs
-    through `neg_orb_conf`; a family adds its own kinds on its world model.
+    that kind's orbs and its digester need. A scenario's world model declares
+    the blocks of the kinds it holds.
     """
 
     max_steps: int = Field(gt=0)
     grid_conf: GridConf
     droid_conf: DroidConf
-    neg_orb_conf: NegOrbConf | None = None
 
 
 class ObsConf(BaseModel, frozen=True, extra="forbid", strict=True):

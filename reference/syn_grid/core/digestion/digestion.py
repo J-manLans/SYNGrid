@@ -64,6 +64,10 @@ class OrbDigester(Protocol):
     engine or to other digesters, so each one can be tested on its own.
     """
 
+    # =============== #
+    #       API       #
+    # =============== #
+
     @property
     def kind(self) -> OrbKind:
         """The orb kind this digester owns."""

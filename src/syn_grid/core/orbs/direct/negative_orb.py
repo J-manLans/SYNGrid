@@ -1,8 +1,7 @@
-from syn_grid.config.models.common_scenario_models import NegOrbConf
+from syn_grid.config.models.scenario.orb_models import NegOrbConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
     DirectType,
-    OrbCategory,
     OrbMeta,
 )
 
@@ -20,5 +19,5 @@ class NegativeOrb(BaseOrb):
         super().__init__(
             conf.reward,
             conf.cool_down,
-            OrbMeta(category=OrbCategory.DIRECT, type=DirectType.NEGATIVE),
+            OrbMeta(DirectType.NEGATIVE),
         )

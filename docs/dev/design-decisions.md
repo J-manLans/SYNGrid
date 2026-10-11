@@ -169,21 +169,34 @@ more than the score, which blurs the category.
 - Leaving `tier_orb.py` loose at the top of `synergy/` until a second chain orb exists. Rejected because the `chain/`
 folder tells a later reader how synergy is divided, even with one file in it.
 - Keeping `CATEGORY` as a stored field. Rejected because the enum already says it, and the validator in `OrbMeta`
-exists only to check that the two stored fields agree.
+existed only to check that the two stored fields agreed.
+- A separate meta class for tier orbs, or the tier on `TierOrb` itself, so that other orbs have no tier field at
+all. Rejected because the renderer and the perceptions are handed metas of every kind and would have to check the
+kind before touching the field anyway; `None` gives them the same check without a second class.
 
 **Why this one:** Direct stays a small closed set and every interesting mechanic is synergy, which lines up with the
 digester split: a direct digester is stateless, a synergy digester holds episode state. Effect orbs no longer need a
 tier. A new orb is a new enum member and a digester, with no new field on the meta.
 
-**Status:** settled as a design, not built. Digestion is written first and already uses the type alone as its key, so
-it has nothing to update later. The meta itself is redone in its own pass, with the observation or just before it,
-and as the only change in that step so the observation can be compared with legacy. Things that pass has to deal
-with:
+**Status:** settled, and built on 2026-10-11 except for the identity. Every identity is the same number as before, so
+no observation changed.
 
-- `grid_world.py` uses `TIER == 0` to mean "not a tier orb" when deciding which orbs despawn. With `tier` as `None`
-and more synergy types this has to become a check on the type.
-- The renderer's `orb_meta.TIER is not None` is always true today, because a missing tier is stored as 0.
-- The radix `IDENTITY` is only a sort key; the world replaces it with dense ids when it is built. It could become a
+- `OrbMeta` takes and stores `type` and `tier`. An orb no longer states a category.
+- `tier` is stored as `None` for every type but `SynergyType.TIER`, and the validator rejects a tier on any other
+type. `grid_world.py` decides which orbs despawn by checking the type, and the composite grid perception writes 0
+for a missing tier.
+- The routing key in `core/droid/digestion/digestion.py` is `OrbKind = DirectType | SynergyType`.
+- `SynergyType.TIER` is a plain member with the value 1. It used to be forced to the highest value in the enum. The
+identity does not need that: the tier has the highest slot in the radix formula, so a tier orb always sorts after
+every orb without a tier, whatever its type's value is. That holds as long as only tier orbs carry a tier.
+
+The identity is left for its own pass, with the observation or just before it, and as the only change in that step
+so the observation can be compared with legacy:
+
+- The radix `IDENTITY` still has a category digit, which keeps a direct type and a synergy type with the same value
+apart. The digit is worked out inside `compute_radix_identity` from the type's enum, and `OrbCategory` exists only
+for that.
+- The radix number is only a sort key; the world replaces it with dense ids when it is built. It could become a
 plain sort on type and tier. Negative has to keep sorting before the tiers or the existing observations change.
 - The world writes the dense id back onto the meta, so the meta can't be frozen until that id lives somewhere else.
 
@@ -196,9 +209,10 @@ the "two categories" rule only if an orb turns up that fits neither test.
 
 **Decision:** A config model lives in the folder of the thing it configures, at the level where it is shared.
 
-- `config/models/` keeps what is not specific to a scenario: the global and runner models, and
-  `common_scenario_models.py` with the grid, the droid, the negative orb, the observation handler and the base
-  `WorldConf` and `ScenarioConf`.
+- `config/models/` keeps what is not specific to a scenario: the global and runner models, and a `scenario/` folder
+  with what every scenario is built from. That is `common_models.py` with the grid, the droid, the
+  observation handler and the base `WorldConf` and `ScenarioConf`, and `orb_models.py` with the base class of each
+  orb kind.
 - `scenario/goal/config.py` holds what every goal scenario has. `scenario/continuous/config.py` will do the same for
   continuous.
 - `scenario/goal/tier_chain/config.py` holds the tier-chain family.
@@ -208,9 +222,9 @@ needs to turn the world into an observation, which the world never reads. Each l
 
 ```
 ScenarioConf                    world_conf, obs_conf
-  WorldConf                       max_steps, grid_conf, droid_conf, neg_orb_conf (optional)
+  WorldConf                       max_steps, grid_conf, droid_conf
     GoalWorldConf                 + goal_conf       (timeout_penalty, completion_reward)
-      TierWorldConf               + tier_orb_conf   (max_tier, chain_break_penalty)
+      TierWorldConf               + tier_orb_conf   (max_tier, chain_break_penalty), neg_orb_conf (optional)
         TierDelayWorldConf          tier_orb_conf   + delay
         TierDenseWorldConf          tier_orb_conf   + the reward ladder
 ```
@@ -221,11 +235,14 @@ model.
 
 There is no single orb block to look at. Each orb kind has its own `*_orb_conf` block in the world, holding what that
 kind's orbs and its digester need. This mirrors `OrbBundle` in the scenario layer, where a kind's orbs and its
-digester travel together, so a kind is one brick in the config as well.
+digester travel together, so a kind is one brick in the config as well. The base `WorldConf` declares no orb block;
+where a kind's class lives and which world model declares its field is in "An orb kind's config class is shared, and
+each scenario declares the field".
 
 `scenario/registry.py` holds one table, `SCENARIOS`, whose entry gives a name its config class and its builder.
 
-**Where:** `config/models/common_scenario_models.py`, `scenario/goal/config.py`, `scenario/goal/tier_chain/config.py`,
+**Where:** `config/models/scenario/common_models.py`, `config/models/scenario/orb_models.py`, `scenario/goal/config.py`,
+`scenario/goal/tier_chain/config.py`,
 `scenario/registry.py`, `config/yaml/goal_tier_chain_spatial.yaml`
 
 **Alternatives considered:**
@@ -265,7 +282,7 @@ fall much below minus `max_energy`, because the episode ends first; the last pen
 The observation carries energy, in the slot where the old code carried its score. Its bounds are exactly 0 and
 `max_energy`, so there is no separate bound to configure and nothing to clip.
 
-**Where:** `DroidConf.max_energy` in `config/models/common_scenario_models.py`, replacing `starting_score`. The droid,
+**Where:** `DroidConf.max_energy` in `config/models/scenario/common_models.py`, replacing `starting_score`. The droid,
 the base termination rule and the observation still have to be written to match.
 
 **Alternatives considered:**
@@ -296,7 +313,7 @@ are unchanged for the goal scenarios, but the bound moves from the old `max_scor
 **Decision:** `max_steps` is a field of `world_conf`, and the world is what counts the steps of an episode. Anything
 that needs the steps left (termination, the observation, the HUD, the metrics) reads it from the world it is handed.
 
-**Where:** `WorldConf.max_steps` in `config/models/common_scenario_models.py`. The count itself still has to move
+**Where:** `WorldConf.max_steps` in `config/models/scenario/common_models.py`. The count itself still has to move
 into `GridWorld`; it is on `ObservationHandler` today.
 
 **Alternatives considered:**
@@ -336,8 +353,8 @@ what the orbs were worth.
 has them, whatever its orbs are. `chain_break_penalty` is in `tier_orb_conf`. All three are required, except in dense,
 where they default to 0 and can be left out of the YAML.
 
-**Where:** `GoalConf` in `scenario/goal/config.py`; `TierOrbConf`, `TierDenseOrbConf` and `TierDenseGoalConf` in
-`scenario/goal/tier_chain/config.py`. The termination and digester code still has to be written to this rule, and the
+**Where:** `GoalConf` in `scenario/goal/config.py`; `TierOrbConf` in `config/models/scenario/orb_models.py`; `TierDenseOrbConf`
+and `TierDenseGoalConf` in `scenario/goal/tier_chain/config.py`. The termination and digester code still has to be written to this rule, and the
 tier digester has to expose the held reward (0 under max-tier scoring) for termination to read.
 
 **Alternatives considered:**
@@ -377,7 +394,7 @@ adds `weight`, and other kinds in that family carry a weight on their own block 
 A tier chain with a negative block holds exactly one negative orb. It spawns, despawns at the end of its lifespan and
 returns elsewhere after its cool-down. The count is not config.
 
-**Where:** `NegOrbConf` in `config/models/common_scenario_models.py`. The weighted version is not written yet; it goes
+**Where:** `NegOrbConf` in `config/models/scenario/orb_models.py`. The weighted version is not written yet; it goes
 in the same file when the first sampled family is built.
 
 **Alternatives considered:**
@@ -396,3 +413,73 @@ weights in the same pool, so it appears exactly where there is a pool.
 
 **Status:** settled for the tier chain. Revisit when the first sampled family is built, and for delay, where the
 negative orb is meant to freeze and return with the field.
+
+---
+
+## A scenario mechanic lives in its strategy when the world's public API is enough (2026-10-11)
+
+**Decision:** A mechanic that only one scenario uses is written in that scenario's strategy, as long as it can be
+written against the world's public API and the orbs' own methods. It becomes a world method only when it has to touch
+the world's private bookkeeping to stay consistent.
+
+Applied to the orb field: the delay scenario's cooldown and reactivation are loops over the active orbs that call the
+orbs' own methods, so they belong beside the delay scenario. Spawning stays in the world, because it uses the world's
+rng, checks for a free cell and moves orbs between the active and inactive lists.
+
+**Where:** `src/syn_grid/scenario/blocks/spawning.py`, the strategy files beside each scenario, and
+`src/syn_grid/core/grid_world.py`.
+
+**Alternatives considered:**
+
+- A world method per mechanic, such as `deactivate_all_orbs` and `reactivate_all_orbs`, which the strategy only
+invokes. Rejected because the number of scenarios is unknown, and the world would collect methods that are irrelevant
+to most of them.
+- The strategy returns a recipe and the world carries it out. Rejected because the world would then have to understand
+every kind of recipe, which is a scenario-specific case inside the world.
+
+**Why this one:** The world stays the same size however many scenarios are added, and a scenario's mechanic is read in
+one place, beside that scenario.
+
+**Status:** settled as a rule. Revisit if scenarios start needing the world's public API widened one mechanic at a
+time, since that is the same growth by another route.
+
+---
+
+## An orb kind's config class is shared, and each scenario declares the field (2026-10-11)
+
+**Decision:** An orb kind's config is split over three places.
+
+- `config/models/scenario/orb_models.py` holds the class that describes the orb kind itself, whichever scenario it appears
+  in. It is a file of its own because it is the part of the common models that grows with every new kind.
+- A family holds what describes its use of that kind, as a subclass that adds fields.
+- A scenario's world model declares the field. That is where a kind becomes part of a scenario, and where it is
+  optional or mandatory.
+
+The base `WorldConf` declares no orb fields, so a scenario's config accepts only the orbs that scenario declares. No
+orb kind is treated differently below the scenario. The negative orb is optional in a tier chain because the
+tier-chain world model says so, and a scenario that depends on it declares it without a default.
+
+A base class holds only the fields that are certain to be shared. For the negative orb that is `reward` and
+`cool_down`. For the tier orb it is `max_tier` and `chain_break_penalty`; whether the reward ladder belongs in the
+base is decided when a second family uses tier orbs. Scoring mode is not a field of the base: a scenario that lets it
+vary declares it on its own block.
+
+**Where:** `config/models/scenario/orb_models.py` for the base classes, each family's `config.py` for its subclasses and its
+world model.
+
+**Alternatives considered:**
+
+- `neg_orb_conf` as an optional field on the base `WorldConf`, so any scenario may add a negative orb. This is what
+was there. Rejected because every scenario's config then accepts the block, including one whose builder never wires
+it, and because a scenario that depends on the orb can't make it mandatory.
+- Each scenario defines its own class for a kind it uses. Rejected because two classes describing the same orb can
+drift apart.
+- A class stays in the family that first uses it and moves to common when a second family needs it. Rejected because
+more scenarios using the tier orb and the negative orb are already expected.
+
+**Why this one:** What an orb is gets written once, and each scenario states its own relationship to it in one line.
+
+**Status:** settled and applied to the models. `TierOrbConf` is in `orb_models.py` with `max_tier` and
+`chain_break_penalty`,
+and `TierWorldConf` declares `neg_orb_conf`. Moving a field between a base class and its subclass doesn't change any
+YAML, so a wrong guess about the base is cheap to correct.

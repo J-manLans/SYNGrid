@@ -47,3 +47,7 @@ frame stacking to the environment.
 
 `HumanRunner` skips all of that. It builds one bare `SYNGridEnv` in `human`
 render mode and loops on keyboard input until the episode ends.
+
+The runners already take a `Scenario`, and the SB3 runners import. `HumanRunner`
+imports `SYNGridEnv`, which does not import yet (see `08_gymnasium.md`), so
+`agent_registry` and the app fail with it.

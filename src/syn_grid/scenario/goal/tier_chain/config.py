@@ -4,41 +4,25 @@ The tier chain family: Goal/Tier Chain and every variant built on it.
 Four registered scenarios share this hierarchy: spatial, delay, and the two
 tier-scaling variants.
 
-What the family adds to a goal world is one block, `tier_orb_conf`, beside the
-grid, the droid, `goal_conf` and the optional `neg_orb_conf`. It holds what the
-tier orbs and their digester need. A variant that needs a field the family
-lacks subclasses that block, narrows `tier_orb_conf` on its own world model and
-narrows `world_conf` on its own scenario model.
+What the family adds to a goal world is two blocks beside the grid, the droid
+and `goal_conf`: `tier_orb_conf`, which holds what the tier orbs and their
+digester need, and the optional `neg_orb_conf`. A variant that needs a field
+the family lacks subclasses the tier block, narrows `tier_orb_conf` on its own
+world model and narrows `world_conf` on its own scenario model.
 
-See `config/models/common_scenario_models.py` for the vocabulary every family
-composes, and `scenario/goal/config.py` for what every goal scenario shares.
+See `config/models/scenario/common_scenario_models.py` for the vocabulary every family
+composes, `config/models/scenario/orb_models.py` for the orb kinds, and
+`scenario/goal/config.py` for what every goal scenario shares.
 """
 
 from pydantic import Field, model_validator
 
-from syn_grid.config.models.common_scenario_models import PenaltyCheckedConf
+from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
 from syn_grid.scenario.goal.config import GoalConf, GoalScenarioConf, GoalWorldConf
 
 # ===================== #
 #    Tier Orb Models     #
 # ===================== #
-
-
-class TierOrbConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
-    """The chain: one orb per tier, and what losing it costs.
-
-    `max_tier` is the length of the chain, and therefore also the number of
-    tier orbs on the field. All of them are present from the first step.
-
-    `chain_break_penalty` is what breaking the chain costs, added to whatever
-    reward the chain was holding. It is set independently of the timeout
-    penalty; see `docs/dev/rppo-regression.md`.
-
-    How the chain is scored is stated by each scenario's builder.
-    """
-
-    max_tier: int = Field(gt=0)
-    chain_break_penalty: float
 
 
 class TierDelayOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
@@ -83,7 +67,18 @@ class TierDenseGoalConf(GoalConf, frozen=True, extra="forbid", strict=True):
 
 
 class TierWorldConf(GoalWorldConf, frozen=True, extra="forbid", strict=True):
+    """A goal world whose objective is one chain of tier orbs.
+
+    `tier_orb_conf.max_tier` is the length of the chain, and therefore also the
+    number of tier orbs on the field. All of them are present from the first
+    step. `tier_orb_conf.chain_break_penalty` is set independently of the
+    timeout penalty; see `docs/dev/rppo-regression.md`.
+
+    `neg_orb_conf` is optional. A world that has it holds one negative orb.
+    """
+
     tier_orb_conf: TierOrbConf
+    neg_orb_conf: NegOrbConf | None = None
 
     @model_validator(mode="after")
     def validate_chain_fits_grid(self):
