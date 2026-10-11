@@ -4,8 +4,8 @@ The order to rebuild the scenario layer in, written 2026-10-10. Each phase says 
 touches, what has to be decided first and how to tell it is done. The reasons behind the decisions are in
 `design-decisions.md`; this file is only the order of work.
 
-The route is a vertical slice: get `goal_tier_chain_spatial` running end to end on the new structure, compare it with
-legacy, and only then widen to the other scenarios. Until phase 5 nothing runs, so each phase before it has its own
+The route is a vertical slice: get `goal_tier_chain_spatial` running end to end on the new structure, check it against
+legacy as a reference, and only then widen to the other scenarios. Until phase 5 nothing runs, so each phase before it has its own
 small check.
 
 ---
@@ -19,9 +19,11 @@ small check.
 | `blocks/observation.py`, `population.py`, `termination.py` | written: the rules dataclass and the two protocols |
 | `blocks/spawning.py` | stub: three fields, hooks without bodies, and an unused `OrbFieldUpdate` protocol |
 | `goal/tier_chain/population.py`, `termination.py` | stubs: no orbs are made, and no episode ends |
-| `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario`; `build_world`, the tier digester, the negative bundle and the other three builders raise `NotImplementedError` |
-| `core/droid/digestion/digestion.py` | the routing key, `Event`, `DigestionResult` and the `OrbDigester` protocol; no `kind_of` and no cross-kind hook |
-| `core/droid/digestion/digesters/*.py` | empty |
+| `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario`; `build_world`, `_make_tier_digester`, the negative bundle and the other three builders raise `NotImplementedError` |
+| Config and termination for the tier chain | still carry `completion_reward`, which was decided away on 2026-10-11; the reward ladder is on the dense orb block only |
+| `core/droid/digestion/digestion.py` | written: the routing key and the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float) |
+| `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes. Not wired into a builder |
+| `core/droid/digestion/digesters/neg_digester.py` | empty |
 | `core/orbs/orb_meta.py` | stores type and tier; the radix identity is unchanged |
 | `core/droid/digestion/engine.py` | still the legacy engine |
 | `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. `TierOrb` has already lost its scoring flags, which the old engine still reads |
@@ -36,13 +38,15 @@ and `python3 -m syn_grid.check_env` fail until phase 5.
 
 ## Phase 0: A baseline to compare against
 
-Do this first, or a later mismatch can't be told apart from a problem that was already there.
+Do this first, or a later mismatch can't be told apart from a problem that was already there. Legacy is a reference
+and not a target: the rebuild's rewards differ from it on purpose, so the curves are what gets compared.
 
 - Confirm the legacy strain learns spatial, with several seeds.
 - Record its behaviour with the replay scripts in `scripts/`: one seed, a fixed action sequence, the reward and the
   observation per step. Use a `starting_score` high enough that episodes reach the timeout.
 
-**Done when:** there are legacy training curves and a recorded step-by-step trace to diff against in phase 6.
+**Done when:** there are legacy training curves to hold the rebuild's against in phase 6, and a recorded
+step-by-step trace whose observations can be diffed.
 
 ---
 
@@ -50,24 +54,30 @@ Do this first, or a later mismatch can't be told apart from a problem that was a
 
 **Produces:** something that turns a consumed orb into a reward, with no knowledge of scenarios.
 
-**Files:** `core/droid/digestion/digestion.py`, `engine.py`, `digesters/tier_digester.py`.
+**Files:** `core/droid/digestion/digestion.py`, `engine.py`, and `digesters/tier_chain/`, which holds the tier base
+and one file per scoring mode.
 
-**Settle first:**
+**Settled on 2026-10-11:**
 
-- Who builds the engine. Suggested: `build_world` makes the digesters, the droid builds its engine from them.
-- Events and the engine's tally: kept, since effect orbs will emit them too. Update the digestion entry in
-  `design-decisions.md` to say so.
+- The droid creates the engine. `build_world` makes the digesters, one per `OrbBundle`, and hands them to the droid.
+- No events, no tally and no cross-kind hook. `digest` returns a float, and a reader takes what it needs from the
+  digester itself.
+- A tier orb is worth the same in every scoring mode, and the mode decides when it is paid.
+
+**Settle first:** what `get` does when no digester of the asked class is registered. The reference raises `KeyError`.
 
 **Write:**
 
-1. `digestion.py`: the routing key (the orb's type), `kind_of`, the result of a digestion, and the `OrbDigester`
-   protocol with `kind`, `reset` and `digest`.
-2. `tier_digester.py`: a slim tier base holding the chain state, the counts and the held reward, and max-tier as the
-   one concrete class. Under the additive rule it pays the chain-break penalty on a break and nothing on completion.
-3. `engine.py`: a router with `reset`, `digest` and `get`.
+1. `digestion.py`: the routing key (the orb's type) and the `OrbDigester` protocol with `KIND`, `reset` and `digest`.
+   Written.
+2. `digesters/tier_chain/`: the tier base holding the chain, the counts and the chain's summed reward, and the
+   max-tier, step-wise and threshold modes. Written.
+3. `engine.py`: a router with `reset`, `digest` and `get`. Still the old engine.
 
-**Done when:** `import syn_grid.scenario.blocks.orb_bundle` works, and a max-tier digester fed tiers 1, 2, 3 reports
-progress, progress, completion, and fed a wrong tier pays `chain_break_penalty`.
+**Done when:** `import syn_grid.scenario.blocks.orb_bundle` works, the engine routes an orb to the digester of its
+type, and a max-tier digester fed tiers 1, 2, 3 reports progress, progress, completion, and fed a wrong tier pays
+`chain_break_penalty`. The last part was seen in a throwaway script on 2026-10-11; nothing in the test suite covers
+it.
 
 ---
 
@@ -83,7 +93,8 @@ progress, progress, completion, and fed a wrong tier pays `chain_break_penalty`.
 1. Population: the protocol in `blocks/`, and the tier-chain one that makes one tier orb per tier.
 2. Spawning: the whole chain on the field from the first step, no tier orb expires.
 3. Termination: the outcome type and the protocol in `blocks/`; the tier-chain strategy in its own file. It ends on
-   energy 0, a broken chain, a completed chain or the clock, and pays by the additive rule.
+   energy 0, a broken chain, a completed chain or the clock. It pays `timeout_penalty` when the clock runs out and
+   nothing for a completed chain. `completion_reward` goes from the strategy and from `GoalConf`.
 4. Observation rules: only what the current perception needs for now. The full shape waits for phase 7.
 
 **Done when:** each file imports on its own, and the termination strategy gives the right outcome for a hand-built
@@ -118,11 +129,18 @@ world state in each of its four endings.
 
 **Files:** `scenario/goal/tier_chain/builders.py`.
 
+**Settle first:** how the reward ladder reaches every tier-chain scenario. It is on `TierDenseOrbConf` only, and
+since 2026-10-11 max-tier pays what the orbs are worth, so spatial needs it too.
+
 **Write:**
 
-1. `build_tier_chain_spatial`: the tag and the tier bundle (zero-worth tier orbs, a max-tier digester).
-2. `_tier_chain_scenario`: what the family shares.
-3. `_build_tier_chain_world` and the world readers.
+1. The config: the reward ladder where every tier-chain scenario has it, and `completion_reward` removed from the
+   models and the spatial YAML.
+2. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, a max-tier digester made
+   by `_make_tier_digester` from `max_tier` and `chain_break_penalty`).
+3. `_tier_chain_scenario`: what the family shares.
+4. `_build_tier_chain_world` and the world readers, which take the chain's state from the tier digester through the
+   engine.
 
 **Done when:** `import syn_grid.scenario.registry` works, `build_scenario` returns a `Scenario`, two scenarios built
 from the same config compare equal, and `scenario.build_world()` returns a new world on each call.
@@ -149,19 +167,21 @@ run plays an episode to each of its endings.
 
 ---
 
-## Phase 6: Compare with legacy
+## Phase 6: Check against legacy
 
-**Produces:** evidence that the rebuild behaves like the baseline.
+**Produces:** evidence that the rebuilt spatial scenario learns at least as well as the baseline.
 
-1. Replay the phase 0 action sequence through the rebuild and diff reward and observation per step. Read the size of
-   a difference before calling it behavioural.
+1. Replay the phase 0 action sequence through the rebuild and diff the observation per step. Read the size of a
+   difference before calling it behavioural.
 2. Train several seeds on each side and compare the curves.
 
-**Known differences to account for:** anything that changed on purpose is in `design-decisions.md`. For spatial there
-should be none in the rewards.
+**Known differences to account for:** anything that changed on purpose is in `design-decisions.md`. The rewards are
+expected to differ: a completed max-tier chain pays what its orbs are worth, where legacy paid a fixed 10. Set the
+base reward so the two are of similar size before comparing curves.
 
-**Done when:** the traces match, or every difference is explained, and the curves agree within seed noise. If legacy
-did not learn in phase 0, this phase shows the same problem and not a new one.
+**Done when:** the observation traces match, or every difference is explained, and the rebuild's curves are no worse
+than legacy's within seed noise. If legacy did not learn in phase 0, this phase shows the same problem and not a new
+one.
 
 ---
 
@@ -182,7 +202,8 @@ did not learn in phase 0, this phase shows the same problem and not a new one.
 
 1. The orb identity: where the dense id lives, and whether the radix formula becomes a plain sort on type and tier.
    `OrbMeta` already stores only type and tier.
-2. Global features supplied by the scenario: energy, steps left, chain progress.
+2. Global features supplied by the scenario: energy, steps left, chain progress. Chain progress has to stay: the
+   break rule pays a first and a second tier 1 differently, and only the chain position tells them apart.
 3. The two verified perceptions against the new rules.
 
 **Do this as the only change in its step**, and diff the observation against legacy again. Check whether anything
@@ -194,14 +215,15 @@ scales the observation by its upper bound.
 
 ## Phase 8: The rest of the tier-chain family
 
-One scenario at a time, each compared with its thesis runs in `reproduction_package/`.
+One scenario at a time, each held against its thesis runs in `reproduction_package/` as a reference.
 
 1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
-2. **Negative orb.** One orb in a tier chain: its bundle and digester, one more field cell and observation slot, and
-   the second protocol for a tier digester to react to it.
+2. **Negative orb.** One orb in a tier chain: its bundle and digester, one more field cell and observation slot. It
+   does not affect the chain.
 3. **Delay.** Its own termination strategy, the cooldown after a consume, and the negative orb freezing with the
    field.
-4. **Dense.** The threshold digester. Extract the shared tier base's payout hooks now that there is a second mode.
+4. **Dense.** The threshold digester is written. What is left is its builder and its termination, which pays what
+   the chain holds when the steps run out.
 
 ---
 
@@ -224,5 +246,6 @@ One scenario at a time, each compared with its thesis runs in `reproduction_pack
 ## Not on this roadmap
 
 - The continuous family and the sandbox scenario.
-- Effect orbs, and what they need from the engine: a tick, a stage before routing, a way to reach the world.
+- Effect orbs, and what they need from the engine: a tick, a stage before routing, a way to change what another
+  kind's orb pays, a way to reach the world.
 - Sampled fields and the weighted orb blocks.

@@ -36,8 +36,10 @@ done. `scenario.py` and the blocks are written, and the spatial builder returns
 a `Scenario`. Its pieces are stubs: the tier-chain population makes no orbs,
 its termination never ends an episode, the spawning hooks have no bodies, and
 `build_world` raises `NotImplementedError`. The other three builders raise too.
-`core/droid/digestion/digestion.py` holds the routing key, the result and the
-digester protocol, and the digesters are empty files. `core/`,
+`core/droid/digestion/digestion.py` holds the routing key and the digester
+protocol. The tier digester's base and its three scoring modes are written in
+`digesters/tier_chain/` and are not wired into a builder. The negative digester
+is an empty file, and `engine.py` is still the old engine. `core/`,
 `gymnasium/` and `rendering/` still import the old config, so
 `import syn_grid.scenario.registry` works while `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail. The roadmap expects that until its
@@ -76,6 +78,11 @@ compared with the rebuild. Each legacy package and loose file carries a
 imports the other legacy copies. `USE_LEGACY` in `src/syn_grid/__main__.py`
 picks which app runs. Nothing under `legacy/` is edited, and it is deleted when
 the rebuild is done.
+
+Legacy is a reference and not a target. Several decisions change rewards on
+purpose, so the rebuild is held against legacy's learning curves and not its
+rewards step for step. The list of differences is in `design-decisions.md`
+under "Legacy is a reference, not a target".
 
 Things the switch depends on:
 
@@ -153,9 +160,18 @@ principles behind them:
 Settled since the rebuild started, each with an entry in `design-decisions.md`:
 
 - Digestion lives in the droid, at `core/droid/digestion/`, with a `digesters/`
-  folder. The routing key is the orb's type alone.
-- The tier digester is a base class with one subclass per scoring mode. Only
-  max-tier is written first.
+  folder. The routing key is the orb's type alone. The droid creates the engine
+  from digesters that `build_world` makes, one per `OrbBundle`.
+- Digesters do not talk to each other. `digest` returns a float, and there are
+  no events, no tally and no cross-kind hook. A reader takes a digester from the
+  engine by its class and reads its attributes. Only a tier orb eaten out of
+  order breaks a chain, so a negative orb leaves it alone.
+- The tier digester is a base class with one subclass per scoring mode:
+  max-tier, step-wise and threshold. The base owns the chain, the counts and the
+  chain's summed reward.
+- A tier orb is worth the same in every scoring mode, and the mode decides when
+  it is paid. A break always costs `chain_break_penalty`. Max-tier pays the
+  chain's summed worth at the last tier, so there is no fixed completion prize.
 - A new scoring mode is a new registered scenario, not a config setting. The
   continuous sandbox is the exception.
 - Two orb categories, direct and synergy. `OrbMeta` stores only type and tier,
@@ -170,23 +186,27 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   and replaces `starting_score` and `max_score`.
 - The step clock lives in the world. `max_steps` is in `world_conf`; the count
   itself is still on `ObservationHandler`.
-- The goal and chain values are additive. Termination pays `timeout_penalty` and
-  `completion_reward`; the tier digester pays the orbs and the chain break.
+- Digestion pays for orbs and termination pays for the clock. The tier digester
+  pays the orbs, the chain break and the completed chain; termination pays
+  `timeout_penalty`. `completion_reward` is decided away.
+- Legacy and `reproduction_package/` are references, not targets.
+- Reward normalisation stays off in training (`norm_reward=False`).
 - A tier chain holds one negative orb. `NegOrbConf` is `reward` and `cool_down`;
   a weight is only for a family whose field is sampled.
 
 Still open:
 
-- **Who creates the engine:** `build_world`, the droid, or the scenario. The
-  roadmap suggests `build_world` makes the digesters and the droid builds its
-  engine from them.
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox
-  scenario. Both this and the point above are written as reservations inside
-  entries marked settled.
-- **`Event` and the engine's tally.** The roadmap proposes keeping them, since
-  effect orbs will emit events too.
-- **The cross-kind hook (`notice`).** The roadmap places it in a second protocol
-  that a tier digester implements to react to a negative orb.
+  scenario. It is written as a reservation inside an entry marked settled.
+- **What a chain holds when the steps run out.** A threshold scenario's
+  termination is meant to pay the digester's `chain_reward`, and a max-tier one
+  must not. How the tier-chain termination tells them apart is not decided.
+- **Properties or plain attributes** for what readers take from a digester.
+  They are plain public attributes now, and the owner may return to properties.
+- **What `engine.get` does** when no digester of the asked class is registered.
+  The reference raises `KeyError`.
+- **`reward_multiplier`,** which legacy threshold applied to each orb's reward.
+  It was not carried over and not discussed to a decision.
 - **The negative orb under delay.** It is meant to freeze and return with the
   field.
 - **HUD form.** A small vocabulary of elements the renderer can draw, or a
@@ -242,6 +262,14 @@ decisions on this branch:
   `world_conf` and `obs_conf`.
 - **Two scenarios built from the same config do not compare equal** today. The
   only differing field is `build_world`, which is a `functools.partial`.
+- **Decided on 2026-10-11 and not applied in the code:** `completion_reward` is
+  still in `GoalConf`, `TierDenseGoalConf`, the tier-chain termination, the
+  builder and the spatial YAML, and their docstrings describe the older rule.
+  The reward ladder is only on `TierDenseOrbConf`, and the spatial builder is
+  written for tier orbs worth nothing, so a max-tier chain would pay 0 as things
+  stand. `_make_tier_digester` raises.
+- **The tier digesters were only tried in throwaway scripts.** No test covers
+  them.
 - **`blocks/spawning.py` is mid-change.** `SpawningRules` has three fields, its
   docstring still lists `delay_on_consume`, and `OrbFieldUpdate` is declared and
   unused.
@@ -320,7 +348,8 @@ the first two are dealt with.
   reset re-rolls the orb layout. Pass `np.random.default_rng(seed)`.
 - **Every perception returns the same buffer each step,** so `obs_t is
   obs_{t+1}`. Anything that keeps two observations must copy.
-- **`reproduction_package/` is committed and large.** Do not add to it.
+- **`reproduction_package/` is committed and large.** Do not add to it. It is a
+  record of what the thesis runs did, not something the rebuild must reproduce.
 - **`plot/` is a thesis scratch module** with hardcoded paths evaluated at
   import, and needs the optional `extra` dependencies.
 - **`docs/code_style.md` mandates Black;** the repo uses ruff.

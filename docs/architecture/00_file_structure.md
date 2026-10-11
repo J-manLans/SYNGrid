@@ -44,8 +44,12 @@ syn_grid/
 │   ├── droid/
 │   │   ├── digestion/
 │   │   │   ├── digesters/
-│   │   │   │   ├── neg_digester.py
-│   │   │   │   └── tier_digester.py
+│   │   │   │   ├── tier_chain/
+│   │   │   │   │   ├── max_tier_digester.py
+│   │   │   │   │   ├── step_wise_digester.py
+│   │   │   │   │   ├── threshold_digester.py
+│   │   │   │   │   └── tier_digester.py
+│   │   │   │   └── neg_digester.py
 │   │   │   ├── digestion.py
 │   │   │   └── engine.py
 │   │   └── synergy_droid.py

@@ -1,8 +1,9 @@
 """
 The tier digester's base: the chain a droid builds by eating tier orbs in order.
 
-The base tracks the chain and counts what happens to it. What each of those
-moments pays is a scoring mode, and each mode is a subclass in this folder.
+The base tracks the chain, counts what happens to it and adds up what its orbs
+are worth. What each of those moments pays is a scoring mode, and each mode is
+a subclass in this folder.
 """
 
 from abc import ABC, abstractmethod
@@ -30,6 +31,9 @@ class TierDigester(ABC):
         KIND: the orb kind this digester owns.
         chained_tiers: the tier the running chain has reached, 0 if there is no
             chain.
+        chain_reward: the summed reward of the orbs in the running chain. A
+            break or a completion clears it, and a tier 1 orb that starts a new
+            chain starts a new sum.
         chains_progressed: how many times a chain has grown this episode.
         chains_broken: how many times a tier orb was eaten out of order this
             episode.
@@ -53,7 +57,7 @@ class TierDigester(ABC):
     def reset(self) -> None:
         """Clear the chain and the counters, at the start of an episode."""
 
-        self.chained_tiers = self._NO_CHAIN
+        self._clear_chain()
         self.chains_progressed = 0
         self.chains_broken = 0
         self.chains_completed = 0
@@ -73,24 +77,43 @@ class TierDigester(ABC):
         if tier != self.chained_tiers + 1:
             reward = self._score_break(orb)
             self.chains_broken += 1
-            self.chained_tiers = tier if tier == self._BASE_TIER else self._NO_CHAIN
+            self._clear_chain()
+
+            if tier == self._BASE_TIER:
+                self._grow_chain(tier, orb.REWARD)
         elif tier == self._MAX_TIER:
             reward = self._score_completion(orb)
             self.chains_completed += 1
-            self.chained_tiers = self._NO_CHAIN
+            self._clear_chain()
         else:
             reward = self._score_progress(orb)
             self.chains_progressed += 1
-            self.chained_tiers = tier
+            self._grow_chain(tier, orb.REWARD)
 
         return reward
+
+    # ================= #
+    #      Helpers      #
+    # ================= #
+
+    def _clear_chain(self) -> None:
+        """Leave no chain, and nothing summed."""
+
+        self.chained_tiers = self._NO_CHAIN
+        self.chain_reward = 0.0
+
+    def _grow_chain(self, tier: int, reward: float) -> None:
+        """Move the chain to this tier and add the orb's reward to the sum."""
+
+        self.chained_tiers = tier
+        self.chain_reward += reward
 
     # ================= #
     #      Scoring      #
     # ================= #
 
-    # Each is called before the chain moves, so `chained_tiers` is still what it
-    # was when the orb was eaten.
+    # Each is called before the chain moves, so `chained_tiers` and
+    # `chain_reward` are still what they were when the orb was eaten.
 
     @abstractmethod
     def _score_progress(self, orb: BaseOrb) -> float:

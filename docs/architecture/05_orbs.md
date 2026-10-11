@@ -6,8 +6,12 @@ config/models/scenario/
 
 core/droid/digestion/
 ├── digesters/
-│   ├── neg_digester.py
-│   └── tier_digester.py
+│   ├── tier_chain/
+│   │   ├── max_tier_digester.py
+│   │   ├── step_wise_digester.py
+│   │   ├── threshold_digester.py
+│   │   └── tier_digester.py
+│   └── neg_digester.py
 ├── digestion.py
 └── engine.py
 
@@ -57,9 +61,11 @@ as a field on the world model of each scenario that holds the kind.
 
 In the scenario layer one orb kind is an `OrbBundle`: an `OrbPopulation` that
 makes the orbs and a way to make the kind's digester. The chain above is written
-down to the bundle. `TierChainPopulation` makes no orbs yet, the tier digester
-and the negative bundle raise `NotImplementedError`, and `build_world` raises
-before it joins anything.
+down to the bundle. `TierChainPopulation` makes no orbs yet, the builders'
+`_make_tier_digester` and the negative bundle raise `NotImplementedError`, and
+`build_world` raises before it joins anything. The tier digesters themselves
+are written in `core/droid/digestion/digesters/tier_chain/`, a base class and
+one subclass per scoring mode, and no builder creates one yet.
 
 `core/` does not use any of that yet. `GridWorld` creates its orbs through
 `OrbFactory`, and the old `DigestionEngine` scores them, both from config

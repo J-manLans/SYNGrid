@@ -5,8 +5,12 @@ core/
 ├── droid/
 │   ├── digestion/
 │   │   ├── digesters/
-│   │   │   ├── neg_digester.py
-│   │   │   └── tier_digester.py
+│   │   │   ├── tier_chain/
+│   │   │   │   ├── max_tier_digester.py
+│   │   │   │   ├── step_wise_digester.py
+│   │   │   │   ├── threshold_digester.py
+│   │   │   │   └── tier_digester.py
+│   │   │   └── neg_digester.py
 │   │   ├── digestion.py
 │   │   └── engine.py
 │   └── synergy_droid.py
@@ -50,7 +54,14 @@ spawns one more orb.
 the step and boundary penalties, and passes a consumed orb to its
 `DigestionEngine`. The engine is one class holding the chain state, the three
 scoring modes and the episode's chain counts. It picks the mode from flags on
-the tier orb, which `TierOrb` no longer has. `digestion.py` holds the contract
-the engine is to be rebuilt on: the routing key, the result of digesting an orb
-and the `OrbDigester` protocol. The two files in `digesters/` are empty. Orbs
-are covered in `05_orbs.md`.
+the tier orb, which `TierOrb` no longer has.
+
+Beside it is the digestion the engine is to be rebuilt on, which nothing uses
+yet. `digestion.py` holds the contract: the routing key, which is an orb's
+type, and the `OrbDigester` protocol of `KIND`, `reset` and a `digest` that
+returns a reward. `digesters/tier_chain/` holds `TierDigester`, a base class
+that tracks the chain, counts its progress, breaks and completions and sums
+what its orbs are worth, and three subclasses that each say what progress, a
+break and a completion pay: `MaxTierDigester`, `StepWiseDigester` and
+`ThresholdDigester`. `neg_digester.py` is empty. Orbs are covered in
+`05_orbs.md`.

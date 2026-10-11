@@ -22,17 +22,19 @@ Each entry says when it would be worth reopening.
 
 ## Digestion lives in the droid, with a folder of digesters (2026-10-09)
 
-**Decision:** Digestion is the droid's own organ. The package holds three
-things:
+**Decision:** Digestion is the droid's own organ. The package holds three things:
 
-- `digestion.py`, the interface: `Event`, `DigestionResult`, `OrbKind`,
-  `kind_of()` and the `OrbDigester` protocol.
-- `engine.py`, a router with a tally. It holds no scoring rules.
-- `digesters/`, every digester there is, one per orb kind.
+- `digestion.py`, the contract: the routing key `OrbKind` and the `OrbDigester` protocol, which is `KIND`, `reset`
+  and `digest`. `digest` returns the reward as a float.
+- `engine.py`, a router. It holds no scoring rules: it hands an eaten orb to the digester registered for the orb's
+  type, and it lets a reader fetch a digester by its class.
+- `digesters/`, every digester there is, one per orb kind. A kind with several files gets a folder, as the tier
+  digester has in `tier_chain/`.
 
-The droid owns and creates the engine and get's the `make_digesters` handed to it (I suppose) and calls the engine when
-it consumes an orb. It no longer builds the engine from config. `build_world` builds it from the digesters the
-scenario's orb bundles supply, and hands it to the droid (Here I need to decide if build world should do the whole pass, or lets the droid create the engine, or if the scenario creates it and hands it to the droid, I wrote that the droid should do the creation, and thats because its one of its organs, so it makes logical sense to me, but if that complicate things, that can be changed).
+The droid creates the engine. The scenario supplies a way to make each digester, one per `OrbBundle`
+(`make_digester`). `build_world` calls each of them, so every world gets digesters of its own, and hands them to the
+droid, which builds its engine from them. The scenario holds a way to make a digester and never a digester, because a
+digester holds episode state and one `Scenario` is shared by every environment in the process.
 
 **Where:** `src/syn_grid/core/droid/digestion/`
 
@@ -42,54 +44,191 @@ scenario's orb bundles supply, and hands it to the droid (Here I need to decide 
 does.
 - Digesters living in the scenario package, next to the scenario termination and spawning etc. Rejected because
 digesters belong with the digester.
+- `build_world` or the scenario creating the engine. Rejected because the engine is a part of the droid, and nothing
+outside the droid needs to construct it. The droid's constructor takes digesters, so it never imports a concrete one
+and never learns which scenario it is in.
+- One method on the scenario that returns every digester. Rejected because adding an optional orb kind would then
+mean editing that method as well as adding the kind's bundle.
+- A `kind_of(orb)` function for the lookup. Rejected because the key is the type alone, so it would wrap
+`orb.META.TYPE` and nothing else.
 
 **Why this one:** The engine stays a plain mechanism that any scenario family can use. The scenario decides which
 digesters to build and how each is configured, through the bundle's `make_digester`, but it doesn't own their code.
 
-**Status:** settled. `NegativeDigester` follows the same rule and goes in `digesters/`; it hasn't been read or ported
-yet, so check how much it knows about tiers when it is.
+**Status:** settled; who creates the engine was settled on 2026-10-11. `digestion.py` is written. `engine.py` is still
+the old engine, and the droid does not take digesters yet. What `get` does when no digester of the asked class is
+registered is not decided; the reference raises `KeyError`. `NegativeDigester` goes in `digesters/` and is an empty
+file.
+
+---
+
+## Digesters do not talk to each other (2026-10-11)
+
+**Decision:** A digester scores its own kind and knows nothing about the others. `digest` returns a float. There is
+no `Event`, no `DigestionResult`, no tally in the engine, and no hook by which a digester is told that another kind's
+orb was eaten.
+
+A tier chain is broken only by a tier orb eaten out of order. A negative orb eaten in the middle of a chain costs its
+own reward and leaves the chain alone.
+
+A reader that needs what a digester knows asks the engine for the digester by its class and reads its attributes, as
+in `engine.get(TierDigester).chains_broken`. The readers that do this are in the scenario family's own folder: its
+termination, its metric readers, its HUD and observation readers.
+
+**Where:** `core/droid/digestion/digestion.py`, `engine.py`, and the attributes of
+`digesters/tier_chain/tier_digester.py`.
+
+**Alternatives considered:**
+
+- Events returned from `digest` and counted by the engine (the reference). Rejected because nothing reacted to an
+event. Every reader asked for a count since the last reset, and a count since reset is state a digester already
+keeps. Reading a digester's state has to exist anyway for values that are not counts, such as where the chain is, so
+events were a second way out for the same information. Legacy kept the counts as plain ints.
+- A `notice` hook on every digester, or in a second protocol that only some implement (the reference, and the
+roadmap as first written). Rejected together with the rule that needed it. It makes every pair of digesters a
+possible conversation, the result can depend on which digester the engine tells first, and a step's reward can no
+longer be explained from one place.
+- Any orb that is not a tier orb breaks a running chain (legacy and the reference). Rejected because a direct orb is
+defined as changing the score and nothing else, and a negative orb that breaks a chain does something else. The orb
+would also carry two costs, the second one depending on the chain and arriving later. With the chain untouched,
+adding a negative orb to a scenario changes one thing, so its effect on a learning curve can be read.
+- The builder handing the tier digester a set of kinds that break it. Not needed now. It is the shape to use if a
+scenario wants an existing kind to break chains.
+
+**Why this one:** Each digester can be read and tried alone, and each orb kind has one meaning: a tier orb is about
+order, and a negative orb costs what its reward says.
+
+**Status:** settled. It differs from legacy on purpose. Revisit when an orb has to affect another kind:
+
+- An orb that changes what another kind's orb pays needs the engine to pass each reward through it. Neither events
+nor `notice` did that.
+- Events come back if something has to react to what happened and not only to how much it paid.
+- An orb whose purpose is to break chains is a synergy kind of its own, added to a scenario on purpose.
 
 ---
 
 ## The tier digester is a template with one subclass per scoring mode (2026-10-09)
 
-**Decision:** The tier digester is a base class that owns the chain tracking: if the orb is the next tier the chain
-progresses, or completes at max tier; otherwise it breaks. Each scoring mode is a subclass (or using the template method?) that fills in what is paid at those three moments:
+**Decision:** `TierDigester` is a base class that owns the chain. For each eaten tier orb it decides which of three
+things happened, asks the subclass what that pays, counts it and moves the chain:
 
-| | On progress | On break | On completion |
-|---|---|---|---|
-| Step-wise | that tier's reward, right away | small wrong-order penalty | its reward plus the earlier tiers' total |
-| Threshold | nothing, held back | the held reward | everything accumulated |
-| Max-tier | nothing | chain-break penalty | completion reward |
+- **Progress:** the orb is the next tier, and not the last one. The chain moves up. A tier 1 with no chain running
+  starts a chain.
+- **Completion:** the orb is the next tier, and the last one. The chain is over.
+- **Break:** the orb is any other tier. A tier 1 starts a new chain at 1, and any other tier leaves no chain.
 
-There is no `ScoringMode` enum. The scenario's builder picks the subclass. Spatial needs only max-tier, so only the
-base and that subclass get written first (or perhaps I keep the enum, but for the fixed scenarios I pass the certain mode in the builder method in scenario, keep it out of the config, but for the sandbox continuous scenario for example, it can be a tunable parameter).
+A scoring mode is a subclass that writes three methods: `_score_progress`, `_score_break` and `_score_completion`.
+Each is handed the orb and returns a reward, and each is called before the chain moves, so the mode sees the chain as
+it was when the orb was eaten. The scenario's builder picks the subclass.
 
-**Where:** `core/droid/digestion/digesters/`
+The base holds what every mode shares and what readers outside take from it: `chained_tiers`, the counters
+`chains_progressed`, `chains_broken` and `chains_completed`, and `chain_reward`, the summed reward of the orbs in the
+running chain. It takes `max_tier` at construction, and each mode takes what it pays with.
+
+Whether a `ScoringMode` enum exists as a router for the continuous sandbox is still open. If it does, its only job is
+to pick which subclass to create.
+
+**Where:** `core/droid/digestion/digesters/tier_chain/`: `tier_digester.py` for the base, and one file per mode.
 
 **Alternatives considered:**
 
 - One digester with a `ScoringMode` enum and a branching method per mode (the reference). Rejected because the builder
 already decides the mode, so the enum states the same decision a second time, and it is the kind of conditional that
-does not belong in the component holding it (but read the parenthesis above for reservations about this, and even if
-the `ScoringMode` enum persists, its only used as a router as to what template or subclass to create).
+does not belong in the component holding it.
 - The orb carrying its own scoring (the old engine). Rejected because the engine then has to inspect orbs to know how
-to score them and they should be the same across the board, how the droid digest them should be up to its own digestion
-system.
+to score them. Orbs are the same in every mode, and how the droid digests them is up to its own digestion.
+- Reading `max_tier` off the orb, as legacy did. Not available: `TierOrb` no longer stores it.
+- Properties for the values readers take. Not used: they are plain attributes without an underscore, which is the
+convention in the rest of the code for something read from outside. A property blocks an accidental write to the
+public name and nothing more. The owner has left open whether to return to properties.
+- The last orb's reward held in the base beside the sum (legacy's `_pending_reward`). Not needed: no mode reads it.
 
 **Why this one:** Adding a mode is adding a class, not editing one that works. A scenario only loads the mode it uses,
-and each mode can be tested on its own.
+and each mode can be tried on its own.
 
-**Watch:** Threshold breaks differently from the other two. Consecutive tier-1 pickups don't count as breaks, and the
-chain restarts only if a reward is held. So the break step has to be a hook a subclass can override, or the base class
-can't share it. Folding that quirk into the base would change behaviour and move training away from the baseline. I
-think this is a residue from the thesis era stress. It has to do with it working for both a goal scenario and a
-continuous scenario, for a chain break in a goal scenario means game over, in a continuous one it just means you get no
-reward for this, or in the threshold mode — you get the reward up to this orb only. So look over this for all modes
-(here the new structure of the two top scenario types — goal and continuous — can come in handy as a distinguisher):
+**Status:** built on 2026-10-11 with all three modes; the next entry says what they pay. The base needed no way for a
+subclass to replace the break as a whole: threshold's one exception fits inside its `_score_break`. Nothing is wired
+yet, and `_make_tier_digester` in the tier-chain builders still raises.
 
-**Status:** settled for spatial. Revisit if the shared base turns out not to fall cleanly out of the second mode once
-it is written.
+---
+
+## The scoring modes pay the same orbs at different times (2026-10-11)
+
+**Decision:** A tier orb is worth the same in every scoring mode. A mode decides only when that worth is paid. A
+break always costs `chain_break_penalty`.
+
+| | Progress | Break | Completion |
+|---|---|---|---|
+| Step-wise | the orb's reward | the penalty, plus the orb's reward if it restarts a chain | the orb's reward |
+| Threshold | 0 | the penalty, plus what the chain had gathered | what the chain had gathered, plus the orb's reward |
+| Max-tier | 0 | the penalty | what the chain had gathered, plus the orb's reward |
+
+A chain completed without a break pays the same total in all three. Step-wise and threshold pay the same total for
+any sequence of orbs, once threshold has paid out what it still holds.
+
+The break is one rule in every mode and every scenario: a tier orb that is not the next one is a break. That covers a
+wrong tier while a chain is running, a wrong tier with no chain running, and a tier 1 eaten while a chain is running,
+a second tier 1 at chain 1 included.
+
+A tier 1 that breaks a longer chain is the first orb of a new one. It counts toward the new chain's `chain_reward`,
+and in step-wise it is paid its reward on top of the penalty, so a chain completed after a restart pays its full
+worth in every mode.
+
+Step-wise and threshold share one exception. A tier 1 eaten while the chain is at 1 pays the penalty alone. Otherwise
+every tier 1 would be paid, and tier 1 orbs could be farmed wherever orbs respawn.
+
+**Where:** `max_tier_digester.py`, `step_wise_digester.py` and `threshold_digester.py` in
+`core/droid/digestion/digesters/tier_chain/`.
+
+**Alternatives considered:**
+
+- Max-tier pays a fixed number handed to the digester, with tier orbs worth nothing (the reference; legacy overwrote
+the prize with a fixed 10). Rejected because sparse against dense at the same chain length is the comparison the
+scaling scenarios exist for, and with the same worth in both, the only difference left is what a broken chain gives.
+It also needs no extra config field, and it works unchanged in a scenario where completing a chain does not end the
+episode. The cost is accepted: the prize is not written in the YAML, and it grows with the chain length unless the
+base reward is set per scenario.
+- Max-tier pays only the last orb's own reward (legacy, before termination overwrote it). Rejected because every
+lower tier would have a reward that is never paid.
+- A bonus at completion in step-wise: the sum of the earlier tiers paid a second time (legacy). Rejected because a
+completed chain would be worth nearly double what it is in max-tier, so a comparison of the two modes would mix the
+timing with the amount. It was added by feel and never verified.
+- A separate `tier_consumption_penalty` for step-wise (legacy). Rejected because it was a second number for the same
+idea. In every saved config it was tied to the step penalty.
+- A tier 1 never costs a penalty (legacy step-wise paid a tier 1 its reward in any chain state). Rejected because it
+can be farmed where orbs respawn, and because every other tier is right in exactly one chain state and wrong in the
+rest.
+- A threshold break pays only the last tier's reward (legacy). Rejected as a special case that needs its own held
+value beside the sum.
+- A threshold break with no penalty. Rejected because cashing out a chain with a tier 1 would then cost nothing, and
+a break would cost the penalty in two modes and not in the third.
+- A restarted chain's sum starts at 0, so that an orb eaten out of order never pays its own reward. It would close
+threshold's farming loophole in the base with no exception. Rejected because the break is already paid for with the
+penalty, and a completed chain should always pay the same.
+- Step-wise paying the bare penalty for every break, the restarting tier 1 included. Rejected because a step-wise
+chain would then total one tier-1 reward less than a threshold one after each restart.
+
+**Why this one:** The modes form one family, so comparing two of them isolates when the reward arrives. The agent
+gets one rule for order: eat the tier one above the chain.
+
+**Status:** settled and built. What follows from it and is not done:
+
+- Tier orbs need real rewards in every tier-chain scenario. The reward ladder (`base_reward`, `growth_factor`,
+`linear_reward_growth`) is on `TierDenseOrbConf` only, and the spatial builder is written for tier orbs worth
+nothing.
+- What a chain holds when the steps run out. A threshold scenario's termination is meant to pay `chain_reward`, and a
+max-tier one must not. The termination entry below says what is open there.
+- The rule assumes the agent sees where the chain is. Without that, a first and a second tier 1 look alike and pay
+differently. Keep the chain position in the observation.
+
+Checked on 2026-10-11 in a throwaway script: over every sequence of up to 7 orbs on a 4-tier chain, step-wise and
+threshold paid the same total, counting what threshold still held at the end.
+
+Not carried over and not discussed to a decision: legacy threshold's `reward_multiplier`, which scaled and rounded
+each orb's reward. If it returns, it is a setting of the orb's reward and not of the mode.
+
+Revisit if the prize's growth with the chain length makes long chains train worse. The first things to try are the
+discount and how long the agent explores, then the base reward per scenario, then reward normalisation.
 
 ---
 
@@ -109,9 +248,9 @@ way.
 
 - The scenario name is the run's identity: run IDs, result folders and any comparison hang on it. A mode set in config
 would let two runs of the same name pay differently.
-- The config models enforce the inputs. Max-tier needs a completion reward and tier orbs worth nothing; threshold and
-step-wise need a reward per tier, which only the dense models carry. A switchable mode would need runtime checks for
-what the types now guarantee.
+- When this was written, a second reason was that the config models enforce each mode's inputs. That no longer holds
+since 2026-10-11: all three modes take the same inputs, a reward per tier and `chain_break_penalty`. The first reason
+carries the decision alone.
 
 **Status:** settled. Revisit if a single experiment needs to sweep scoring modes. The lookup would then sit at the
 edge, next to `SCENARIOS` or in the builders, and wouldn't touch the digesters.
@@ -146,8 +285,8 @@ Inside synergy there are two groups. They are folders, not types, enums or categ
 - **Effect:** eating it changes something other than itself: other orbs' rewards, the observation, the next orb, the
   world.
 
-In digestion the routing key is the type alone: `OrbKind = DirectType | SynergyType` and `kind_of(orb)` returns
-`orb.META.TYPE`. The engine and the digesters treat it as an opaque key and never take it apart.
+In digestion the routing key is the type alone: `OrbKind = DirectType | SynergyType`, read from `orb.META.TYPE`.
+The engine and the digesters treat it as an opaque key and never take it apart.
 
 **Where:** `core/orbs/orb_meta.py`, and what reads it: `core/grid_world.py`, `rendering/pygame_renderer.py`,
 `gymnasium/observation_space/perceptions/`. The orbs are packaged as `core/orbs/direct/`, `core/orbs/synergy/chain/`
@@ -334,34 +473,37 @@ than the world, such as a delay.
 
 ---
 
-## Goal and chain values are additive (2026-10-10)
+## Digestion pays for orbs, and termination pays for the clock (2026-10-10, changed 2026-10-11)
 
-**Decision:** The three values that end or interrupt a goal tier chain are each added to what is already being paid,
-by the same rule in every scenario. Nothing asks which scoring mode is in use.
+**Decision:** A reward caused by eating an orb is paid by digestion. Termination decides when an episode ends and
+pays only what the clock causes.
 
-| Moment | Pays |
-|---|---|
-| Timeout | the reward the chain was holding + `timeout_penalty` |
-| Chain break | the reward the chain was holding + `chain_break_penalty` |
-| Completion | what digestion paid for the orbs + `completion_reward` |
+| Moment | Paid by | Pays |
+|---|---|---|
+| Chain break | the tier digester | `chain_break_penalty`, plus what the chain had gathered in threshold |
+| Completion | the tier digester | what the scoring mode says the chain is worth |
+| Timeout | termination | `timeout_penalty`, added to what the chain was holding where the scenario pays that out |
 
-Goal termination pays `timeout_penalty` and `completion_reward`, the two ways a goal episode can end. The tier
-digester pays for the orbs and for breaking the chain; on completion it reports the chain as complete and pays only
-what the orbs were worth.
+There is no `completion_reward`. Termination reads `chains_completed` to end the episode and adds nothing for it.
 
-`timeout_penalty` and `completion_reward` are in `goal_conf`, because any scenario with an objective and a deadline
-has them, whatever its orbs are. `chain_break_penalty` is in `tier_orb_conf`. All three are required, except in dense,
-where they default to 0 and can be left out of the YAML.
+`timeout_penalty` is in `goal_conf`, because any scenario with an objective and a deadline has it, whatever its orbs
+are. `chain_break_penalty` is in `tier_orb_conf`.
 
-**Where:** `GoalConf` in `scenario/goal/config.py`; `TierOrbConf` in `config/models/scenario/orb_models.py`; `TierDenseOrbConf`
-and `TierDenseGoalConf` in `scenario/goal/tier_chain/config.py`. The termination and digester code still has to be written to this rule, and the
-tier digester has to expose the held reward (0 under max-tier scoring) for termination to read.
+**Where:** `GoalConf` in `scenario/goal/config.py`; `TierOrbConf` in `config/models/scenario/orb_models.py`;
+`TierDenseOrbConf` and `TierDenseGoalConf` in `scenario/goal/tier_chain/config.py`; the tier digesters in
+`core/droid/digestion/digesters/tier_chain/`.
 
 **Alternatives considered:**
 
-- A rule per scoring mode, as the old termination had: under max-tier a timeout paid the penalty, under threshold it
-paid the held reward. Rejected because it puts a scoring-mode conditional in termination.
-- Moving the three values into a max-tier scoring block, since dense never used them. Rejected because a timeout
+- Termination adds a `completion_reward` to the step that completes the chain. This was the decision on 2026-10-10.
+Rejected on 2026-10-11 because completing a chain is caused by eating an orb, because what it pays follows the scoring
+mode (a static prize in legacy max-tier, the accumulated sum in threshold), and because a scenario where completion
+does not end the episode has no termination to pay it.
+- A scenario-level completion reward for a goal that is one orb being eaten. Rejected: that orb's own reward is the
+prize, and a second number for the same event would have to be looked up in a second place.
+- A rule per scoring mode inside one termination, as the old termination had. Rejected because it puts a
+scoring-mode conditional in termination.
+- Moving `timeout_penalty` into a max-tier scoring block, since dense never used it. Rejected because a timeout
 penalty is a goal-level idea: a goal scenario with other orbs would use it too.
 - Optional fields, `float | None = None`. Rejected because `None` either means the same as 0 or hides a second rule
 behind a value.
@@ -370,13 +512,21 @@ load and train with none. The defaults are on dense's own classes only.
 - Requiring the values in dense and writing zeros in its YAML. Rejected because the YAML should list what is meant to
 be tuned.
 
-**Why this one:** Max-tier scenarios behave as before, because nothing is ever held and the orbs are worth nothing.
-Dense with the defaults reproduces the thesis runs (`reproduction_package/tier_scaling_scenario/dense/`), where a
-timeout and a break paid the held reward and a completion paid the accumulated ladder. The thesis dense configs set
-`chain_break_penalty: -0.1`, but threshold scoring never read it.
+**Why this one:** The digester does the same thing in a goal scenario and a continuous one, and the only difference
+between the two is whether termination ends the episode. What reaching the goal pays is found in one place.
 
-**Status:** settled. Revisit if a scenario needs a timeout or a completion to replace the step's reward instead of
-adding to it.
+**Status:** settled as a rule, and not applied to the config or the termination.
+
+- `completion_reward` is still a field of `GoalConf` and `TierDenseGoalConf`, a field of the tier-chain termination,
+an argument in the builder and a line in the spatial YAML. The docstrings in those files still describe the 2026-10-10
+rule.
+- Open: the timeout. On 2026-10-10 every goal scenario paid "what the chain was holding" by one rule, which worked
+because max-tier never held anything. The base digester now keeps `chain_reward` in every mode, so a max-tier
+scenario must not pay it at a timeout while a threshold scenario is meant to. How the tier-chain termination tells
+the two apart is not decided.
+
+A scenario-level completion reward earns a place only when the goal is something no single digester can see, such as
+surviving a number of steps or clearing the field. Revisit when such a scenario exists.
 
 ---
 
@@ -412,7 +562,8 @@ and a separate list could name a kind that has no block.
 weights in the same pool, so it appears exactly where there is a pool.
 
 **Status:** settled for the tier chain. Revisit when the first sampled family is built, and for delay, where the
-negative orb is meant to freeze and return with the field.
+negative orb is meant to freeze and return with the field. Eating the negative orb does not affect a running chain;
+see "Digesters do not talk to each other".
 
 ---
 
@@ -483,3 +634,51 @@ more scenarios using the tier orb and the negative orb are already expected.
 `chain_break_penalty`,
 and `TierWorldConf` declares `neg_orb_conf`. Moving a field between a base class and its subclass doesn't change any
 YAML, so a wrong guess about the base is cheap to correct.
+
+---
+
+## Legacy is a reference, not a target (2026-10-11)
+
+**Decision:** The legacy strain in `src/syn_grid/legacy/` and the runs in `reproduction_package/` are references.
+The rebuild does not have to reproduce legacy's rewards step for step. They are used to check that a rebuilt scenario
+still learns, by comparing learning curves, and to look up what a behaviour used to be.
+
+**Where:** phases 0, 6 and 8 of `scenario-rebuild-roadmap.md`.
+
+**Alternatives considered:** An exact per-step match of rewards as the bar for the rebuild, which is how the roadmap
+was first written. Rejected because several decisions change rewards on purpose:
+
+- A max-tier chain pays what its orbs are worth, where legacy paid a fixed 10.
+- A negative orb no longer breaks a chain.
+- Step-wise has no completion bonus, uses `chain_break_penalty`, and charges it for a tier 1 eaten out of order.
+- A threshold break pays the penalty plus everything the chain gathered, where legacy paid the last tier's reward.
+
+**Why this one:** Holding the rebuild to legacy's numbers would mean keeping behaviour that was decided against.
+
+**Status:** settled. Nothing decided so far changes the observation, so an observation trace can still be compared
+exactly. If a rebuilt sparse scenario does not learn, legacy is the place to check whether it ever did.
+
+---
+
+## Reward normalisation stays off (2026-10-11)
+
+**Decision:** Training keeps `norm_reward=False` on `VecNormalize`. Observations are normalised and rewards reach the
+algorithm as they are.
+
+**Where:** `runners/agent_runners/sb3/artifact_manager.py`.
+
+**Alternatives considered:** Turning reward normalisation on, so that the size of a chain's prize stops mattering to
+the learner. Not now:
+
+- The rewards are designed by hand to sit in a small range.
+- Normalisation divides by a running estimate of how much the return varies. With sparse rewards that estimate is
+tiny until the first success and shifts when it comes.
+- The 81 saved runs in `reproduction_package/` were trained without it, so new runs would stop being comparable with
+them for a reason unrelated to the rebuild.
+
+**Why this one:** It has been this way since `VecNormalize` was introduced on 2026-04-29 (`593fa89`). No commit on
+any branch sets it to true, and 8 of the 81 saved stats files were read and all store false. The reason was not
+written down; the owner recalls it as a deliberate choice.
+
+**Status:** settled for now, and not tested either way on these scenarios. Revisit for continuous scenarios, where
+the return is many completed chains added together, or if a chain's total goes well beyond a few tens.
