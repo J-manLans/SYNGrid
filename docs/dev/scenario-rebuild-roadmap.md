@@ -20,7 +20,7 @@ small check.
 | `blocks/spawning.py` | stub: three fields, hooks without bodies, and an unused `OrbFieldUpdate` protocol |
 | `goal/tier_chain/population.py`, `termination.py` | stubs: no orbs are made, and no episode ends |
 | `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario`; `build_world`, `_make_tier_digester`, the negative bundle and the other three builders raise `NotImplementedError` |
-| Config and termination for the tier chain | still carry `completion_reward`, which was decided away on 2026-10-11; the reward ladder is on the dense orb block only |
+| Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
 | `core/droid/digestion/digestion.py` | written: the routing key and the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float) |
 | `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes. Not wired into a builder |
 | `core/droid/digestion/digesters/neg_digester.py` | empty |
@@ -94,7 +94,7 @@ it.
 2. Spawning: the whole chain on the field from the first step, no tier orb expires.
 3. Termination: the outcome type and the protocol in `blocks/`; the tier-chain strategy in its own file. It ends on
    energy 0, a broken chain, a completed chain or the clock. It pays `timeout_penalty` when the clock runs out and
-   nothing for a completed chain. `completion_reward` goes from the strategy and from `GoalConf`.
+   nothing for a completed chain. Open: what it pays for a chain that holds a reward when the clock runs out.
 4. Observation rules: only what the current perception needs for now. The full shape waits for phase 7.
 
 **Done when:** each file imports on its own, and the termination strategy gives the right outcome for a hand-built
@@ -129,17 +129,16 @@ world state in each of its four endings.
 
 **Files:** `scenario/goal/tier_chain/builders.py`.
 
-**Settle first:** how the reward ladder reaches every tier-chain scenario. It is on `TierDenseOrbConf` only, and
-since 2026-10-11 max-tier pays what the orbs are worth, so spatial needs it too.
+**Done on 2026-10-11:** the config is in line with the digesters. The reward ladder is one formula on the shared
+`TierOrbConf`, `completion_reward` is gone from the models, the termination, the builder and the spatial YAML, and
+dense has no config classes of its own.
 
 **Write:**
 
-1. The config: the reward ladder where every tier-chain scenario has it, and `completion_reward` removed from the
-   models and the spatial YAML.
-2. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, a max-tier digester made
+1. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, a max-tier digester made
    by `_make_tier_digester` from `max_tier` and `chain_break_penalty`).
-3. `_tier_chain_scenario`: what the family shares.
-4. `_build_tier_chain_world` and the world readers, which take the chain's state from the tier digester through the
+2. `_tier_chain_scenario`: what the family shares.
+3. `_build_tier_chain_world` and the world readers, which take the chain's state from the tier digester through the
    engine.
 
 **Done when:** `import syn_grid.scenario.registry` works, `build_scenario` returns a `Scenario`, two scenarios built
@@ -239,7 +238,8 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 - Tests: yours to curate; the old suite targets the old schema.
 - Delete `legacy/` and the `USE_LEGACY` switch once the comparison is no longer needed.
 - Bring `AGENTS.md` and `docs/architecture/` in line with what was built.
-- Decide which scenarios to lock (see `codebase-ideas.md`).
+- Lock the scenarios that have reproduced their legacy results: move their fixed values from the YAML into the
+  builder (see `codebase-ideas.md`).
 
 ---
 

@@ -45,11 +45,6 @@ TierScenarioConf (GoalScenarioConf)
 TierScenarioConf ──── TierDelayScenarioConf
 └── world_conf ──────── TierDelayWorldConf
       └── tier_orb_conf ── TierDelayOrbConf      (delay)
-
-TierScenarioConf ──── TierDenseScenarioConf
-└── world_conf ──────── TierDenseWorldConf
-      ├── goal_conf ────── TierDenseGoalConf     (both values default to 0)
-      └── tier_orb_conf ── TierDenseOrbConf      (the reward ladder)
 ```
 
 Configuration is three YAML files in `config/yaml/`, each validated by a
@@ -74,23 +69,22 @@ on: how long an episode lasts, the grid, the droid, the goal and the orbs.
 observation.
 
 Each layer adds its own block to the world. `scenario/goal/config.py` adds
-`goal_conf`, what reaching the objective pays and what missing the deadline
-costs. `scenario/goal/tier_chain/config.py` adds `tier_orb_conf`, the chain
-length and the chain-break penalty, and the optional `neg_orb_conf`. Each orb
+`goal_conf`, what missing the deadline costs.
+`scenario/goal/tier_chain/config.py` adds `tier_orb_conf`, which is the chain
+length, what each tier is worth and the chain-break penalty, and the optional
+`neg_orb_conf`. Each orb
 kind has its own `*_orb_conf` block in the world, holding what the kind's orbs
 and its digester need. The base world declares none of them; a scenario's world
 model declares the kinds it holds. A variant subclasses its block, then narrows
 the field on its own world model and
-on its own scenario model: the delay variant adds `delay`, and the dense variant
-adds the reward ladder. Only spatial has a YAML; the other three registered
-scenarios have models and no file yet.
+on its own scenario model. The delay variant is the only one, and it adds
+`delay`. Spatial, scaling sparse and scaling dense share `TierScenarioConf`.
+Only spatial has a YAML; the other three registered scenarios have models and
+no file yet.
 
-The models describe the goal and chain values as additive. A timeout pays the
-reward the chain was holding plus `timeout_penalty`, a broken chain pays the
-held reward plus `chain_break_penalty`, and a completed chain pays what its
-orbs were worth plus `completion_reward`. The three are required everywhere
-except in dense, where they default to 0 and can be left out of the YAML. The
-tier digesters do not use `completion_reward`.
+A tier orb is worth `base_reward * tier ** growth_factor`, where a growth
+factor of 1 is linear. `timeout_penalty` and `chain_break_penalty` are required
+in every scenario, and no value has a default.
 
 Every model is frozen, forbids unknown keys and is strict. Single-field bounds
 are `Field` constraints, and `model_validator`s cover the cross-field rules.

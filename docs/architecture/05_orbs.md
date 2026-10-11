@@ -70,4 +70,5 @@ one subclass per scoring mode, and no builder creates one yet.
 `core/` does not use any of that yet. `GridWorld` creates its orbs through
 `OrbFactory`, and the old `DigestionEngine` scores them, both from config
 classes that no longer exist. `NegativeOrb` takes a `NegOrbConf`, and `TierOrb`
-takes its tier, reward ladder and cool-down as plain values.
+takes its tier, base reward, growth factor and cool-down as plain values, and
+works its reward out from them.

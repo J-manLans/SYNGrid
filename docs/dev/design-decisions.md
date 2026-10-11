@@ -213,9 +213,8 @@ gets one rule for order: eat the tier one above the chain.
 
 **Status:** settled and built. What follows from it and is not done:
 
-- Tier orbs need real rewards in every tier-chain scenario. The reward ladder (`base_reward`, `growth_factor`,
-`linear_reward_growth`) is on `TierDenseOrbConf` only, and the spatial builder is written for tier orbs worth
-nothing.
+- The population has to give the tier orbs their rewards. The reward ladder is on the shared `TierOrbConf` since
+2026-10-11, but `TierChainPopulation` makes no orbs yet.
 - What a chain holds when the steps run out. A threshold scenario's termination is meant to pay `chain_reward`, and a
 max-tier one must not. The termination entry below says what is open there.
 - The rule assumes the agent sees where the chain is. Without that, a first and a second tier 1 look alike and pay
@@ -362,15 +361,16 @@ needs to turn the world into an observation, which the world never reads. Each l
 ```
 ScenarioConf                    world_conf, obs_conf
   WorldConf                       max_steps, grid_conf, droid_conf
-    GoalWorldConf                 + goal_conf       (timeout_penalty, completion_reward)
-      TierWorldConf               + tier_orb_conf   (max_tier, chain_break_penalty), neg_orb_conf (optional)
+    GoalWorldConf                 + goal_conf       (timeout_penalty)
+      TierWorldConf               + tier_orb_conf   (max_tier, the reward ladder, chain_break_penalty),
+                                    neg_orb_conf (optional)
         TierDelayWorldConf          tier_orb_conf   + delay
-        TierDenseWorldConf          tier_orb_conf   + the reward ladder
 ```
 
 Each world model has a scenario model that narrows `world_conf` to it (`GoalScenarioConf`, `TierScenarioConf`,
-`TierDelayScenarioConf`, `TierDenseScenarioConf`). A variant is three classes: its block, its world and its scenario
-model.
+`TierDelayScenarioConf`). A variant is three classes: its block, its world and its scenario model. Scaling dense has
+no variant of its own since 2026-10-11 and uses `TierScenarioConf`; see "The reward ladder is one formula on the
+shared tier orb block".
 
 There is no single orb block to look at. Each orb kind has its own `*_orb_conf` block in the world, holding what that
 kind's orbs and its digester need. This mirrors `OrbBundle` in the scenario layer, where a kind's orbs and its
@@ -489,9 +489,9 @@ There is no `completion_reward`. Termination reads `chains_completed` to end the
 `timeout_penalty` is in `goal_conf`, because any scenario with an objective and a deadline has it, whatever its orbs
 are. `chain_break_penalty` is in `tier_orb_conf`.
 
-**Where:** `GoalConf` in `scenario/goal/config.py`; `TierOrbConf` in `config/models/scenario/orb_models.py`;
-`TierDenseOrbConf` and `TierDenseGoalConf` in `scenario/goal/tier_chain/config.py`; the tier digesters in
-`core/droid/digestion/digesters/tier_chain/`.
+**Where:** `GoalConf` in `scenario/goal/config.py`; `TierOrbConf` in `config/models/scenario/orb_models.py`; the
+tier digesters in `core/droid/digestion/digesters/tier_chain/`; `TierChainTermination` in
+`scenario/goal/tier_chain/termination.py`.
 
 **Alternatives considered:**
 
@@ -507,23 +507,25 @@ scoring-mode conditional in termination.
 penalty is a goal-level idea: a goal scenario with other orbs would use it too.
 - Optional fields, `float | None = None`. Rejected because `None` either means the same as 0 or hides a second rule
 behind a value.
-- A default of 0 on the shared fields. Rejected because a `timeout_penalty` forgotten in a max-tier YAML would then
-load and train with none. The defaults are on dense's own classes only.
-- Requiring the values in dense and writing zeros in its YAML. Rejected because the YAML should list what is meant to
-be tuned.
+- A default of 0 on the shared fields. Rejected because a `timeout_penalty` forgotten in a YAML would then load and
+train with none.
+- Defaults of 0 on classes of dense's own, so its YAML can leave the values out. This was in place until
+2026-10-11. Removed because the defaults existed to reproduce the thesis runs, and with them gone dense needs no
+config classes at all. Every scenario writes `timeout_penalty` and `chain_break_penalty` in its YAML.
 
 **Why this one:** The digester does the same thing in a goal scenario and a continuous one, and the only difference
 between the two is whether termination ends the episode. What reaching the goal pays is found in one place.
 
-**Status:** settled as a rule, and not applied to the config or the termination.
+**Status:** settled, and applied to the config on 2026-10-11: `completion_reward` is gone from `GoalConf`, the
+tier-chain termination, the builder and the spatial YAML. Termination pays the timeout, and its `evaluate` is still
+a stub.
 
-- `completion_reward` is still a field of `GoalConf` and `TierDenseGoalConf`, a field of the tier-chain termination,
-an argument in the builder and a line in the spatial YAML. The docstrings in those files still describe the 2026-10-10
-rule.
 - Open: the timeout. On 2026-10-10 every goal scenario paid "what the chain was holding" by one rule, which worked
 because max-tier never held anything. The base digester now keeps `chain_reward` in every mode, so a max-tier
 scenario must not pay it at a timeout while a threshold scenario is meant to. How the tier-chain termination tells
-the two apart is not decided.
+the two apart is not decided. One suggestion on the table: each scoring mode says what its chain is owed when it is
+cut off, and the family keeps one termination class. The owner's position is that paying at a timeout is
+termination's job, and the rest is looked at when termination is written.
 
 A scenario-level completion reward earns a place only when the goal is something no single digester can see, such as
 surviving a number of steps or clearing the field. Revisit when such a scenario exists.
@@ -611,8 +613,9 @@ orb kind is treated differently below the scenario. The negative orb is optional
 tier-chain world model says so, and a scenario that depends on it declares it without a default.
 
 A base class holds only the fields that are certain to be shared. For the negative orb that is `reward` and
-`cool_down`. For the tier orb it is `max_tier` and `chain_break_penalty`; whether the reward ladder belongs in the
-base is decided when a second family uses tier orbs. Scoring mode is not a field of the base: a scenario that lets it
+`cool_down`. For the tier orb it is `max_tier`, the reward ladder and `chain_break_penalty`; the ladder joined
+the base on 2026-10-11, when every scoring mode came to pay what the orbs are worth. Scoring mode is not a field of
+the base: a scenario that lets it
 vary declares it on its own block.
 
 **Where:** `config/models/scenario/orb_models.py` for the base classes, each family's `config.py` for its subclasses and its
@@ -630,10 +633,47 @@ more scenarios using the tier orb and the negative orb are already expected.
 
 **Why this one:** What an orb is gets written once, and each scenario states its own relationship to it in one line.
 
-**Status:** settled and applied to the models. `TierOrbConf` is in `orb_models.py` with `max_tier` and
-`chain_break_penalty`,
-and `TierWorldConf` declares `neg_orb_conf`. Moving a field between a base class and its subclass doesn't change any
+**Status:** settled and applied to the models. `TierOrbConf` is in `orb_models.py` with `max_tier`, `base_reward`,
+`growth_factor` and `chain_break_penalty`, and `TierWorldConf` declares `neg_orb_conf`. Moving a field between a base class and its subclass doesn't change any
 YAML, so a wrong guess about the base is cheap to correct.
+
+---
+
+## The reward ladder is one formula on the shared tier orb block (2026-10-11)
+
+**Decision:** A tier orb is worth `base_reward * tier ** growth_factor`. A growth factor of 1 gives rewards that grow
+linearly with the tier, and a larger one makes higher tiers worth more than that. Both settings are fields of the
+shared `TierOrbConf`, so every tier-chain scenario states what its orbs are worth. The reward is not rounded.
+
+Scaling dense has no config classes of its own. It is registered with `TierScenarioConf`, like spatial and scaling
+sparse. Delay keeps its own, because it adds a real field.
+
+Spatial is set to a base of 1 and a growth factor of 1.5. Its three tiers are worth 1, 2.83 and 5.20, about 9.0
+together, which is close to the fixed 10 that legacy paid for a completed chain.
+
+**Where:** `TierOrbConf` in `config/models/scenario/orb_models.py`; `TierOrb` in
+`core/orbs/synergy/chain/tier_orb.py`; `scenario/goal/tier_chain/config.py`; `scenario/registry.py`;
+`config/yaml/goal_tier_chain_spatial.yaml`.
+
+**Alternatives considered:**
+
+- A `linear_reward_growth` switch beside the growth factor (legacy). Rejected because the growth factor was then
+required and ignored whenever the switch was on.
+- Rounding each reward to a whole number (legacy, in the non-linear branch only). Rejected because nothing needs
+whole numbers, and the two branches then disagreed for a base that is not a whole number.
+- The ladder on dense's own orb block, with tier orbs worth nothing elsewhere. This was in place until 2026-10-11.
+Rejected once max-tier came to pay what the orbs are worth.
+- Keeping dense's own classes for their two defaults of 0. Rejected; see the termination entry above.
+- A base of 2 with linear growth for spatial, which gives a chain worth 12. Not chosen: 9.0 is closer to 10, and a
+growth factor of 1.5 is what the saved runs used.
+
+**Why this one:** One formula with no setting that is ignored. In `reproduction_package/` every saved config has
+`linear_reward_growth: false` with a growth factor of 1.5 or 1.685, so the capability was in use, though it only
+reached the agent in the three dense runs.
+
+**Status:** settled and applied. `TierOrb` no longer takes `linear_reward_growth`. When scenarios are locked
+(`codebase-ideas.md`), a scenario's fixed values go in its builder, so locking is not a reason for dense to get
+config classes of its own again.
 
 ---
 

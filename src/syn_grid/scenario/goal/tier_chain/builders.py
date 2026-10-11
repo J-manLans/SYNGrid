@@ -18,7 +18,6 @@ from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.spawning import SpawningRules
 from syn_grid.scenario.goal.tier_chain.config import (
     TierDelayScenarioConf,
-    TierDenseScenarioConf,
     TierScenarioConf,
     TierWorldConf,
 )
@@ -84,7 +83,6 @@ def _tier_chain_scenario(
 
     termination = TierChainTermination(
         timeout_penalty=world_conf.goal_conf.timeout_penalty,
-        completion_reward=world_conf.goal_conf.completion_reward,
     )
 
     hud = (HudStat("current tier chain", _chain_progress),)
@@ -192,7 +190,7 @@ def build_tier_chain_spatial(
     Tier Chain, Spatial: the complete tier chain is laid out across the grid, but the droid only
     sees a 3x3 window around itself.
     Difficulty axis: the grid size.
-    Scoring: Only the completed chain pays, so the orbs are worth nothing on their own.
+    Scoring: max-tier. Only the completed chain pays, and it pays what its orbs are worth together.
 
     This scenario tests spatial memory under partial observability. The droid may walk past a later
     tier while collecting an earlier one, and once it's out of the window, it's out of sight. It's
@@ -206,7 +204,7 @@ def build_tier_chain_spatial(
     grid_conf = world_conf.grid_conf
     scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}"
 
-    # Max-tier scoring: the orbs are worth nothing, the digester pays the completed chain.
+    # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
     tier_bundle = OrbBundle(
         population=TierChainPopulation(world_conf.tier_orb_conf.max_tier),
         make_digester=_make_tier_digester,
@@ -229,14 +227,13 @@ def build_tier_chain_scaling_sparse(
 
 
 def build_tier_chain_scaling_dense(
-    scenario_name: str, scenario_conf: TierDenseScenarioConf
+    scenario_name: str, scenario_conf: TierScenarioConf
 ) -> Scenario:
     """
     Tier Chain, Scaling Dense.
 
     Axis and tag: the chain length and the grid size.
-    Scoring: threshold. Each tier is worth something, so this scenario's config carries the
-    reward ladder.
+    Scoring: threshold.
     """
 
     raise NotImplementedError("scaling dense is phase 8")

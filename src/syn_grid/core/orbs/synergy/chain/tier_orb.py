@@ -23,13 +23,11 @@ class TierOrb(BaseOrb):
         max_tier: int,
         base_reward: float,
         growth_factor: float,
-        linear_reward_growth: bool,
         cool_down: int,
     ):
         if tier > max_tier:
             raise ValueError("Tier is higher than the allowed max")
 
-        self._linear_reward_growth = linear_reward_growth
         self._tier_base_reward = base_reward
         self._growth_factor = growth_factor
 
@@ -44,13 +42,10 @@ class TierOrb(BaseOrb):
     # ================= #
 
     def _calculate_reward(self, tier: int) -> float:
-        """
-        Calculate the reward based on the tier base and growth setting.
+        """Return what an orb of this tier is worth.
 
-        :param multiplier: The factor by which the base reward is scaled.
+        The base reward times the tier raised to the growth factor. A growth
+        factor of 1 makes the rewards grow linearly with the tier.
         """
 
-        if self._linear_reward_growth or tier == 1:
-            return self._tier_base_reward * tier
-        else:
-            return round(self._tier_base_reward * (tier**self._growth_factor))
+        return self._tier_base_reward * tier**self._growth_factor

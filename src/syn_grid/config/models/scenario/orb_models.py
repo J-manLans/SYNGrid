@@ -33,15 +33,20 @@ class NegOrbConf(BaseModel, frozen=True, extra="forbid", strict=True):
 
 
 class TierOrbConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
-    """Tier orbs: how many tiers there are, and what breaking their order costs.
+    """Tier orbs: how many tiers there are, what each is worth, and what
+    breaking their order costs.
 
     `max_tier` is the highest tier.
 
-    `chain_break_penalty` is what breaking the chain costs, added to whatever
-    reward the chain was holding.
+    A tier's reward is `base_reward * tier ** growth_factor`. A growth factor
+    of 1 makes the rewards grow linearly with the tier.
+
+    `chain_break_penalty` is what eating a tier orb out of order costs.
 
     How tier orbs are scored is stated by each scenario's builder.
     """
 
     max_tier: int = Field(gt=0)
+    base_reward: float
+    growth_factor: float = Field(gt=0)
     chain_break_penalty: float

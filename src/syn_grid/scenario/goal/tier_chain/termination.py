@@ -25,12 +25,10 @@ class TierChainTermination:
     """Ends a tier chain episode: a broken chain, a finished chain, or the clock.
 
     Attributes:
-        timeout_penalty: added to the held reward when the clock runs out.
-        completion_reward: added to the step's reward when the chain completes.
+        timeout_penalty: what the clock running out costs.
     """
 
     timeout_penalty: float
-    completion_reward: float
 
     def evaluate(
         self, world: GridWorld, steps_left: int, reward: float

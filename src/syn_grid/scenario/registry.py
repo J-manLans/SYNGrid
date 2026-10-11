@@ -27,7 +27,6 @@ from syn_grid.scenario.goal.tier_chain.builders import (
 )
 from syn_grid.scenario.goal.tier_chain.config import (
     TierDelayScenarioConf,
-    TierDenseScenarioConf,
     TierScenarioConf,
 )
 
@@ -68,7 +67,7 @@ SCENARIOS: dict[ScenarioName, ScenarioEntry] = {
         TierScenarioConf, build_tier_chain_scaling_sparse
     ),
     ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_DENSE: ScenarioEntry(
-        TierDenseScenarioConf, build_tier_chain_scaling_dense
+        TierScenarioConf, build_tier_chain_scaling_dense
     ),
     ScenarioName.GOAL_TIER_CHAIN_DELAY: ScenarioEntry(
         TierDelayScenarioConf, build_tier_chain_delay

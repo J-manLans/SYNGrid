@@ -188,7 +188,9 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   itself is still on `ObservationHandler`.
 - Digestion pays for orbs and termination pays for the clock. The tier digester
   pays the orbs, the chain break and the completed chain; termination pays
-  `timeout_penalty`. `completion_reward` is decided away.
+  `timeout_penalty`. There is no `completion_reward`.
+- A tier orb is worth `base_reward * tier ** growth_factor`, set on the shared
+  `TierOrbConf` and not rounded. Scaling dense has no config classes of its own.
 - Legacy and `reproduction_package/` are references, not targets.
 - Reward normalisation stays off in training (`norm_reward=False`).
 - A tier chain holds one negative orb. `NegOrbConf` is `reward` and `cool_down`;
@@ -262,12 +264,11 @@ decisions on this branch:
   `world_conf` and `obs_conf`.
 - **Two scenarios built from the same config do not compare equal** today. The
   only differing field is `build_world`, which is a `functools.partial`.
-- **Decided on 2026-10-11 and not applied in the code:** `completion_reward` is
-  still in `GoalConf`, `TierDenseGoalConf`, the tier-chain termination, the
-  builder and the spatial YAML, and their docstrings describe the older rule.
-  The reward ladder is only on `TierDenseOrbConf`, and the spatial builder is
-  written for tier orbs worth nothing, so a max-tier chain would pay 0 as things
-  stand. `_make_tier_digester` raises.
+- **The config is in line with the digesters, and the builders are not.**
+  `_make_tier_digester` raises, and `TierChainPopulation` makes no orbs, so
+  nothing gives a tier orb its reward from the config yet.
+- **`core/orbs/orb_factory.py` calls `TierOrb` with a signature it no longer
+  has.** The file does not import and the roadmap removes it.
 - **The tier digesters were only tried in throwaway scripts.** No test covers
   them.
 - **`blocks/spawning.py` is mid-change.** `SpawningRules` has three fields, its

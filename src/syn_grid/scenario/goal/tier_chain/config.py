@@ -10,7 +10,7 @@ digester need, and the optional `neg_orb_conf`. A variant that needs a field
 the family lacks subclasses the tier block, narrows `tier_orb_conf` on its own
 world model and narrows `world_conf` on its own scenario model.
 
-See `config/models/scenario/common_scenario_models.py` for the vocabulary every family
+See `config/models/scenario/common_models.py` for the vocabulary every family
 composes, `config/models/scenario/orb_models.py` for the orb kinds, and
 `scenario/goal/config.py` for what every goal scenario shares.
 """
@@ -18,7 +18,7 @@ composes, `config/models/scenario/orb_models.py` for the orb kinds, and
 from pydantic import Field, model_validator
 
 from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
-from syn_grid.scenario.goal.config import GoalConf, GoalScenarioConf, GoalWorldConf
+from syn_grid.scenario.goal.config import GoalScenarioConf, GoalWorldConf
 
 # ===================== #
 #    Tier Orb Models     #
@@ -27,38 +27,6 @@ from syn_grid.scenario.goal.config import GoalConf, GoalScenarioConf, GoalWorldC
 
 class TierDelayOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
     delay: int = Field(gt=0)
-
-
-class TierDenseOrbConf(TierOrbConf, frozen=True, extra="forbid", strict=True):
-    """Tier orbs that are each worth something: the reward ladder.
-
-    A tier's reward is `base_reward * tier` when growth is linear, and
-    `base_reward * tier ** growth_factor` otherwise.
-
-    `chain_break_penalty` defaults to 0, so a broken chain pays the reward it
-    was holding.
-    """
-
-    base_reward: float
-    growth_factor: float = Field(gt=0)
-    linear_reward_growth: bool
-    chain_break_penalty: float = 0.0
-
-
-# ===================== #
-#      Goal Models       #
-# ===================== #
-
-
-class TierDenseGoalConf(GoalConf, frozen=True, extra="forbid", strict=True):
-    """The goal of a scenario whose tier orbs pay for themselves.
-
-    Both values default to 0, so a timeout pays the reward the chain was
-    holding and a completed chain pays what its orbs were worth.
-    """
-
-    timeout_penalty: float = 0.0
-    completion_reward: float = 0.0
 
 
 # ======================= #
@@ -97,11 +65,6 @@ class TierDelayWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True
     tier_orb_conf: TierDelayOrbConf
 
 
-class TierDenseWorldConf(TierWorldConf, frozen=True, extra="forbid", strict=True):
-    goal_conf: TierDenseGoalConf = TierDenseGoalConf()
-    tier_orb_conf: TierDenseOrbConf
-
-
 # ============================= #
 #    Top-Level Configuration   #
 # ============================= #
@@ -113,7 +76,3 @@ class TierScenarioConf(GoalScenarioConf, frozen=True, extra="forbid", strict=Tru
 
 class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
     world_conf: TierDelayWorldConf
-
-
-class TierDenseScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
-    world_conf: TierDenseWorldConf
