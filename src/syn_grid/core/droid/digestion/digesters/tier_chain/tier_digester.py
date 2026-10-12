@@ -13,6 +13,11 @@ from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import OrbKind, SynergyKind
 
 
+# ################## #
+# Digestion Strategy #
+# ################## #
+
+
 class TierDigester(ABC):
     """The rules for tier orbs, without the payouts.
 

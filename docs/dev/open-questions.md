@@ -27,7 +27,24 @@ here. A question that is only half answered stays, with what is left of it.
   `chain_reward`, and a max-tier one must not. How the tier-chain termination tells them apart is not decided. One
   suggestion: each scoring mode says what its chain is owed when it is cut off, and the family keeps one termination
   class. The owner's position is that paying at a timeout is termination's job.
-  See: "Digestion pays for orbs, and termination pays for the clock" in `design-decisions.md`.
+
+  The answer also decides how cleanly the sandbox can choose a scoring mode. If termination holds the rule, a
+  sandbox whose mode comes from config needs a conditional on the mode in its termination, or one termination per
+  mode. If each mode says what its chain is owed, the sandbox's termination is the same for every mode. Raised on
+  2026-10-12.
+  See: "Digestion pays for orbs, and termination pays for the clock" and "A new scoring mode is a new scenario" in
+  `design-decisions.md`.
+
+## Phase 4: The builders
+
+- **How `make_digester` gets the values a digester needs.** `OrbBundle.make_digester` takes no arguments, and a tier
+  digester needs `max_tier` and `chain_break_penalty` from the config. `_make_tier_digester` takes none and raises.
+  Two options have come up. A `functools.partial` works, but two partials do not compare equal, which is what
+  already keeps two scenarios from comparing equal through `build_world`. A small frozen dataclass with a
+  `__call__`, holding the digester class and its values, compares by value; it would also be where a sandbox
+  builder puts the class it chose from config. Raised on 2026-10-12.
+  See: "The tier digester is a template with one subclass per scoring mode" in `design-decisions.md`; the roadmap's
+  phase 4.
 
 ## Phase 5: The Gymnasium side
 

@@ -43,7 +43,8 @@ its termination never ends an episode, the spawning hooks have no bodies, and
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring
 modes are written in `digesters/tier_chain/` and are not wired into a builder.
-The negative digester is an empty file. The rest of `core/`, `gymnasium/` and
+The negative digester is written in `digesters/neg_digester.py` and is not
+wired either. The rest of `core/`, `gymnasium/` and
 `rendering/` still import the old config, so
 `import syn_grid.scenario.registry` works while `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail. The roadmap expects that until its
@@ -270,8 +271,9 @@ decisions on this branch:
   nothing gives a tier orb its reward from the config yet.
 - **`core/orbs/orb_factory.py` calls `TierOrb` with a signature it no longer
   has.** The file does not import and the roadmap removes it.
-- **The engine and the tier digesters were only tried in throwaway scripts.**
-  No test covers them.
+- **The engine and the digesters were only tried in throwaway scripts.** No
+  test covers them. The negative digester was fed a stand-in object, not a
+  real negative orb.
 - **`blocks/spawning.py` is mid-change.** `SpawningRules` has three fields, its
   docstring still lists `delay_on_consume`, and `OrbFieldUpdate` is declared and
   unused.

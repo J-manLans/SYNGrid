@@ -23,7 +23,7 @@ small check.
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
 | `core/droid/digestion/digestion.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float). The routing key, `OrbKind`, is in `orb_meta.py` |
 | `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes. Not wired into a builder |
-| `core/droid/digestion/digesters/neg_digester.py` | empty |
+| `core/droid/digestion/digesters/neg_digester.py` | written: `NegDigester` pays the orb's own reward and counts `negatives_eaten`. Not wired into a builder |
 | `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
 | `core/droid/digestion/engine.py` | written: a router with `reset`, `digest` and `get`, built from digesters. The droid still constructs it the old way |
 | `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. The droid, the environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
@@ -218,8 +218,8 @@ scales the observation by its upper bound.
 One scenario at a time, each held against its thesis runs in `reproduction_package/` as a reference.
 
 1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
-2. **Negative orb.** One orb in a tier chain: its bundle and digester, one more field cell and observation slot. It
-   does not affect the chain.
+2. **Negative orb.** One orb in a tier chain: its bundle, one more field cell and observation slot, and a metric
+   that reads `negatives_eaten`. The digester is written. It does not affect the chain.
 3. **Delay.** Its own termination strategy, the cooldown after a consume, and the negative orb freezing with the
    field.
 4. **Dense.** The threshold digester is written. What is left is its builder and its termination, which pays what

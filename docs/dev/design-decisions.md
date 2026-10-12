@@ -70,7 +70,8 @@ digesters to build and how each is configured, through the bundle's `make_digest
 **Status:** settled; who creates the engine was settled on 2026-10-11, and what the engine does on a miss on
 2026-10-12. `digestion.py` and `engine.py` are written. The droid does not take digesters yet: it still builds the
 engine from three config values, so `synergy_droid.py`, and the places that read the old engine's `chained_tiers`,
-`stats` and `_pending_reward`, wait for phases 3 and 5. `NegativeDigester` goes in `digesters/` and is an empty file.
+`stats` and `_pending_reward`, wait for phases 3 and 5. `NegDigester` is in `digesters/neg_digester.py`: it pays the orb's own reward and
+counts `negatives_eaten`, so a metric can report it.
 
 ---
 
