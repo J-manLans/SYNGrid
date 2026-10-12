@@ -95,6 +95,8 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Completion:** an eaten tier orb that is the next tier and the last. The chain is over.
 - **Break:** an eaten tier orb that is any other tier. A tier 1 starts a new chain; any other tier leaves none.
 - **Chain reward:** the summed reward of the orbs in the running chain.
+- **Owed:** what a running chain has gathered and digestion has not paid. The tier digester states it, and
+  termination pays it when it ends the episode. Only threshold is ever owed anything.
 - **Scoring mode:** when a tier orb's worth is paid. An orb is worth the same in every mode.
 - **Max-tier:** nothing is paid until completion, which pays the whole chain.
 - **Step-wise:** each orb is paid as it is eaten.

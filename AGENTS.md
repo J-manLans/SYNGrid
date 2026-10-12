@@ -199,6 +199,10 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - Digestion pays for orbs and termination pays for the clock. The tier digester
   pays the orbs, the chain break and the completed chain; termination pays
   `timeout_penalty`. There is no `completion_reward`.
+- Termination only adds to a step's reward. At every ending it adds what the
+  tier digester's `owed_at_episode_end` returns, which is the gathered sum in
+  threshold and 0 in the other modes. One termination class serves all three
+  modes. The method is written; the termination that calls it is a stub.
 - A tier orb is worth `base_reward * tier ** growth_factor`, set on the shared
   `TierOrbConf` and not rounded. Scaling dense has no config classes of its own.
 - Legacy and `reproduction_package/` are references, not targets.

@@ -21,20 +21,6 @@ here. A question that is only half answered stays, with what is left of it.
   the owner may return to properties.
   See: "The tier digester is a template with one subclass per scoring mode" in `design-decisions.md`.
 
-## Phase 2: The blocks the spatial builder names
-
-- **What a chain holds when the steps run out.** A threshold scenario's termination is meant to pay the digester's
-  `chain_reward`, and a max-tier one must not. How the tier-chain termination tells them apart is not decided. One
-  suggestion: each scoring mode says what its chain is owed when it is cut off, and the family keeps one termination
-  class. The owner's position is that paying at a timeout is termination's job.
-
-  The answer also decides how cleanly the sandbox can choose a scoring mode. If termination holds the rule, a
-  sandbox whose mode comes from config needs a conditional on the mode in its termination, or one termination per
-  mode. If each mode says what its chain is owed, the sandbox's termination is the same for every mode. Raised on
-  2026-10-12.
-  See: "Digestion pays for orbs, and termination pays for the clock" and "A new scoring mode is a new scenario" in
-  `design-decisions.md`.
-
 ## Phase 4: The builders
 
 - **How `make_digester` gets the values a digester needs.** `OrbBundle.make_digester` takes no arguments, and a tier

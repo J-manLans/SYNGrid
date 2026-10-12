@@ -12,7 +12,6 @@ from typing import Final
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import OrbKind, SynergyKind
 
-
 # ################## #
 # Digestion Strategy #
 # ################## #
@@ -29,7 +28,8 @@ class TierDigester(ABC):
     - break: it is any other tier. A tier 1 orb starts a new chain, and any
       other tier leaves no chain.
 
-    A subclass decides what each of the three pays.
+    A subclass decides what each of the three pays, and what a running chain
+    is owed when an episode ends with nothing eaten to end it.
 
     Attributes:
         KIND: the orb kind this digester owns.
@@ -95,6 +95,15 @@ class TierDigester(ABC):
             self._grow_chain(tier, orb.REWARD)
 
         return reward
+
+    @abstractmethod
+    def owed_at_episode_end(self) -> float:
+        """Return what the running chain is owed if the episode ends now.
+
+        It is what the chain has gathered and digestion has not paid. The
+        digester only states it: whatever ends the episode adds it to the
+        last step's reward.
+        """
 
     # ================= #
     #      Helpers      #

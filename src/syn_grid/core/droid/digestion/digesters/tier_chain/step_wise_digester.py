@@ -19,6 +19,9 @@ class StepWiseDigester(TierDigester):
     A tier 1 orb that breaks a longer chain starts a new one, so it pays the
     penalty and its reward. Eaten while the chain is at tier 1 it pays the
     penalty alone.
+
+    A chain that is running when the episode ends is owed nothing, because
+    each of its orbs has been paid.
     """
 
     # ================= #
@@ -29,6 +32,13 @@ class StepWiseDigester(TierDigester):
         super().__init__(max_tier)
 
         self._CHAIN_BREAK_PENALTY: Final[float] = chain_break_penalty
+
+    # ================= #
+    #        API        #
+    # ================= #
+
+    def owed_at_episode_end(self) -> float:
+        return 0.0
 
     # ================= #
     #      Scoring      #

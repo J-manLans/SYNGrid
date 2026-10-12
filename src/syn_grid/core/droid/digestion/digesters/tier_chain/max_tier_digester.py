@@ -16,6 +16,8 @@ class MaxTierDigester(TierDigester):
     A growing chain pays nothing. The orb that completes it pays what all the
     orbs in the chain are worth together. A tier orb eaten out of order pays
     the chain break penalty, and what the chain had gathered is lost.
+
+    A chain that is running when the episode ends is owed nothing.
     """
 
     # ================= #
@@ -26,6 +28,13 @@ class MaxTierDigester(TierDigester):
         super().__init__(max_tier)
 
         self._CHAIN_BREAK_PENALTY: Final[float] = chain_break_penalty
+
+    # ================= #
+    #        API        #
+    # ================= #
+
+    def owed_at_episode_end(self) -> float:
+        return 0.0
 
     # ================= #
     #      Scoring      #

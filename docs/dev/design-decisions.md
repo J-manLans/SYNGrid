@@ -134,6 +134,10 @@ A scoring mode is a subclass that writes three methods: `_score_progress`, `_sco
 Each is handed the orb and returns a reward, and each is called before the chain moves, so the mode sees the chain as
 it was when the orb was eaten. The scenario's builder picks the subclass.
 
+A mode writes a fourth method, `owed_at_episode_end`, which is public and takes nothing. It returns what the running
+chain has gathered and digestion has not paid, and changes nothing. A termination reads it; the entry "Digestion pays
+for orbs, and termination pays for the clock" says how it is used. Added on 2026-10-12.
+
 The base holds what every mode shares and what readers outside take from it: `chained_tiers`, the counters
 `chains_progressed`, `chains_broken` and `chains_completed`, and `chain_reward`, the summed reward of the orbs in the
 running chain. It takes `max_tier` at construction, and each mode takes what it pays with.
@@ -170,11 +174,11 @@ yet, and `_make_tier_digester` in the tier-chain builders still raises.
 **Decision:** A tier orb is worth the same in every scoring mode. A mode decides only when that worth is paid. A
 break always costs `chain_break_penalty`.
 
-| | Progress | Break | Completion |
-|---|---|---|---|
-| Step-wise | the orb's reward | the penalty, plus the orb's reward if it restarts a chain | the orb's reward |
-| Threshold | 0 | the penalty, plus what the chain had gathered | what the chain had gathered, plus the orb's reward |
-| Max-tier | 0 | the penalty | what the chain had gathered, plus the orb's reward |
+| | Progress | Break | Completion | Owed at episode end |
+|---|---|---|---|---|
+| Step-wise | the orb's reward | the penalty, plus the orb's reward if it restarts a chain | the orb's reward | 0 |
+| Threshold | 0 | the penalty, plus what the chain had gathered | what the chain had gathered, plus the orb's reward | what the chain has gathered |
+| Max-tier | 0 | the penalty | what the chain had gathered, plus the orb's reward | 0 |
 
 A chain completed without a break pays the same total in all three. Step-wise and threshold pay the same total for
 any sequence of orbs, once threshold has paid out what it still holds.
@@ -228,13 +232,19 @@ gets one rule for order: eat the tier one above the chain.
 
 - The population has to give the tier orbs their rewards. The reward ladder is on the shared `TierOrbConf` since
 2026-10-11, but `TierChainPopulation` makes no orbs yet.
-- What a chain holds when the steps run out. A threshold scenario's termination is meant to pay `chain_reward`, and a
-max-tier one must not. The termination entry below says what is open there.
 - The rule assumes the agent sees where the chain is. Without that, a first and a second tier 1 look alike and pay
 differently. Keep the chain position in the observation.
+- In a goal scenario the rule assumes an eaten tier orb does not return in that episode. A tier 1 that breaks a chain
+starts a new one and is paid for it, at once in step-wise and at the ending in threshold. Where orbs respawn that is
+right, because the new chain can be completed. Where a break ends the episode it would pay for a chain that can never
+grow. A tier chain has one orb per tier, so with no return there is no second tier 1 to break with and the case
+cannot arise. Legacy behaved this way in single-chain mode, with and without delay. Nothing in the rebuild enforces
+it yet: the spawning hooks have no bodies. Revisit the restart rule if a goal scenario ever lets tier orbs respawn.
+Noted on 2026-10-12.
 
 Checked on 2026-10-11 in a throwaway script: over every sequence of up to 7 orbs on a 4-tier chain, step-wise and
-threshold paid the same total, counting what threshold still held at the end.
+threshold paid the same total, counting what threshold still held at the end. Checked again on 2026-10-12 with
+`owed_at_episode_end` as what threshold still held: no mismatch in the 21,844 sequences.
 
 Not carried over and not discussed to a decision: legacy threshold's `reward_multiplier`, which scaled and rounded
 each orb's reward. If it returns, it is a setting of the orb's reward and not of the mode.
@@ -491,16 +501,29 @@ than the world, such as a delay.
 
 ---
 
-## Digestion pays for orbs, and termination pays for the clock (2026-10-10, changed 2026-10-11)
+## Digestion pays for orbs, and termination pays for the clock (2026-10-10, changed 2026-10-11 and 2026-10-12)
 
-**Decision:** A reward caused by eating an orb is paid by digestion. Termination decides when an episode ends and
-pays only what the clock causes.
+**Decision:** A reward caused by eating an orb is paid by digestion. Termination decides when an episode ends, pays
+what the clock causes, and settles what a running chain is owed.
 
 | Moment | Paid by | Pays |
 |---|---|---|
 | Chain break | the tier digester | `chain_break_penalty`, plus what the chain had gathered in threshold |
 | Completion | the tier digester | what the scoring mode says the chain is worth |
-| Timeout | termination | `timeout_penalty`, added to what the chain was holding where the scenario pays that out |
+| Any ending | termination | what the tier digester says the running chain is owed |
+| Timeout | termination | `timeout_penalty`, on top of the row above |
+
+Termination only adds to the step's reward and never replaces it. The step penalty, the border penalty and an eaten
+orb's reward are paid before termination is asked, and they stay.
+
+What a chain is owed is stated by the tier digester's `owed_at_episode_end`: what it has gathered in threshold, and 0
+in max-tier and step-wise. Termination adds it on every step where it ends the episode, whatever the cause: energy
+reaching 0, the clock, and in a goal scenario a break or a completion. It does not ask which mode is running. A tier
+1 that breaks a chain starts a new one, so a threshold episode that ends on that break is paid the new chain's tier 1
+by termination. With that, threshold and step-wise total the same over a whole episode.
+
+The digester is the same in a goal scenario and a continuous one. What differs is the termination: which moments end
+the episode, and whether the clock costs `timeout_penalty`.
 
 There is no `completion_reward`. Termination reads `chains_completed` to end the episode and adds nothing for it.
 
@@ -521,6 +544,18 @@ does not end the episode has no termination to pay it.
 prize, and a second number for the same event would have to be looked up in a second place.
 - A rule per scoring mode inside one termination, as the old termination had. Rejected because it puts a
 scoring-mode conditional in termination.
+- A termination of its own for a threshold scenario, which pays `chain_reward`. Rejected because the digester's mode
+and the termination would be chosen in two places that can disagree, and the sandbox, where the mode comes from
+config, would need the conditional after all.
+- `owed_at_episode_end` with a default of 0 on the base. Rejected because a new mode that holds a sum would then pay
+nothing at a timeout without anyone being told. It is abstract, so every mode has to say.
+- Nothing settled when energy reaches 0 (legacy). Rejected because a threshold chain would then be paid at every
+ending but one. The cost is accepted: an agent that runs out of energy while it holds a chain is paid on the step it
+fails.
+- The timeout replacing the step's reward (legacy). Rejected because the last step's own penalties and any orb eaten
+on it were lost.
+- Threshold paying no `timeout_penalty` (legacy). Rejected because the clock running out is the same event in every
+mode.
 - Moving `timeout_penalty` into a max-tier scoring block, since dense never used it. Rejected because a timeout
 penalty is a goal-level idea: a goal scenario with other orbs would use it too.
 - Optional fields, `float | None = None`. Rejected because `None` either means the same as 0 or hides a second rule
@@ -538,12 +573,11 @@ between the two is whether termination ends the episode. What reaching the goal 
 tier-chain termination, the builder and the spatial YAML. Termination pays the timeout, and its `evaluate` is still
 a stub.
 
-- Open: the timeout. On 2026-10-10 every goal scenario paid "what the chain was holding" by one rule, which worked
-because max-tier never held anything. The base digester now keeps `chain_reward` in every mode, so a max-tier
-scenario must not pay it at a timeout while a threshold scenario is meant to. How the tier-chain termination tells
-the two apart is not decided. One suggestion on the table: each scoring mode says what its chain is owed when it is
-cut off, and the family keeps one termination class. The owner's position is that paying at a timeout is
-termination's job, and the rest is looked at when termination is written.
+- Settled on 2026-10-12: what a running chain is paid when an episode ends. On 2026-10-10 every goal scenario paid
+"what the chain was holding" by one rule, which worked because max-tier never held anything. The base digester keeps
+`chain_reward` in every mode since 2026-10-11, so a max-tier scenario must not pay it while a threshold scenario
+does. Each mode now says what its chain is owed, and termination pays it. `owed_at_episode_end` is written in the
+base and the three modes. Nothing calls it yet, because the tier-chain termination's `evaluate` is a stub.
 
 A scenario-level completion reward earns a place only when the goal is something no single digester can see, such as
 surviving a number of steps or clearing the field. Revisit when such a scenario exists.
@@ -710,6 +744,8 @@ was first written. Rejected because several decisions change rewards on purpose:
 - A negative orb no longer breaks a chain.
 - Step-wise has no completion bonus, uses `chain_break_penalty`, and charges it for a tier 1 eaten out of order.
 - A threshold break pays the penalty plus everything the chain gathered, where legacy paid the last tier's reward.
+- An ending adds to the step's reward, where legacy's timeout replaced it. A threshold timeout pays `timeout_penalty`
+too, and a threshold chain is paid what it is owed when energy reaches 0.
 
 **Why this one:** Holding the rebuild to legacy's numbers would mean keeping behaviour that was decided against.
 

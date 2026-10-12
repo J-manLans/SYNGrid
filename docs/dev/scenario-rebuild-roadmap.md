@@ -22,7 +22,7 @@ small check.
 | `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario`; `build_world`, `_make_tier_digester`, the negative bundle and the other three builders raise `NotImplementedError` |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
 | `core/droid/digestion/digestion.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float). The routing key, `OrbKind`, is in `orb_meta.py` |
-| `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes. Not wired into a builder |
+| `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes, each with `owed_at_episode_end`. Not wired into a builder |
 | `core/droid/digestion/digesters/neg_digester.py` | written: `NegDigester` pays the orb's own reward and counts `negatives_eaten`. Not wired into a builder |
 | `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
 | `core/droid/digestion/engine.py` | written: a router with `reset`, `digest` and `get`, built from digesters. The droid still constructs it the old way |
@@ -92,10 +92,13 @@ three cases that raise; nothing in the test suite covers it.
 **Write:**
 
 1. Population: the protocol in `blocks/`, and the tier-chain one that makes one tier orb per tier.
-2. Spawning: the whole chain on the field from the first step, no tier orb expires.
+2. Spawning: the whole chain on the field from the first step, no tier orb expires, and an eaten tier orb does not
+   return in that episode. The last one is a requirement and not a detail: with one orb per tier it means a chain
+   can never be broken with a tier 1, which the scoring rules count on in a goal scenario.
 3. Termination: the outcome type and the protocol in `blocks/`; the tier-chain strategy in its own file. It ends on
-   energy 0, a broken chain, a completed chain or the clock. It pays `timeout_penalty` when the clock runs out and
-   nothing for a completed chain. Open: what it pays for a chain that holds a reward when the clock runs out.
+   energy 0, a broken chain, a completed chain or the clock. It only adds to the step's reward: what the tier
+   digester's `owed_at_episode_end` returns at every ending, and `timeout_penalty` when the clock runs out. Nothing
+   for a completed chain.
 4. Observation rules: only what the current perception needs for now. The full shape waits for phase 7.
 
 **Done when:** each file imports on its own, and the termination strategy gives the right outcome for a hand-built
@@ -222,8 +225,8 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
    that reads `negatives_eaten`. The digester is written. It does not affect the chain.
 3. **Delay.** Its own termination strategy, the cooldown after a consume, and the negative orb freezing with the
    field.
-4. **Dense.** The threshold digester is written. What is left is its builder and its termination, which pays what
-   the chain holds when the steps run out.
+4. **Dense.** The threshold digester is written, and the family's termination pays what its chain is owed. What is
+   left is its builder.
 
 ---
 

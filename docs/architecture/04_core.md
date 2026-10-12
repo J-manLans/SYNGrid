@@ -63,7 +63,7 @@ a digester by its class to a reader, and raises when a digester is missing or
 a kind has two. `digesters/tier_chain/` holds `TierDigester`, a base class
 that tracks the chain, counts its progress, breaks and completions and sums
 what its orbs are worth, and three subclasses that each say what progress, a
-break and a completion pay: `MaxTierDigester`, `StepWiseDigester` and
-`ThresholdDigester`. `neg_digester.py` holds `NegDigester`, which pays a
+break and a completion pay, and what a running chain is owed when an episode
+ends: `MaxTierDigester`, `StepWiseDigester` and `ThresholdDigester`. `neg_digester.py` holds `NegDigester`, which pays a
 negative orb's own reward and counts how many were eaten. Orbs are covered in
 `05_orbs.md`.

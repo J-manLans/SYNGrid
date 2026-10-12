@@ -18,6 +18,9 @@ class ThresholdDigester(TierDigester):
     the chain break penalty plus what the chain had gathered so far.
 
     A tier 1 orb eaten while the chain is at tier 1 pays the penalty alone.
+
+    A chain that is running when the episode ends is owed what it has
+    gathered.
     """
 
     # ================= #
@@ -28,6 +31,13 @@ class ThresholdDigester(TierDigester):
         super().__init__(max_tier)
 
         self._CHAIN_BREAK_PENALTY: Final[float] = chain_break_penalty
+
+    # ================= #
+    #        API        #
+    # ================= #
+
+    def owed_at_episode_end(self) -> float:
+        return self.chain_reward
 
     # ================= #
     #      Scoring      #
