@@ -44,8 +44,8 @@ here. A question that is only half answered stays, with what is left of it.
 
 - **Which global features an observation carries, and whether the HUD and the observation share readers.**
   See: the roadmap's phase 7.
-- **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on type and tier.**
-  See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only type and tier" in
+- **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.**
+  See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only kind and tier" in
   `design-decisions.md`.
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
   into what the droid sees and how it is encoded, the two halves may belong to different sides.
@@ -59,7 +59,7 @@ here. A question that is only half answered stays, with what is left of it.
   crop of the window loses the droid's position; the full grid with the rest blacked out keeps it.
   See: "A perception is two things" in `codebase-ideas.md`.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
-  See: "Two orb categories, and an orb meta that stores only type and tier" in `design-decisions.md`.
+  See: "Two orb categories, and an orb meta that stores only kind and tier" in `design-decisions.md`.
 
 ## Phase 8: The rest of the tier-chain family
 

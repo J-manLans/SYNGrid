@@ -1,8 +1,8 @@
 """
-What an orb is: its type, and its tier if it is a tier orb.
+What an orb is: its kind, and its tier if it is a tier orb.
 
 The meta says nothing about how an orb acts. It is what the rest of the code
-reads to tell orbs apart: digestion routes on the type, the renderer picks an
+reads to tell orbs apart: digestion routes on the kind, the renderer picks an
 image from it, and the agent sees the identity.
 """
 
@@ -11,21 +11,21 @@ from typing import Final
 
 
 class OrbCategory(Enum):
-    """The two groups of orb types. One digit of an orb's identity."""
+    """The two groups of orb kinds. One digit of an orb's identity."""
 
     NONE = 0
     DIRECT = 1
     SYNERGY = 2
 
 
-class DirectType(Enum):
+class DirectKind(Enum):
     """Orbs that change the score and nothing else, on the step they are eaten."""
 
     NONE = 0
     NEGATIVE = 1
 
 
-class SynergyType(Enum):
+class SynergyKind(Enum):
     """Orbs that leave something behind which changes a later outcome."""
 
     # TODO: when adding a new orb, ensure that ole MAX_SENTINEL for tier orbs wasn't needed. The
@@ -39,10 +39,10 @@ class OrbMeta:
     """What one orb is.
 
     Attributes:
-        TYPE: the orb's type, a member of `DirectType` or `SynergyType`.
+        KIND: the orb's kind, a member of `DirectKind` or `SynergyKind`.
         TIER: the orb's tier. An int for a tier orb and None for every other
-            type.
-        IDENTITY: the number the agent sees for this orb. Orbs of the same type
+            kind.
+        IDENTITY: the number the agent sees for this orb. Orbs of the same kind
             and tier share it. It starts as the radix identity, and the world
             replaces it with a dense index when the world is built.
     """
@@ -53,12 +53,12 @@ class OrbMeta:
 
     def __init__(
         self,
-        type: DirectType | SynergyType,
+        kind: DirectKind | SynergyKind,
         tier: int | None = None,
     ):
-        self._assert_tier_matches_type(type, tier)
+        self._assert_tier_matches_kind(kind, tier)
 
-        self.TYPE: Final[DirectType | SynergyType] = type
+        self.KIND: Final[DirectKind | SynergyKind] = kind
         self.TIER: Final[int | None] = tier
         self.IDENTITY = self.compute_radix_identity()
 
@@ -66,17 +66,17 @@ class OrbMeta:
     #      Helpers      #
     # ================= #
 
-    def _assert_tier_matches_type(
+    def _assert_tier_matches_kind(
         self,
-        type: DirectType | SynergyType,
+        kind: DirectKind | SynergyKind,
         tier: int | None,
     ) -> None:
-        """Check that a tier orb has a tier of at least 1, and that no other type has one."""
+        """Check that a tier orb has a tier of at least 1, and that no other kind has one."""
 
-        if not isinstance(type, (DirectType, SynergyType)):
-            raise TypeError("The orb's type needs to be a direct or a synergy type")
+        if not isinstance(kind, (DirectKind, SynergyKind)):
+            raise TypeError("The orb's kind needs to be a direct or a synergy kind")
 
-        if type == SynergyType.TIER:
+        if kind == SynergyKind.TIER:
             if tier is None:
                 raise ValueError("A tier orb needs a tier")
 
@@ -88,26 +88,26 @@ class OrbMeta:
 
     def compute_radix_identity(self) -> int:
         """
-        Encode category, type and tier as one number using mixed-radix encoding.
+        Encode category, kind and tier as one number using mixed-radix encoding.
 
         Each of the three occupies its own positional slot, similar to how hours,
         minutes and seconds encode into a total number of seconds. The category is
-        read from which enum the type belongs to, and keeps a direct type and a
-        synergy type with the same value apart. The tier is the highest slot, so
-        sorting by identity orders orbs by tier first, then type, then category.
+        read from which enum the kind belongs to, and keeps a direct kind and a
+        synergy kind with the same value apart. The tier is the highest slot, so
+        sorting by identity orders orbs by tier first, then kind, then category.
         """
 
         category = (
             OrbCategory.DIRECT
-            if isinstance(self.TYPE, DirectType)
+            if isinstance(self.KIND, DirectKind)
             else OrbCategory.SYNERGY
         )
 
         return (
             category.value
-            + ((len(OrbCategory) + 1) * self.TYPE.value)
+            + ((len(OrbCategory) + 1) * self.KIND.value)
             + (
-                ((len(OrbCategory) + 1) * (max(len(DirectType), len(SynergyType)) + 1))
+                ((len(OrbCategory) + 1) * (max(len(DirectKind), len(SynergyKind)) + 1))
                 * (self.TIER or 0)
             )
         )

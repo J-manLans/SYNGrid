@@ -5,9 +5,9 @@ import pygame
 
 from syn_grid.config.models import RendererConf
 from syn_grid.core.orbs.orb_meta import (
-    DirectType,
+    DirectKind,
     OrbMeta,
-    SynergyType,
+    SynergyKind,
 )
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.utils.paths_util import get_syn_grid_path
@@ -194,10 +194,10 @@ class PygameRenderer:
     def _draw_orb(self, orb_meta: OrbMeta, pos: tuple[int, int]):
         """Draw orb at pixel position `pos` (top-left)"""
 
-        if orb_meta.TYPE == DirectType.NEGATIVE:
+        if orb_meta.KIND == DirectKind.NEGATIVE:
             self._window_surface.blit(self.graphics["negative_orb_img"], pos)
         else:
-            if orb_meta.TYPE == SynergyType.TIER and orb_meta.TIER is not None:
+            if orb_meta.KIND == SynergyKind.TIER and orb_meta.TIER is not None:
                 self._draw_tier_orb(orb_meta.TIER, pos)
 
     def _draw_tier_orb(self, tier: int, pos: tuple[int, int]):

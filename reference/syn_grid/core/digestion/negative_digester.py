@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from syn_grid.core.digestion.digestion import DigestionResult, Event, OrbKind
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_meta import DirectType, OrbCategory
+from syn_grid.core.orbs.orb_meta import DirectKind, OrbCategory
 
 
 # #################### #
@@ -15,7 +15,7 @@ from syn_grid.core.orbs.orb_meta import DirectType, OrbCategory
 class NegativeDigester:
     """A negative orb is worth exactly its own reward, and has no state."""
 
-    kind: OrbKind = (OrbCategory.DIRECT, DirectType.NEGATIVE)
+    kind: OrbKind = (OrbCategory.DIRECT, DirectKind.NEGATIVE)
 
     def reset(self) -> None:
         pass

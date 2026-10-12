@@ -129,5 +129,5 @@ one side, and `markovian`, `fog_of_war` and `fully_pomdp` on the other.
   nothing about where the droid is. The full grid with everything outside the window blacked out keeps the position.
   `vector_fog_of_war` gives the droid its position beside the orbs it sees, so the second is the closer match.
 - `composite_grid_markovian` and a pixel observation are not the same thing. The first is a rows x cols x channels
-  array where a cell holds facts (an active flag, the orb type, the tier). The second is a picture the model has to
+  array where a cell holds facts (an active flag, the orb kind, the tier). The second is a picture the model has to
   read. Both suit a CNN; the first is small and exact, the second large and slower.

@@ -58,7 +58,7 @@ the tier orb, which `TierOrb` no longer has.
 
 Beside it is the digestion the engine is to be rebuilt on, which nothing uses
 yet. `digestion.py` holds the contract: the routing key, which is an orb's
-type, and the `OrbDigester` protocol of `KIND`, `reset` and a `digest` that
+kind, and the `OrbDigester` protocol of `KIND`, `reset` and a `digest` that
 returns a reward. `digesters/tier_chain/` holds `TierDigester`, a base class
 that tracks the chain, counts its progress, breaks and completions and sums
 what its orbs are worth, and three subclasses that each say what progress, a

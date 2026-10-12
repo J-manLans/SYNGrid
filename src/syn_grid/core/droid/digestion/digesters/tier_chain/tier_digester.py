@@ -11,7 +11,7 @@ from typing import Final
 
 from syn_grid.core.droid.digestion.digestion import OrbKind
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_meta import SynergyType
+from syn_grid.core.orbs.orb_meta import SynergyKind
 
 
 class TierDigester(ABC):
@@ -41,7 +41,7 @@ class TierDigester(ABC):
             episode.
     """
 
-    KIND: Final[OrbKind] = SynergyType.TIER
+    KIND: Final[OrbKind] = SynergyKind.TIER
     _NO_CHAIN: Final[int] = 0
     _BASE_TIER: Final[int] = 1
 

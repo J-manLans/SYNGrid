@@ -12,7 +12,7 @@ from syn_grid.config.models import (
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_factory import OrbFactory
-from syn_grid.core.orbs.orb_meta import OrbMeta, SynergyType
+from syn_grid.core.orbs.orb_meta import OrbMeta, SynergyKind
 from syn_grid.gymnasium.action_space import DroidAction
 
 
@@ -91,7 +91,7 @@ class GridWorld:
         for orb in self.ALL_ORBS:
             if orb.is_active:
                 # only decrease timer for tier orbs if de-spawning is activated in the configs
-                if orb.META.TYPE != SynergyType.TIER or self._conf.de_spawn_tiers:
+                if orb.META.KIND != SynergyKind.TIER or self._conf.de_spawn_tiers:
                     orb.TIMER.tick()
                 if orb.TIMER.is_completed():
                     orb.de_spawn()

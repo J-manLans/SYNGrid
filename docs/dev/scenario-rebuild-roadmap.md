@@ -24,7 +24,7 @@ small check.
 | `core/droid/digestion/digestion.py` | written: the routing key and the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float) |
 | `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes. Not wired into a builder |
 | `core/droid/digestion/digesters/neg_digester.py` | empty |
-| `core/orbs/orb_meta.py` | stores type and tier; the radix identity is unchanged |
+| `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
 | `core/droid/digestion/engine.py` | still the legacy engine |
 | `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. `TierOrb` has already lost its scoring flags, which the old engine still reads |
 | Runners, `env_factory.py` | already take a `Scenario` |
@@ -68,14 +68,14 @@ and one file per scoring mode.
 
 **Write:**
 
-1. `digestion.py`: the routing key (the orb's type) and the `OrbDigester` protocol with `KIND`, `reset` and `digest`.
+1. `digestion.py`: the routing key (the orb's kind) and the `OrbDigester` protocol with `KIND`, `reset` and `digest`.
    Written.
 2. `digesters/tier_chain/`: the tier base holding the chain, the counts and the chain's summed reward, and the
    max-tier, step-wise and threshold modes. Written.
 3. `engine.py`: a router with `reset`, `digest` and `get`. Still the old engine.
 
 **Done when:** `import syn_grid.scenario.blocks.orb_bundle` works, the engine routes an orb to the digester of its
-type, and a max-tier digester fed tiers 1, 2, 3 reports progress, progress, completion, and fed a wrong tier pays
+kind, and a max-tier digester fed tiers 1, 2, 3 reports progress, progress, completion, and fed a wrong tier pays
 `chain_break_penalty`. The last part was seen in a throwaway script on 2026-10-11; nothing in the test suite covers
 it.
 
@@ -199,8 +199,8 @@ one.
 
 **Write:**
 
-1. The orb identity: where the dense id lives, and whether the radix formula becomes a plain sort on type and tier.
-   `OrbMeta` already stores only type and tier.
+1. The orb identity: where the dense id lives, and whether the radix formula becomes a plain sort on kind and tier.
+   `OrbMeta` already stores only kind and tier.
 2. Global features supplied by the scenario: energy, steps left, chain progress. Chain progress has to stay: the
    break rule pays a first and a second tier 1 differently, and only the chain position tells them apart.
 3. The two verified perceptions against the new rules.

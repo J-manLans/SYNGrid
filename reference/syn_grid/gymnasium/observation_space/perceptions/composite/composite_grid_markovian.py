@@ -2,7 +2,7 @@ import numpy as np
 from gymnasium import spaces
 
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.core.orbs.orb_meta import DirectType, SynergyType
+from syn_grid.core.orbs.orb_meta import DirectKind, SynergyKind
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
@@ -99,7 +99,7 @@ class CompositeGridMarkovian(BasePerception):
         for orb in state.ALL_ORBS:
             if orb.is_active:
                 y, x = orb.position
-                channel = self._orb_type_channels[orb.META.TYPE]
+                channel = self._orb_type_channels[orb.META.KIND]
 
                 self._grid_data[y, x, channel] = self._ACTIVE_FLAG
                 self._grid_data[y, x, -2] = orb.META.TIER
@@ -114,15 +114,15 @@ class CompositeGridMarkovian(BasePerception):
     #      Helpers      #
     # ================= #
 
-    def _build_orb_type_channel_map(self) -> dict[DirectType | SynergyType, int]:
+    def _build_orb_type_channel_map(self) -> dict[DirectKind | SynergyKind, int]:
         channel = 1  # channel 0 is droid
         mapping = {}
 
         if self._perception_conf.enabled_orbs.neg_enabled:
-            mapping[DirectType.NEGATIVE] = channel
+            mapping[DirectKind.NEGATIVE] = channel
             channel += 1
         if self._perception_conf.enabled_orbs.tier_enabled:
-            mapping[SynergyType.TIER] = channel
+            mapping[SynergyKind.TIER] = channel
             channel += 1
 
         # Check if any implemented orbs are forgotten

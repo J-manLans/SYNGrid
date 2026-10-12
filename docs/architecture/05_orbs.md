@@ -54,8 +54,8 @@ build_world                              joins the orbs, collects the digesters
 
 Orb code is spread over four packages. `core/orbs/` defines what an orb is:
 `BaseOrb` with position, reward, timer and active flag, and `OrbMeta` carrying
-the type, the tier of a tier orb and the identity the agent sees. An orb's kind
-is its type, and that is what digestion routes on. Config for a kind is a
+the kind, the tier of a tier orb and the identity the agent sees. The kind is
+what digestion routes on. Config for a kind is a
 base class in `orb_models.py`, extended by a family that needs more and declared
 as a field on the world model of each scenario that holds the kind.
 

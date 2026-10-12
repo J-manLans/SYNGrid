@@ -1,7 +1,7 @@
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
     OrbMeta,
-    SynergyType,
+    SynergyKind,
 )
 
 
@@ -34,7 +34,7 @@ class TierOrb(BaseOrb):
         super().__init__(
             self._calculate_reward(tier),
             cool_down,
-            OrbMeta(SynergyType.TIER, tier),
+            OrbMeta(SynergyKind.TIER, tier),
         )
 
     # ================= #

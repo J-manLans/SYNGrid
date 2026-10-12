@@ -15,7 +15,7 @@ from typing import Final
 
 from syn_grid.core.digestion.digestion import DigestionResult, Event, OrbKind
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_meta import OrbCategory, SynergyType
+from syn_grid.core.orbs.orb_meta import OrbCategory, SynergyKind
 
 
 # #################### #
@@ -62,7 +62,7 @@ class TierOrbDigester:
     #       Init        #
     # ================= #
 
-    kind: OrbKind = (OrbCategory.SYNERGY, SynergyType.TIER)
+    kind: OrbKind = (OrbCategory.SYNERGY, SynergyKind.TIER)
 
     _NO_CHAIN: Final[int] = 0
     _BASE_TIER: Final[int] = 1

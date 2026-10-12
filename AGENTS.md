@@ -167,7 +167,7 @@ principles behind them:
 Settled since the rebuild started, each with an entry in `design-decisions.md`:
 
 - Digestion lives in the droid, at `core/droid/digestion/`, with a `digesters/`
-  folder. The routing key is the orb's type alone. The droid creates the engine
+  folder. The routing key is the orb's kind alone. The droid creates the engine
   from digesters that `build_world` makes, one per `OrbBundle`.
 - Digesters do not talk to each other. `digest` returns a float, and there are
   no events, no tally and no cross-kind hook. A reader takes a digester from the
@@ -181,8 +181,8 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   chain's summed worth at the last tier, so there is no fixed completion prize.
 - A new scoring mode is a new registered scenario, not a config setting. The
   continuous sandbox is the exception.
-- Two orb categories, direct and synergy. `OrbMeta` stores only type and tier,
-  and a tier is `None` for every type but a tier orb. The identity is unchanged
+- Two orb categories, direct and synergy. `OrbMeta` stores only kind and tier,
+  and a tier is `None` for every kind but a tier orb. The identity is unchanged
   and is redone in the observation pass.
 - Config models live beside what they configure. A scenario config is
   `world_conf` and `obs_conf`, and each layer adds a block to the world.

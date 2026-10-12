@@ -3,7 +3,7 @@ from gymnasium import spaces
 
 from syn_grid.config.models import PerceptionConf
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.core.orbs.orb_meta import DirectType, SynergyType
+from syn_grid.core.orbs.orb_meta import DirectKind, SynergyKind
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
@@ -22,7 +22,7 @@ class CompositeGridMarkovian(BasePerception):
 
     def __init__(self, conf: PerceptionConf, orbs: int, max_identity: int):
         super().__init__(conf, orbs, max_identity)
-        self._orb_type_channels = self._build_orb_type_channel_map()
+        self._orb_kind_channels = self._build_orb_kind_channel_map()
 
     # ================= #
     #        API        #
@@ -38,7 +38,7 @@ class CompositeGridMarkovian(BasePerception):
         grid_channels_high = np.concatenate(
             [
                 np.array([self._ACTIVE_FLAG], dtype=np.float32),
-                self._get_max_orb_type_flags(),
+                self._get_max_orb_kind_flags(),
                 np.array([self._perception_conf.max_tier], dtype=np.float32),
                 self._get_max_orb_extended(),
             ]
@@ -73,8 +73,8 @@ class CompositeGridMarkovian(BasePerception):
         """
         NOTE: This is what I need to work towards when having more orbs:
 
-        type_channel = self._get_orb_type_channel_index(orb)
-        self._grid_data[y, x, type_channel] = self._ACTIVE_FLAG
+        kind_channel = self._get_orb_kind_channel_index(orb)
+        self._grid_data[y, x, kind_channel] = self._ACTIVE_FLAG
         self._grid_data[y, x, channels - 2] = orb.META.TIER
         self._grid_data[y, x, channels - 1] = orb.TIMER.remaining
         """
@@ -93,7 +93,7 @@ class CompositeGridMarkovian(BasePerception):
         for orb in state.ALL_ORBS:
             if orb.is_active:
                 y, x = orb.position
-                channel = self._orb_type_channels[orb.META.TYPE]
+                channel = self._orb_kind_channels[orb.META.KIND]
 
                 self._grid_data[y, x, channel] = self._ACTIVE_FLAG
                 self._grid_data[y, x, -2] = orb.META.TIER or 0
@@ -108,24 +108,24 @@ class CompositeGridMarkovian(BasePerception):
     #      Helpers      #
     # ================= #
 
-    def _build_orb_type_channel_map(self) -> dict[DirectType | SynergyType, int]:
+    def _build_orb_kind_channel_map(self) -> dict[DirectKind | SynergyKind, int]:
         channel = 1  # channel 0 is droid
         mapping = {}
 
         if self._perception_conf.enabled_orbs.neg_enabled:
-            mapping[DirectType.NEGATIVE] = channel
+            mapping[DirectKind.NEGATIVE] = channel
             channel += 1
         if self._perception_conf.enabled_orbs.tier_enabled:
-            mapping[SynergyType.TIER] = channel
+            mapping[SynergyKind.TIER] = channel
             channel += 1
 
         # Check if any implemented orbs are forgotten
         expected = sum(self._perception_conf.enabled_orbs.model_dump().values())
         if len(mapping) != expected:
             raise ValueError(
-                f"Orb type channel map is missing entries — "
+                f"Orb kind channel map is missing entries — "
                 f"expected {expected} but got {len(mapping)}. "
-                f"Did you forget to add a new orb type to _build_orb_type_channel_map?"
+                f"Did you forget to add a new orb kind to _build_orb_kind_channel_map?"
             )
 
         return mapping

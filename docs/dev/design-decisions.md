@@ -28,7 +28,7 @@ Each entry says when it would be worth reopening.
 - `digestion.py`, the contract: the routing key `OrbKind` and the `OrbDigester` protocol, which is `KIND`, `reset`
   and `digest`. `digest` returns the reward as a float.
 - `engine.py`, a router. It holds no scoring rules: it hands an eaten orb to the digester registered for the orb's
-  type, and it lets a reader fetch a digester by its class.
+  kind, and it lets a reader fetch a digester by its class.
 - `digesters/`, every digester there is, one per orb kind. A kind with several files gets a folder, as the tier
   digester has in `tier_chain/`.
 
@@ -50,8 +50,8 @@ outside the droid needs to construct it. The droid's constructor takes digesters
 and never learns which scenario it is in.
 - One method on the scenario that returns every digester. Rejected because adding an optional orb kind would then
 mean editing that method as well as adding the kind's bundle.
-- A `kind_of(orb)` function for the lookup. Rejected because the key is the type alone, so it would wrap
-`orb.META.TYPE` and nothing else.
+- A `kind_of(orb)` function for the lookup. Rejected because the key is the kind alone, so it would wrap
+`orb.META.KIND` and nothing else.
 
 **Why this one:** The engine stays a plain mechanism that any scenario family can use. The scenario decides which
 digesters to build and how each is configured, through the bundle's `make_digester`, but it doesn't own their code.
@@ -257,7 +257,7 @@ edge, next to `SCENARIOS` or in the builders, and wouldn't touch the digesters.
 
 ---
 
-## Two orb categories, and an orb meta that stores only type and tier (2026-10-10)
+## Two orb categories, and an orb meta that stores only kind and tier (2026-10-10)
 
 **Decision:** There are two orb categories and there will not be a third.
 
@@ -272,20 +272,20 @@ percentage of the current score are all synergy, even though they happen at once
 
 `OrbMeta` says what an orb is, not how it acts. It stores two things:
 
-- `type`, one member of `DirectType` or `SynergyType`. Every orb that behaves differently gets its own member
+- `kind`, one member of `DirectKind` or `SynergyKind`. Every orb that behaves differently gets its own member
   (`NEGATIVE`, `POSITIVE`, ... and `TIER`, `FLIP_REWARD`, `OBSCURE`, `NULLIFY`, `HAZARD_BORDER`, ...).
-- `tier`, an int for `SynergyType.TIER` and `None` for everything else.
+- `tier`, an int for `SynergyKind.TIER` and `None` for everything else.
 
-The category is not stored. It follows from which enum the type comes from.
+The category is not stored. It follows from which enum the kind comes from.
 
-Inside synergy there are two groups. They are folders, not types, enums or categories:
+Inside synergy there are two groups. They are folders, not kinds, enums or categories:
 
 - **Chain:** the payoff depends on which orbs of the same kind came before, and in what order. The tier orb is the
   only one so far; a streak or a collect-the-set orb would be others.
 - **Effect:** eating it changes something other than itself: other orbs' rewards, the observation, the next orb, the
   world.
 
-In digestion the routing key is the type alone: `OrbKind = DirectType | SynergyType`, read from `orb.META.TYPE`.
+In digestion the routing key is the kind alone: `OrbKind = DirectKind | SynergyKind`, read from `orb.META.KIND`.
 The engine and the digesters treat it as an opaque key and never take it apart.
 
 **Where:** `core/orbs/orb_meta.py`, and what reads it: `core/grid_world.py`, `rendering/pygame_renderer.py`,
@@ -295,9 +295,9 @@ The engine and the digesters treat it as an opaque key and never take it apart.
 
 **Alternatives considered:**
 
-- A third `EffectType` enum beside `SynergyType`. Rejected because it reads as if effect orbs were not synergy orbs,
+- A third `EffectKind` enum beside `SynergyKind`. Rejected because it reads as if effect orbs were not synergy orbs,
 and nothing in the code needs to ask "is this an effect?".
-- One `SynergyType.EFFECT` member with a sub-field for which effect. Rejected because each effect needs its own
+- One `SynergyKind.EFFECT` member with a sub-field for which effect. Rejected because each effect needs its own
 digester, so the routing key has to tell them apart; this would force a three-part key or one effect digester that
 branches inside.
 - Storing how an effect acts (timed, item, world) in the meta. Rejected because no reader of the meta needs it. Those
@@ -320,24 +320,28 @@ tier. A new orb is a new enum member and a digester, with no new field on the me
 **Status:** settled, and built on 2026-10-11 except for the identity. Every identity is the same number as before, so
 no observation changed.
 
-- `OrbMeta` takes and stores `type` and `tier`. An orb no longer states a category.
-- `tier` is stored as `None` for every type but `SynergyType.TIER`, and the validator rejects a tier on any other
-type. `grid_world.py` decides which orbs despawn by checking the type, and the composite grid perception writes 0
+- `OrbMeta` takes and stores `kind` and `tier`. An orb no longer states a category.
+- `tier` is stored as `None` for every kind but `SynergyKind.TIER`, and the validator rejects a tier on any other
+kind. `grid_world.py` decides which orbs despawn by checking the kind, and the composite grid perception writes 0
 for a missing tier.
-- The routing key in `core/droid/digestion/digestion.py` is `OrbKind = DirectType | SynergyType`.
-- `SynergyType.TIER` is a plain member with the value 1. It used to be forced to the highest value in the enum. The
+- The routing key in `core/droid/digestion/digestion.py` is `OrbKind = DirectKind | SynergyKind`.
+- `SynergyKind.TIER` is a plain member with the value 1. It used to be forced to the highest value in the enum. The
 identity does not need that: the tier has the highest slot in the radix formula, so a tier orb always sorts after
-every orb without a tier, whatever its type's value is. That holds as long as only tier orbs carry a tier.
+every orb without a tier, whatever its kind's value is. That holds as long as only tier orbs carry a tier.
 
 The identity is left for its own pass, with the observation or just before it, and as the only change in that step
 so the observation can be compared with legacy:
 
-- The radix `IDENTITY` still has a category digit, which keeps a direct type and a synergy type with the same value
-apart. The digit is worked out inside `compute_radix_identity` from the type's enum, and `OrbCategory` exists only
+- The radix `IDENTITY` still has a category digit, which keeps a direct kind and a synergy kind with the same value
+apart. The digit is worked out inside `compute_radix_identity` from the kind's enum, and `OrbCategory` exists only
 for that.
 - The radix number is only a sort key; the world replaces it with dense ids when it is built. It could become a
-plain sort on type and tier. Negative has to keep sorting before the tiers or the existing observations change.
+plain sort on kind and tier. Negative has to keep sorting before the tiers or the existing observations change.
 - The world writes the dense id back onto the meta, so the meta can't be frozen until that id lives somewhere else.
+
+- The word is kind everywhere since 2026-10-12: `DirectKind`, `SynergyKind`, `OrbMeta.KIND` and `OrbKind`. The meta
+and its enums said type until then, while digestion and the config said kind, for one thing. Kind was kept because
+`type` is a Python builtin and is also used for scenario types and Python types.
 
 Open: whether synergy orbs other than tier orbs despawn and respawn like negative orbs or stay on the field. Revisit
 the "two categories" rule only if an orb turns up that fits neither test.

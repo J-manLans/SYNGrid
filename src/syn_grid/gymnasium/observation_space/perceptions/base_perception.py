@@ -65,7 +65,7 @@ class BasePerception(ABC):
     def _get_max_orb_extended(self) -> np.ndarray:
         return np.array([self._max_orb_lifespan], dtype=np.float32)
 
-    def _get_max_orb_type_flags(self) -> np.ndarray:
+    def _get_max_orb_kind_flags(self) -> np.ndarray:
         return np.ones(
             sum(self._perception_conf.enabled_orbs.model_dump().values()),
             dtype=np.float32,

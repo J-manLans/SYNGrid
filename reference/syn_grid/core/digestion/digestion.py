@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Protocol, TypeAlias
 
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_meta import DirectType, OrbCategory, SynergyType
+from syn_grid.core.orbs.orb_meta import DirectKind, OrbCategory, SynergyKind
 
 
 # ################## #
@@ -23,7 +23,7 @@ from syn_grid.core.orbs.orb_meta import DirectType, OrbCategory, SynergyType
 
 
 def kind_of(orb: BaseOrb) -> OrbKind:
-    return (orb.META.CATEGORY, orb.META.TYPE)
+    return (orb.META.CATEGORY, orb.META.KIND)
 
 
 # ################## #
@@ -46,7 +46,7 @@ class Event:
 
 
 # What an orb *is*, as read from its META. This is what the engine routes on.
-OrbKind: TypeAlias = tuple[OrbCategory, DirectType | SynergyType]
+OrbKind: TypeAlias = tuple[OrbCategory, DirectKind | SynergyKind]
 
 
 @dataclass(frozen=True)

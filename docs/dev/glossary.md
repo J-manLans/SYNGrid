@@ -71,16 +71,16 @@ Terms are grouped by area. The last section lists the words that are used in two
 
 - **Orb:** something on the grid the droid can eat.
 - **Eat, consume:** the same thing. The code says `consume`, the documents mostly say eat.
-- **Type:** what an orb is: a member of `DirectType` or `SynergyType`.
-- **Kind:** the type, as seen by digestion and the config. `OrbKind` is the routing key.
-- **Category:** direct or synergy. It is not stored; it follows from which enum the type belongs to.
+- **Kind:** what an orb is: a member of `DirectKind` or `SynergyKind`. Digestion routes on it, and each kind has its
+  own block in the config.
+- **Category:** direct or synergy. It is not stored; it follows from which enum the kind belongs to.
 - **Direct orb:** changes the score and nothing else, on the step it is eaten. The negative orb is one.
 - **Synergy orb:** leaves something behind that changes a later outcome. The tier orb is one.
 - **Chain orb, effect orb:** the two groups inside synergy. A chain orb's payoff depends on which orbs of its kind
-  came before. An effect orb changes something other than itself. They are folders, not types, and no effect orb is
+  came before. An effect orb changes something other than itself. They are folders, not kinds, and no effect orb is
   written.
 - **Tier:** a tier orb's place in the chain, from 1 up to `max_tier`. Every other orb has no tier.
-- **Identity:** the number the agent sees for an orb. Orbs of the same type and tier share it.
+- **Identity:** the number the agent sees for an orb. Orbs of the same kind and tier share it.
 - **Lifespan:** how many steps an orb stays on the field before it despawns.
 - **Despawn:** an orb leaving the field without being eaten.
 - **Cool-down:** how many steps an orb is off the field after it is eaten or despawns.
@@ -142,7 +142,6 @@ Terms are grouped by area. The last section lists the words that are used in two
 
 - **Block.** It means a `*_conf` model nested in a world config, such as `tier_orb_conf`. It also names the folder
   `scenario/blocks/`, which holds the pieces a `Scenario` is made of. The two are different things.
-- **Type and kind.** One thing with two names. `OrbMeta` and the enums say type; digestion and the config say kind.
 - **Axis model.** A name used for the small model. The small model also holds the perception, so the name is
   expected to change.
 - **Perception.** One config value that fixes both the visibility and the encoding. Whether it is split into two
