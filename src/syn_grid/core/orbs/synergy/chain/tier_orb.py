@@ -23,7 +23,7 @@ class TierOrb(BaseOrb):
         max_tier: int,
         base_reward: float,
         growth_factor: float,
-        cool_down: int,
+        cool_down: int | None,
     ):
         if tier > max_tier:
             raise ValueError("Tier is higher than the allowed max")

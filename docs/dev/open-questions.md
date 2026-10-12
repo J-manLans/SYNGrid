@@ -21,17 +21,6 @@ here. A question that is only half answered stays, with what is left of it.
   the owner may return to properties.
   See: "The tier digester is a template with one subclass per scoring mode" in `design-decisions.md`.
 
-## Phase 4: The builders
-
-- **How `make_digester` gets the values a digester needs.** `OrbBundle.make_digester` takes no arguments, and a tier
-  digester needs `max_tier` and `chain_break_penalty` from the config. `_make_tier_digester` takes none and raises.
-  Two options have come up. A `functools.partial` works, but two partials do not compare equal, which is what
-  already keeps two scenarios from comparing equal through `build_world`. A small frozen dataclass with a
-  `__call__`, holding the digester class and its values, compares by value; it would also be where a sandbox
-  builder puts the class it chose from config. Raised on 2026-10-12.
-  See: "The tier digester is a template with one subclass per scoring mode" in `design-decisions.md`; the roadmap's
-  phase 4.
-
 ## Phase 5: The Gymnasium side
 
 - **Where the renderer's settings come from.** The old `RendererConf` has no counterpart in the new models. A preview

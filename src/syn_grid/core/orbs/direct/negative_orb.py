@@ -1,4 +1,3 @@
-from syn_grid.config.models.scenario.orb_models import NegOrbConf
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import (
     DirectKind,
@@ -8,16 +7,16 @@ from syn_grid.core.orbs.orb_meta import (
 
 class NegativeOrb(BaseOrb):
     """
-    An orb that gives the agent a negative score.
+    An orb that gives the agent a negative reward (penalty).
     """
 
     # ================= #
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: NegOrbConf):
+    def __init__(self, penalty: float, cool_down: int):
         super().__init__(
-            conf.reward,
-            conf.cool_down,
+            penalty,
+            cool_down,
             OrbMeta(DirectKind.NEGATIVE),
         )

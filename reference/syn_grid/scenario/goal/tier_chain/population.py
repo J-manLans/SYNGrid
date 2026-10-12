@@ -45,7 +45,6 @@ class TierChainPopulation:
                 self._max_tier,
                 self._base_reward,
                 self._growth_factor,
-                self._linear_reward_growth,
                 self._cool_down,
             )
             for tier in range(1, self._max_tier + 1)

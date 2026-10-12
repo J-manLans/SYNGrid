@@ -36,15 +36,19 @@ Where to look, in this order:
 
 State on 2026-10-12: the config models, the registry and the spatial YAML are
 done. `scenario.py` and the blocks are written, and the spatial builder returns
-a `Scenario`. Its pieces are stubs: the tier-chain population makes no orbs,
-its termination never ends an episode, the spawning hooks have no bodies, and
-`build_world` raises `NotImplementedError`. The other three builders raise too.
+a `Scenario`. The populations are in `scenario/populations/`: the tier-chain
+one makes the spatial scenario's tier orbs, and the negative one is in the
+bundle a config with a `neg_orb_conf` block gets. The rest of its pieces are
+stubs: its termination never ends an episode, the spawning hooks have no
+bodies, and `build_world` raises `NotImplementedError`. The other three
+builders raise too.
 `core/droid/digestion/digestion.py` holds the digester protocol, and the
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring
-modes are written in `digesters/tier_chain/` and are not wired into a builder.
-The negative digester is written in `digesters/neg_digester.py` and is not
-wired either. The rest of `core/`, `gymnasium/` and
+modes are written in `digesters/tier_chain/`, and the spatial builder names the
+max-tier one through a `TierDigesterRecipe` in `scenario/digestion/`.
+The negative digester is written in `digesters/neg_digester.py`, and the
+negative bundle names it. The rest of `core/`, `gymnasium/` and
 `rendering/` still import the old config, so
 `import syn_grid.scenario.registry` works while `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail. The roadmap expects that until its
@@ -209,6 +213,20 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - Reward normalisation stays off in training (`norm_reward=False`).
 - A tier chain holds one negative orb. `NegOrbConf` is `reward` and `cool_down`;
   a weight is only for a family whose field is sampled.
+- An orb carries its own cool-down and lifespan, each a number or `None`. A
+  cool-down of `None` is an orb that does not return in the episode, which is
+  what a tier-chain tier orb has. The world asks every orb the same questions
+  and no kind. The populations are written; `BaseOrb` does not act on `None`
+  yet and takes no lifespan.
+- A tier bundle's `make_digester` is a `TierDigesterRecipe`: a frozen dataclass
+  of the scoring mode's class, `max_tier` and `chain_break_penalty`, in
+  `scenario/digestion/`. It compares by value, which a `partial` does not.
+- A digester sets `self.KIND: Final[OrbKind]` in `__init__`. In the class body
+  a `Final` does not satisfy the protocol under Pyright.
+- Populations are shared, in `scenario/populations/`, and take values, not a
+  config. A family's builder states its own choices, as `_tier_bundle`
+  does with the cool-down. They are not in `core/orbs/`: the world is handed
+  its orbs, and what it owns is spawning.
 - A locked scenario loads a small model holding only what a run may choose, and
   its builder makes the full config from its fixed values. The full models stay
   as they are, and the sandbox and every scenario that is not locked load them
@@ -270,9 +288,18 @@ decisions on this branch:
   `world_conf` and `obs_conf`.
 - **Two scenarios built from the same config do not compare equal** today. The
   only differing field is `build_world`, which is a `functools.partial`.
-- **The config is in line with the digesters, and the builders are not.**
-  `_make_tier_digester` raises, and `TierChainPopulation` makes no orbs, so
-  nothing gives a tier orb its reward from the config yet.
+- **The spatial builder's bundles are complete, and nothing joins them.** The
+  tier bundle makes the orbs with their rewards and a max-tier digester from
+  the config. `build_world` raises before it uses either.
+- **A config with a `neg_orb_conf` block builds a `Scenario`.** It gets the
+  negative bundle, the `_Neg` tag, a `negatives_eaten` metric and one more orb
+  in the field size, the observation slots and the sort limit. Nothing below
+  the scenario has run with it.
+- **Every world reader in the tier-chain builders returns 0.0.** The HUD stat
+  and the four metrics are named on the scenario, and their readers have no
+  path to the engine until the world is rebuilt. Nothing outside `scenario/`
+  reads `scenario.metrics` or `scenario.hud`: `environment.py` still fills the
+  episode info from the old engine's `stats`.
 - **`core/orbs/orb_factory.py` calls `TierOrb` with a signature it no longer
   has.** The file does not import and the roadmap removes it.
 - **The engine and the digesters were only tried in throwaway scripts.** No
@@ -280,7 +307,9 @@ decisions on this branch:
   real negative orb.
 - **`blocks/spawning.py` is mid-change.** `SpawningRules` has three fields, its
   docstring still lists `delay_on_consume`, and `OrbFieldUpdate` is declared and
-  unused.
+  unused. `tier_orb_expires` is due to leave it.
+- **`scenario/registry.py` fails `ruff check`** on its import order. It was
+  like that before the populations were written.
 - **Tests import the legacy strain.** On 2026-10-11 collection found 230 tests
   and no errors. They were not run.
 - **`scripts/replay_probe.py` imports the legacy strain** on this branch. It was

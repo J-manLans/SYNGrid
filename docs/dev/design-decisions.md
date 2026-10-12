@@ -70,8 +70,8 @@ digesters to build and how each is configured, through the bundle's `make_digest
 **Status:** settled; who creates the engine was settled on 2026-10-11, and what the engine does on a miss on
 2026-10-12. `digestion.py` and `engine.py` are written. The droid does not take digesters yet: it still builds the
 engine from three config values, so `synergy_droid.py`, and the places that read the old engine's `chained_tiers`,
-`stats` and `_pending_reward`, wait for phases 3 and 5. `NegDigester` is in `digesters/neg_digester.py`: it pays the orb's own reward and
-counts `negatives_eaten`, so a metric can report it.
+`stats` and `_pending_reward`, wait for phases 3 and 5. `NegDigester` is in `digesters/neg_digester.py`: it pays the
+orb's own reward and counts `negatives_eaten`, so a metric can report it.
 
 ---
 
@@ -164,8 +164,49 @@ public name and nothing more. The owner has left open whether to return to prope
 and each mode can be tried on its own.
 
 **Status:** built on 2026-10-11 with all three modes; the next entry says what they pay. The base needed no way for a
-subclass to replace the break as a whole: threshold's one exception fits inside its `_score_break`. Nothing is wired
-yet, and `_make_tier_digester` in the tier-chain builders still raises.
+subclass to replace the break as a whole: threshold's one exception fits inside its `_score_break`. The spatial
+builder names `MaxTierDigester` since 2026-10-12, through a `TierDigesterRecipe`; see the next entry. No world has
+been built with one, because `build_world` still raises.
+
+---
+
+## A tier bundle makes its digester from a frozen recipe (2026-10-12)
+
+**Decision:** A tier orb's `OrbBundle` holds a `TierDigesterRecipe` as its `make_digester`. The recipe is a frozen
+dataclass of three values: `scoring_mode`, which is the tier digester class to create, `max_tier` and
+`chain_break_penalty`. Calling it returns a new digester.
+
+A builder states its scoring mode by naming the class. The tier-chain family does it through `_tier_bundle`, which
+takes the tier orb block and the class and returns the bundle, so each builder's choice is one argument.
+
+The negative bundle needs no recipe. `NegDigester` takes no values, so the class itself is the `make_digester`.
+
+**Where:** `scenario/digestion/tier_digester_recipe.py`; `_tier_bundle` in `scenario/goal/tier_chain/builders.py`.
+
+**Alternatives considered:**
+
+- A `functools.partial` of the digester class. Rejected because two partials never compare equal, so two scenarios
+built from the same config would differ in their bundles. `build_world` has that problem today.
+- A module-level function per scoring mode, as `_make_tier_digester` was. Rejected because a function with no
+arguments has nowhere to get `max_tier` and the penalty from.
+- The recipe in the tier-chain builders. Rejected because it holds nothing of the family: every scoring mode takes
+the same two values, and a sandbox that reads its mode from config would hand the same recipe the class it chose.
+- The recipe in `core/`, beside the digesters. Rejected for the reason the populations are not there: only the
+scenario layer needs a way to make a digester later. Core is handed digesters.
+
+**Why this one:** It compares by value, it is the one place a scoring mode is chosen, and the choice is a class and
+not a name that has to be looked up. If a `ScoringMode` name ever appears in a config, its only job is to pick the
+class that goes in this field.
+
+**Status:** built on 2026-10-12 and used by the spatial builder. Checked by building the spatial scenario from its
+YAML: the bundles of two builds compare equal, each call returns a new digester, and the tier orbs fed in order to
+the digesters the bundles make pay what the three tier orbs are worth together.
+
+Tied to it: a digester's `KIND` is set in `__init__` as `self.KIND: Final[OrbKind]`, not in the class body. A `Final`
+with a value in a class body is a class variable to a type checker, the protocol's `KIND: Final[OrbKind]` is an
+instance variable, and Pyright does not match the two. It showed when a digester class was first handed to a bundle.
+Inheriting from the protocol was tried and turned down: Pyright refuses to assign a `Final` the parent declares, and
+a subclass that forgets a method inherits the protocol's empty one.
 
 ---
 
@@ -230,17 +271,16 @@ gets one rule for order: eat the tier one above the chain.
 
 **Status:** settled and built. What follows from it and is not done:
 
-- The population has to give the tier orbs their rewards. The reward ladder is on the shared `TierOrbConf` since
-2026-10-11, but `TierChainPopulation` makes no orbs yet.
+- The population gives the tier orbs their rewards since 2026-10-12, from `base_reward` and `growth_factor`.
 - The rule assumes the agent sees where the chain is. Without that, a first and a second tier 1 look alike and pay
 differently. Keep the chain position in the observation.
 - In a goal scenario the rule assumes an eaten tier orb does not return in that episode. A tier 1 that breaks a chain
 starts a new one and is paid for it, at once in step-wise and at the ending in threshold. Where orbs respawn that is
 right, because the new chain can be completed. Where a break ends the episode it would pay for a chain that can never
 grow. A tier chain has one orb per tier, so with no return there is no second tier 1 to break with and the case
-cannot arise. Legacy behaved this way in single-chain mode, with and without delay. Nothing in the rebuild enforces
-it yet: the spawning hooks have no bodies. Revisit the restart rule if a goal scenario ever lets tier orbs respawn.
-Noted on 2026-10-12.
+cannot arise. Legacy behaved this way in single-chain mode, with and without delay. In the rebuild the orb is meant
+to enforce it: a tier-chain tier orb has no cool-down, see "An orb carries its own cool-down and lifespan". Revisit
+the restart rule if a goal scenario ever lets tier orbs respawn. Noted on 2026-10-12.
 
 Checked on 2026-10-11 in a throwaway script: over every sequence of up to 7 orbs on a 4-tier chain, step-wise and
 threshold paid the same total, counting what threshold still held at the end. Checked again on 2026-10-12 with
@@ -618,6 +658,60 @@ weights in the same pool, so it appears exactly where there is a pool.
 **Status:** settled for the tier chain. Revisit when the first sampled family is built, and for delay, where the
 negative orb is meant to freeze and return with the field. Eating the negative orb does not affect a running chain;
 see "Digesters do not talk to each other".
+
+---
+
+## An orb carries its own cool-down and lifespan (2026-10-12)
+
+**Decision:** Whether an orb returns after it leaves the field, and whether it expires while it is on it, are values
+of the orb, set by the population that makes it.
+
+- **Cool-down:** a number of steps, or `None` for an orb that does not return in the episode.
+- **Lifespan:** a number of steps, or `None` for an orb that does not expire.
+
+The world treats every orb alike. It ticks a lifespan where there is one, and it respawns from the inactive orbs that
+say they are ready to return. An orb with no cool-down is never ready, so it stays inactive for the rest of the
+episode. It is not thrown away: the next episode's reset places every orb again whatever its cool-down, and the
+observation still has a slot for it.
+
+A population takes these as values and knows no scenario. The tier-chain family's builders hand
+`TierChainPopulation` a cool-down of `None`, stated once in `_tier_bundle`. The negative population is handed a
+number. A family whose tier orbs come and go hands the same `TierChainPopulation` numbers.
+
+The populations are in `scenario/populations/`, shared by every family, and a family's folder holds none. A
+population is the counterpart of `make_digester`: both are recipes in an `OrbBundle` that `build_world` runs once per
+world. What they make, an orb and a digester, is in core.
+
+**Where:** `core/orbs/base_orb.py`; `scenario/populations/tier_chain_population.py` and `neg_population.py`;
+`_tier_bundle` in `scenario/goal/tier_chain/builders.py`.
+
+**Alternatives considered:**
+
+- A cool-down of 0 on tier orbs, with spawning deciding per kind which orbs return. Rejected because a tier chain
+holds tier orbs that never return beside a negative orb that does, so the world or the spawning rule would have to
+ask each orb its kind. That check existed twice already: the world ticked a lifespan only for kinds other than
+`TIER`, and `SpawningRules` has `tier_orb_expires`.
+- Dropping an eaten orb that has no cool-down from the world. Rejected because the reset and the observation both
+need it.
+- Both populations in the tier-chain folder. Rejected because one negative orb in a fixed field is not a tier-chain
+idea.
+- The tier population in the tier-chain folder with "no cool-down" written into the class, and only the negative one
+shared. This was built first on 2026-10-12. Rejected the same day: with the cool-down as a field the class has
+nothing of the family left in it, just as the tier digester is handed `max_tier` and the penalty.
+- The populations in `core/orbs/`, where `orb_factory.py` was. Rejected because the world no longer makes its orbs.
+It is handed them, and the only caller of a population is `build_world`, in the scenario layer. The world owns
+putting orbs on the field, which is spawning.
+
+**Why this one:** An orb kind stays one brick. Adding the negative orb to a field adds its bundle and changes
+nothing in the world or in spawning. It also puts the rule that an eaten tier orb does not return in the orb, where
+no spawning rule can forget it, and it makes the lifespan a value per orb where it is a class attribute shared by
+every environment in the process.
+
+**Status:** settled on 2026-10-12 and partly built. Both populations are written, the spatial builder uses
+`_tier_bundle`, `_negative_bundle` is written, and `TierOrb` and `BaseOrb` accept a cool-down of `None`. Nothing
+acts on it: `BaseOrb` hands the cool-down to its timer, which needs a number, has no way to say it is ready to
+return, and takes no lifespan. `NegativeOrb` is built without a lifespan, and `tier_orb_expires` is still a field of
+`SpawningRules`. The lifespan follows from the grid size, so a builder has to hand it to the population.
 
 ---
 

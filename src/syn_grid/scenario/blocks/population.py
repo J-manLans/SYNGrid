@@ -6,8 +6,8 @@ difference is not a parameter: a tier chain has exactly one orb per tier and no
 weighting anywhere, while a continuous world apportions a weighted pool. So this
 is two implementations behind one call, not one implementation with a flag.
 
-This file is the call. Each implementation lives in the folder of the scenario
-family that uses it.
+This file is the call. The implementations are in ``scenario/populations/``,
+and a scenario's builder hands one the values it needs.
 """
 
 from __future__ import annotations

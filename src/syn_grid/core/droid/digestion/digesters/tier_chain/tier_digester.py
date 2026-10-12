@@ -45,7 +45,6 @@ class TierDigester(ABC):
             episode.
     """
 
-    KIND: Final[OrbKind] = SynergyKind.TIER
     _NO_CHAIN: Final[int] = 0
     _BASE_TIER: Final[int] = 1
 
@@ -54,6 +53,7 @@ class TierDigester(ABC):
     # ================= #
 
     def __init__(self, max_tier: int):
+        self.KIND: Final[OrbKind] = SynergyKind.TIER
         self._MAX_TIER: Final[int] = max_tier
 
         self.reset()

@@ -128,13 +128,17 @@ syn_grid/
 │   │   ├── population.py
 │   │   ├── spawning.py
 │   │   └── termination.py
+│   ├── digestion/
+│   │   └── tier_digester_recipe.py
 │   ├── goal/
 │   │   ├── tier_chain/
 │   │   │   ├── builders.py
 │   │   │   ├── config.py
-│   │   │   ├── population.py
 │   │   │   └── termination.py
 │   │   └── config.py
+│   ├── populations/
+│   │   ├── neg_population.py
+│   │   └── tier_chain_population.py
 │   ├── registry.py
 │   └── scenario.py
 │

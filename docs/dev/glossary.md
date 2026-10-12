@@ -41,9 +41,12 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Rules:** a frozen description of one part of a scenario's behaviour: `SpawningRules`, `ObservationRules`,
   `TerminationRules`.
 - **Strategy:** a family's own implementation of an interface from `scenario/blocks/`, kept in the family's folder,
-  such as `TierChainTermination` and `TierChainPopulation`.
-- **Population:** what makes one orb kind's orbs for a world.
+  such as `TierChainTermination`.
+- **Population:** what makes one orb kind's orbs for a world. It decides which orbs exist, once per world. Putting
+  them on the field is spawning, which the world does. The populations are shared, in `scenario/populations/`.
 - **Bundle:** an `OrbBundle`: one orb kind's population and a way to make its digester.
+- **Recipe:** a frozen object a bundle holds that makes a new digester when called. `TierDigesterRecipe` is one; it
+  holds the scoring mode's class and the two values every mode takes.
 - **Brick:** one orb kind as a unit: its bundle in the scenario layer and its `*_orb_conf` block in the config.
 - **Reader:** a module-level function that is handed the world and returns a number. The HUD, the metrics and the
   observation's global features are each a description plus a reader.

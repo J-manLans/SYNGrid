@@ -23,13 +23,13 @@ class NegDigester:
         negatives_eaten: how many negative orbs have been eaten this episode.
     """
 
-    KIND: Final[OrbKind] = DirectKind.NEGATIVE
-
     # ================= #
     #       Init        #
     # ================= #
 
     def __init__(self):
+        self.KIND: Final[OrbKind] = DirectKind.NEGATIVE
+
         self.reset()
 
     def reset(self) -> None:

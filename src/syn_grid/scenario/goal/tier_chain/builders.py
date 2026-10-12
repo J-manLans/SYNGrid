@@ -7,26 +7,35 @@ they share, and the function that builds a tier-chain world.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import partial
 from typing import TYPE_CHECKING
 
-from syn_grid.config.models.scenario.orb_models import NegOrbConf
+from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
+from syn_grid.core.droid.digestion.digesters.neg_digester import NegDigester
+from syn_grid.core.droid.digestion.digesters.tier_chain.max_tier_digester import (
+    MaxTierDigester,
+)
+from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
+    TierDigester,
+)
 from syn_grid.scenario.blocks.hud import HudStat
 from syn_grid.scenario.blocks.metrics import Metric
 from syn_grid.scenario.blocks.observation import ObservationRules
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.spawning import SpawningRules
+from syn_grid.scenario.digestion.tier_digester_recipe import TierDigesterRecipe
 from syn_grid.scenario.goal.tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
     TierWorldConf,
 )
-from syn_grid.scenario.goal.tier_chain.population import TierChainPopulation
 from syn_grid.scenario.goal.tier_chain.termination import TierChainTermination
+from syn_grid.scenario.populations.neg_population import NegPopulation
+from syn_grid.scenario.populations.tier_chain_population import TierChainPopulation
 from syn_grid.scenario.scenario import Scenario
 
 if TYPE_CHECKING:
-    from syn_grid.core.droid.digestion.digestion import OrbDigester
     from syn_grid.core.grid_world import GridWorld
 
 
@@ -51,39 +60,17 @@ def _tier_chain_scenario(
     - orb bundles: the tier bundle, plus `_negative_bundle` when the config has a negative block.
     - scenario tag: the builder's tag, plus `_Neg` when the config has a negative block.
     - spawning: the whole chain is on the field from the first step and no tier orb expires.
-    - observation: slot count, sort limit and tier bound all follow from `max_tier`.
+    - observation: the slot count and the sort limit are the number of orbs on the field,
+      `max_tier` plus one with a negative orb. The tier bound is `max_tier`.
     - termination: a broken chain, a finished chain, or the clock.
     - hud: the current chain length.
-    - metrics: chains broken, progressed and completed.
+    - metrics: chains broken, progressed and completed, plus negatives eaten when the config has
+      a negative block.
     - build_world: `_build_tier_chain_world`, bound to this scenario's pieces.
     """
 
     world_conf = scenario_conf.world_conf
     max_tier = world_conf.tier_orb_conf.max_tier
-
-    orb_bundles = (tier_bundle,)
-    if world_conf.neg_orb_conf is not None:
-        orb_bundles += (_negative_bundle(world_conf.neg_orb_conf),)
-        scenario_tag += "_Neg"
-
-    spawning = SpawningRules(
-        spawn_max_on_episode_start=True,
-        max_active_orbs=max_tier,  # The chain defines the field size.
-        tier_orb_expires=False,
-    )
-
-    observation = ObservationRules(
-        perception=scenario_conf.obs_conf.observation_handler_conf.perception,
-        max_steps=world_conf.max_steps,
-        observation_slot_count=max_tier,  # Phase 8: one more when a negative orb is present.
-        sort_limit=max_tier,
-        max_tier=max_tier,
-        global_features=(),
-    )
-
-    termination = TierChainTermination(
-        timeout_penalty=world_conf.goal_conf.timeout_penalty,
-    )
 
     hud = (HudStat("current tier chain", _chain_progress),)
 
@@ -94,13 +81,44 @@ def _tier_chain_scenario(
         Metric("chains_completed", _chains_completed),
     )
 
+    orb_bundles = (tier_bundle,)
+
+    # How many orbs the field holds: one per tier, and one more with a negative orb. The field
+    # size, the observation's slots and its sort limit all follow from it.
+    orb_count = max_tier
+
+    if world_conf.neg_orb_conf is not None:
+        scenario_tag += "_Neg"
+        metrics += (Metric("negatives_eaten", _negatives_eaten),)
+        orb_bundles += (_negative_bundle(world_conf.neg_orb_conf),)
+        orb_count += 1
+
+    observation = ObservationRules(
+        perception=scenario_conf.obs_conf.observation_handler_conf.perception,
+        max_steps=world_conf.max_steps,
+        observation_slot_count=orb_count,
+        sort_limit=orb_count,
+        max_tier=max_tier,
+        global_features=(),
+    )
+
+    termination = TierChainTermination(
+        timeout_penalty=world_conf.goal_conf.timeout_penalty,
+    )
+
+    spawning = SpawningRules(
+        spawn_max_on_episode_start=True,
+        max_active_orbs=orb_count,
+        tier_orb_expires=False,
+    )
+
     return Scenario(
         scenario_name=scenario_name,
         scenario_tag=scenario_tag,
-        observation=observation,
-        termination=termination,
         hud=hud,
         metrics=metrics,
+        observation=observation,
+        termination=termination,
         build_world=partial(_build_tier_chain_world, world_conf, orb_bundles, spawning),
     )
 
@@ -133,6 +151,11 @@ def _chains_completed(world: GridWorld) -> float:
     return 0.0
 
 
+def _negatives_eaten(world: GridWorld) -> float:
+    """How many negative orbs have been eaten this episode."""
+    return 0.0
+
+
 # ----------- #
 #   Helpers   #
 # ----------- #
@@ -162,9 +185,33 @@ def _build_tier_chain_world(
     )
 
 
-def _make_tier_digester() -> OrbDigester:
-    """Return a new max-tier digester."""
-    raise NotImplementedError("the tier digester is not written yet (phase 1)")
+def _tier_bundle(
+    tier_orb_conf: TierOrbConf,
+    scoring_mode: Callable[[int, float], TierDigester],
+) -> OrbBundle:
+    """
+    The tier orbs and their digester, scored the way the builder says.
+
+    The orbs are one per tier, worth what the config's reward ladder says. `scoring_mode` is the
+    tier digester class the scenario's worlds get. It is the one thing about the tier orbs that
+    differs between the family's scenarios.
+    """
+
+    return OrbBundle(
+        population=TierChainPopulation(
+            max_tier=tier_orb_conf.max_tier,
+            base_reward=tier_orb_conf.base_reward,
+            growth_factor=tier_orb_conf.growth_factor,
+            # No cool-down: an eaten tier orb does not return in that episode, so a chain can
+            # never be broken with a tier 1.
+            cool_down=None,
+        ),
+        make_digester=TierDigesterRecipe(
+            scoring_mode=scoring_mode,
+            max_tier=tier_orb_conf.max_tier,
+            chain_break_penalty=tier_orb_conf.chain_break_penalty,
+        ),
+    )
 
 
 def _negative_bundle(negative_conf: NegOrbConf) -> OrbBundle:
@@ -175,7 +222,13 @@ def _negative_bundle(negative_conf: NegOrbConf) -> OrbBundle:
     returns elsewhere after its cool-down.
     """
 
-    raise NotImplementedError("the negative orb bundle is phase 8")
+    return OrbBundle(
+        population=NegPopulation(
+            reward=negative_conf.reward,
+            cool_down=negative_conf.cool_down,
+        ),
+        make_digester=NegDigester,
+    )
 
 
 # ============ #
@@ -208,10 +261,7 @@ def build_tier_chain_spatial(
     # read only the grid size and the perception from the config.
 
     # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
-    tier_bundle = OrbBundle(
-        population=TierChainPopulation(world_conf.tier_orb_conf.max_tier),
-        make_digester=_make_tier_digester,
-    )
+    tier_bundle = _tier_bundle(world_conf.tier_orb_conf, MaxTierDigester)
 
     return _tier_chain_scenario(scenario_name, scenario_tag, scenario_conf, tier_bundle)
 

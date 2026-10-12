@@ -18,12 +18,15 @@ small check.
 | `scenario/scenario.py`, `blocks/hud.py`, `blocks/metrics.py`, `blocks/orb_bundle.py` | written, from the skeleton |
 | `blocks/observation.py`, `population.py`, `termination.py` | written: the rules dataclass and the two protocols |
 | `blocks/spawning.py` | stub: three fields, hooks without bodies, and an unused `OrbFieldUpdate` protocol |
-| `goal/tier_chain/population.py`, `termination.py` | stubs: no orbs are made, and no episode ends |
-| `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario`; `build_world`, `_make_tier_digester`, the negative bundle and the other three builders raise `NotImplementedError` |
+| `populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed |
+| `populations/neg_population.py` | written: one negative orb, used by the negative bundle. It gives the orb no lifespan |
+| `goal/tier_chain/termination.py` | stub: no episode ends |
+| `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; `build_world` and the other three builders raise `NotImplementedError` |
+| `digestion/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
 | `core/droid/digestion/digestion.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float). The routing key, `OrbKind`, is in `orb_meta.py` |
-| `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes, each with `owed_at_episode_end`. Not wired into a builder |
-| `core/droid/digestion/digesters/neg_digester.py` | written: `NegDigester` pays the orb's own reward and counts `negatives_eaten`. Not wired into a builder |
+| `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes, each with `owed_at_episode_end`. The spatial builder names the max-tier one |
+| `core/droid/digestion/digesters/neg_digester.py` | written: `NegDigester` pays the orb's own reward and counts `negatives_eaten`. The negative bundle names it |
 | `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
 | `core/droid/digestion/engine.py` | written: a router with `reset`, `digest` and `get`, built from digesters. The droid still constructs it the old way |
 | `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. The droid, the environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
@@ -87,11 +90,12 @@ three cases that raise; nothing in the test suite covers it.
 **Produces:** the pieces a `Scenario` is made of, for the tier-chain family.
 
 **Files:** `scenario/blocks/population.py`, `spawning.py`, `termination.py`, `observation.py`;
-`scenario/goal/tier_chain/population.py`, `termination.py`.
+`scenario/populations/`; `scenario/goal/tier_chain/termination.py`.
 
 **Write:**
 
-1. Population: the protocol in `blocks/`, and the tier-chain one that makes one tier orb per tier.
+1. Population: the protocol in `blocks/`, and the tier-chain one in `populations/` that makes one tier orb per tier.
+   Written.
 2. Spawning: the whole chain on the field from the first step, no tier orb expires, and an eaten tier orb does not
    return in that episode. The last one is a requirement and not a detail: with one orb per tier it means a chain
    can never be broken with a tier 1, which the scoring rules count on in a goal scenario.
@@ -116,7 +120,10 @@ world state in each of its four endings.
 
 1. Droid: energy and score as two numbers; takes its digesters and the grid size.
 2. World: takes the grid, the droid, the orbs and the spawning rules; counts the steps of an episode.
-3. Orbs: the tier orb loses its scoring flags. `orb_factory.py` goes, replaced by the population.
+3. Orbs: the tier orb loses its scoring flags. `orb_factory.py` goes, replaced by the population. An orb carries
+   its own cool-down and lifespan, each a number or `None`: `BaseOrb` says whether it is ready to return and
+   whether it expires, and the world asks every orb the same two questions. `tier_orb_expires` leaves
+   `SpawningRules`.
 
 **Check while here** (from the "things that bite" list in `AGENTS.md`):
 
@@ -139,8 +146,8 @@ dense has no config classes of its own.
 
 **Write:**
 
-1. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, a max-tier digester made
-   by `_make_tier_digester` from `max_tier` and `chain_break_penalty`).
+1. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, and a
+   `TierDigesterRecipe` that makes a max-tier digester from `max_tier` and `chain_break_penalty`). Written.
 2. `_tier_chain_scenario`: what the family shares.
 3. `_build_tier_chain_world` and the world readers, which take the chain's state from the tier digester through the
    engine.
@@ -221,8 +228,10 @@ scales the observation by its upper bound.
 One scenario at a time, each held against its thesis runs in `reproduction_package/` as a reference.
 
 1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
-2. **Negative orb.** One orb in a tier chain: its bundle, one more field cell and observation slot, and a metric
-   that reads `negatives_eaten`. The digester is written. It does not affect the chain.
+2. **Negative orb.** One orb in a tier chain. Its digester, population and bundle are written, and the family helper
+   counts it in the field size, the observation slots and the sort limit and names a `negatives_eaten` metric, whose
+   reader returns 0.0 like the family's others. What is left is its lifespan and running it. It does not affect the
+   chain.
 3. **Delay.** Its own termination strategy, the cooldown after a consume, and the negative orb freezing with the
    field.
 4. **Dense.** The threshold digester is written, and the family's termination pays what its chain is owed. What is
