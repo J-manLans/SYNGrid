@@ -7,7 +7,7 @@ image from it, and the agent sees the identity.
 """
 
 from enum import Enum
-from typing import Final
+from typing import Final, TypeAlias
 
 
 class OrbCategory(Enum):
@@ -35,6 +35,10 @@ class SynergyKind(Enum):
     TIER = 1
 
 
+# An orb's kind: a member of either enum. It is what digestion routes on.
+OrbKind: TypeAlias = DirectKind | SynergyKind
+
+
 class OrbMeta:
     """What one orb is.
 
@@ -53,12 +57,12 @@ class OrbMeta:
 
     def __init__(
         self,
-        kind: DirectKind | SynergyKind,
+        kind: OrbKind,
         tier: int | None = None,
     ):
         self._assert_tier_matches_kind(kind, tier)
 
-        self.KIND: Final[DirectKind | SynergyKind] = kind
+        self.KIND: Final[OrbKind] = kind
         self.TIER: Final[int | None] = tier
         self.IDENTITY = self.compute_radix_identity()
 
@@ -68,7 +72,7 @@ class OrbMeta:
 
     def _assert_tier_matches_kind(
         self,
-        kind: DirectKind | SynergyKind,
+        kind: OrbKind,
         tier: int | None,
     ) -> None:
         """Check that a tier orb has a tier of at least 1, and that no other kind has one."""

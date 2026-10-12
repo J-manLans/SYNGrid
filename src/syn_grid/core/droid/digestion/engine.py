@@ -1,224 +1,76 @@
-from typing import Final
+"""
+The digestion engine: the router that hands each consumed orb to the digester
+of its kind.
 
+The engine holds no scoring rules and no episode state of its own. Everything
+it knows is which digester owns which orb kind.
+"""
+
+from collections.abc import Iterable
+from typing import Final, TypeVar
+
+from syn_grid.core.droid.digestion.digestion import OrbDigester
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.synergy.chain.tier_orb import TierOrb
+from syn_grid.core.orbs.orb_meta import OrbKind
+
+D = TypeVar("D", bound=OrbDigester)
 
 
 class DigestionEngine:
-    _NO_CHAIN: Final[int] = 0
-    _BASE_TIER: Final[int] = 1
+    """Routes consumed orbs to their digesters, one digester per orb kind.
+
+    A mistake in how the digesters were put together is an error, never a
+    silent default: two digesters for one kind, an orb whose kind has no
+    digester, and a reader asking for a digester that is not here all raise.
+    """
 
     # ================= #
-    #        Init       #
+    #       Init        #
     # ================= #
 
-    def __init__(
-        self,
-        tier_consumption_penalty: float,
-        reward_multiplier: float,
-        chain_break_penalty: float,
-    ):
-        self._tier_consumption_penalty = tier_consumption_penalty
-        self._reward_multiplier = reward_multiplier
-        self._chain_break_penalty = chain_break_penalty
+    def __init__(self, digesters: Iterable[OrbDigester]):
+        self._digesters: Final[dict[OrbKind, OrbDigester]] = {}
 
-    def reset(self):
-        """Start of episode: clear the chain and zero the episode counters."""
+        for digester in digesters:
+            if digester.KIND in self._digesters:
+                raise ValueError(
+                    f"Two digesters own the orb kind {digester.KIND}: "
+                    f"{type(self._digesters[digester.KIND]).__name__} and "
+                    f"{type(digester).__name__}"
+                )
 
-        self._reset_chain()
-        self._chains_progressed = 0
-        self._chains_broken = 0
-        self._chains_completed = 0
+            self._digesters[digester.KIND] = digester
 
-    def _reset_chain(self):
-        """Clear chain state only. Counters cover the whole episode and stay."""
+    def reset(self) -> None:
+        """Clear every digester's episode state, at the start of an episode."""
 
-        self.chained_tiers = self._NO_CHAIN
-        self._pending_reward = 0.0
-        self._max_reward_bonus = 0.0
+        for digester in self._digesters.values():
+            digester.reset()
 
     # ================= #
     #        API        #
     # ================= #
 
-    @property
-    def stats(self) -> dict[str, int]:
-        """Episode counters as a fresh dict, safe to merge into the env's info."""
+    def digest(self, orb: BaseOrb) -> float:
+        """Hand a consumed orb to the digester of its kind and return the reward."""
 
-        return {
-            "chains_progressed": self._chains_progressed,
-            "chains_broken": self._chains_broken,
-            "chains_completed": self._chains_completed,
-        }
+        kind = orb.META.KIND
 
-    def digest(self, consumed_orb: BaseOrb) -> float:
-        """
-        Process a consumed orb and return the resulting reward.
+        if kind not in self._digesters:
+            raise KeyError(f"No digester owns the orb kind {kind}")
 
-        - Tiered orbs follow progression rules:
-            * Step-wise scoring: reward is given only on correct progression.
-            * Non-step-wise scoring: reward is given only on incorrect progression.
-        - Non-tiered orbs always return their base reward.
+        return self._digesters[kind].digest(orb)
 
-        :param consumed_orb: The orb being processed.
-        :return: The calculated reward.
+    def get(self, digester_class: type[D]) -> D:
+        """Return the digester that is an instance of this class.
+
+        This is how a reader reaches what a digester knows. Asking for a base
+        class finds the subclass that is registered, so a reader does not need
+        to know which scoring mode a scenario uses.
         """
 
-        # Handle tier-based orbs with progression logic
-        if isinstance(consumed_orb, TierOrb):
-            # Step-wise scoring: reward only if progression is correct
-            if consumed_orb.step_wise_scoring:
-                return self._step_wise_scoring(consumed_orb)
+        for digester in self._digesters.values():
+            if isinstance(digester, digester_class):
+                return digester
 
-            # Threshold scoring: accumulate reward silently on correct progression.
-            # If the chain breaks or max tier is reached, flush the pending reward and return it.
-            if consumed_orb.threshold_scoring:
-                return self._threshold_scoring(consumed_orb)
-
-            # Max tier scoring: only give rewards when reaching max tier, for more controlled
-            # scenarios
-            if consumed_orb.max_tier_scoring:
-                return self._max_tier_scoring(consumed_orb)
-
-            raise ValueError("The scoring type for this orb isn't implemented")
-
-        # Non-tier orbs: always return base reward. If a chain was running it is
-        # broken, and any pending reward and bonus disappear with it.
-        if self.chained_tiers != self._NO_CHAIN:
-            self._mark_broken()
-            self._reset_chain()
-
-        return consumed_orb.REWARD
-
-    # ================= #
-    #      Helpers      #
-    # ================= #
-
-    # === Counters === #
-
-    def _mark_progressed(self):
-        self._chains_progressed += 1
-
-    def _mark_broken(self):
-        self._chains_broken += 1
-
-    def _mark_completed(self):
-        self.chained_tiers = self._NO_CHAIN
-        self._chains_completed += 1
-
-    # === Scoring types === #
-
-    def _step_wise_scoring(self, consumed_orb: TierOrb) -> float:
-        current_tier = consumed_orb.META.TIER
-
-        if self.chained_tiers == current_tier - 1:
-            if current_tier == consumed_orb.max_tier:
-                self._mark_completed()
-                return consumed_orb.REWARD + self._flush_rewards()[1]
-            else:
-                self._mark_progressed()
-                self.chained_tiers = current_tier
-                self._max_reward_bonus += consumed_orb.REWARD
-
-            return consumed_orb.REWARD
-
-        self._mark_broken()
-        if current_tier != 1:
-            self.chained_tiers = self._NO_CHAIN
-            # small punishment for consuming in wrong order
-            return self._tier_consumption_penalty
-        else:
-            self.chained_tiers = current_tier
-            # as tier 1 is base for the tier chain it never gives any penalty
-            return consumed_orb.REWARD
-
-    def _threshold_scoring(self, consumed_orb: TierOrb) -> float:
-        scaled_reward = round(consumed_orb.REWARD * self._reward_multiplier)
-        current_tier = consumed_orb.META.TIER
-
-        if self.chained_tiers == current_tier - 1:
-            # Keep on building the tier chain, pending reward and bonus if we're not at max tier
-            if current_tier != consumed_orb.max_tier:
-                self._mark_progressed()
-                self.chained_tiers = current_tier
-                self._set_pending_rewards(scaled_reward)
-                return 0.0
-
-            # If we reached max tier, reset the chain and return the bonus
-            self._mark_completed()
-            return self._flush_rewards()[1] + scaled_reward
-
-        # Handel pending reward if chain is broken,
-        return self._handle_chain_break(current_tier, scaled_reward)
-
-    def _max_tier_scoring(self, consumed_orb: TierOrb):
-        current_tier = consumed_orb.META.TIER
-
-        if self.chained_tiers == current_tier - 1:
-            if current_tier != consumed_orb.max_tier:
-                # Build on current chain
-                self._mark_progressed()
-                self.chained_tiers = current_tier
-                return 0.0
-
-            # Return reward for completed chain
-            self._mark_completed()
-            return consumed_orb.REWARD
-
-        self._mark_broken()
-        self.chained_tiers = (
-            self._NO_CHAIN if current_tier != self._BASE_TIER else current_tier
-        )
-
-        return self._chain_break_penalty
-
-    # === Scoring helpers === #
-
-    def _handle_chain_break(self, current_tier: int, scaled_reward: float) -> float:
-        """
-        Handles a broken tier chain and returns any accumulated pending reward.
-
-        A chain break occurs when an orb is consumed out of sequence. Behavior depends
-        on the breaking orb's tier:
-
-        - No pending reward: return early with 0.
-        - Base tier, previous was higher tier: flush pending reward, restart chain and
-        rewards at base tier, return the flushed reward.
-        - Base tier, previous was also base tier: consecutive base tier collections are
-        not treated as chain breaks — do nothing, return 0.
-        - Any other tier: reset chain state, flush and return pending reward.
-        """
-
-        if self._pending_reward == 0.0:
-            self._mark_broken()
-            return 0.0
-
-        pending_reward = 0.0
-
-        if current_tier == self._BASE_TIER:
-            if self.chained_tiers != current_tier:
-                self.chained_tiers = current_tier
-                pending_reward = self._flush_rewards()[0]
-                self._set_pending_rewards(scaled_reward)
-            else:
-                return pending_reward
-        else:
-            self.chained_tiers = self._NO_CHAIN
-            pending_reward = self._flush_rewards()[0]
-
-        self._mark_broken()
-
-        return pending_reward
-
-    def _set_pending_rewards(self, scaled_reward: float):
-        self._pending_reward = scaled_reward
-        self._max_reward_bonus += self._pending_reward
-
-    def _flush_rewards(self) -> tuple[float, float]:
-        temp_rew = self._pending_reward
-        self._pending_reward = 0.0
-
-        temp_bonus = self._max_reward_bonus
-        self._max_reward_bonus = 0.0
-
-        return temp_rew, temp_bonus
+        raise KeyError(f"No {digester_class.__name__} is registered")

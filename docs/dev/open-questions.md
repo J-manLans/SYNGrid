@@ -17,11 +17,6 @@ here. A question that is only half answered stays, with what is left of it.
 
 ## Phase 1: Digestion
 
-- **What `engine.get` does when no digester of the asked class is registered.** The reference raises `KeyError`. The
-  other option is to return `None`, which puts a check in every reader.
-  See: "Digestion lives in the droid, with a folder of digesters" in `design-decisions.md`; the roadmap's phase 1.
-- **What `engine.digest` does with an orb whose kind has no digester.** `OrbBundle` is meant to rule the case out, so
-  it could only come from a builder that is wired wrong. The reference raises `KeyError`. Raised on 2026-10-12.
 - **Properties or plain attributes for what readers take from a digester.** They are plain public attributes now, and
   the owner may return to properties.
   See: "The tier digester is a template with one subclass per scoring mode" in `design-decisions.md`.

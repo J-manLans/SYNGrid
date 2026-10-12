@@ -68,7 +68,7 @@ are written in `core/droid/digestion/digesters/tier_chain/`, a base class and
 one subclass per scoring mode, and no builder creates one yet.
 
 `core/` does not use any of that yet. `GridWorld` creates its orbs through
-`OrbFactory`, and the old `DigestionEngine` scores them, both from config
-classes that no longer exist. `NegativeOrb` takes a `NegOrbConf`, and `TierOrb`
+`OrbFactory` from config classes that no longer exist, and the droid creates
+its `DigestionEngine` from config values where the engine now takes digesters. `NegativeOrb` takes a `NegOrbConf`, and `TierOrb`
 takes its tier, base reward, growth factor and cool-down as plain values, and
 works its reward out from them.

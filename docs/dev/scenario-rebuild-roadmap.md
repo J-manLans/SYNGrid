@@ -21,12 +21,12 @@ small check.
 | `goal/tier_chain/population.py`, `termination.py` | stubs: no orbs are made, and no episode ends |
 | `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario`; `build_world`, `_make_tier_digester`, the negative bundle and the other three builders raise `NotImplementedError` |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
-| `core/droid/digestion/digestion.py` | written: the routing key and the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float) |
+| `core/droid/digestion/digestion.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float). The routing key, `OrbKind`, is in `orb_meta.py` |
 | `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes. Not wired into a builder |
 | `core/droid/digestion/digesters/neg_digester.py` | empty |
 | `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
-| `core/droid/digestion/engine.py` | still the legacy engine |
-| `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. `TierOrb` has already lost its scoring flags, which the old engine still reads |
+| `core/droid/digestion/engine.py` | written: a router with `reset`, `digest` and `get`, built from digesters. The droid still constructs it the old way |
+| `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. The droid, the environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
 | Runners, `env_factory.py` | already take a `Scenario` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
@@ -64,20 +64,21 @@ and one file per scoring mode.
   digester itself.
 - A tier orb is worth the same in every scoring mode, and the mode decides when it is paid.
 
-**Settle first:** what `get` does when no digester of the asked class is registered. The reference raises `KeyError`.
+**Settled on 2026-10-12:** the engine raises when two digesters own one kind, when an eaten orb's kind has no
+digester, and when `get` is asked for a class that is not registered.
 
 **Write:**
 
-1. `digestion.py`: the routing key (the orb's kind) and the `OrbDigester` protocol with `KIND`, `reset` and `digest`.
-   Written.
+1. `digestion.py`: the `OrbDigester` protocol with `KIND`, `reset` and `digest`. The routing key is the orb's kind,
+   `OrbKind` in `orb_meta.py`. Written.
 2. `digesters/tier_chain/`: the tier base holding the chain, the counts and the chain's summed reward, and the
    max-tier, step-wise and threshold modes. Written.
-3. `engine.py`: a router with `reset`, `digest` and `get`. Still the old engine.
+3. `engine.py`: a router with `reset`, `digest` and `get`. Written.
 
 **Done when:** `import syn_grid.scenario.blocks.orb_bundle` works, the engine routes an orb to the digester of its
 kind, and a max-tier digester fed tiers 1, 2, 3 reports progress, progress, completion, and fed a wrong tier pays
-`chain_break_penalty`. The last part was seen in a throwaway script on 2026-10-11; nothing in the test suite covers
-it.
+`chain_break_penalty`. All of it was seen through the engine in a throwaway script on 2026-10-12, together with the
+three cases that raise; nothing in the test suite covers it.
 
 ---
 

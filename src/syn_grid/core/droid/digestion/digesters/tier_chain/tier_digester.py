@@ -9,9 +9,8 @@ a subclass in this folder.
 from abc import ABC, abstractmethod
 from typing import Final
 
-from syn_grid.core.droid.digestion.digestion import OrbKind
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_meta import SynergyKind
+from syn_grid.core.orbs.orb_meta import OrbKind, SynergyKind
 
 
 class TierDigester(ABC):

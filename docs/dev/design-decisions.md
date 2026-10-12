@@ -25,10 +25,15 @@ Each entry says when it would be worth reopening.
 
 **Decision:** Digestion is the droid's own organ. The package holds three things:
 
-- `digestion.py`, the contract: the routing key `OrbKind` and the `OrbDigester` protocol, which is `KIND`, `reset`
-  and `digest`. `digest` returns the reward as a float.
+- `digestion.py`, the contract: the `OrbDigester` protocol, which is `KIND`, `reset` and `digest`. `KIND` is the
+  routing key, an `OrbKind` from `core/orbs/orb_meta.py`. `digest` returns the reward as a float.
 - `engine.py`, a router. It holds no scoring rules: it hands an eaten orb to the digester registered for the orb's
   kind, and it lets a reader fetch a digester by its class.
+
+  The engine raises on every sign that the digesters were put together wrong: a `ValueError` when two digesters own
+  the same kind, a `KeyError` when an eaten orb's kind has no digester, and a `KeyError` when `get` is asked for a
+  class no registered digester is an instance of. `get` matches with `isinstance`, so asking for `TierDigester`
+  finds whichever scoring mode is registered.
 - `digesters/`, every digester there is, one per orb kind. A kind with several files gets a folder, as the tier
   digester has in `tier_chain/`.
 
@@ -52,14 +57,20 @@ and never learns which scenario it is in.
 mean editing that method as well as adding the kind's bundle.
 - A `kind_of(orb)` function for the lookup. Rejected because the key is the kind alone, so it would wrap
 `orb.META.KIND` and nothing else.
+- `get` returning `None` when no digester of the asked class is registered. Rejected because every reader would have
+to check for it and choose a number to report, and a metric that reads 0 because its digester is missing looks the
+same as one that reads 0 because nothing was eaten. A reader and its digester belong together: a reader for an
+optional orb kind is added where that kind's bundle is added.
+- An unrouted orb paying 0, and a second digester for a kind replacing the first. Rejected for the same reason: both
+can only come from a builder wired wrong, and both would go unnoticed.
 
 **Why this one:** The engine stays a plain mechanism that any scenario family can use. The scenario decides which
 digesters to build and how each is configured, through the bundle's `make_digester`, but it doesn't own their code.
 
-**Status:** settled; who creates the engine was settled on 2026-10-11. `digestion.py` is written. `engine.py` is still
-the old engine, and the droid does not take digesters yet. What `get` does when no digester of the asked class is
-registered is not decided; the reference raises `KeyError`. `NegativeDigester` goes in `digesters/` and is an empty
-file.
+**Status:** settled; who creates the engine was settled on 2026-10-11, and what the engine does on a miss on
+2026-10-12. `digestion.py` and `engine.py` are written. The droid does not take digesters yet: it still builds the
+engine from three config values, so `synergy_droid.py`, and the places that read the old engine's `chained_tiers`,
+`stats` and `_pending_reward`, wait for phases 3 and 5. `NegativeDigester` goes in `digesters/` and is an empty file.
 
 ---
 
@@ -290,8 +301,9 @@ The engine and the digesters treat it as an opaque key and never take it apart.
 
 **Where:** `core/orbs/orb_meta.py`, and what reads it: `core/grid_world.py`, `rendering/pygame_renderer.py`,
 `gymnasium/observation_space/perceptions/`. The orbs are packaged as `core/orbs/direct/`, `core/orbs/synergy/chain/`
-(holding `tier_orb.py`) and `core/orbs/synergy/effect/`. The routing key lives in
-`core/droid/digestion/digestion.py`.
+(holding `tier_orb.py`) and `core/orbs/synergy/effect/`. The routing key, `OrbKind`, is defined beside the
+enums in `orb_meta.py` since 2026-10-12, so that the meta and the perceptions can name it without importing from
+digestion.
 
 **Alternatives considered:**
 
@@ -324,7 +336,7 @@ no observation changed.
 - `tier` is stored as `None` for every kind but `SynergyKind.TIER`, and the validator rejects a tier on any other
 kind. `grid_world.py` decides which orbs despawn by checking the kind, and the composite grid perception writes 0
 for a missing tier.
-- The routing key in `core/droid/digestion/digestion.py` is `OrbKind = DirectKind | SynergyKind`.
+- The routing key is `OrbKind = DirectKind | SynergyKind`, in `core/orbs/orb_meta.py`.
 - `SynergyKind.TIER` is a plain member with the value 1. It used to be forced to the highest value in the enum. The
 identity does not need that: the tier has the highest slot in the radix formula, so a tier orb always sorts after
 every orb without a tier, whatever its kind's value is. That holds as long as only tier orbs carry a tier.

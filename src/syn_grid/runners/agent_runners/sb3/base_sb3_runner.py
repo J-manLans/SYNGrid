@@ -13,10 +13,10 @@ from syn_grid.runners.agent_runners.sb3.execution_strategy import (
 )
 from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
-T = TypeVar("T", bound=BaseAlgorithm)
+A = TypeVar("A", bound=BaseAlgorithm)
 
 
-class BaseSB3Runner(BaseAgentRunner, Generic[T]):
+class BaseSB3Runner(BaseAgentRunner, Generic[A]):
     """
     Shared orchestration for every SB3-backed agent runner.
 
@@ -46,7 +46,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         self,
         runner_bundle: RunnerBundle,
         hyper_parameters: dict[str, Any],
-        algorithm: type[T],
+        algorithm: type[A],
         execution_strategy: ExecutionStrategy,
     ):
         if not hyper_parameters.get("device"):
@@ -59,7 +59,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
         super().__init__(runner_bundle)
         self._execution_strategy = execution_strategy
 
-        self._artifact_manager: ArtifactManager[T] = ArtifactManager(
+        self._artifact_manager: ArtifactManager[A] = ArtifactManager(
             algorithm=algorithm,
             hyper_parameters=hyper_parameters,
             model_dir=self._model_dir,
@@ -187,7 +187,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Model === #
 
-    def _resolve_training_model(self, env: Env | VecEnv) -> T:
+    def _resolve_training_model(self, env: Env | VecEnv) -> A:
         if self._is_fresh_training_run:
             # If enabled, start TensorBoard with: tensorboard --logdir results/logs/<env_name>
             tensorboard_log = (
@@ -204,7 +204,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Train === #
 
-    def _train_model(self, model: T, env: VecEnv):
+    def _train_model(self, model: A, env: VecEnv):
         """Train the model for the configured number of iterations and save progress."""
 
         try:
@@ -224,7 +224,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
             env.close()
             self.play_training_stopped_sound()
 
-    def _maybe_save_model(self, model: T, env: VecEnv) -> None:
+    def _maybe_save_model(self, model: A, env: VecEnv) -> None:
         if self._train_conf.model_output:
             self._artifact_manager.save_model(model, env, self.get_unique_model_id())
 
@@ -244,7 +244,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[T]):
 
     # === Eval === #
 
-    def _eval_model(self, env: VecEnv, model: T):
+    def _eval_model(self, env: VecEnv, model: A):
         obs = env.reset()
         try:
             for _ in range(self._eval_conf.num_eval_episodes):

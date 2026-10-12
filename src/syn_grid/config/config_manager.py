@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
-T = TypeVar("T", bound=BaseModel)
+M = TypeVar("M", bound=BaseModel)
 
 # TODO: this one probably also needs some restructuring, especially since the goal is to move
 # towards a GUI, but I will do that job whenever I cross that river.
@@ -24,7 +24,7 @@ class ConfigManager:
     #        API        #
     # ================= #
 
-    def load_config(self, config_name: str, model_class: type[T]) -> T:
+    def load_config(self, config_name: str, model_class: type[M]) -> M:
         """
         Load a YAML file into a Pydantic model instance.
 

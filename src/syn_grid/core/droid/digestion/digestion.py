@@ -6,19 +6,10 @@ about scenarios: each kind has one digester that owns the rules for it, and
 every consumed orb is routed to the digester of its kind.
 """
 
-from typing import Final, Protocol, TypeAlias
+from typing import Final, Protocol
 
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_meta import DirectKind, SynergyKind
-
-# ################## #
-#       Routing      #
-# ################## #
-
-
-# What an orb is routed on: its kind. Digestion treats it as an opaque key.
-OrbKind: TypeAlias = DirectKind | SynergyKind
-
+from syn_grid.core.orbs.orb_meta import OrbKind
 
 # ################## #
 #     Interface      #
@@ -33,7 +24,7 @@ class OrbDigester(Protocol):
     """
 
     KIND: Final[OrbKind]
-    """The orb kind this digester owns."""
+    """The orb kind this digester owns. Digestion routes on it and treats it as an opaque key."""
 
     def reset(self) -> None:
         """Clear this digester's episode state, at the start of an episode."""

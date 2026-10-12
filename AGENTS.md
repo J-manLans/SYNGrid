@@ -34,16 +34,17 @@ Where to look, in this order:
 - `docs/dev/regressions.md` is for behaviour that worked before and does not
   now. It has a template and no entries.
 
-State on 2026-10-11: the config models, the registry and the spatial YAML are
+State on 2026-10-12: the config models, the registry and the spatial YAML are
 done. `scenario.py` and the blocks are written, and the spatial builder returns
 a `Scenario`. Its pieces are stubs: the tier-chain population makes no orbs,
 its termination never ends an episode, the spawning hooks have no bodies, and
 `build_world` raises `NotImplementedError`. The other three builders raise too.
-`core/droid/digestion/digestion.py` holds the routing key and the digester
-protocol. The tier digester's base and its three scoring modes are written in
-`digesters/tier_chain/` and are not wired into a builder. The negative digester
-is an empty file, and `engine.py` is still the old engine. `core/`,
-`gymnasium/` and `rendering/` still import the old config, so
+`core/droid/digestion/digestion.py` holds the digester protocol, and the
+routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
+router, built from digesters. The tier digester's base and its three scoring
+modes are written in `digesters/tier_chain/` and are not wired into a builder.
+The negative digester is an empty file. The rest of `core/`, `gymnasium/` and
+`rendering/` still import the old config, so
 `import syn_grid.scenario.registry` works while `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail. The roadmap expects that until its
 phase 5.
@@ -171,7 +172,8 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   from digesters that `build_world` makes, one per `OrbBundle`.
 - Digesters do not talk to each other. `digest` returns a float, and there are
   no events, no tally and no cross-kind hook. A reader takes a digester from the
-  engine by its class and reads its attributes. Only a tier orb eaten out of
+  engine by its class and reads its attributes. The engine raises when a
+  digester is missing or a kind has two. Only a tier orb eaten out of
   order breaks a chain, so a negative orb leaves it alone.
 - The tier digester is a base class with one subclass per scoring mode:
   max-tier, step-wise and threshold. The base owns the chain, the counts and the
@@ -252,10 +254,13 @@ decisions on this branch:
   `design-decisions.md`.
 - **Scenario config models** are in `config/models/scenario/`: `common_models.py`
   and `orb_models.py`. A family's own models are in its `config.py`.
-- **`core/droid/digestion/engine.py`** is still the legacy engine, and
-  `core/orbs/orb_factory.py` and `gymnasium/utils/episode_termination.py` are
-  still present. The roadmap removes both files. The engine picks its scoring
-  mode from flags on the tier orb that `TierOrb` no longer has.
+- **`core/droid/digestion/engine.py` is the new router, and nothing calls it
+  the new way.** `synergy_droid.py` still builds it from three config values,
+  and `environment.py`, `episode_termination.py` and `base_perception.py` still
+  read the old engine's `chained_tiers`, `stats` and `_pending_reward`. None of
+  those files imports.
+- **`core/orbs/orb_factory.py` and `gymnasium/utils/episode_termination.py`**
+  are still present. The roadmap removes both files.
 - **`env_factory.make` passes a `Scenario`,** but `SYNGridEnv` still takes
   `world_conf` and `obs_conf`.
 - **Two scenarios built from the same config do not compare equal** today. The
@@ -265,8 +270,8 @@ decisions on this branch:
   nothing gives a tier orb its reward from the config yet.
 - **`core/orbs/orb_factory.py` calls `TierOrb` with a signature it no longer
   has.** The file does not import and the roadmap removes it.
-- **The tier digesters were only tried in throwaway scripts.** No test covers
-  them.
+- **The engine and the tier digesters were only tried in throwaway scripts.**
+  No test covers them.
 - **`blocks/spawning.py` is mid-change.** `SpawningRules` has three fields, its
   docstring still lists `delay_on_consume`, and `OrbFieldUpdate` is declared and
   unused.

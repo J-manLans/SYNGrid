@@ -3,7 +3,7 @@ from gymnasium import spaces
 
 from syn_grid.config.models import PerceptionConf
 from syn_grid.core.grid_world import GridWorld
-from syn_grid.core.orbs.orb_meta import DirectKind, SynergyKind
+from syn_grid.core.orbs.orb_meta import DirectKind, OrbKind, SynergyKind
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
@@ -108,7 +108,7 @@ class CompositeGridMarkovian(BasePerception):
     #      Helpers      #
     # ================= #
 
-    def _build_orb_kind_channel_map(self) -> dict[DirectKind | SynergyKind, int]:
+    def _build_orb_kind_channel_map(self) -> dict[OrbKind, int]:
         channel = 1  # channel 0 is droid
         mapping = {}
 

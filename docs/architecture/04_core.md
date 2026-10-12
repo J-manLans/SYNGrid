@@ -52,14 +52,15 @@ spawns one more orb.
 
 `SynergyDroid` owns its position and one score, clipped at 0. It moves, applies
 the step and boundary penalties, and passes a consumed orb to its
-`DigestionEngine`. The engine is one class holding the chain state, the three
-scoring modes and the episode's chain counts. It picks the mode from flags on
-the tier orb, which `TierOrb` no longer has.
+`DigestionEngine`. It still creates the engine from three config values, which
+the engine no longer takes.
 
-Beside it is the digestion the engine is to be rebuilt on, which nothing uses
-yet. `digestion.py` holds the contract: the routing key, which is an orb's
-kind, and the `OrbDigester` protocol of `KIND`, `reset` and a `digest` that
-returns a reward. `digesters/tier_chain/` holds `TierDigester`, a base class
+The digestion package is rebuilt, and nothing uses it yet. `digestion.py` holds
+the contract: the `OrbDigester` protocol of `KIND`, `reset` and a `digest` that
+returns a reward. `engine.py` is a router built from digesters: it hands a
+consumed orb to the digester of its kind, `OrbKind` in `orb_meta.py`, returns
+a digester by its class to a reader, and raises when a digester is missing or
+a kind has two. `digesters/tier_chain/` holds `TierDigester`, a base class
 that tracks the chain, counts its progress, breaks and completions and sums
 what its orbs are worth, and three subclasses that each say what progress, a
 break and a completion pay: `MaxTierDigester`, `StepWiseDigester` and
