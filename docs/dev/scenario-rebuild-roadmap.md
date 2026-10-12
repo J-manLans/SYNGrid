@@ -51,6 +51,10 @@ and not a target: the rebuild's rewards differ from it on purpose, so the curves
 **Done when:** there are legacy training curves to hold the rebuild's against in phase 6, and a recorded
 step-by-step trace whose observations can be diffed.
 
+**State on 2026-10-13:** partly done. The owner reports that a legacy spatial run learned. The git-ignored `output/`
+folder holds one run from 2026-10-08: spatial 5x5, RPPO, `vector_fog_of_war`, seed 3. More seeds are a matter of
+switching `USE_LEGACY` and running. No step-by-step trace is recorded.
+
 ---
 
 ## Phase 1: Digestion
@@ -119,7 +123,8 @@ do not exist yet, and so hands to phase 3:
 - `TierChainPopulation` gives its tier orbs a cool-down of `None`, and `BaseOrb` does not act on it. No orb is
   handed a lifespan.
 - `WorldRecipe` holds `max_active_orbs`, and its body raises.
-- The five world readers in the tier-chain builders return 0.0.
+- The five world readers in the tier-chain builders call `world.droid.get_digester(...)`. They were written on
+  2026-10-13, after the phase was closed, as the part of phase 4 that could be done early.
 
 ---
 
@@ -127,7 +132,8 @@ do not exist yet, and so hands to phase 3:
 
 **Produces:** a world, a droid and orbs that are handed what they need.
 
-**Files:** `core/droid/synergy_droid.py`, `core/grid_world.py`, `core/orbs/`.
+**Files:** `core/droid/synergy_droid.py`, `core/grid_world.py`, `core/orbs/`, `core/utils/timer.py`; on the scenario
+side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain builders.
 
 **Write:**
 
@@ -142,9 +148,32 @@ do not exist yet, and so hands to phase 3:
    its own cool-down and lifespan, each a number or `None`: `BaseOrb` says whether it is ready to return and
    whether it expires, and the world asks every orb the same two questions.
 
+**Order of work**, set on 2026-10-13. Each step needs only the ones before it.
+
+| # | File | What changes |
+|---|---|---|
+| 1 | `core/utils/timer.py` | only if needed, so a timer can stand for "never" when a cool-down or lifespan is `None` |
+| 2 | `core/orbs/base_orb.py` | takes a lifespan per orb, acts on a cool-down of `None`, and says whether it is ready to return and whether it has expired. The class-level `_life_span` goes |
+| 3 | `core/orbs/synergy/chain/tier_orb.py`, `core/orbs/direct/negative_orb.py` | pass the lifespan through |
+| 4 | `scenario/blocks/populations/` | hand each orb its lifespan: `None` for tier orbs, a number for the negative orb |
+| 5 | `core/droid/synergy_droid.py` | takes digesters and the grid size as values, makes its own engine, splits energy from score, and gets `get_digester` |
+| 6 | `core/grid_world.py` | takes the grid, the droid, the orbs and `max_active_orbs`, counts the steps, fills the field at reset, and asks its orbs each step |
+| 7 | `core/orbs/orb_factory.py` | deleted, once the world no longer imports it |
+| 8 | `scenario/blocks/recipes/world_recipe.py` | the body of `__call__`, the last piece of phase 4 |
+| 9 | `scenario/families/goal/tier_chain/builders.py` | pass the negative orb's lifespan to its population, since it follows from the grid size |
+
+- The orbs come first because they import nothing that is broken, so they can be tried alone.
+- The droid comes before the world because the world is handed a droid. With `energy` and `get_digester` on the
+  droid, the type errors in the tier-chain termination and builders go away.
+- The recipe's body comes last because it calls the constructors that steps 5 and 6 define.
+- At step 6, `steps_left` can leave `TerminationRules.evaluate`, and the open question of orbs or populations is
+  settled. With a lifespan per orb from step 2, a list of orbs is enough.
+- The droid and the world both import `DroidAction` from `syn_grid.gymnasium.action_space`. Whether that imports on
+  its own was not checked, and it decides whether core can be run in a script before phase 5.
+
 **Check while here** (from the "things that bite" list in `AGENTS.md`):
 
-- `BaseOrb._life_span` is a class attribute shared by every env in the process.
+- `BaseOrb._life_span` is a class attribute shared by every env in the process. Step 2 removes it.
 - `GridWorld.reset()` without an rng re-rolls the layout.
 
 **Done when:** a world can be built by hand in a script, reset with a seed, and stepped with actions.
@@ -166,9 +195,11 @@ dense has no config classes of its own.
 1. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, and a
    `TierDigesterRecipe` that makes a max-tier digester from `max_tier` and `chain_break_penalty`). Written.
 2. `_tier_chain_scenario`: what the family shares.
-3. The body of `WorldRecipe.__call__` in `scenario/blocks/recipes/world_recipe.py`, and the world readers, which take the
-   chain's state from the tier digester through the engine. The recipe itself is written, and the family helper
-   holds one as `build_world`.
+3. The body of `WorldRecipe.__call__` in `scenario/blocks/recipes/world_recipe.py`. The recipe itself is written,
+   and the family helper holds one as `build_world`. The body calls the droid's and the world's constructors, so it
+   is written last in phase 3.
+4. The world readers, which take their numbers from the digesters through `world.droid.get_digester(...)`. Written
+   on 2026-10-13 and read from a stand-in world.
 
 **Done when:** `import syn_grid.scenario.registry` works, `build_scenario` returns a `Scenario`, two scenarios built
 from the same config compare equal, and `scenario.build_world()` returns a new world on each call.
@@ -248,8 +279,7 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
 2. **Negative orb.** One orb in a tier chain. Its digester, population and bundle are written, and the family helper
    counts it in the field size, the observation slots and the sort limit and names a `negatives_eaten` metric, whose
-   reader returns 0.0 like the family's others. What is left is its lifespan and running it. It does not affect the
-   chain.
+   reader is written. What is left is its lifespan and running it. It does not affect the chain.
 3. **Delay.** Its own termination strategy, and the field going empty for `delay` steps after a consume, the
    negative orb with it. Where that mechanic lives and how the scenario triggers it is open; nothing in the scenario
    layer is reserved for it.

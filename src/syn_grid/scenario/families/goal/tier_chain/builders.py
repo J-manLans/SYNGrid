@@ -122,32 +122,33 @@ def _tier_chain_scenario(
 # ----------------- #
 
 # Handed to the hud, the metrics and the observation. Module-level so that two scenarios built
-# from the same config hold the same function objects and compare equal.
+# from the same config hold the same function objects and compare equal. Each takes its number
+# from the digester that counts it, which the droid hands out by class.
 
 
 def _chain_progress(world: GridWorld) -> float:
     """The length of the chain right now."""
-    return 0.0
+    return world.droid.get_digester(TierDigester).chained_tiers
 
 
 def _chains_broken(world: GridWorld) -> float:
     """How many chains have broken this episode."""
-    return 0.0
+    return world.droid.get_digester(TierDigester).chains_broken
 
 
 def _chains_progressed(world: GridWorld) -> float:
     """How many times a chain has grown by one tier this episode."""
-    return 0.0
+    return world.droid.get_digester(TierDigester).chains_progressed
 
 
 def _chains_completed(world: GridWorld) -> float:
     """How many chains have been completed this episode."""
-    return 0.0
+    return world.droid.get_digester(TierDigester).chains_completed
 
 
 def _negatives_eaten(world: GridWorld) -> float:
     """How many negative orbs have been eaten this episode."""
-    return 0.0
+    return world.droid.get_digester(NegDigester).negatives_eaten
 
 
 # ----------- #

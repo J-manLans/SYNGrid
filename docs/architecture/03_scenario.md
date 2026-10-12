@@ -57,6 +57,6 @@ startup. Each environment then calls `scenario.build_world()` for a world of
 its own. Four tier-chain names are registered. `build_tier_chain_spatial`
 returns a `Scenario`, and the other three builders raise `NotImplementedError`.
 Its bundles make the orbs and the digesters, and two scenarios built from the
-same config compare equal. Its termination is written, against an `energy`
-and a `get_digester` method the droid does not have yet. The rest is stubs: the world readers return 0.0, and calling
-`build_world` raises until `core/` takes pieces instead of config.
+same config compare equal. Its termination and its world readers are written,
+against an `energy` and a `get_digester` method the droid does not have yet.
+Calling `build_world` raises until `core/` takes pieces instead of config.

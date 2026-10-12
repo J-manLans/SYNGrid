@@ -5,9 +5,10 @@ Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
 
-**The repo is in rebuild mode, and the rebuild has started.** The owner is
-rebuilding the scenario layer **by hand**, file by file, on
-`rebuilding-scenario`. `refactor-of-scenario-refactor` is the product of two
+**The repo is in rebuild mode, and the rebuild has started.** The scenario
+layer is being rebuilt file by file on `rebuilding-scenario`: the owner and the
+agent design each piece together, the agent writes it, and the owner reviews
+it. `refactor-of-scenario-refactor` is the product of two
 large multi-model refactors. Parts of it are good, but the whole is
 inconsistent, so it is a reference to read and not a base to build on.
 
@@ -38,10 +39,9 @@ State on 2026-10-13: the config models, the registry and the spatial YAML are
 done. `scenario.py` and the blocks are written, and the spatial builder returns
 a `Scenario`. The populations are in `scenario/blocks/populations/`: the tier-chain
 one makes the spatial scenario's tier orbs, and the negative one is in the
-bundle a config with a `neg_orb_conf` block gets. Its termination is written.
-The rest of its pieces are stubs: the world
-readers return 0.0, and `build_world` raises `NotImplementedError`. The other
-three builders raise too.
+bundle a config with a `neg_orb_conf` block gets. Its termination and its
+world readers are written. Calling `build_world` raises `NotImplementedError`.
+The other three builders raise too.
 `core/droid/digestion/digestion.py` holds the digester protocol, and the
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring
@@ -66,11 +66,27 @@ recorded here and in the roadmap's table, and never in a docstring.
 
 ## How to work with the owner
 
-- **The owner writes the code.** Act as a collaborator: explain, review, give a
-  design opinion, answer questions. Do not edit source, write plans or offer
-  "which should I implement" choices unless asked for an edit explicitly.
+- **Design together, the agent writes, the owner reviews.** Since 2026-10-13.
+  Before that the owner wrote the code by hand and the agent only advised. A
+  design is talked through first, and the owner decides. The agent then writes
+  the code and the docs that go with it, and says what it changed so the owner
+  can review it. Do not write plans or offer "which should I implement"
+  choices.
+- **When the direction is clear enough, go ahead and say what was done.** The
+  owner welcomes that, also when their last message was not a plain "do it".
+  Ask "shall I?" in one line only when the choice is genuinely open, or when
+  the work creates or moves files and folders.
 - **Audit and discuss before writing anything.** Say what exists, what is
   missing and what you would create, then wait.
+- **Make the work reviewable.** After writing, list each file touched and what
+  changed in it, say what was run and what was only read, and name anything
+  written against code that does not exist yet. Code the owner has not read is
+  not settled.
+- **Agree on where a new file or folder goes before creating it.** Show the
+  tree it would give and say what sort of thing lives at that level. The owner
+  reads the structure to picture the design, and on 2026-10-12 and 13 the
+  populations and the recipes were each moved several times because they were
+  placed first and discussed after.
 - **Plain language.** Report what you verified and what you did not.
 - **Mention anything surprising, but don't fix it unless asked.**
 - **No temporary state in docstrings.** Do not write `STUB:`, "not written
@@ -332,11 +348,12 @@ decisions on this branch:
   negative bundle, the `_Neg` tag, a `negatives_eaten` metric and one more orb
   in the field size, the observation slots and the sort limit. Nothing below
   the scenario has run with it.
-- **Every world reader in the tier-chain builders returns 0.0.** The HUD stat
-  and the four metrics are named on the scenario, and their readers have no
-  path to the engine until the world is rebuilt. Nothing outside `scenario/`
-  reads `scenario.metrics` or `scenario.hud`: `environment.py` still fills the
-  episode info from the old engine's `stats`.
+- **The world readers in the tier-chain builders are written against a droid
+  that does not exist yet.** Each returns a counter from
+  `world.droid.get_digester(...)`, so Pyright reports the method as unknown
+  five times. They were read from a stand-in world around real digesters.
+  Nothing outside `scenario/` reads `scenario.metrics` or `scenario.hud`:
+  `environment.py` still fills the episode info from the old engine's `stats`.
 - **`core/orbs/orb_factory.py` calls `TierOrb` with a signature it no longer
   has.** The file does not import and the roadmap removes it.
 - **The engine and the digesters were only tried in throwaway scripts.** No
@@ -366,8 +383,11 @@ unknown. Do not assume the refactor caused it; it may predate it.
 - Phase 0 of the roadmap comes first: confirm that the legacy strain learns
   spatial over several seeds, and record a step-by-step trace with the replay
   scripts. A learning regression is silent: the env still runs and passes
-  `check_env`. Whether phase 0 has been done is not recorded anywhere in the
-  repo.
+  `check_env`. On 2026-10-13 the owner reported that a legacy spatial run
+  learned, and that most stateless PPO scenarios were verified before it. The
+  git-ignored `output/` folder holds one run from 2026-10-08: spatial 5x5,
+  RPPO, `vector_fog_of_war`, seed 3. No agent looked at its curves. More seeds
+  can be run with `USE_LEGACY`; no step-by-step trace is recorded.
 - When using the replay harness: pin `starting_score` high or episodes end early
   and skip the timeout branch; comparisons are exact, so read the magnitude of a
   difference before calling it behavioural.
