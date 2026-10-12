@@ -16,14 +16,14 @@ small check.
 |---|---|
 | Config models, registry, spatial YAML | done; the YAML validates. Orb models are in `config/models/scenario/orb_models.py` |
 | `scenario/scenario.py`, `blocks/hud.py`, `blocks/metrics.py`, `blocks/orb_bundle.py` | written, from the skeleton |
-| `blocks/observation.py`, `population.py`, `termination.py` | written: the rules dataclass and the two protocols. A population has `create` and `count` |
+| `blocks/observation.py`, `termination.py`, `blocks/populations/population.py` | written: the rules dataclass and the two protocols. A population has `create` and `count` |
 | `blocks/spawning.py` | stub: three fields, hooks without bodies, and an unused `OrbFieldUpdate` protocol |
-| `populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
-| `populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It gives the orb no lifespan |
-| `goal/tier_chain/termination.py` | stub: no episode ends |
-| `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
-| `recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Calling it raises `NotImplementedError` until phase 3 |
-| `recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
+| `blocks/populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
+| `blocks/populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It gives the orb no lifespan |
+| `families/goal/tier_chain/termination.py` | stub: no episode ends |
+| `families/goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
+| `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Calling it raises `NotImplementedError` until phase 3 |
+| `blocks/recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
 | `core/droid/digestion/digestion.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float). The routing key, `OrbKind`, is in `orb_meta.py` |
 | `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes, each with `owed_at_episode_end`. The spatial builder names the max-tier one |
@@ -90,12 +90,12 @@ three cases that raise; nothing in the test suite covers it.
 
 **Produces:** the pieces a `Scenario` is made of, for the tier-chain family.
 
-**Files:** `scenario/blocks/population.py`, `spawning.py`, `termination.py`, `observation.py`;
-`scenario/populations/`; `scenario/goal/tier_chain/termination.py`.
+**Files:** `scenario/blocks/spawning.py`, `termination.py`, `observation.py`; `scenario/blocks/populations/`;
+ `scenario/families/goal/tier_chain/termination.py`.
 
 **Write:**
 
-1. Population: the protocol in `blocks/`, and the tier-chain one in `populations/` that makes one tier orb per tier.
+1. Population: the protocol and the tier-chain one, which makes one tier orb per tier, both in `blocks/populations/`.
    Written.
 2. Spawning: the whole chain on the field from the first step, no tier orb expires, and an eaten tier orb does not
    return in that episode. The last one is a requirement and not a detail: with one orb per tier it means a chain
@@ -139,7 +139,7 @@ world state in each of its four endings.
 
 **Produces:** a `Scenario` for spatial.
 
-**Files:** `scenario/goal/tier_chain/builders.py`.
+**Files:** `scenario/families/goal/tier_chain/builders.py`.
 
 **Done on 2026-10-11:** the config is in line with the digesters. The reward ladder is one formula on the shared
 `TierOrbConf`, `completion_reward` is gone from the models, the termination, the builder and the spatial YAML, and
@@ -150,7 +150,7 @@ dense has no config classes of its own.
 1. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, and a
    `TierDigesterRecipe` that makes a max-tier digester from `max_tier` and `chain_break_penalty`). Written.
 2. `_tier_chain_scenario`: what the family shares.
-3. The body of `WorldRecipe.__call__` in `scenario/recipes/world_recipe.py`, and the world readers, which take the
+3. The body of `WorldRecipe.__call__` in `scenario/blocks/recipes/world_recipe.py`, and the world readers, which take the
    chain's state from the tier digester through the engine. The recipe itself is written, and the family helper
    holds one as `build_world`.
 

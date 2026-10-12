@@ -21,13 +21,13 @@ from typing import Generic, TypeVar
 from syn_grid.config.models.common_scenario_models import ScenarioConf
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.scenario.scenario import Scenario
-from syn_grid.scenario.goal.tier_chain.builders import (
+from syn_grid.scenario.families.goal.tier_chain.builders import (
     build_tier_chain_spatial,
     build_tier_chain_scaling_sparse,
     build_tier_chain_scaling_dense,
     build_tier_chain_delay
 )
-from syn_grid.scenario.goal.tier_chain.config import (
+from syn_grid.scenario.families.goal.tier_chain.config import (
     TierDelayScenarioConf,
     TierDenseScenarioConf,
     TierScenarioConf,

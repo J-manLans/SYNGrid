@@ -15,10 +15,11 @@ config/
 └── config_manager.py
 
 scenario/
-├── goal/
-│   ├── tier_chain/
-│   │   └── config.py
-│   └── config.py
+├── families/
+│   └── goal/
+│       ├── tier_chain/
+│       │   └── config.py
+│       └── config.py
 └── registry.py
 ```
 
@@ -68,9 +69,9 @@ on: how long an episode lasts, the grid, the droid, the goal and the orbs.
 `obs_conf` is what the Gymnasium side needs to turn the world into an
 observation.
 
-Each layer adds its own block to the world. `scenario/goal/config.py` adds
+Each layer adds its own block to the world. `scenario/families/goal/config.py` adds
 `goal_conf`, what missing the deadline costs.
-`scenario/goal/tier_chain/config.py` adds `tier_orb_conf`, which is the chain
+`scenario/families/goal/tier_chain/config.py` adds `tier_orb_conf`, which is the chain
 length, what each tier is worth and the chain-break penalty, and the optional
 `neg_orb_conf`. Each orb
 kind has its own `*_orb_conf` block in the world, holding what the kind's orbs

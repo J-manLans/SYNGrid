@@ -3,25 +3,26 @@
 ```text
 scenario/
 ├── blocks/
+│   ├── populations/
+│   │   ├── neg_population.py
+│   │   ├── population.py
+│   │   └── tier_chain_population.py
+│   ├── recipes/
+│   │   ├── tier_digester_recipe.py
+│   │   └── world_recipe.py
 │   ├── hud.py
 │   ├── metrics.py
 │   ├── observation.py
 │   ├── orb_bundle.py
-│   ├── population.py
 │   ├── spawning.py
 │   └── termination.py
-├── goal/
-│   ├── tier_chain/
-│   │   ├── builders.py
-│   │   ├── config.py
-│   │   └── termination.py
-│   └── config.py
-├── populations/
-│   ├── neg_population.py
-│   └── tier_chain_population.py
-├── recipes/
-│   ├── tier_digester_recipe.py
-│   └── world_recipe.py
+├── families/
+│   └── goal/
+│       ├── tier_chain/
+│       │   ├── builders.py
+│       │   ├── config.py
+│       │   └── termination.py
+│       └── config.py
 ├── registry.py
 └── scenario.py
 ```
@@ -29,13 +30,17 @@ scenario/
 This package holds three different things. `scenario.py` and `blocks/` are the
 **representation**: the `Scenario` dataclass and the pieces one scenario is made
 of. `registry.py` is the **selection**: the `SCENARIOS` table, whose entry gives
-a scenario name its config class and its builder. The folders below it, such as
-`goal/tier_chain/`, are the **construction**: a family's config models in
-`config.py`, its own implementation of the termination interface in
-`termination.py`, and, in `builders.py`, the builders that turn a config into
-a `Scenario`. `populations/` and `recipes/` are shared by every family: the
-populations make a kind's orbs, and a recipe is a frozen object that makes
-something with episode state when called, a tier digester or a world.
+a scenario name its config class and its builder. `families/` is the
+**construction**: under a group such as `goal/`, a family folder such as
+`tier_chain/` holds its config models in `config.py`, its own implementation
+of the termination interface in `termination.py`, and, in `builders.py`, the
+builders that turn a config into a `Scenario`.
+
+`blocks/` holds everything a family does not own. Its files are the interfaces
+and the rule classes. Its two folders are the shared implementations:
+`populations/` has the population protocol and the classes that make a kind's
+orbs, and `recipes/` has the frozen objects that make something with episode
+state when called, a tier digester or a world.
 
 A `Scenario` is a frozen description: `scenario_name` and `scenario_tag`, the
 `ObservationRules`, the termination rules, the `hud` elements, the `metrics`,

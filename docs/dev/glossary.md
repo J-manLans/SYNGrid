@@ -14,7 +14,8 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Goal scenario:** a scenario with an objective to reach and a deadline to miss.
 - **Continuous scenario:** a scenario where reaching nothing ends the episode. None is written.
 - **Family:** the scenarios that share a folder, a config hierarchy and a helper. The tier chain family is spatial,
-  delay, scaling sparse and scaling dense.
+  delay, scaling sparse and scaling dense. The families are in `scenario/families/`, grouped under `goal/` and,
+  when one is written, `continuous/`.
 - **Variant:** a scenario in a family that needs a config field the family lacks, and so has models of its own.
   Delay is the only one.
 - **Sandbox:** the planned continuous scenario where every value can be set and orb kinds can be added. It is not on
@@ -43,7 +44,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Strategy:** a family's own implementation of an interface from `scenario/blocks/`, kept in the family's folder,
   such as `TierChainTermination`.
 - **Population:** what makes one orb kind's orbs for a world. It decides which orbs exist, once per world. Putting
-  them on the field is spawning, which the world does. The populations are shared, in `scenario/populations/`.
+  them on the field is spawning, which the world does. The populations are shared, in `scenario/blocks/populations/`.
 - **Count:** how many orbs a population makes. In a fixed field the counts of the bundles add up to the field size.
   In a sampled field they add up to the pool, and the field size is a config value.
 - **Bundle:** an `OrbBundle`: one orb kind's population and a way to make its digester.
@@ -51,7 +52,7 @@ Terms are grouped by area. The last section lists the words that are used in two
   world. It holds the values the thing is made from and compares by value. There are two. A tier bundle holds a
   `TierDigesterRecipe`, which makes a tier digester from the scoring mode's class and the two values every mode
   takes. A scenario holds a `WorldRecipe` as `build_world`, which makes a world from the world config, the bundles
-  and the spawning rules. Recipes are in `scenario/recipes/`.
+  and the spawning rules. Recipes are in `scenario/blocks/recipes/`.
 - **Brick:** one orb kind as a unit: its bundle in the scenario layer and its `*_orb_conf` block in the config.
 - **Reader:** a module-level function that is handed the world and returns a number. The HUD, the metrics and the
   observation's global features are each a description plus a reader.
@@ -151,7 +152,8 @@ Terms are grouped by area. The last section lists the words that are used in two
 ## Words with two senses, or not settled
 
 - **Block.** It means a `*_conf` model nested in a world config, such as `tier_orb_conf`. It also names the folder
-  `scenario/blocks/`, which holds the pieces a `Scenario` is made of. The two are different things.
+  `scenario/blocks/`, which holds the pieces a `Scenario` is made of: the interfaces, the rule classes, and the
+  populations and recipes every family shares. The two are different things.
 - **Axis model.** A name used for the small model. The small model also holds the perception, so the name is
   expected to change.
 - **Perception.** One config value that fixes both the visibility and the encoding. Whether it is split into two

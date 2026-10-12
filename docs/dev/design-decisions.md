@@ -184,7 +184,7 @@ recipe is needed exactly when a digester's constructor takes a value, and it hol
 takes. There is no base class for recipes and no generic one: what every `make_digester` has in common is the type
 on the bundle, a callable with no arguments that returns an `OrbDigester`.
 
-`scenario/recipes/` is for every recipe, not only a digester's. A recipe is a frozen object a scenario holds that
+`scenario/blocks/recipes/` is for every recipe, not only a digester's. A recipe is a frozen object a scenario holds that
 makes something with episode state when a world is built.
 
 A scenario's `build_world` is the second one, `WorldRecipe`, added on 2026-10-12. It holds the world config, the
@@ -198,8 +198,8 @@ termination. The old function was typed with `TierWorldConf` only because it sat
 With it, two scenarios built from the same config compare equal, and a scenario's full world config can be read from
 outside the builder, as `scenario.build_world.world_conf`.
 
-**Where:** `scenario/recipes/tier_digester_recipe.py` and `world_recipe.py`; `_tier_bundle` and
-`_tier_chain_scenario` in `scenario/goal/tier_chain/builders.py`.
+**Where:** `scenario/blocks/recipes/tier_digester_recipe.py` and `world_recipe.py`; `_tier_bundle` and
+`_tier_chain_scenario` in `scenario/families/goal/tier_chain/builders.py`.
 
 **Alternatives considered:**
 
@@ -214,7 +214,8 @@ the same two values, and a sandbox that reads its mode from config would hand th
 scenario layer needs a way to make a digester later. Core is handed digesters.
 - The folder named `scenario/digestion/`, as it was for a few hours on 2026-10-12. Renamed to `scenario/recipes/`
 because `core/droid/digestion/` is where digestion happens and two packages should not end in the same word, because
-`populations/` beside it is named after what its files are, and because a recipe need not make a digester.
+`populations/` beside it is named after what its files are, and because a recipe need not make a digester. Both
+folders moved under `scenario/blocks/` later the same day.
 
 **Why this one:** It compares by value, it is the one place a scoring mode is chosen, and the choice is a class and
 not a name that has to be looked up. If a `ScoringMode` name ever appears in a config, its only job is to pick the
@@ -330,7 +331,7 @@ mode the exception). A different score-mode means a new registered scenario with
 tier-chain helper, and its own config model if the inputs differ. Scaling sparse and scaling dense already work this
 way.
 
-**Where:** `scenario/(goal|continuous)/*/builders.py`, `scenario/(goal|continuous)/*/config.py`, `scenario/registry.py`
+**Where:** `scenario/families/(goal|continuous)/*/builders.py`, `scenario/families/(goal|continuous)/*/config.py`, `scenario/registry.py`
 
 **Alternatives considered:** The mode in the YAML, with a lookup from its name to a digester class. Rejected for now
 (allowed for continuous sandbox scenario).
@@ -448,9 +449,9 @@ the "two categories" rule only if an orb turns up that fits neither test.
   with what every scenario is built from. That is `common_models.py` with the grid, the droid, the
   observation handler and the base `WorldConf` and `ScenarioConf`, and `orb_models.py` with the base class of each
   orb kind.
-- `scenario/goal/config.py` holds what every goal scenario has. `scenario/continuous/config.py` will do the same for
+- `scenario/families/goal/config.py` holds what every goal scenario has. `scenario/families/continuous/config.py` will do the same for
   continuous.
-- `scenario/goal/tier_chain/config.py` holds the tier-chain family.
+- `scenario/families/goal/tier_chain/config.py` holds the tier-chain family.
 
 A scenario config has two halves. `world_conf` is everything the world acts on. `obs_conf` is what the Gymnasium side
 needs to turn the world into an observation, which the world never reads. Each layer adds its own block to the world:
@@ -477,8 +478,8 @@ each scenario declares the field".
 
 `scenario/registry.py` holds one table, `SCENARIOS`, whose entry gives a name its config class and its builder.
 
-**Where:** `config/models/scenario/common_models.py`, `config/models/scenario/orb_models.py`, `scenario/goal/config.py`,
-`scenario/goal/tier_chain/config.py`,
+**Where:** `config/models/scenario/common_models.py`, `config/models/scenario/orb_models.py`, `scenario/families/goal/config.py`,
+`scenario/families/goal/tier_chain/config.py`,
 `scenario/registry.py`, `config/yaml/goal_tier_chain_spatial.yaml`
 
 **Alternatives considered:**
@@ -599,9 +600,9 @@ There is no `completion_reward`. Termination reads `chains_completed` to end the
 `timeout_penalty` is in `goal_conf`, because any scenario with an objective and a deadline has it, whatever its orbs
 are. `chain_break_penalty` is in `tier_orb_conf`.
 
-**Where:** `GoalConf` in `scenario/goal/config.py`; `TierOrbConf` in `config/models/scenario/orb_models.py`; the
+**Where:** `GoalConf` in `scenario/families/goal/config.py`; `TierOrbConf` in `config/models/scenario/orb_models.py`; the
 tier digesters in `core/droid/digestion/digesters/tier_chain/`; `TierChainTermination` in
-`scenario/goal/tier_chain/termination.py`.
+`scenario/families/goal/tier_chain/termination.py`.
 
 **Alternatives considered:**
 
@@ -726,12 +727,12 @@ A population takes these as values and knows no scenario. The tier-chain family'
 `TierChainPopulation` a cool-down of `None`, stated once in `_tier_bundle`. The negative population is handed a
 number. A family whose tier orbs come and go hands the same `TierChainPopulation` numbers.
 
-The populations are in `scenario/populations/`, shared by every family, and a family's folder holds none. A
+The populations are in `scenario/blocks/populations/`, shared by every family, and a family's folder holds none. A
 population is the counterpart of `make_digester`: an `OrbBundle` holds both, and `build_world` runs each once per
 world. What they make, an orb and a digester, is in core.
 
-**Where:** `core/orbs/base_orb.py`; `scenario/populations/tier_chain_population.py` and `neg_population.py`;
-`_tier_bundle` in `scenario/goal/tier_chain/builders.py`.
+**Where:** `core/orbs/base_orb.py`; `scenario/blocks/populations/tier_chain_population.py` and `neg_population.py`;
+`_tier_bundle` in `scenario/families/goal/tier_chain/builders.py`.
 
 **Alternatives considered:**
 
@@ -760,6 +761,41 @@ every environment in the process.
 acts on it: `BaseOrb` hands the cool-down to its timer, which needs a number, has no way to say it is ready to
 return, and takes no lifespan. `NegativeOrb` is built without a lifespan, and `tier_orb_expires` is still a field of
 `SpawningRules`. The lifespan follows from the grid size, so a builder has to hand it to the population.
+
+---
+
+## The scenario package is blocks, families, a registry and a scenario (2026-10-12)
+
+**Decision:** `scenario/` has two folders and two files at its top level.
+
+- `blocks/` is everything a scenario is made of that no family owns: the interfaces and rule classes as files, and
+  the shared implementations in `populations/` and `recipes/`. The population protocol is in `populations/` with the
+  classes that implement it.
+- `families/` is the scenarios built from the blocks. A group such as `goal/` holds what its families share, and a
+  family folder such as `tier_chain/` holds its config models, its builders and the strategies that are its own.
+- `registry.py` selects a scenario by name, and `scenario.py` is the `Scenario`.
+
+**Where:** `src/syn_grid/scenario/`.
+
+**Alternatives considered:**
+
+- `populations/` and `recipes/` at the top level beside `blocks/` and `goal/`, as they were earlier the same day.
+Rejected because they are pieces a scenario is made of, the same sort of thing as `blocks/`, and they sat level with
+`goal/`, which is a different sort.
+- `goal/` at the top level, with `continuous/` to join it later. Rejected because the top level then mixes the pieces
+with the scenarios built from them.
+- The population protocol left as `blocks/population.py` beside a `blocks/populations/` folder. Rejected: two
+near-identical names in one folder.
+
+**Why this one:** The top level reads as the three roles the package has: what scenarios are made of, the scenarios,
+and the table that selects one.
+
+**Status:** done on 2026-10-12. `families/` has no `__init__.py`, where `scenario/`, `blocks/`, `goal/` and
+`tier_chain/` each have one. It imports from the source tree, but setuptools' `packages.find` only picks up folders
+that have one, so a built wheel would leave `families/` out.
+
+A strategy that only one family uses stays with that family, as `TierChainTermination` does. The termination
+interface is a file in `blocks/` with no folder of implementations, because none is shared yet.
 
 ---
 
@@ -846,7 +882,7 @@ Spatial is set to a base of 1 and a growth factor of 1.5. Its three tiers are wo
 together, which is close to the fixed 10 that legacy paid for a completed chain.
 
 **Where:** `TierOrbConf` in `config/models/scenario/orb_models.py`; `TierOrb` in
-`core/orbs/synergy/chain/tier_orb.py`; `scenario/goal/tier_chain/config.py`; `scenario/registry.py`;
+`core/orbs/synergy/chain/tier_orb.py`; `scenario/families/goal/tier_chain/config.py`; `scenario/registry.py`;
 `config/yaml/goal_tier_chain_spatial.yaml`.
 
 **Alternatives considered:**

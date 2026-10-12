@@ -12,13 +12,13 @@ world model and narrows `world_conf` on its own scenario model.
 
 See `config/models/scenario/common_models.py` for the vocabulary every family
 composes, `config/models/scenario/orb_models.py` for the orb kinds, and
-`scenario/goal/config.py` for what every goal scenario shares.
+`scenario/families/goal/config.py` for what every goal scenario shares.
 """
 
 from pydantic import Field, model_validator
 
 from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
-from syn_grid.scenario.goal.config import GoalScenarioConf, GoalWorldConf
+from syn_grid.scenario.families.goal.config import GoalScenarioConf, GoalWorldConf
 
 # TODO(lock): a locked scenario fixes its penalties, rewards, max_steps and
 # max_energy in its builder. Its models then need only the fields on its

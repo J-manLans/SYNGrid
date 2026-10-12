@@ -13,7 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from syn_grid.core.digestion.digestion import OrbDigester
-from syn_grid.scenario.blocks.population import OrbPopulation
+from syn_grid.scenario.blocks.populations.population import OrbPopulation
 
 
 @dataclass(frozen=True)

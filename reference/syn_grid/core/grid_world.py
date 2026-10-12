@@ -10,7 +10,7 @@ from syn_grid.core.orbs.orb_meta import OrbMeta
 from syn_grid.gymnasium.action_space import DroidAction
 
 if TYPE_CHECKING:
-    from syn_grid.scenario.blocks.population import OrbPopulation
+    from syn_grid.scenario.blocks.populations.population import OrbPopulation
     from syn_grid.scenario.blocks.spawning import SpawningRules
 
 

@@ -27,16 +27,15 @@ core/orbs/
 └── orb_meta.py
 
 scenario/blocks/
+├── populations/
+│   ├── neg_population.py
+│   ├── population.py
+│   └── tier_chain_population.py
 ├── orb_bundle.py
-├── population.py
 └── spawning.py
 
-scenario/goal/tier_chain/
+scenario/families/goal/tier_chain/
 └── config.py
-
-scenario/populations/
-├── neg_population.py
-└── tier_chain_population.py
 ```
 
 ```text
@@ -64,11 +63,11 @@ as a field on the world model of each scenario that holds the kind.
 
 In the scenario layer one orb kind is an `OrbBundle`: an `OrbPopulation` that
 makes the orbs and a way to make the kind's digester. The chain above is written
-down to the bundle. In `scenario/populations/`, `TierChainPopulation` makes one
+down to the bundle. In `scenario/blocks/populations/`, `TierChainPopulation` makes one
 tier orb per tier and `NegPopulation` makes one negative orb. The builders'
 negative bundle pairs `NegPopulation` with `NegDigester`, and their tier bundle
 pairs `TierChainPopulation` with a `TierDigesterRecipe` from
-`scenario/recipes/`, which holds the scoring mode's class and makes a new
+`scenario/blocks/recipes/`, which holds the scoring mode's class and makes a new
 digester when called. `build_world` is a `WorldRecipe`, and calling it raises
 before it joins anything. The tier
 digesters themselves are written in

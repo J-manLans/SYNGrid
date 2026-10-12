@@ -22,16 +22,18 @@ from syn_grid.scenario.blocks.hud import HudStat
 from syn_grid.scenario.blocks.metrics import Metric
 from syn_grid.scenario.blocks.observation import ObservationRules
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
+from syn_grid.scenario.blocks.populations.neg_population import NegPopulation
+from syn_grid.scenario.blocks.populations.tier_chain_population import (
+    TierChainPopulation,
+)
+from syn_grid.scenario.blocks.recipes.tier_digester_recipe import TierDigesterRecipe
+from syn_grid.scenario.blocks.recipes.world_recipe import WorldRecipe
 from syn_grid.scenario.blocks.spawning import SpawningRules
-from syn_grid.scenario.goal.tier_chain.config import (
+from syn_grid.scenario.families.goal.tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
 )
-from syn_grid.scenario.goal.tier_chain.termination import TierChainTermination
-from syn_grid.scenario.populations.neg_population import NegPopulation
-from syn_grid.scenario.populations.tier_chain_population import TierChainPopulation
-from syn_grid.scenario.recipes.tier_digester_recipe import TierDigesterRecipe
-from syn_grid.scenario.recipes.world_recipe import WorldRecipe
+from syn_grid.scenario.families.goal.tier_chain.termination import TierChainTermination
 from syn_grid.scenario.scenario import Scenario
 
 if TYPE_CHECKING:

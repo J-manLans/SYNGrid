@@ -121,25 +121,26 @@ syn_grid/
 │
 ├── scenario/
 │   ├── blocks/
+│   │   ├── populations/
+│   │   │   ├── neg_population.py
+│   │   │   ├── population.py
+│   │   │   └── tier_chain_population.py
+│   │   ├── recipes/
+│   │   │   ├── tier_digester_recipe.py
+│   │   │   └── world_recipe.py
 │   │   ├── hud.py
 │   │   ├── metrics.py
 │   │   ├── observation.py
 │   │   ├── orb_bundle.py
-│   │   ├── population.py
 │   │   ├── spawning.py
 │   │   └── termination.py
-│   ├── goal/
-│   │   ├── tier_chain/
-│   │   │   ├── builders.py
-│   │   │   ├── config.py
-│   │   │   └── termination.py
-│   │   └── config.py
-│   ├── populations/
-│   │   ├── neg_population.py
-│   │   └── tier_chain_population.py
-│   ├── recipes/
-│   │   ├── tier_digester_recipe.py
-│   │   └── world_recipe.py
+│   ├── families/
+│   │   └── goal/
+│   │       ├── tier_chain/
+│   │       │   ├── builders.py
+│   │       │   ├── config.py
+│   │       │   └── termination.py
+│   │       └── config.py
 │   ├── registry.py
 │   └── scenario.py
 │

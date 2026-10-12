@@ -16,14 +16,14 @@ from syn_grid.core.digestion.tier_digester import ScoringMode, TierOrbDigester, 
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.scenario.blocks.observation import ObservationRules
-from syn_grid.scenario.blocks.population import OrbPopulation
+from syn_grid.scenario.blocks.populations.population import OrbPopulation
 from syn_grid.scenario.goal.tier_chain.population import TierChainPopulation
 from syn_grid.scenario.blocks.spawning import (
     LeaveOrbFieldAlone,
     ReactivateAllOrbs,
     SpawningRules,
 )
-from syn_grid.scenario.goal.tier_chain.termination import TierChainTermination
+from syn_grid.scenario.families.goal.tier_chain.termination import TierChainTermination
 from syn_grid.scenario.scenario import Scenario
 from syn_grid.scenario.utils.helpers import neg_orb
 from syn_grid.scenario.blocks.hud import HudStat

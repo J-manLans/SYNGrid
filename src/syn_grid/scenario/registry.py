@@ -4,7 +4,7 @@ Scenario selection.
 This module is the whole of "which scenario is this". The global config names one, its entry here
 says which config class validates its config file and which builder composes its pieces, and nothing
 downstream re-derives identity from the config. The config classes and the builders live in their family's
-folder, such as ``goal/tier_chain/config.py`` and ``goal/tier_chain/builders.py``. Registering a
+folder, such as ``families/goal/tier_chain/config.py`` and ``families/goal/tier_chain/builders.py``. Registering a
 new scenario means writing its builder there and adding an entry to ``SCENARIOS`` here.
 
 Names that are configured identically share a config class. A name gets its own when it needs a
@@ -18,18 +18,17 @@ from typing import Generic, TypeVar
 
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.config.models.scenario.common_models import ScenarioConf
-from syn_grid.scenario.scenario import Scenario
-from syn_grid.scenario.goal.tier_chain.builders import (
-    build_tier_chain_spatial,
-    build_tier_chain_scaling_sparse,
+from syn_grid.scenario.families.goal.tier_chain.builders import (
+    build_tier_chain_delay,
     build_tier_chain_scaling_dense,
-    build_tier_chain_delay
+    build_tier_chain_scaling_sparse,
+    build_tier_chain_spatial,
 )
-from syn_grid.scenario.goal.tier_chain.config import (
+from syn_grid.scenario.families.goal.tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
 )
-
+from syn_grid.scenario.scenario import Scenario
 
 # ============ #
 #   Registry   #

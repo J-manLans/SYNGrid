@@ -18,7 +18,7 @@ from syn_grid.config.models.global_models import ScenarioName
 from collections.abc import Callable
 from syn_grid.scenario.scenario import Scenario
 
-from syn_grid.scenario.goal.tier_chain.builders import (
+from syn_grid.scenario.families.goal.tier_chain.builders import (
     build_tier_chain_spatial,
     build_tier_chain_scaling_sparse,
     build_tier_chain_scaling_dense,

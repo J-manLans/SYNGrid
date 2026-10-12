@@ -126,7 +126,7 @@ brick".
   The first candidate is a `metrics` field on the bundle.
 - A metric's reader is the same in every family: take the kind's digester from the engine and read a counter. So the
   readers would move out of a family's builders and live with the kind. Followed to the end, that is one module per
-  kind, which groups by kind where `scenario/populations/` and `scenario/recipes/` group by role.
+  kind, which groups by kind where `scenario/blocks/populations/` and `scenario/blocks/recipes/` group by role.
 - The HUD's form and the observation's features are open, in phases 9 and 7. Putting either in the bundle decides
   them early.
 

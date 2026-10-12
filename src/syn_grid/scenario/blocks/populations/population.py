@@ -6,7 +6,7 @@ difference is not a parameter: a tier chain has exactly one orb per tier and no
 weighting anywhere, while a continuous world apportions a weighted pool. So this
 is two implementations behind one call, not one implementation with a flag.
 
-This file is the call. The implementations are in ``scenario/populations/``,
+This file is the call. The implementations are in ``scenario/blocks/populations/``,
 and a scenario's builder hands one the values it needs.
 """
 

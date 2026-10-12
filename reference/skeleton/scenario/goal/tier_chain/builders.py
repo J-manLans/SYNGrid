@@ -1,6 +1,6 @@
 from syn_grid.config.models.common_scenario_models import NegOrbConf
 from syn_grid.scenario.scenario import Scenario
-from syn_grid.scenario.goal.tier_chain.config import (
+from syn_grid.scenario.families.goal.tier_chain.config import (
     TierDelayScenarioConf,
     TierDenseScenarioConf,
     TierScenarioConf,

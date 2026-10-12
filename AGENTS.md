@@ -36,7 +36,7 @@ Where to look, in this order:
 
 State on 2026-10-12: the config models, the registry and the spatial YAML are
 done. `scenario.py` and the blocks are written, and the spatial builder returns
-a `Scenario`. The populations are in `scenario/populations/`: the tier-chain
+a `Scenario`. The populations are in `scenario/blocks/populations/`: the tier-chain
 one makes the spatial scenario's tier orbs, and the negative one is in the
 bundle a config with a `neg_orb_conf` block gets. The rest of its pieces are
 stubs: its termination never ends an episode, the spawning hooks have no
@@ -46,7 +46,7 @@ builders raise too.
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring
 modes are written in `digesters/tier_chain/`, and the spatial builder names the
-max-tier one through a `TierDigesterRecipe` in `scenario/recipes/`.
+max-tier one through a `TierDigesterRecipe` in `scenario/blocks/recipes/`.
 The negative digester is written in `digesters/neg_digester.py`, and the
 negative bundle names it. The rest of `core/`, `gymnasium/` and
 `rendering/` still import the old config, so
@@ -220,11 +220,11 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   yet and takes no lifespan.
 - A tier bundle's `make_digester` is a `TierDigesterRecipe`: a frozen dataclass
   of the scoring mode's class, `max_tier` and `chain_break_penalty`, in
-  `scenario/recipes/`. It compares by value, which a `partial` does not. The
+  `scenario/blocks/recipes/`. It compares by value, which a `partial` does not. The
   folder is for every recipe: a frozen object a scenario holds that makes
   something with episode state when a world is built.
 - A scenario's `build_world` is a `WorldRecipe`, shared by every family, in
-  `scenario/recipes/`. It holds the world config, the bundles and the spawning
+  `scenario/blocks/recipes/`. It holds the world config, the bundles and the spawning
   rules, and reads only what the base `WorldConf` has. The full config is
   reachable as `scenario.build_world.world_conf`.
 - A digester sets `self.KIND: Final[OrbKind]` in `__init__`. In the class body
@@ -233,7 +233,11 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   family sums the counts of its bundles for the field size, the observation
   slots and the sort limit. A sampled field takes its field size from the
   config, and the counts are then only the size of the pool.
-- Populations are shared, in `scenario/populations/`, and take values, not a
+- `scenario/` is `blocks/`, `families/`, `registry.py` and `scenario.py`.
+  `blocks/` holds what no family owns, with the shared populations and recipes
+  in folders of their own. `families/` holds the groups, `goal/` today, and
+  under them the family folders.
+- Populations are shared, in `scenario/blocks/populations/`, and take values, not a
   config. A family's builder states its own choices, as `_tier_bundle`
   does with the cool-down. They are not in `core/orbs/`: the world is handed
   its orbs, and what it owns is spawning.
@@ -319,8 +323,9 @@ decisions on this branch:
 - **`blocks/spawning.py` is mid-change.** `SpawningRules` has three fields, its
   docstring still lists `delay_on_consume`, and `OrbFieldUpdate` is declared and
   unused. `tier_orb_expires` is due to leave it.
-- **`scenario/registry.py` fails `ruff check`** on its import order. It was
-  like that before the populations were written.
+- **`scenario/families/` has no `__init__.py`.** Every other folder in the
+  scenario package has one. It imports from the source tree; a built wheel
+  would leave it out.
 - **Tests import the legacy strain.** On 2026-10-11 collection found 230 tests
   and no errors. They were not run.
 - **`scripts/replay_probe.py` imports the legacy strain** on this branch. It was
