@@ -21,6 +21,18 @@ here. A question that is only half answered stays, with what is left of it.
   the owner may return to properties.
   See: "The tier digester is a template with one subclass per scoring mode" in `design-decisions.md`.
 
+## Phase 3: Core takes pieces, not config
+
+- **Whether the world is handed its orbs or the populations that make them.** `WorldRecipe` is written to join the
+  orbs of every bundle and hand the world a list. The reference did the other thing: `GridWorld` took one
+  `orb_population` and called `create()` in its constructor, because it had to call `BaseOrb.set_life_span` first,
+  a class attribute shared by every world in the process. If the lifespan becomes a value each orb is handed, that
+  reason is gone and a list is the simpler choice. If it does not, the world has to act before the orbs exist, and it
+  would take the bundles' populations and call each. There is no single population any more, since each bundle has
+  its own. Raised on 2026-10-12.
+  See: "An orb carries its own cool-down and lifespan" and "A tier bundle makes its digester from a frozen recipe"
+  in `design-decisions.md`; `reference/syn_grid/core/grid_world.py`.
+
 ## Phase 5: The Gymnasium side
 
 - **Where the renderer's settings come from.** The old `RendererConf` has no counterpart in the new models. A preview
@@ -68,7 +80,8 @@ See: "A locked scenario loads a small model, and its builder makes the full conf
 - **The common type of a config class.** `ScenarioConf` is named by the `TypeVar` bound in `registry.py`,
   `ScenarioEntry.build`, `build_scenario` and the return type of `load_experiment_configs`. A small model is not a
   `ScenarioConf`.
-- **How the full config is reached from outside the builder.** It exists only inside the builder and the `partial`.
+- **How the full config is reached from outside the builder.** The world part is on the scenario since 2026-10-12,
+  as `scenario.build_world.world_conf`. The observation part is not kept anywhere, and nothing uses either yet.
   `ConfigManager.save_snapshot` copies the YAML file, so a locked scenario's snapshot would hold only what the run
   chose. A GUI that shows the fixed values read-only needs the same thing.
 - **Where a family's shared fixed values are written,** so that four builders do not each state them.

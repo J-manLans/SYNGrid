@@ -21,8 +21,9 @@ small check.
 | `populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
 | `populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It gives the orb no lifespan |
 | `goal/tier_chain/termination.py` | stub: no episode ends |
-| `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; `build_world` and the other three builders raise `NotImplementedError` |
-| `digestion/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
+| `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
+| `recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Calling it raises `NotImplementedError` until phase 3 |
+| `recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
 | `core/droid/digestion/digestion.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float). The routing key, `OrbKind`, is in `orb_meta.py` |
 | `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes, each with `owed_at_episode_end`. The spatial builder names the max-tier one |
@@ -34,8 +35,8 @@ small check.
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
 `import syn_grid.scenario.registry` works and `build_scenario` returns the spatial `Scenario`. Two scenarios built
-from the same config do not compare equal yet, because `build_world` is a `functools.partial`. `import syn_grid.app`
-and `python3 -m syn_grid.check_env` fail until phase 5.
+from the same config compare equal. `scenario.build_world()` raises until phase 3. `import syn_grid.app` and
+`python3 -m syn_grid.check_env` fail until phase 5.
 
 ---
 
@@ -149,8 +150,9 @@ dense has no config classes of its own.
 1. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, and a
    `TierDigesterRecipe` that makes a max-tier digester from `max_tier` and `chain_break_penalty`). Written.
 2. `_tier_chain_scenario`: what the family shares.
-3. `_build_tier_chain_world` and the world readers, which take the chain's state from the tier digester through the
-   engine.
+3. The body of `WorldRecipe.__call__` in `scenario/recipes/world_recipe.py`, and the world readers, which take the
+   chain's state from the tier digester through the engine. The recipe itself is written, and the family helper
+   holds one as `build_world`.
 
 **Done when:** `import syn_grid.scenario.registry` works, `build_scenario` returns a `Scenario`, two scenarios built
 from the same config compare equal, and `scenario.build_world()` returns a new world on each call.

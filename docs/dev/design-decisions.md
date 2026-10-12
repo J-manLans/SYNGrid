@@ -179,20 +179,42 @@ dataclass of three values: `scoring_mode`, which is the tier digester class to c
 A builder states its scoring mode by naming the class. The tier-chain family does it through `_tier_bundle`, which
 takes the tier orb block and the class and returns the bundle, so each builder's choice is one argument.
 
-The negative bundle needs no recipe. `NegDigester` takes no values, so the class itself is the `make_digester`.
+The negative bundle needs no recipe. `NegDigester` takes no values, so the class itself is the `make_digester`. A
+recipe is needed exactly when a digester's constructor takes a value, and it holds what that one kind's digester
+takes. There is no base class for recipes and no generic one: what every `make_digester` has in common is the type
+on the bundle, a callable with no arguments that returns an `OrbDigester`.
 
-**Where:** `scenario/digestion/tier_digester_recipe.py`; `_tier_bundle` in `scenario/goal/tier_chain/builders.py`.
+`scenario/recipes/` is for every recipe, not only a digester's. A recipe is a frozen object a scenario holds that
+makes something with episode state when a world is built.
+
+A scenario's `build_world` is the second one, `WorldRecipe`, added on 2026-10-12. It holds the world config, the
+bundles and the spawning rules, and calling it builds a world. It replaced a `functools.partial` of
+`_build_tier_chain_world`, which is gone. There is one `WorldRecipe` for every family and not one per family.
+Building a world reads the grid, the droid's settings and the step limit, which are all on the base `WorldConf`, and
+takes everything else from the bundles and the spawning rules. What a family adds to its world config,
+`tier_orb_conf`, `neg_orb_conf` and `goal_conf` in a tier chain, is used up before that, by the bundles and by
+termination. The old function was typed with `TierWorldConf` only because it sat in the tier-chain builders.
+
+With it, two scenarios built from the same config compare equal, and a scenario's full world config can be read from
+outside the builder, as `scenario.build_world.world_conf`.
+
+**Where:** `scenario/recipes/tier_digester_recipe.py` and `world_recipe.py`; `_tier_bundle` and
+`_tier_chain_scenario` in `scenario/goal/tier_chain/builders.py`.
 
 **Alternatives considered:**
 
 - A `functools.partial` of the digester class. Rejected because two partials never compare equal, so two scenarios
-built from the same config would differ in their bundles. `build_world` has that problem today.
+built from the same config would differ in their bundles. `build_world` had that problem until it became a recipe
+too; see below.
 - A module-level function per scoring mode, as `_make_tier_digester` was. Rejected because a function with no
 arguments has nowhere to get `max_tier` and the penalty from.
 - The recipe in the tier-chain builders. Rejected because it holds nothing of the family: every scoring mode takes
 the same two values, and a sandbox that reads its mode from config would hand the same recipe the class it chose.
 - The recipe in `core/`, beside the digesters. Rejected for the reason the populations are not there: only the
 scenario layer needs a way to make a digester later. Core is handed digesters.
+- The folder named `scenario/digestion/`, as it was for a few hours on 2026-10-12. Renamed to `scenario/recipes/`
+because `core/droid/digestion/` is where digestion happens and two packages should not end in the same word, because
+`populations/` beside it is named after what its files are, and because a recipe need not make a digester.
 
 **Why this one:** It compares by value, it is the one place a scoring mode is chosen, and the choice is a class and
 not a name that has to be looked up. If a `ScoringMode` name ever appears in a config, its only job is to pick the
@@ -201,6 +223,13 @@ class that goes in this field.
 **Status:** built on 2026-10-12 and used by the spatial builder. Checked by building the spatial scenario from its
 YAML: the bundles of two builds compare equal, each call returns a new digester, and the tier orbs fed in order to
 the digesters the bundles make pay what the three tier orbs are worth together.
+
+`WorldRecipe` is written without its body: calling it raises `NotImplementedError`, because the droid and the world
+do not take pieces until phase 3. Checked on 2026-10-12 with the spatial YAML: two builds of the same config compare
+equal and are hashable, and a different grid, a different `chain_break_penalty` and an added negative block each
+make a scenario that does not equal the first. That it needs nothing of a family is read from the config models and
+from the steps the old function listed, not from a body that runs. Delay is the one to watch: its field freezes
+after a consume, which is meant to live in the spawning rules.
 
 Tied to it: a digester's `KIND` is set in `__init__` as `self.KIND: Final[OrbKind]`, not in the class body. A `Final`
 with a value in a class body is a class variable to a type checker, the protocol's `KIND: Final[OrbKind]` is an
@@ -698,7 +727,7 @@ A population takes these as values and knows no scenario. The tier-chain family'
 number. A family whose tier orbs come and go hands the same `TierChainPopulation` numbers.
 
 The populations are in `scenario/populations/`, shared by every family, and a family's folder holds none. A
-population is the counterpart of `make_digester`: both are recipes in an `OrbBundle` that `build_world` runs once per
+population is the counterpart of `make_digester`: an `OrbBundle` holds both, and `build_world` runs each once per
 world. What they make, an orb and a digester, is in core.
 
 **Where:** `core/orbs/base_orb.py`; `scenario/populations/tier_chain_population.py` and `neg_population.py`;
@@ -915,7 +944,7 @@ scenario's YAML, and `load_experiment_configs` in `app.py`.
 single narrow class suits every scenario: spatial keeps the grid, scaling the grid and the chain length, delay the
 delay.
 - Thin the base models to what every scenario states and move the tunable fields to subclasses (the second sketch).
-Rejected because `_tier_chain_scenario` and `_build_tier_chain_world` read a full config, and would have to take
+Rejected because `_tier_chain_scenario` and the `WorldRecipe` read a full config, and would have to take
 their values from two sources.
 - Fixed values as loose constants passed around the builder, with no full model made. Rejected because the values
 then skip validation and everything below the builder takes a pile of arguments.
@@ -937,7 +966,8 @@ locked:
 - The common type of a config class. `ScenarioConf` is named by the `TypeVar` bound in `registry.py`,
   `ScenarioEntry.build`, `build_scenario` and the return type of `load_experiment_configs`, and a small model is not a
   `ScenarioConf`.
-- How the full config is reached from outside the builder. Today it exists only inside the builder and the `partial`.
+- How the full config is reached from outside the builder. Since 2026-10-12 the world part of it is on the scenario,
+  as `scenario.build_world.world_conf`; the observation part is not, and nothing reads either yet.
   `ConfigManager.save_snapshot` copies the YAML file, so a locked scenario's snapshot would hold only what the run
   chose; a GUI showing the fixed values read-only needs the same thing.
 - Where a family's shared fixed values are written, so that four builders do not each state them.

@@ -68,8 +68,9 @@ down to the bundle. In `scenario/populations/`, `TierChainPopulation` makes one
 tier orb per tier and `NegPopulation` makes one negative orb. The builders'
 negative bundle pairs `NegPopulation` with `NegDigester`, and their tier bundle
 pairs `TierChainPopulation` with a `TierDigesterRecipe` from
-`scenario/digestion/`, which holds the scoring mode's class and makes a new
-digester when called. `build_world` raises before it joins anything. The tier
+`scenario/recipes/`, which holds the scoring mode's class and makes a new
+digester when called. `build_world` is a `WorldRecipe`, and calling it raises
+before it joins anything. The tier
 digesters themselves are written in
 `core/droid/digestion/digesters/tier_chain/`, a base class and one subclass
 per scoring mode.

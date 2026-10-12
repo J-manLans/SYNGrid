@@ -46,7 +46,7 @@ builders raise too.
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring
 modes are written in `digesters/tier_chain/`, and the spatial builder names the
-max-tier one through a `TierDigesterRecipe` in `scenario/digestion/`.
+max-tier one through a `TierDigesterRecipe` in `scenario/recipes/`.
 The negative digester is written in `digesters/neg_digester.py`, and the
 negative bundle names it. The rest of `core/`, `gymnasium/` and
 `rendering/` still import the old config, so
@@ -220,7 +220,13 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   yet and takes no lifespan.
 - A tier bundle's `make_digester` is a `TierDigesterRecipe`: a frozen dataclass
   of the scoring mode's class, `max_tier` and `chain_break_penalty`, in
-  `scenario/digestion/`. It compares by value, which a `partial` does not.
+  `scenario/recipes/`. It compares by value, which a `partial` does not. The
+  folder is for every recipe: a frozen object a scenario holds that makes
+  something with episode state when a world is built.
+- A scenario's `build_world` is a `WorldRecipe`, shared by every family, in
+  `scenario/recipes/`. It holds the world config, the bundles and the spawning
+  rules, and reads only what the base `WorldConf` has. The full config is
+  reachable as `scenario.build_world.world_conf`.
 - A digester sets `self.KIND: Final[OrbKind]` in `__init__`. In the class body
   a `Final` does not satisfy the protocol under Pyright.
 - A population says how many orbs it makes, through `count`. A fixed-field
@@ -290,8 +296,9 @@ decisions on this branch:
   are still present. The roadmap removes both files.
 - **`env_factory.make` passes a `Scenario`,** but `SYNGridEnv` still takes
   `world_conf` and `obs_conf`.
-- **Two scenarios built from the same config do not compare equal** today. The
-  only differing field is `build_world`, which is a `functools.partial`.
+- **Two scenarios built from the same config compare equal,** since
+  `build_world` became a `WorldRecipe` on 2026-10-12. Calling the recipe
+  raises `NotImplementedError`: its body waits for phase 3.
 - **The spatial builder's bundles are complete, and nothing joins them.** The
   tier bundle makes the orbs with their rewards and a max-tier digester from
   the config. `build_world` raises before it uses either.

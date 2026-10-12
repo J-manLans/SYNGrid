@@ -1,14 +1,13 @@
 """
 The tier chain family's builders.
 
-One builder per registered tier-chain scenario, the helper that composes what
-they share, and the function that builds a tier-chain world.
+One builder per registered tier-chain scenario, and the helpers that compose
+what they share.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
-from functools import partial
 from typing import TYPE_CHECKING
 
 from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
@@ -24,15 +23,15 @@ from syn_grid.scenario.blocks.metrics import Metric
 from syn_grid.scenario.blocks.observation import ObservationRules
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.spawning import SpawningRules
-from syn_grid.scenario.digestion.tier_digester_recipe import TierDigesterRecipe
 from syn_grid.scenario.goal.tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
-    TierWorldConf,
 )
 from syn_grid.scenario.goal.tier_chain.termination import TierChainTermination
 from syn_grid.scenario.populations.neg_population import NegPopulation
 from syn_grid.scenario.populations.tier_chain_population import TierChainPopulation
+from syn_grid.scenario.recipes.tier_digester_recipe import TierDigesterRecipe
+from syn_grid.scenario.recipes.world_recipe import WorldRecipe
 from syn_grid.scenario.scenario import Scenario
 
 if TYPE_CHECKING:
@@ -66,7 +65,7 @@ def _tier_chain_scenario(
     - hud: the current chain length.
     - metrics: chains broken, progressed and completed, plus negatives eaten when the config has
       a negative block.
-    - build_world: `_build_tier_chain_world`, bound to this scenario's pieces.
+    - build_world: a `WorldRecipe` holding this scenario's world config, bundles and spawning.
     """
 
     world_conf = scenario_conf.world_conf
@@ -118,7 +117,7 @@ def _tier_chain_scenario(
         metrics=metrics,
         observation=observation,
         termination=termination,
-        build_world=partial(_build_tier_chain_world, world_conf, orb_bundles, spawning),
+        build_world=WorldRecipe(world_conf, orb_bundles, spawning),
     )
 
 
@@ -158,30 +157,6 @@ def _negatives_eaten(world: GridWorld) -> float:
 # ----------- #
 #   Helpers   #
 # ----------- #
-
-
-def _build_tier_chain_world(
-    world_conf: TierWorldConf,
-    orb_bundles: tuple[OrbBundle, ...],
-    spawning: SpawningRules,
-) -> GridWorld:
-    """
-    Build one tier-chain world.
-
-    Called once per environment, so everything that holds episode state -- the digesters, the
-    droid, the orbs -- is created here rather than shared through the scenario. The orbs are every
-    bundle's orbs joined and the digesters are one per bundle; nothing here asks which kinds they
-    are.
-    """
-
-    # orbs = [orb for bundle in orb_bundles for orb in bundle.population.create()]
-    # digesters = [bundle.make_digester() for bundle in orb_bundles]
-    # grid = (world_conf.grid_conf.grid_rows, world_conf.grid_conf.grid_cols)
-    # TODO(phase 3): build the droid from the digesters, the grid and `droid_conf`, then return
-    # GridWorld(grid, droid, orbs, spawning).
-    raise NotImplementedError(
-        "_build_tier_chain_world waits for core to take pieces (phase 3)"
-    )
 
 
 def _tier_bundle(

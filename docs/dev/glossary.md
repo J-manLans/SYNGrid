@@ -47,8 +47,11 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Count:** how many orbs a population makes. In a fixed field the counts of the bundles add up to the field size.
   In a sampled field they add up to the pool, and the field size is a config value.
 - **Bundle:** an `OrbBundle`: one orb kind's population and a way to make its digester.
-- **Recipe:** a frozen object a bundle holds that makes a new digester when called. `TierDigesterRecipe` is one; it
-  holds the scoring mode's class and the two values every mode takes.
+- **Recipe:** a frozen object a scenario holds that makes something with episode state when it is called, once per
+  world. It holds the values the thing is made from and compares by value. There are two. A tier bundle holds a
+  `TierDigesterRecipe`, which makes a tier digester from the scoring mode's class and the two values every mode
+  takes. A scenario holds a `WorldRecipe` as `build_world`, which makes a world from the world config, the bundles
+  and the spawning rules. Recipes are in `scenario/recipes/`.
 - **Brick:** one orb kind as a unit: its bundle in the scenario layer and its `*_orb_conf` block in the config.
 - **Reader:** a module-level function that is handed the world and returns a number. The HUD, the metrics and the
   observation's global features are each a description plus a reader.
