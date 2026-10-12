@@ -26,6 +26,11 @@ if TYPE_CHECKING:
 class OrbPopulation(Protocol):
     """Makes one orb kind's orbs."""
 
+    @property
+    def count(self) -> int:
+        """How many orbs `create` returns."""
+        ...
+
     def create(self) -> list[BaseOrb]:
         """Return new orbs. Called once per world, so it holds no episode state."""
         ...

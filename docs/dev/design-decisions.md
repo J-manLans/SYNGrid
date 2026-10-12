@@ -638,6 +638,20 @@ adds `weight`, and other kinds in that family carry a weight on their own block 
 A tier chain with a negative block holds exactly one negative orb. It spawns, despawns at the end of its lifespan and
 returns elsewhere after its cool-down. The count is not config.
 
+Every population says how many orbs it makes, through `count` on the `OrbPopulation` protocol. The member knows no
+scenario; what is done with it depends on how the field is filled. Added on 2026-10-12.
+
+| | Fixed field | Sampled field |
+|---|---|---|
+| Orbs in the pool | the sum of the counts | the sum of the counts |
+| Orbs on the field at once | the same number | `max_active_orbs` from the config, fewer than the pool |
+| Observation slots and sort limit | follow the field | follow the field |
+
+In a fixed field the family's helper sums the counts of its bundles, as `_tier_chain_scenario` does for `orb_count`,
+and nothing adds one by hand when a kind joins. In a sampled field a kind's share of the pool depends on every other
+kind's weight, so one population cannot work out its own count. The family's builder is expected to apportion the
+pool and hand each population its number.
+
 **Where:** `NegOrbConf` in `config/models/scenario/orb_models.py`. The weighted version is not written yet; it goes
 in the same file when the first sampled family is built.
 
@@ -651,6 +665,11 @@ fixed goal orb surrounded by a random stream of hazards.
 - One pool block listing every kind's weight. Rejected because a kind's block should stay one self-contained brick,
 and a separate list could name a kind that has no block.
 - A configurable number of negative orbs in a tier chain. Rejected: one is enough.
+- The helper keeping its own tally: `max_tier`, plus one inside the negative block. This was in place for a few hours
+on 2026-10-12. Rejected because a forgotten `+= 1` leaves the observation one slot short without an error, and the
+sort limit then drops the farthest orb.
+- Counting the orbs a population creates, with `len(population.create())`. Rejected because it makes orbs only to
+count them.
 
 **Why this one:** Each block holds only what its family reads. A weight is only meaningful relative to the other
 weights in the same pool, so it appears exactly where there is a pool.

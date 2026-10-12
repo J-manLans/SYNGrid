@@ -40,6 +40,10 @@ class TierChainPopulation:
     growth_factor: float
     cool_down: int | None
 
+    @property
+    def count(self) -> int:
+        return self.max_tier
+
     def create(self) -> list[BaseOrb]:
         return [
             TierOrb(

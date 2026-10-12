@@ -44,6 +44,8 @@ Terms are grouped by area. The last section lists the words that are used in two
   such as `TierChainTermination`.
 - **Population:** what makes one orb kind's orbs for a world. It decides which orbs exist, once per world. Putting
   them on the field is spawning, which the world does. The populations are shared, in `scenario/populations/`.
+- **Count:** how many orbs a population makes. In a fixed field the counts of the bundles add up to the field size.
+  In a sampled field they add up to the pool, and the field size is a config value.
 - **Bundle:** an `OrbBundle`: one orb kind's population and a way to make its digester.
 - **Recipe:** a frozen object a bundle holds that makes a new digester when called. `TierDigesterRecipe` is one; it
   holds the scoring mode's class and the two values every mode takes.

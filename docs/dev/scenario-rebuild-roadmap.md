@@ -16,10 +16,10 @@ small check.
 |---|---|
 | Config models, registry, spatial YAML | done; the YAML validates. Orb models are in `config/models/scenario/orb_models.py` |
 | `scenario/scenario.py`, `blocks/hud.py`, `blocks/metrics.py`, `blocks/orb_bundle.py` | written, from the skeleton |
-| `blocks/observation.py`, `population.py`, `termination.py` | written: the rules dataclass and the two protocols |
+| `blocks/observation.py`, `population.py`, `termination.py` | written: the rules dataclass and the two protocols. A population has `create` and `count` |
 | `blocks/spawning.py` | stub: three fields, hooks without bodies, and an unused `OrbFieldUpdate` protocol |
-| `populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed |
-| `populations/neg_population.py` | written: one negative orb, used by the negative bundle. It gives the orb no lifespan |
+| `populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
+| `populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It gives the orb no lifespan |
 | `goal/tier_chain/termination.py` | stub: no episode ends |
 | `goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; `build_world` and the other three builders raise `NotImplementedError` |
 | `digestion/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |

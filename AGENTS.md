@@ -223,6 +223,10 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   `scenario/digestion/`. It compares by value, which a `partial` does not.
 - A digester sets `self.KIND: Final[OrbKind]` in `__init__`. In the class body
   a `Final` does not satisfy the protocol under Pyright.
+- A population says how many orbs it makes, through `count`. A fixed-field
+  family sums the counts of its bundles for the field size, the observation
+  slots and the sort limit. A sampled field takes its field size from the
+  config, and the counts are then only the size of the pool.
 - Populations are shared, in `scenario/populations/`, and take values, not a
   config. A family's builder states its own choices, as `_tier_bundle`
   does with the cool-down. They are not in `core/orbs/`: the world is handed

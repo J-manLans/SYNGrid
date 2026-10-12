@@ -37,5 +37,9 @@ class NegPopulation:
     # TODO(phase 3): hand the orb its lifespan here once `BaseOrb` takes one per orb. It follows
     # from the grid size, so the builder has to pass it in.
 
+    @property
+    def count(self) -> int:
+        return 1
+
     def create(self) -> list[BaseOrb]:
         return [NegativeOrb(self.reward, self.cool_down)]

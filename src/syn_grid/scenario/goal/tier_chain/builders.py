@@ -60,8 +60,8 @@ def _tier_chain_scenario(
     - orb bundles: the tier bundle, plus `_negative_bundle` when the config has a negative block.
     - scenario tag: the builder's tag, plus `_Neg` when the config has a negative block.
     - spawning: the whole chain is on the field from the first step and no tier orb expires.
-    - observation: the slot count and the sort limit are the number of orbs on the field,
-      `max_tier` plus one with a negative orb. The tier bound is `max_tier`.
+    - observation: the slot count and the sort limit are the number of orbs the bundles make.
+      The tier bound is `max_tier`.
     - termination: a broken chain, a finished chain, or the clock.
     - hud: the current chain length.
     - metrics: chains broken, progressed and completed, plus negatives eaten when the config has
@@ -83,15 +83,14 @@ def _tier_chain_scenario(
 
     orb_bundles = (tier_bundle,)
 
-    # How many orbs the field holds: one per tier, and one more with a negative orb. The field
-    # size, the observation's slots and its sort limit all follow from it.
-    orb_count = max_tier
-
     if world_conf.neg_orb_conf is not None:
         scenario_tag += "_Neg"
         metrics += (Metric("negatives_eaten", _negatives_eaten),)
         orb_bundles += (_negative_bundle(world_conf.neg_orb_conf),)
-        orb_count += 1
+
+    # How many orbs the field holds. The field size, the observation's slots and its sort limit
+    # all follow from it.
+    orb_count = sum(bundle.population.count for bundle in orb_bundles)
 
     observation = ObservationRules(
         perception=scenario_conf.obs_conf.observation_handler_conf.perception,
