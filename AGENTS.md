@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. Last updated 2026-10-12.
+Guidance for AI agents working in this repository. Last updated 2026-10-13.
 Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
@@ -34,14 +34,14 @@ Where to look, in this order:
 - `docs/dev/regressions.md` is for behaviour that worked before and does not
   now. It has a template and no entries.
 
-State on 2026-10-12: the config models, the registry and the spatial YAML are
+State on 2026-10-13: the config models, the registry and the spatial YAML are
 done. `scenario.py` and the blocks are written, and the spatial builder returns
 a `Scenario`. The populations are in `scenario/blocks/populations/`: the tier-chain
 one makes the spatial scenario's tier orbs, and the negative one is in the
-bundle a config with a `neg_orb_conf` block gets. The rest of its pieces are
-stubs: its termination never ends an episode, the spawning hooks have no
-bodies, and `build_world` raises `NotImplementedError`. The other three
-builders raise too.
+bundle a config with a `neg_orb_conf` block gets. Its termination is written.
+The rest of its pieces are stubs: the world
+readers return 0.0, and `build_world` raises `NotImplementedError`. The other
+three builders raise too.
 `core/droid/digestion/digestion.py` holds the digester protocol, and the
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring
@@ -53,6 +53,11 @@ negative bundle names it. The rest of `core/`, `gymnasium/` and
 `import syn_grid.scenario.registry` works while `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail. The roadmap expects that until its
 phase 5.
+
+Phases 1 and 2 of the roadmap are done on the scenario side, and phase 3 is
+next: the droid, the world and the orbs take pieces instead of config. Phase 2
+left four things written against a core that does not exist yet; the roadmap
+lists them at the end of its phase 2.
 
 **No file in the working strain is final.** A file can be a stub, half-moved or
 about to change shape, and its docstrings describe what it is meant to be, not
@@ -203,10 +208,21 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - Digestion pays for orbs and termination pays for the clock. The tier digester
   pays the orbs, the chain break and the completed chain; termination pays
   `timeout_penalty`. There is no `completion_reward`.
+- The world runs the orb field: it fills it at reset, takes orbs off it and
+  brings back one that is ready. A scenario states only the field's size,
+  `max_active_orbs` on its `WorldRecipe`. `SpawningRules` and its file are
+  gone, and there is no hook for a scenario to react to an orb being eaten. An
+  effect that belongs to an orb kind goes in that kind's digester.
+- Delay tests long-term credit assignment: after a consume the other orbs
+  vanish from the observation for `delay` steps and return in the same cells.
+  Where that mechanic lives is open and left for phase 8.
+- A goal scenario never truncates: running out of steps sets `terminated`.
+  `EpisodeOutcome.truncated` defaults to false and is for a continuous
+  scenario, where the clock is not a failure.
 - Termination only adds to a step's reward. At every ending it adds what the
   tier digester's `owed_at_episode_end` returns, which is the gathered sum in
   threshold and 0 in the other modes. One termination class serves all three
-  modes. The method is written; the termination that calls it is a stub.
+  modes. The clock is charged only when it alone ended the episode.
 - A tier orb is worth `base_reward * tier ** growth_factor`, set on the shared
   `TierOrbConf` and not rounded. Scaling dense has no config classes of its own.
 - Legacy and `reproduction_package/` are references, not targets.
@@ -224,7 +240,7 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   folder is for every recipe: a frozen object a scenario holds that makes
   something with episode state when a world is built.
 - A scenario's `build_world` is a `WorldRecipe`, shared by every family, in
-  `scenario/blocks/recipes/`. It holds the world config, the bundles and the spawning
+  `scenario/blocks/recipes/`. It holds the world config, the bundles and the field's size
   rules, and reads only what the base `WorldConf` has. The full config is
   reachable as `scenario.build_world.world_conf`.
 - A digester sets `self.KIND: Final[OrbKind]` in `__init__`. In the class body
@@ -306,6 +322,12 @@ decisions on this branch:
 - **The spatial builder's bundles are complete, and nothing joins them.** The
   tier bundle makes the orbs with their rewards and a max-tier digester from
   the config. `build_world` raises before it uses either.
+- **`TierChainTermination.evaluate` is written against a droid that does not
+  exist yet.** It reads `world.droid.energy` and calls
+  `world.droid.get_digester(TierDigester)`; today's droid has `score` and a public
+  `digestion_engine`. It was run with a stand-in world around real digesters,
+  and Pyright reports the two attributes as unknown. It still takes
+  `steps_left` as an argument.
 - **A config with a `neg_orb_conf` block builds a `Scenario`.** It gets the
   negative bundle, the `_Neg` tag, a `negatives_eaten` metric and one more orb
   in the field size, the observation slots and the sort limit. Nothing below
@@ -320,12 +342,11 @@ decisions on this branch:
 - **The engine and the digesters were only tried in throwaway scripts.** No
   test covers them. The negative digester was fed a stand-in object, not a
   real negative orb.
-- **`blocks/spawning.py` is mid-change.** `SpawningRules` has three fields, its
-  docstring still lists `delay_on_consume`, and `OrbFieldUpdate` is declared and
-  unused. `tier_orb_expires` is due to leave it.
-- **`scenario/families/` has no `__init__.py`.** Every other folder in the
-  scenario package has one. It imports from the source tree; a built wheel
-  would leave it out.
+- **The world still fills and refills the orb field with the old code.** The
+  scenario hands it `max_active_orbs` through `WorldRecipe`, whose body does
+  not run yet.
+- **`scenario/families/continuous/` is an empty package.** It holds only an
+  `__init__.py`. No continuous family is written.
 - **Tests import the legacy strain.** On 2026-10-11 collection found 230 tests
   and no errors. They were not run.
 - **`scripts/replay_probe.py` imports the legacy strain** on this branch. It was

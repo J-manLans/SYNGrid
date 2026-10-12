@@ -132,9 +132,9 @@ syn_grid/
 │   │   ├── metrics.py
 │   │   ├── observation.py
 │   │   ├── orb_bundle.py
-│   │   ├── spawning.py
 │   │   └── termination.py
 │   ├── families/
+│   │   ├── continuous/
 │   │   └── goal/
 │   │       ├── tier_chain/
 │   │       │   ├── builders.py

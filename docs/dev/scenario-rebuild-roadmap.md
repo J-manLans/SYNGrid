@@ -17,10 +17,9 @@ small check.
 | Config models, registry, spatial YAML | done; the YAML validates. Orb models are in `config/models/scenario/orb_models.py` |
 | `scenario/scenario.py`, `blocks/hud.py`, `blocks/metrics.py`, `blocks/orb_bundle.py` | written, from the skeleton |
 | `blocks/observation.py`, `termination.py`, `blocks/populations/population.py` | written: the rules dataclass and the two protocols. A population has `create` and `count` |
-| `blocks/spawning.py` | stub: three fields, hooks without bodies, and an unused `OrbFieldUpdate` protocol |
 | `blocks/populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
 | `blocks/populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It gives the orb no lifespan |
-| `families/goal/tier_chain/termination.py` | stub: no episode ends |
+| `families/goal/tier_chain/termination.py` | written: the four endings, what the chain is owed, and the timeout penalty. It reads `energy` and `get_digester(...)` from the droid, which has neither until phase 3 |
 | `families/goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
 | `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Calling it raises `NotImplementedError` until phase 3 |
 | `blocks/recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
@@ -90,24 +89,37 @@ three cases that raise; nothing in the test suite covers it.
 
 **Produces:** the pieces a `Scenario` is made of, for the tier-chain family.
 
-**Files:** `scenario/blocks/spawning.py`, `termination.py`, `observation.py`; `scenario/blocks/populations/`;
+**Files:** `scenario/blocks/termination.py`, `observation.py`; `scenario/blocks/populations/`;
  `scenario/families/goal/tier_chain/termination.py`.
 
 **Write:**
 
 1. Population: the protocol and the tier-chain one, which makes one tier orb per tier, both in `blocks/populations/`.
    Written.
-2. Spawning: the whole chain on the field from the first step, no tier orb expires, and an eaten tier orb does not
-   return in that episode. The last one is a requirement and not a detail: with one orb per tier it means a chain
-   can never be broken with a tier 1, which the scoring rules count on in a goal scenario.
+2. The orb field: the whole chain on the field from the first step, no tier orb expires, and an eaten tier orb does
+   not return in that episode. The last one is a requirement and not a detail: with one orb per tier it means a
+   chain can never be broken with a tier 1, which the scoring rules count on in a goal scenario. The scenario's side
+   is one value, `max_active_orbs` on its `WorldRecipe`, and it is written. The rest is the orbs' and the world's,
+   in phase 3. `blocks/spawning.py` is deleted.
 3. Termination: the outcome type and the protocol in `blocks/`; the tier-chain strategy in its own file. It ends on
    energy 0, a broken chain, a completed chain or the clock. It only adds to the step's reward: what the tier
-   digester's `owed_at_episode_end` returns at every ending, and `timeout_penalty` when the clock runs out. Nothing
-   for a completed chain.
+   digester's `owed_at_episode_end` returns at every ending, and `timeout_penalty` when the clock alone ended the
+   episode. Nothing for a completed chain. Written, and checked against a stand-in world.
 4. Observation rules: only what the current perception needs for now. The full shape waits for phase 7.
 
 **Done when:** each file imports on its own, and the termination strategy gives the right outcome for a hand-built
 world state in each of its four endings.
+
+**Done on 2026-10-13.** Each file was imported on its own, and the termination was run against a stand-in world
+around real digesters in all three scoring modes. No test covers any of it. What the phase wrote against things that
+do not exist yet, and so hands to phase 3:
+
+- `TierChainTermination` reads `world.droid.energy` and calls `world.droid.get_digester(...)`. The droid has
+  neither, so a type checker reports both.
+- `TierChainPopulation` gives its tier orbs a cool-down of `None`, and `BaseOrb` does not act on it. No orb is
+  handed a lifespan.
+- `WorldRecipe` holds `max_active_orbs`, and its body raises.
+- The five world readers in the tier-chain builders return 0.0.
 
 ---
 
@@ -119,12 +131,16 @@ world state in each of its four endings.
 
 **Write:**
 
-1. Droid: energy and score as two numbers; takes its digesters and the grid size.
-2. World: takes the grid, the droid, the orbs and the spawning rules; counts the steps of an episode.
+1. Droid: energy and score as two numbers; takes its digesters and the grid size. It keeps its engine to itself and
+   gives a reader a digester by class through `get_digester(...)`. `TierChainTermination` already reads `energy` and
+   calls `get_digester`.
+2. World: takes the grid, the droid, the orbs and `max_active_orbs`; counts the steps of an episode. It fills the
+   field at reset and brings back an orb that is ready when there is room. When it counts,
+   `steps_left` leaves the signature of `TerminationRules.evaluate`.
+   Each step it asks its orbs whether they are ready or expired. An orb does not notify the world.
 3. Orbs: the tier orb loses its scoring flags. `orb_factory.py` goes, replaced by the population. An orb carries
    its own cool-down and lifespan, each a number or `None`: `BaseOrb` says whether it is ready to return and
-   whether it expires, and the world asks every orb the same two questions. `tier_orb_expires` leaves
-   `SpawningRules`.
+   whether it expires, and the world asks every orb the same two questions.
 
 **Check while here** (from the "things that bite" list in `AGENTS.md`):
 
@@ -234,8 +250,9 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
    counts it in the field size, the observation slots and the sort limit and names a `negatives_eaten` metric, whose
    reader returns 0.0 like the family's others. What is left is its lifespan and running it. It does not affect the
    chain.
-3. **Delay.** Its own termination strategy, the cooldown after a consume, and the negative orb freezing with the
-   field.
+3. **Delay.** Its own termination strategy, and the field going empty for `delay` steps after a consume, the
+   negative orb with it. Where that mechanic lives and how the scenario triggers it is open; nothing in the scenario
+   layer is reserved for it.
 4. **Dense.** The threshold digester is written, and the family's termination pays what its chain is owed. What is
    left is its builder.
 

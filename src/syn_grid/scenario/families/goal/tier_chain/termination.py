@@ -9,6 +9,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
+    TierDigester,
+)
 from syn_grid.scenario.blocks.termination import EpisodeOutcome
 
 if TYPE_CHECKING:
@@ -22,7 +25,14 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class TierChainTermination:
-    """Ends a tier chain episode: a broken chain, a finished chain, or the clock.
+    """Ends a tier chain episode, and settles what the ending is worth.
+
+    An episode ends when the droid is out of energy, when the chain is broken,
+    when the chain is completed, or when the steps run out.
+
+    The rule only adds to the step's reward. At every ending it adds what the
+    tier digester says the running chain is owed. When the steps run out and
+    nothing else ended the episode, it also adds the timeout penalty.
 
     Attributes:
         timeout_penalty: what the clock running out costs.
@@ -33,4 +43,22 @@ class TierChainTermination:
     def evaluate(
         self, world: GridWorld, steps_left: int, reward: float
     ) -> EpisodeOutcome:
-        return EpisodeOutcome(terminated=False, truncated=False, reward=reward)
+        tier_digester = world.droid.get_digester(TierDigester)
+
+        out_of_energy = world.droid.energy <= 0
+        chain_ended = (
+            tier_digester.chains_broken > 0 or tier_digester.chains_completed > 0
+        )
+        out_of_steps = steps_left <= 0
+
+        if not (out_of_energy or chain_ended or out_of_steps):
+            return EpisodeOutcome(terminated=False, reward=reward)
+
+        reward += tier_digester.owed_at_episode_end()
+
+        # The clock is charged only when it alone ended the episode. A chain completed or broken
+        # on the last step, or energy running out on it, is not also a timeout.
+        if out_of_steps and not (out_of_energy or chain_ended):
+            reward += self.timeout_penalty
+
+        return EpisodeOutcome(terminated=True, reward=reward)

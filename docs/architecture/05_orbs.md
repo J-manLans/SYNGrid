@@ -31,8 +31,7 @@ scenario/blocks/
 │   ├── neg_population.py
 │   ├── population.py
 │   └── tier_chain_population.py
-├── orb_bundle.py
-└── spawning.py
+└── orb_bundle.py
 
 scenario/families/goal/tier_chain/
 └── config.py

@@ -62,7 +62,41 @@ here. A question that is only half answered stays, with what is left of it.
 
 ## Phase 8: The rest of the tier-chain family
 
-- **The negative orb under delay.** It is meant to freeze and return with the field. How is not worked out.
+- **Where delay's mechanic lives, and how a scenario triggers it.** Delay tests long-term credit assignment by
+  stretching the time between the moments the droid can act on an orb. When the droid eats an orb, every other orb
+  disappears from the observation for `delay` steps, so the droid sees an empty field, and then they return in the
+  same cells. The eaten orb is gone. It has to be the field that empties: with the orbs left in sight and the droid
+  unable to eat, the agent would first have to learn that it cannot eat yet, which is a second problem on top of the
+  one the scenario measures. Nothing for it is written, and the scenario has no hook to plug into. Homes that have
+  come up:
+  - In the delay scenario's own code, and not on the world. The owner's starting point, and what an entry from
+    2026-10-11 says. The reference had the two mechanics as world methods, `deactivate_all_orbs(delay)` and
+    `reactivate_all_orbs()`. Only delay uses them, so they would move out of the world's API and be written beside
+    the scenario, as loops over the orbs on the field that call the orbs' own methods. The world then offers only
+    what they read, the orbs on the field, and a way for the scenario to be told an orb was eaten and a step is
+    done.
+  - A number on the world, 0 in every scenario but delay.
+  - A freeze each orb carries, as it carries a cool-down and a lifespan, with something triggering it for all of
+    them. It fits with the first: the scenario's loop would call it, and an orb that counts its own freeze down
+    needs no call after the step.
+
+  Whatever is chosen, a hidden orb is not the same as an inactive one. The world brings an inactive orb that is
+  ready back in a random cell, and delay needs the same cells. A rule that reacts to an orb being eaten also needs
+  to be told, which means a way for a scenario to hear of it. Two ways have come up:
+  - The world is handed callbacks and calls them: a tuple of callables per moment, passed through `WorldRecipe`,
+    empty for a scenario with nothing to say. The world then holds scenario code. It is the only way if something
+    has to happen in the middle of the world's step.
+  - The scenario acts after the world's step, as termination does. The environment calls the scenario's rule, which
+    asks the world what was eaten. The world is handed nothing and only has to say what was eaten on the last step.
+    The observation is built after the step, so orbs hidden then are already gone from what the agent sees. Leaned
+    towards on 2026-10-13, on the condition that nothing in a delay step depends on the field emptying before the
+    step is over. That was not traced in legacy.
+
+  Raised on 2026-10-13.
+  See: "The world runs the orb field, and a scenario states only its size" and "A scenario mechanic lives in its
+  strategy when the world's public API is enough" in `design-decisions.md`.
+- **The negative orb under delay.** It is meant to disappear and return with the field, which it does if hiding acts
+  on every orb on the field. Still open: whether eating the negative orb itself empties the field.
   See: "A weight belongs to a sampled field, and a tier chain holds one negative orb" in `design-decisions.md`.
 - **`reward_multiplier`.** Legacy threshold scoring applied it to each orb's reward. It was not carried over and not
   discussed to a decision.

@@ -98,7 +98,7 @@ What it asks for:
 Version 2 is the only part that goes against the current design. A scenario is a builder in code, a member of
 `ScenarioName` and an entry in the registry, and a scenario made in a GUI would have to be data that a general builder
 composes from. Nothing is shaped for that now. The blocks (termination as a protocol with a file per strategy,
-`OrbBundle`, the spawning rules) are what such a composer would choose from.
+`OrbBundle`) are what such a composer would choose from.
 
 Turning a sandbox setup into a goal scenario is not a copy of its config: the sandbox is continuous and has its own
 world model, so the goal and the termination are decided by hand.

@@ -28,7 +28,6 @@ from syn_grid.scenario.blocks.populations.tier_chain_population import (
 )
 from syn_grid.scenario.blocks.recipes.tier_digester_recipe import TierDigesterRecipe
 from syn_grid.scenario.blocks.recipes.world_recipe import WorldRecipe
-from syn_grid.scenario.blocks.spawning import SpawningRules
 from syn_grid.scenario.families.goal.tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
@@ -60,14 +59,15 @@ def _tier_chain_scenario(
 
     - orb bundles: the tier bundle, plus `_negative_bundle` when the config has a negative block.
     - scenario tag: the builder's tag, plus `_Neg` when the config has a negative block.
-    - spawning: the whole chain is on the field from the first step and no tier orb expires.
+    - orb field: it holds every orb the bundles make.
     - observation: the slot count and the sort limit are the number of orbs the bundles make.
       The tier bound is `max_tier`.
-    - termination: a broken chain, a finished chain, or the clock.
+    - termination: out of energy, a broken chain, a finished chain, or the clock.
     - hud: the current chain length.
     - metrics: chains broken, progressed and completed, plus negatives eaten when the config has
       a negative block.
-    - build_world: a `WorldRecipe` holding this scenario's world config, bundles and spawning.
+    - build_world: a `WorldRecipe` holding this scenario's world config, bundles and field
+      size.
     """
 
     world_conf = scenario_conf.world_conf
@@ -89,8 +89,8 @@ def _tier_chain_scenario(
         metrics += (Metric("negatives_eaten", _negatives_eaten),)
         orb_bundles += (_negative_bundle(world_conf.neg_orb_conf),)
 
-    # How many orbs the field holds. The field size, the observation's slots and its sort limit
-    # all follow from it.
+    # How many orbs the field holds. The world's field size, the observation's slots and its sort
+    # limit all follow from it.
     orb_count = sum(bundle.population.count for bundle in orb_bundles)
 
     observation = ObservationRules(
@@ -106,12 +106,6 @@ def _tier_chain_scenario(
         timeout_penalty=world_conf.goal_conf.timeout_penalty,
     )
 
-    spawning = SpawningRules(
-        spawn_max_on_episode_start=True,
-        max_active_orbs=orb_count,
-        tier_orb_expires=False,
-    )
-
     return Scenario(
         scenario_name=scenario_name,
         scenario_tag=scenario_tag,
@@ -119,7 +113,7 @@ def _tier_chain_scenario(
         metrics=metrics,
         observation=observation,
         termination=termination,
-        build_world=WorldRecipe(world_conf, orb_bundles, spawning),
+        build_world=WorldRecipe(world_conf, orb_bundles, max_active_orbs=orb_count),
     )
 
 

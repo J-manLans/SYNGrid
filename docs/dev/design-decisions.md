@@ -88,6 +88,12 @@ A reader that needs what a digester knows asks the engine for the digester by it
 in `engine.get(TierDigester).chains_broken`. The readers that do this are in the scenario family's own folder: its
 termination, its metric readers, its HUD and observation readers.
 
+A reader is handed the world and does not hold the engine. It asks the droid: `world.droid.get_digester(TierDigester)`,
+a method that forwards to the engine's `get`. The engine stays the droid's own, which fits the droid creating it.
+Settled on 2026-10-12, with the alternative of a public `digestion_engine` attribute turned down because every reader
+would walk three levels into the droid. `TierChainTermination` is written against the method; the droid does not
+have it yet.
+
 **Where:** `core/droid/digestion/digestion.py`, `engine.py`, and the attributes of
 `digesters/tier_chain/tier_digester.py`.
 
@@ -188,10 +194,10 @@ on the bundle, a callable with no arguments that returns an `OrbDigester`.
 makes something with episode state when a world is built.
 
 A scenario's `build_world` is the second one, `WorldRecipe`, added on 2026-10-12. It holds the world config, the
-bundles and the spawning rules, and calling it builds a world. It replaced a `functools.partial` of
+bundles and the field's size, and calling it builds a world. It replaced a `functools.partial` of
 `_build_tier_chain_world`, which is gone. There is one `WorldRecipe` for every family and not one per family.
 Building a world reads the grid, the droid's settings and the step limit, which are all on the base `WorldConf`, and
-takes everything else from the bundles and the spawning rules. What a family adds to its world config,
+takes everything else from the bundles and the field's size. What a family adds to its world config,
 `tier_orb_conf`, `neg_orb_conf` and `goal_conf` in a tier chain, is used up before that, by the bundles and by
 termination. The old function was typed with `TierWorldConf` only because it sat in the tier-chain builders.
 
@@ -230,7 +236,7 @@ do not take pieces until phase 3. Checked on 2026-10-12 with the spatial YAML: t
 equal and are hashable, and a different grid, a different `chain_break_penalty` and an added negative block each
 make a scenario that does not equal the first. That it needs nothing of a family is read from the config models and
 from the steps the old function listed, not from a body that runs. Delay is the one to watch: its field freezes
-after a consume, which is meant to live in the spawning rules.
+after a consume, and where that mechanic lives is not decided.
 
 Tied to it: a digester's `KIND` is set in `__init__` as `self.KIND: Final[OrbKind]`, not in the class body. A `Final`
 with a value in a class body is a class variable to a type checker, the protocol's `KIND: Final[OrbKind]` is an
@@ -595,6 +601,12 @@ by termination. With that, threshold and step-wise total the same over a whole e
 The digester is the same in a goal scenario and a continuous one. What differs is the termination: which moments end
 the episode, and whether the clock costs `timeout_penalty`.
 
+It also differs in how the clock ends an episode. A goal scenario never truncates. Its deadline is part of the task,
+so running out of steps is a failed attempt and sets `terminated`. A scenario with no objective, survive as long as
+you can, has nothing to fail, and there the clock sets `truncated`. That is a continuous scenario by definition.
+`EpisodeOutcome` is one type for every family, with `truncated` defaulting to false, so a goal strategy never names
+it and a continuous one sets it. Settled on 2026-10-12.
+
 There is no `completion_reward`. Termination reads `chains_completed` to end the episode and adds nothing for it.
 
 `timeout_penalty` is in `goal_conf`, because any scenario with an objective and a deadline has it, whatever its orbs
@@ -626,6 +638,10 @@ fails.
 on it were lost.
 - Threshold paying no `timeout_penalty` (legacy). Rejected because the clock running out is the same event in every
 mode.
+- `EpisodeOutcome` without a `truncated` field, the environment returning false for it. Considered while the docs
+said `truncated` is always false. Rejected because a continuous scenario needs it.
+- An outcome type per family group, without `truncated` for goal scenarios. Rejected because the environment hands
+Gymnasium both flags on every step, and would have to ask which type it was given.
 - Moving `timeout_penalty` into a max-tier scoring block, since dense never used it. Rejected because a timeout
 penalty is a goal-level idea: a goal scenario with other orbs would use it too.
 - Optional fields, `float | None = None`. Rejected because `None` either means the same as 0 or hides a second rule
@@ -640,14 +656,27 @@ config classes at all. Every scenario writes `timeout_penalty` and `chain_break_
 between the two is whether termination ends the episode. What reaching the goal pays is found in one place.
 
 **Status:** settled, and applied to the config on 2026-10-11: `completion_reward` is gone from `GoalConf`, the
-tier-chain termination, the builder and the spatial YAML. Termination pays the timeout, and its `evaluate` is still
-a stub.
+tier-chain termination, the builder and the spatial YAML. `TierChainTermination.evaluate` is written since
+2026-10-12.
+
+When two endings fall on one step, the clock is charged only if it alone ended the episode. A chain completed or
+broken on the last step, or energy running out on it, pays no `timeout_penalty`. What the chain is owed is added
+either way.
+
+`evaluate` reads three things: `world.droid.energy`, the tier digester through `world.droid.get_digester(TierDigester)`,
+and the steps left, which it is still handed as an argument. Neither `energy` nor `get_digester` exists on the droid
+until phase 3, so the file imports and runs against a stand-in world, and a type checker reports both as unknown.
+The argument goes when the world counts the steps.
+
+Checked on 2026-10-12 with a stand-in world around real digesters, in all three scoring modes: each of the four
+endings, a step that ends nothing, and the three cases where the clock runs out on a step that something else ended.
+No test covers it.
 
 - Settled on 2026-10-12: what a running chain is paid when an episode ends. On 2026-10-10 every goal scenario paid
 "what the chain was holding" by one rule, which worked because max-tier never held anything. The base digester keeps
 `chain_reward` in every mode since 2026-10-11, so a max-tier scenario must not pay it while a threshold scenario
 does. Each mode now says what its chain is owed, and termination pays it. `owed_at_episode_end` is written in the
-base and the three modes. Nothing calls it yet, because the tier-chain termination's `evaluate` is a stub.
+base and the three modes, and `TierChainTermination.evaluate` adds it at every ending.
 
 A scenario-level completion reward earns a place only when the goal is something no single digester can see, such as
 surviving a number of steps or clearing the field. Revisit when such a scenario exists.
@@ -739,7 +768,7 @@ world. What they make, an orb and a digester, is in core.
 - A cool-down of 0 on tier orbs, with spawning deciding per kind which orbs return. Rejected because a tier chain
 holds tier orbs that never return beside a negative orb that does, so the world or the spawning rule would have to
 ask each orb its kind. That check existed twice already: the world ticked a lifespan only for kinds other than
-`TIER`, and `SpawningRules` has `tier_orb_expires`.
+`TIER`, and `SpawningRules`, which has since been removed, had `tier_orb_expires`.
 - Dropping an eaten orb that has no cool-down from the world. Rejected because the reset and the observation both
 need it.
 - Both populations in the tier-chain folder. Rejected because one negative orb in a fixed field is not a tier-chain
@@ -759,8 +788,9 @@ every environment in the process.
 **Status:** settled on 2026-10-12 and partly built. Both populations are written, the spatial builder uses
 `_tier_bundle`, `_negative_bundle` is written, and `TierOrb` and `BaseOrb` accept a cool-down of `None`. Nothing
 acts on it: `BaseOrb` hands the cool-down to its timer, which needs a number, has no way to say it is ready to
-return, and takes no lifespan. `NegativeOrb` is built without a lifespan, and `tier_orb_expires` is still a field of
-`SpawningRules`. The lifespan follows from the grid size, so a builder has to hand it to the population.
+return, and takes no lifespan. `NegativeOrb` is built without a lifespan. `tier_orb_expires` left the scenario's
+rules on 2026-10-13, when `SpawningRules` was removed. The lifespan follows from the grid size, so a
+builder has to hand it to the population.
 
 ---
 
@@ -790,12 +820,70 @@ near-identical names in one folder.
 **Why this one:** The top level reads as the three roles the package has: what scenarios are made of, the scenarios,
 and the table that selects one.
 
-**Status:** done on 2026-10-12. `families/` has no `__init__.py`, where `scenario/`, `blocks/`, `goal/` and
-`tier_chain/` each have one. It imports from the source tree, but setuptools' `packages.find` only picks up folders
-that have one, so a built wheel would leave `families/` out.
+**Status:** done on 2026-10-12. `families/continuous/` exists since 2026-10-13 as an empty package.
 
 A strategy that only one family uses stays with that family, as `TierChainTermination` does. The termination
 interface is a file in `blocks/` with no folder of implementations, because none is shared yet.
+
+---
+
+## The world runs the orb field, and a scenario states only its size (2026-10-13)
+
+**Decision:** Filling the field, taking an orb off it and bringing one back are the world's own behaviour, the same
+in every scenario:
+
+- At the start of an episode the world places orbs until the field holds `max_active_orbs`.
+- An orb leaves the field when it is eaten or when its lifespan runs out.
+- After a step, if the field has room and an inactive orb says it is ready to return, the world brings one back.
+
+A scenario states one thing about the field: `max_active_orbs`, a plain value on its `WorldRecipe`. There is no class
+for a scenario's orb-field rules and no hook.
+
+The class that was there, `SpawningRules`, came from the reference with three fields and three hooks. What left it,
+and why:
+
+| Removed | Why |
+|---|---|
+| `tier_orb_expires` | an orb's lifespan says whether it expires |
+| `spawn_max_on_episode_start` | every scenario fills the field |
+| `on_reset` | filling the field is the world's, with nothing to choose |
+| `after_step`, and the strategy objects behind it | "leave the field alone" and "refill" are one behaviour once an orb says whether it is ready to return |
+| `on_orb_consumed` | only delay would use it, and delay is not written |
+| the class | one number does not need one |
+
+**Where:** `WorldRecipe.max_active_orbs` in `scenario/blocks/recipes/world_recipe.py`; `_tier_chain_scenario` in
+`scenario/families/goal/tier_chain/builders.py`, which passes the sum of its bundles' counts.
+
+**Alternatives considered:**
+
+- The three hooks kept, as the reference had them, with a strategy object for the end of a step. Rejected because
+only one of the three moments differs between scenarios once the orb carries its own cool-down and lifespan.
+- The class kept with one hook, `on_orb_consumed(world, orb)`, that does nothing, for delay to override. It was
+renamed `OrbFieldRules` and written this way for some hours on 2026-10-13. Rejected because the method existed only
+for a subclass that is not written, its docstring could only describe doing nothing, and it fixed how delay plugs in
+before delay was looked at. The class had been shrunk from the reference's, where the question should have been
+what would be built from nothing.
+- A delay length on the scenario's rules, `None` for every scenario but one. Not chosen now; it is one of the homes
+listed for delay in `open-questions.md`.
+- An orb that tells the world when its timer has run out, in place of the world asking each step. Rejected. A timer
+here is a counter that goes down once a step, so every orb is visited every step either way and only the check is
+saved. Each orb would need a reference into its own world, and training holds 16 worlds in one process. The order in
+which two orbs return decides which random cells are drawn, and a loop over a list shows that order in one place.
+The world is turn-based and holds a handful of orbs; a schedule of due steps would pay off with hundreds of them.
+
+**Why this one:** Nothing is written for a scenario that does not exist. What delay needs is decided when delay is
+written, with what it is for in view.
+
+There are two kinds of thing that can happen when an orb is eaten, and neither is the field's size:
+
+- The effect belongs to the orb. An orb that changes what other orbs pay, or what the droid can do, or what the grid
+  costs, does so in every scenario that holds it. That is the kind's own digester, with what the engine offers it.
+  No such orb is written, and what the engine would need for one is listed in the roadmap as not on it.
+- The effect belongs to the scenario. A broken chain ending the episode is one, and it is in termination. Delay's
+  field going empty is the other, and it has no home yet.
+
+**Status:** done on 2026-10-13. `blocks/spawning.py` is deleted. The world does none of the three things above in the
+new way: `grid_world.py` is still the old code.
 
 ---
 
@@ -809,7 +897,7 @@ Applied to the orb field: the delay scenario's cooldown and reactivation are loo
 orbs' own methods, so they belong beside the delay scenario. Spawning stays in the world, because it uses the world's
 rng, checks for a free cell and moves orbs between the active and inactive lists.
 
-**Where:** `src/syn_grid/scenario/blocks/spawning.py`, the strategy files beside each scenario, and
+**Where:** the strategy files beside each scenario, and
 `src/syn_grid/core/grid_world.py`.
 
 **Alternatives considered:**

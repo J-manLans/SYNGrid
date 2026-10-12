@@ -24,7 +24,8 @@ Terms are grouped by area. The last section lists the words that are used in two
   size.
 - **Scaling sparse, scaling dense:** the same world with max-tier scoring (sparse) and threshold scoring (dense).
   Their axis is the chain length and the grid size.
-- **Delay:** eating an orb puts the whole field on cooldown. Its axis is the delay.
+- **Delay:** eating an orb makes every other orb vanish from the observation for `delay` steps, after which they
+  return in the same cells. It tests long-term credit assignment. Its axis is the delay.
 - **Axis:** the one thing that varies between runs of a scenario and makes it harder or easier.
 - **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5`.
 - **Locked:** a scenario whose values other than its axis are fixed in its builder and cannot be set from a YAML. A
@@ -39,7 +40,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Builder:** the function that turns a scenario's config into a `Scenario`. One per registered scenario.
 - **Helper:** the function a family's builders share, which composes what the family has in common.
 - **Block:** see the last section; the word has two senses.
-- **Rules:** a frozen description of one part of a scenario's behaviour: `SpawningRules`, `ObservationRules`,
+- **Rules:** a frozen description of one part of a scenario's behaviour: `ObservationRules`,
   `TerminationRules`.
 - **Strategy:** a family's own implementation of an interface from `scenario/blocks/`, kept in the family's folder,
   such as `TierChainTermination`.
@@ -52,7 +53,7 @@ Terms are grouped by area. The last section lists the words that are used in two
   world. It holds the values the thing is made from and compares by value. There are two. A tier bundle holds a
   `TierDigesterRecipe`, which makes a tier digester from the scoring mode's class and the two values every mode
   takes. A scenario holds a `WorldRecipe` as `build_world`, which makes a world from the world config, the bundles
-  and the spawning rules. Recipes are in `scenario/blocks/recipes/`.
+  and the field's size. Recipes are in `scenario/blocks/recipes/`.
 - **Brick:** one orb kind as a unit: its bundle in the scenario layer and its `*_orb_conf` block in the config.
 - **Reader:** a module-level function that is handed the world and returns a number. The HUD, the metrics and the
   observation's global features are each a description plus a reader.
@@ -73,8 +74,10 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Penalty:** a config value that must be 0 or negative. Every field whose name ends in `_penalty` is checked.
 - **Step clock:** the count of steps in an episode, up to `max_steps`.
 - **Timeout:** the step clock running out. It ends the episode and costs `timeout_penalty`.
-- **Terminated, truncated:** Gymnasium's two ways for an episode to end. `truncated` is always false here; running
-  out of steps sets `terminated`.
+- **Terminated, truncated:** Gymnasium's two ways for an episode to end. Terminated means the task is over, reached
+  or failed. Truncated means the clock stopped an episode that had no task to fail. A goal scenario never truncates:
+  its deadline is part of the task, so running out of steps sets `terminated`. A continuous scenario is where
+  `truncated` is used. `EpisodeOutcome.truncated` defaults to false, so a goal strategy does not name it.
 
 ## Orbs
 
