@@ -7,7 +7,6 @@ from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
 from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     RecurrentExecutionStrategy,
 )
-from syn_grid.runners.agent_runners.sb3.policy_resolver import resolve_policy
 
 
 class LstmPPO(BaseSB3Runner[RecurrentPPO]):
@@ -28,14 +27,9 @@ class LstmPPO(BaseSB3Runner[RecurrentPPO]):
     }
 
     def __init__(self, runner_bundle: RunnerBundle):
-        policy = resolve_policy(
-            runner_bundle.scenario.observation.perception, use_lstm=True
-        )
-        hyper_parameters = {"policy": policy, **self._HYPER_PARAMETERS}
-
         super().__init__(
             runner_bundle,
-            hyper_parameters,
+            self._HYPER_PARAMETERS,
             RecurrentPPO,
             execution_strategy=RecurrentExecutionStrategy(),
         )

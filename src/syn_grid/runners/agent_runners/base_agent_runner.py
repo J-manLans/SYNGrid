@@ -58,19 +58,13 @@ class BaseAgentRunner(ABC):
         """
         Create and store paths for model checkpoints and TensorBoard logs.
 
-        Uses the save_folder config value if provided, otherwise saves directly
-        under the default 'models' directory.
+        Both live in a folder named after the scenario.
         """
 
-        model_dir = get_project_path("output", "models")
-        log_dir = get_project_path("output", "results", "logs")
-
-        if self._save_folder:
-            model_dir /= self._save_folder
-            log_dir /= self._save_folder
-
-        self._model_dir = model_dir
-        self._log_dir = log_dir
+        self._model_dir = get_project_path("output", "models") / self._save_folder
+        self._log_dir = (
+            get_project_path("output", "results", "logs") / self._save_folder
+        )
 
         self._model_dir.mkdir(parents=True, exist_ok=True)
         self._log_dir.mkdir(parents=True, exist_ok=True)
@@ -87,7 +81,7 @@ class BaseAgentRunner(ABC):
 
         self._id = (
             f"{perception}_seed{self._runner_conf.seed}"
-            f"__TAG_{tag}__{self._runner_conf.alg}"
+            f"__TAG_{tag}__{self._runner_conf.alg.value}"
         )
 
     # === Env factory === #
@@ -176,7 +170,7 @@ class BaseAgentRunner(ABC):
         if not matches:
             raise FileNotFoundError(
                 f"\nNo model found for path: {file_name}"
-                f"\nIn: {self._save_folder if self._save_folder else 'base_dir'}"
+                f"\nIn: {self._save_folder}"
             )
 
         # Multiple matching files may exist, so use the most recently modified one.

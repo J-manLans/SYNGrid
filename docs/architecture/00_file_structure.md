@@ -113,9 +113,9 @@ syn_grid/
 │   │   │   └── stateless_ppo.py
 │   │   ├── utils/
 │   │   │   └── extractors.py
-│   │   ├── agent_registry.py
 │   │   ├── base_agent_runner.py
-│   │   └── runner_bundle.py
+│   │   ├── runner_bundle.py
+│   │   └── runner_registry.py
 │   └── human_runner/
 │       └── human_runner.py
 │

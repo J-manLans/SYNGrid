@@ -1,14 +1,24 @@
 
-from typing import Literal
+from enum import Enum
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
+
+# ======================= #
+#      Helper Types       #
+# ======================= #
+
+class Algorithm(str, Enum):
+    PPO = "PPO"
+    FSPPO = "FSPPO"
+    RPPO = "RPPO"
 
 # ======================= #
 #  Nested Configurations   #
 # ======================= #
 
 class CommonConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    alg: str
+    alg: Annotated[Algorithm, Field(strict=False)]
     agent_steps: str
     seed: int
     training: bool

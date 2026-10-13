@@ -8,7 +8,6 @@ from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
 from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     StatelessExecutionStrategy,
 )
-from syn_grid.runners.agent_runners.sb3.policy_resolver import resolve_policy
 
 
 class FrameStackPPO(BaseSB3Runner[PPO]):
@@ -25,14 +24,9 @@ class FrameStackPPO(BaseSB3Runner[PPO]):
     }
 
     def __init__(self, runner_bundle: RunnerBundle):
-        policy = resolve_policy(
-            runner_bundle.scenario.observation.perception
-        )
-        hyper_parameters = {"policy": policy, **self._HYPER_PARAMETERS}
-
         super().__init__(
             runner_bundle,
-            hyper_parameters,
+            self._HYPER_PARAMETERS,
             PPO,
             execution_strategy=StatelessExecutionStrategy(),
         )

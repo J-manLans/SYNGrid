@@ -4,7 +4,7 @@ from syn_grid.config.models.global_models import GlobalConf
 from syn_grid.config.models.runner_models import RunnerConf
 from syn_grid.config.models.scenarios.scenario_registry import SCENARIO_MODELS
 from syn_grid.gymnasium.utils.env_factory import register_env
-from syn_grid.runners.agent_runners.agent_registry import build_runner
+from syn_grid.runners.agent_runners.runner_registry import build_runner
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.scenario.registry import build_scenario

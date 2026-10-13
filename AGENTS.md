@@ -280,6 +280,14 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   is locked until it has reproduced its legacy results.
 - A locked scenario offers the perceptions that make sense for it. Spatial
   offers only ones with a limited view.
+- The algorithm in the runner config is an `Algorithm` enum, and the `RUNNER`
+  table is keyed by it, as `ScenarioName` and `SCENARIOS` are.
+- The policy's name comes from the algorithm: the resolver picks it from the
+  algorithm's `policy_aliases`, and no runner states a suffix or a variant. The
+  table from a perception's leading word to a base policy stays.
+- Human play is not an agent runner. `app.main` runs `HumanRunner` and returns
+  before an agent runner is built, and human control overrides the snapshot and
+  the runner config with no check.
 
 What is still open is listed in `docs/dev/open-questions.md`, grouped by the
 roadmap phase that needs the answer. Read it before giving a design opinion, and
@@ -317,8 +325,33 @@ decisions on this branch:
 
 - **Run ids** come from perception, seed, `scenario.scenario_tag`, the optional
   runner `tag` and the algorithm, not from the scenario name.
+- **The agent runners import and can be built, and nothing runs past that.**
+  On 2026-10-13 `build_runner` made all three from the real configs, each with
+  its run id, its output folders and its policy. `train()` and `eval()` need an
+  environment. `HumanRunner` and `app.py` import `SYNGridEnv`, so they do not
+  import.
+- **`alg` in the runner config is an `Algorithm` enum,** in
+  `config/models/runner_models.py`, and the `RUNNER` table in
+  `runner_registry.py` is keyed by it. A wrong name fails when the config is
+  loaded. The run id uses its `.value`.
+- **The base SB3 runner names the policy.** `resolve_policy` takes the
+  perception and the algorithm class and returns the one name in that
+  algorithm's `policy_aliases` that starts with the perception's base policy.
+  The concrete runners say nothing about the policy. The table from `vector`,
+  `composite` and `grid` to `Mlp`, `MultiInput` and `Cnn` is kept on purpose,
+  so perception names stay free of SB3's wording. Its `composite` and `grid`
+  rows are not reachable while the `Perception` enum has only vector members.
+- **`HumanRunner` is a plain class, not an agent runner.** With `human_control`
+  set, `app.main` runs `HumanRunner(scenario).play()` and returns before an
+  agent runner is built. Human control overrides the snapshot and the runner
+  config without a warning, which the owner chose on 2026-10-13.
+- **`runners/agent_runners/utils/extractors.py` is not imported by anything.**
+  It hardcodes two policy names and reads observation keys from before the
+  rebuild, and Pyright reports 7 errors in it.
 - **`docs/architecture/`** describes the code as it stood on 2026-10-11,
   including the parts that are still from before the rebuild and do not import.
+  The runner parts were brought up to 2026-10-13: `01_runners.md`, the runner
+  tree in `00_file_structure.md` and the startup flow in `07_runtime_flow.md`.
   It does not describe the intended design; that is in the roadmap and
   `design-decisions.md`.
 - **Scenario config models** are in `config/models/scenario/`: `common_models.py`

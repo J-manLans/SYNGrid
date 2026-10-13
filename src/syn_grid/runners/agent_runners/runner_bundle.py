@@ -1,5 +1,3 @@
-# agent_bundle.py
-
 from dataclasses import dataclass
 
 from syn_grid.config.models.runner_models import RunnerConf

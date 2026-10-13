@@ -1,19 +1,23 @@
 # 07 — Runtime flow
 
 Startup, as `app.main()` is written, for the current YAMLs
-(`goal_tier_chain_spatial`, PPO, training):
+(`goal_tier_chain_spatial`, RPPO, training):
 
 ```text
 app.main()
   ├─ register_env()
   ├─ load_experiment_configs()      3 YAMLs -> GlobalConf, TierScenarioConf, RunnerConf
   ├─ build_scenario()               -> Scenario                         (once)
-  ├─ build_runner()                 -> StatelessPPO
+  ├─ build_runner()                 -> LstmPPO
   └─ dispatch() -> runner.train()
         ├─ _build_env()             16 × SYNGridEnv
-        ├─ create_model()           SB3 PPO on VecNormalize(DummyVecEnv)
+        ├─ create_model()           SB3 RecurrentPPO on VecNormalize(DummyVecEnv)
         └─ model.learn()            SB3 loop -> SYNGridEnv.step
 ```
+
+With `human_control` set, `main` runs `HumanRunner(scenario).play()` after
+`build_scenario()` and returns, so no agent runner is built and nothing is
+dispatched.
 
 One environment step, as `SYNGridEnv.step` is written:
 

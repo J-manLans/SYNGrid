@@ -1131,3 +1131,102 @@ the droid sees the whole grid does not test what the scenario is named for.
   how much the droid sees and how that is encoded, and the scenario fixes the first; see `codebase-ideas.md`. There
   is nothing to choose between until spatial has a second allowed perception.
 - The pixel observation. `GridPixel` is a docstring with no code, and whether it gets a limited view is not decided.
+
+---
+
+## The algorithm in the runner config is an enum (2026-10-13)
+
+**Decision:** `alg` in `runner_config.yaml` is read as an `Algorithm` enum with one member per registered runner:
+`PPO`, `FSPPO` and `RPPO`. The `RUNNER` table is keyed by it. A name that is not a member fails when the config is
+loaded, and pydantic's message lists the allowed ones. The run id is built from the member's `.value`.
+
+**Where:** `Algorithm` and `CommonConf.alg` in `config/models/runner_models.py`. The field is
+`Annotated[Algorithm, Field(strict=False)]`, as `GlobalConf.scenario` is, because the models are strict and a strict
+enum field rejects the plain string YAML gives. `RUNNER` and `build_runner` are in
+`runners/agent_runners/runner_registry.py`, and the run id in `base_agent_runner.py`.
+
+**Alternatives considered:**
+
+- `alg: str`, checked against the keys of `RUNNER` in `build_runner`, which is what it was. Rejected because a typo
+  was found only after the scenario had been built, and because the valid names were stated only as the keys of a
+  table in another package.
+- The enum's member put straight into the run id's f-string. Rejected because a `str` enum formats as its value on
+  Python 3.10 and as `Algorithm.RPPO` from 3.11, and checkpoints are found by that id.
+
+**Why this one:** It is the pattern `ScenarioName` and `SCENARIOS` already follow, so the two registries read the same
+way.
+
+**Status:** settled. The check in `build_runner` is kept. It can no longer be reached by a config and fires only when
+a member has no entry in `RUNNER`, which is what the same check in `build_scenario` is for.
+
+---
+
+## The policy's name comes from the algorithm (2026-10-13)
+
+**Decision:** `resolve_policy(perception, algorithm)` returns the one name in the algorithm's own `policy_aliases`
+that starts with the perception's base policy. `PPO` offers `MlpPolicy`, `CnnPolicy` and `MultiInputPolicy`, and
+`RecurrentPPO` offers the same three with `Lstm` in them, so naming the algorithm also names the policy family. The
+base SB3 runner calls the resolver once and adds the result to the hyperparameters. A concrete runner says nothing
+about the policy.
+
+The table from a perception's leading word to a base policy stays: `vector` to `Mlp`, `composite` to `MultiInput` and
+`grid` to `Cnn`.
+
+**Where:** `runners/agent_runners/sb3/policy_resolver.py`, called from `BaseSB3Runner.__init__` in
+`base_sb3_runner.py`. The resolver raises a `ValueError` that names the algorithm and what it offers when there is
+not exactly one name.
+
+**Alternatives considered:**
+
+- A `use_lstm` flag on the resolver, which is what it was. Rejected because a shared resolver then knows one
+  algorithm's variant, and the next variant needs another flag.
+- The suffix handed in by the caller, as a class attribute each runner overrides. Rejected because the default in the
+  base class read as "every algorithm uses `Policy`", and the override in `LstmPPO` was easy to miss.
+- A variant handed to the base runner's `__init__`, `"Lstm"` or nothing, joined to a `Policy` constant. It was
+  written and then replaced: the runner was still describing something the algorithm class already states.
+- The resolver called in each concrete runner. Rejected because the policy depends on the perception, which is known
+  only with the scenario, so every runner would repeat the same call.
+- Perceptions named after SB3's policies, `mlp_fog_of_war` and so on, which would remove the table. Rejected because
+  a perception's name says what the observation looks like, and SB3's wording would then reach the config and the
+  Gymnasium side.
+
+**Why this one:** It removes the LSTM special case from this code base, and a name SB3 changes is reported in one
+place with the list of what the algorithm does offer. A wrong name was caught before too, by SB3 when the model is
+created.
+
+**Status:** settled. Revisit if:
+
+- An algorithm offers two policies whose names start with the same base policy. The resolver raises on that and does
+  not choose.
+- A perception's name stops starting with its kind. The kind is read by splitting the name at the first underscore.
+
+The `composite` and `grid` rows of the table are not reachable while the `Perception` enum has only vector members.
+
+---
+
+## Human play is not an agent runner (2026-10-13)
+
+**Decision:** `HumanRunner` is a plain class. It takes a `Scenario` and has one method, `play()`. With
+`human_control` set, `app.main` builds the scenario, runs `HumanRunner(scenario).play()` and returns, before a
+`RunnerBundle` or an agent runner is built. `build_runner` takes only the bundle, and the registry maps an algorithm
+to a class and nothing else.
+
+Human control overrides everything else in the run. The snapshot and the runner config are ignored, and no check
+rejects the combination.
+
+**Where:** `runners/human_runner/human_runner.py`, `main` in `app.py`, and `build_runner` in
+`runners/agent_runners/runner_registry.py`. The override is stated in the header of `config/yaml/global_config.yaml`.
+
+**Alternatives considered:**
+
+- `HumanRunner` as a `BaseAgentRunner` returned by `build_runner`, with `eval()` as the play loop and a `train()`
+  that raises, which is what it was. Rejected because it inherited what it could not use. It skipped the base
+  `__init__` to avoid making output folders, so it had no run id and the snapshot path raised on it, and whether it
+  ran at all depended on `training` in the runner config.
+- `GlobalConf` rejecting `human_control` together with an enabled snapshot. Rejected because a human run is for
+  trying something out, and a config that has to be edited before it will start works against that.
+
+**Why this one:** A human playing or an agent running is a choice about the whole run, so it is made once, in
+`main`. It is the shape the legacy app has.
+
+**Status:** settled. `play()` and `main` have not been run, since both need the environment.

@@ -11,6 +11,7 @@ from syn_grid.runners.agent_runners.sb3.artifact_manager import ArtifactManager
 from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     ExecutionStrategy,
 )
+from syn_grid.runners.agent_runners.sb3.policy_resolver import resolve_policy
 from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
 A = TypeVar("A", bound=BaseAlgorithm)
@@ -58,6 +59,11 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
 
         super().__init__(runner_bundle)
         self._execution_strategy = execution_strategy
+
+        policy = resolve_policy(
+            self.scenario.observation.perception, algorithm
+        )
+        hyper_parameters = {"policy": policy, **hyper_parameters}
 
         self._artifact_manager: ArtifactManager[A] = ArtifactManager(
             algorithm=algorithm,
@@ -117,11 +123,8 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
         Required for consistent eval, also for resuming training.
         """
 
-        base = get_project_path("output", "vec_norm_stats")
         vec_norm_stats_dir = (
-            base / self._save_folder
-            if self._save_folder
-            else base
+            get_project_path("output", "vec_norm_stats") / self._save_folder
         )
         vec_norm_stats_dir.mkdir(parents=True, exist_ok=True)
         return vec_norm_stats_dir

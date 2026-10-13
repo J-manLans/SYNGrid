@@ -3,9 +3,10 @@ from syn_grid.config.models.global_models import GlobalConf
 from syn_grid.config.models.runner_models import RunnerConf
 from syn_grid.config.models.scenario.common_models import ScenarioConf
 from syn_grid.gymnasium.utils.env_factory import register_env
-from syn_grid.runners.agent_runners.agent_registry import build_runner
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
+from syn_grid.runners.agent_runners.runner_registry import build_runner
+from syn_grid.runners.human_runner.human_runner import HumanRunner
 from syn_grid.scenario.registry import SCENARIOS, build_scenario
 
 # ================= #
@@ -18,14 +19,17 @@ def main() -> None:
     config_manager = ConfigManager()
     global_conf, scenario_conf, runner_conf = load_experiment_configs(config_manager)
 
-    runner_bundle = RunnerBundle(
-        build_scenario(global_conf.scenario, scenario_conf),
-        runner_conf
-    )
+    scenario = build_scenario(global_conf.scenario, scenario_conf)
 
-    runner = build_runner(global_conf.human_control, runner_bundle)
+    # Human control overrides everything else: no snapshot, training or eval.
+    if global_conf.human_control:
+        HumanRunner(scenario).play()
+        return
 
-    dispatch(runner, config_manager, (runner_bundle), global_conf)
+    runner_bundle = RunnerBundle(scenario=scenario, runner_conf=runner_conf)
+    runner = build_runner(runner_bundle)
+
+    dispatch(runner, config_manager, runner_bundle, global_conf)
 
 
 # ================= #
@@ -60,20 +64,20 @@ def load_experiment_configs(config_manager: ConfigManager) -> tuple[
 def dispatch(
     runner: BaseAgentRunner,
     config_manager: ConfigManager,
-    agent_bundle: RunnerBundle,
+    runner_bundle: RunnerBundle,
     global_conf: GlobalConf,
 ) -> None:
     """
     Run an agent runner according to the loaded experiment configuration.
 
-    Handles the snapshot, training, and evaluation modes. Not used for
-    HumanRunner, which is driven directly via `human_player_loop()`
-    since it doesn't participate in snapshot/train/eval dispatch.
+    Handles the snapshot, training, and evaluation modes.
 
     Args:
         runner: The agent runner to dispatch to (train or eval).
         config_manager: Used to save a config snapshot if enabled.
-        bundle: The loaded experiment configuration.
+        runner_bundle: The loaded experiment configuration.
+        global_conf: The global configuration, read for the snapshot
+            setting and the scenario's name.
     """
 
     if global_conf.snapshot.enabled:
@@ -84,7 +88,7 @@ def dispatch(
         print("Config snapshot saved. Exiting.")
         return
 
-    if agent_bundle.runner_conf.common_conf.training:
+    if runner_bundle.runner_conf.common_conf.training:
         runner.train()
     else:
         runner.eval()

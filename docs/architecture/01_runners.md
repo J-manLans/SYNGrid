@@ -13,41 +13,45 @@ runners/
 │   │   └── stateless_ppo.py
 │   ├── utils/
 │   │   └── extractors.py
-│   ├── agent_registry.py
 │   ├── base_agent_runner.py
-│   └── runner_bundle.py
+│   ├── runner_bundle.py
+│   └── runner_registry.py
 └── human_runner/
     └── human_runner.py
 ```
 
 ```text
 BaseAgentRunner (ABC)
-├── BaseSB3Runner[T: BaseAlgorithm]
-│   ├── StatelessPPO   (T = PPO)
-│   ├── FrameStackPPO  (T = PPO)
-│   └── LstmPPO        (T = RecurrentPPO)
-└── HumanRunner
+└── BaseSB3Runner[T: BaseAlgorithm]
+    ├── StatelessPPO   (T = PPO)
+    ├── FrameStackPPO  (T = PPO)
+    └── LstmPPO        (T = RecurrentPPO)
+
+HumanRunner
 ```
 
-A runner takes a `RunnerBundle` (the built `Scenario` plus `RunnerConf`) and
-drives environments with it. `agent_registry.build_runner` picks the class:
-`HumanRunner` when `human_control` is set, otherwise the entry for
-`common_conf.alg` in the `RUNNER` table (`PPO`, `FSPPO`, `RPPO`). `app.dispatch`
-then calls `train()` or `eval()` on it.
+An agent runner takes a `RunnerBundle` (the built `Scenario` plus `RunnerConf`)
+and drives environments with it. `runner_registry.build_runner` picks the class
+from the `RUNNER` table, keyed by the `Algorithm` enum that `common_conf.alg`
+is read as (`PPO`, `FSPPO`, `RPPO`). `app.dispatch` then calls `train()` or
+`eval()` on it.
 
 `BaseAgentRunner` owns what every run needs regardless of algorithm: the run
 id, the output directories, and the per-environment wrappers (episode
 statistics, CSV logging, video). `BaseSB3Runner` holds the whole train and eval
 flow once. It builds a `DummyVecEnv` of `SYNGridEnv`s wrapped in
 `VecNormalize`, and delegates model and normalisation-stat persistence to
-`ArtifactManager`. The three concrete runners only supply an algorithm,
-hyperparameters, a policy string from `policy_resolver`, and an
-`ExecutionStrategy` for eval-time action selection; `FrameStackPPO` also adds
-frame stacking to the environment.
+`ArtifactManager`. It also names the policy: `policy_resolver` takes the
+scenario's perception and the algorithm, and returns the one policy that
+algorithm offers for it. The three concrete runners only supply an algorithm,
+hyperparameters and an `ExecutionStrategy` for eval-time action selection;
+`FrameStackPPO` also adds frame stacking to the environment.
 
-`HumanRunner` skips all of that. It builds one bare `SYNGridEnv` in `human`
-render mode and loops on keyboard input until the episode ends.
+`HumanRunner` is not an agent runner. When `human_control` is set, `app.main`
+runs it and returns before any agent runner is built, so the snapshot and the
+runner config are ignored. It takes the `Scenario`, builds one bare `SYNGridEnv`
+in `human` render mode and loops on keyboard input until the episode ends.
 
-The runners already take a `Scenario`, and the SB3 runners import. `HumanRunner`
-imports `SYNGridEnv`, which does not import yet (see `08_gymnasium.md`), so
-`agent_registry` and the app fail with it.
+The runners already take a `Scenario`, and the agent runners import.
+`HumanRunner` imports `SYNGridEnv`, which does not import yet (see
+`08_gymnasium.md`), so the app fails with it.
