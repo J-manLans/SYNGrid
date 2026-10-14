@@ -69,7 +69,12 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Sampled field:** orbs are drawn at random from a pool, and each kind's weight sets the mix. None is written.
 - **Energy:** what the droid has left. It starts at `max_energy`, stays between 0 and `max_energy`, and the episode
   ends when it reaches 0.
-- **Score:** how the episode went. It starts at 0 and has no bounds.
+- **Score:** how the episode went: the episode's return, the sum of every reward the environment has handed back,
+  termination's included. The droid keeps it beside energy, since every reward goes through the droid. It starts at
+  0 and has no bounds.
+- **Settle:** the droid taking in what its digestion is owed when the episode is terminated, in `on_termination`.
+- **Ending reward:** what termination says the ending itself costs or pays, `EpisodeOutcome.ending_reward`. The
+  environment hands it to the droid's `on_termination`. In a goal scenario it is the timeout penalty or 0.
 - **Reward:** what one step pays. A negative reward is a penalty.
 - **Penalty:** a config value that must be 0 or negative. Every field whose name ends in `_penalty` is checked.
 - **Step clock:** the count of steps in an episode, up to `max_steps`.
@@ -86,7 +91,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Kind:** what an orb is: a member of `DirectKind` or `SynergyKind`. Digestion routes on it, and each kind has its
   own block in the config.
 - **Category:** direct or synergy. It is not stored; it follows from which enum the kind belongs to.
-- **Direct orb:** changes the score and nothing else, on the step it is eaten. The negative orb is one.
+- **Direct orb:** pays a reward and nothing else, on the step it is eaten. The negative orb is one.
 - **Synergy orb:** leaves something behind that changes a later outcome. The tier orb is one.
 - **Chain orb, effect orb:** the two groups inside synergy. A chain orb's payoff depends on which orbs of its kind
   came before. An effect orb changes something other than itself. They are folders, not kinds, and no effect orb is
@@ -107,8 +112,8 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Completion:** an eaten tier orb that is the next tier and the last. The chain is over.
 - **Break:** an eaten tier orb that is any other tier. A tier 1 starts a new chain; any other tier leaves none.
 - **Chain reward:** the summed reward of the orbs in the running chain.
-- **Owed:** what a running chain has gathered and digestion has not paid. The tier digester states it, and
-  termination pays it when it ends the episode. Only threshold is ever owed anything.
+- **Owed:** what a digester has gathered and not paid. Every digester states it through `owed_at_episode_end`, and
+  the droid settles the sum when the episode ends. Only threshold is ever owed anything today.
 - **Scoring mode:** when a tier orb's worth is paid. An orb is worth the same in every mode.
 - **Max-tier:** nothing is paid until completion, which pays the whole chain.
 - **Step-wise:** each orb is paid as it is eaten.

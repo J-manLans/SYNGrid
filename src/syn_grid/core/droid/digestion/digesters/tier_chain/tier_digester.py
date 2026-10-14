@@ -101,8 +101,7 @@ class TierDigester(ABC):
         """Return what the running chain is owed if the episode ends now.
 
         It is what the chain has gathered and digestion has not paid. The
-        digester only states it: whatever ends the episode adds it to the
-        last step's reward.
+        digester only states it: the droid settles it when the episode ends.
         """
 
     # ================= #

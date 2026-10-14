@@ -218,8 +218,12 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - An orb kind's config class is shared in the common models, a family
   subclasses it for its own use, and each scenario's world model declares the
   field, optional or mandatory. The base `WorldConf` declares no orb fields.
-- Energy and score are two numbers. `max_energy` is both the start and the cap,
-  and replaces `starting_score` and `max_score`.
+- Energy and score are two numbers, and the droid keeps both. `max_energy` is
+  both the start and the cap, and replaces `starting_score` and `max_score`.
+  The score is the episode's return. Every reward goes through the droid: its
+  actions, digestion, and `on_termination`, which takes in what digestion is
+  owed and what termination says the ending costs. Changed on
+  2026-10-15, reversing the score in the environment from 2026-10-14.
 - The step clock lives in the world. `max_steps` is in `world_conf`, and
   `GridWorld` takes it and counts down `steps_left`. The environment still
   counts on `ObservationHandler` and passes that count on.
@@ -237,10 +241,12 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - A goal scenario never truncates: running out of steps sets `terminated`.
   `EpisodeOutcome.truncated` defaults to false and is for a continuous
   scenario, where the clock is not a failure.
-- Termination only adds to a step's reward. At every ending it adds what the
-  tier digester's `owed_at_episode_end` returns, which is the gathered sum in
-  threshold and 0 in the other modes. One termination class serves all three
-  modes. The clock is charged only when it alone ended the episode.
+- Termination decides and changes nothing. It returns
+  `EpisodeOutcome.ending_reward`, which the environment puts through
+  `droid.on_termination`; `evaluate` takes no `reward`. What a digester is owed at the
+  end (`owed_at_episode_end`, on the protocol, the gathered sum in threshold
+  and 0 elsewhere) is settled by the droid. One termination class serves all
+  three modes. The clock is charged only when it alone ended the episode.
 - A tier orb is worth `base_reward * tier ** growth_factor`, set on the shared
   `TierOrbConf` and not rounded. Scaling dense has no config classes of its own.
 - Legacy and `reproduction_package/` are references, not targets.
@@ -381,12 +387,16 @@ decisions on this branch:
 - **The spatial builder's bundles are complete, and nothing joins them.** The
   tier bundle makes the orbs with their rewards and a max-tier digester from
   the config. `build_world` uses both, and stops at the droid's import.
-- **`TierChainTermination.evaluate` is written against a droid that does not
-  exist yet.** It reads `world.droid.energy` and calls
-  `world.droid.get_digester(TierDigester)`; today's droid has `score` and a public
-  `digestion_engine`. It was run with a stand-in world around real digesters,
-  and Pyright reports the two attributes as unknown. It still takes
-  `steps_left` as an argument.
+- **`TierChainTermination.evaluate` calls a droid method that does not exist
+  yet.** It reads `world.droid.energy` and calls
+  `world.droid.get_digester(TierDigester)`; the droid has `energy` and a public
+  `digestion_engine`, and no `get_digester`. It was run with a stand-in world
+  around real digesters. It still takes `steps_left` as an argument.
+- **The droid's `on_termination` is written, and nothing calls it yet.** Since
+  2026-10-15 it keeps the score again and settles in `on_termination`. The
+  environment's step, which calls them, is phase 5; its TODO says how. A
+  script ran a threshold episode ending on the clock through the real droid,
+  digesters and termination: the score equalled the summed rewards.
 - **A config with a `neg_orb_conf` block builds a `Scenario`.** It gets the
   negative bundle, the `_Neg` tag, a `negatives_eaten` metric and one more orb
   in the field size, the observation slots and the sort limit. Nothing below

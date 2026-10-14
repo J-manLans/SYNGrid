@@ -33,3 +33,11 @@ class OrbDigester(Protocol):
     def digest(self, orb: BaseOrb) -> float:
         """Digest an orb of this digester's kind and return its reward."""
         ...
+
+    def owed_at_episode_end(self) -> float:
+        """Return what this digester has gathered and not paid, if the episode ends now.
+
+        It changes nothing. A digester that pays every orb when it is eaten
+        returns 0.
+        """
+        ...

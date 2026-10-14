@@ -35,6 +35,13 @@ here. A question that is only half answered stays, with what is left of it.
 
 ## Phase 5: The Gymnasium side
 
+- **Whether the droid settles when a continuous episode is truncated.** A goal scenario never truncates, so today
+  every ending is a termination and calls `on_termination`. At truncation SB3 bootstraps the value of the remaining future from the terminal
+  observation, so paying out what a running chain has gathered there would count it twice: once as reward and once
+  in the bootstrapped value. Leaning towards settling on `terminated` only, which is what the name
+  `on_termination` already says; a truncation would then need its own path only if it pays something. Raised on 2026-10-15.
+  See: `design-decisions.md`, "Energy and score are two numbers, and every reward goes through the droid".
+
 - **Where the renderer's settings come from.** The old `RendererConf` has no counterpart in the new models. A preview
   in a GUI would need them too.
   See: the roadmap's phase 5.

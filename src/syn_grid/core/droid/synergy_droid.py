@@ -22,7 +22,7 @@ class SynergyDroid:
         """
         Initializes the droid.
 
-        Defines the game world so the droid know its bounds, set its starting score and store it for later resetting.
+        Defines the game world so the droid know its bounds, and store its max energy for later resetting.
         """
 
         self._rows: Final[int] = grid_dimensions[0]
@@ -35,7 +35,7 @@ class SynergyDroid:
 
     def reset(self) -> None:
         """
-        Initialize Droids starting position at the center of the grid and reset its score and the digestion engine.
+        Initialize Droids starting position at the center of the grid and reset its energy, score and the digestion engine.
         """
 
         self.position: list[int] = [
@@ -73,20 +73,26 @@ class SynergyDroid:
         return self._apply_reward(self._step_penalty + boundary_penalty)
 
     def consume_orb(self, orb: BaseOrb) -> float:
-        """Consumes the orb, add its reward to its score and returns the reward"""
+        """Consumes the orb, add its reward to its energy and score and returns the reward"""
 
         reward = self.digestion_engine.digest(orb.consume())
         return self._apply_reward(reward)
 
-    def settle(self) -> float:
-        # TODO: continue here. This is about how to handle the remaining score from the threshold
-        # scenario for example, if we don't align it somehow score starts to drift from the actual
-        # reward, and the HUD would show false info. Not sure this is the best handling of it, but
-        # it is one way...
-        reward = self.digestion_engine.owed_at_episode_end()
+    def on_termination(self, penalty: float) -> float:
+        """
+        Settles the droid when the episode is terminated, and returns what that adds to the last step's reward.
 
-        return self._apply_reward(reward)
+        The droid takes in what its digestion has gathered and not paid, together with the penalty the ending costs,
+        such as the timeout penalty when the clock ran out. Both are applied at once, so energy is clamped on their sum.
+        It is called once per episode.
+        """
 
+        # TODO: in threshold scoring, a droid terminated when out of score, will get revived here.
+        # Decide how to handle this.
+        owed = self.digestion_engine.owed_at_episode_end()
+        ending_reward = owed + penalty
+
+        return self._apply_reward(ending_reward)
     # ================= #
     #      Helpers      #
     # ================= #

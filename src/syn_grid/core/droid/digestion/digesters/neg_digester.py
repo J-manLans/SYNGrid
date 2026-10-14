@@ -47,3 +47,8 @@ class NegDigester:
         self.negatives_eaten += 1
 
         return orb.REWARD
+
+    def owed_at_episode_end(self) -> float:
+        """Return 0: a negative orb is paid when it is eaten."""
+
+        return 0.0

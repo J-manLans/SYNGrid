@@ -88,6 +88,12 @@ class SYNGridEnv(gym.Env):
         return self.obs, {}
 
     def step(self, action: int):
+        # TODO(phase 5): every reward goes through the droid, which keeps energy and score. After
+        # termination.evaluate(world, steps_left), if outcome.terminated:
+        # world.droid.on_termination(outcome.ending_reward), which settles what digestion is owed
+        # and adds the ending's cost. The step's reward is the sum of the two, and the observation,
+        # HUD and metrics are read after.
+        # Settling on truncation is open (open-questions.md).
         info: dict[str, Any] = {}
 
         # Perform action and adjust variables affected by it
