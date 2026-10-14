@@ -21,7 +21,7 @@ small check.
 | `blocks/populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It gives the orb no lifespan |
 | `families/goal/tier_chain/termination.py` | written: the four endings, what the chain is owed, and the timeout penalty. It reads `energy` and `get_digester(...)` from the droid, which has neither until phase 3 |
 | `families/goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
-| `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Calling it raises `NotImplementedError` until phase 3 |
+| `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Its body is written against the droid and world constructors of phase 3, steps 5 and 6, and stops at the droid's import |
 | `blocks/recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
 | `core/droid/digestion/digestion.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float). The routing key, `OrbKind`, is in `orb_meta.py` |
@@ -29,12 +29,14 @@ small check.
 | `core/droid/digestion/digesters/neg_digester.py` | written: `NegDigester` pays the orb's own reward and counts `negatives_eaten`. The negative bundle names it |
 | `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
 | `core/droid/digestion/engine.py` | written: a router with `reset`, `digest` and `get`, built from digesters. The droid still constructs it the old way |
-| `core/` (world, droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. The droid, the environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
+| `core/droid/synergy_droid.py` | being rebuilt (step 5 of phase 3): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine, and keeps energy and score apart. Its `settle()` calls an engine method that does not exist yet. See the phase 3 state for what is left |
+| `core/grid_world.py` | being rebuilt (step 6 of phase 3): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` and `perform_droid_action` still read `self._conf`, which is gone, so it does not run |
+| `core/` (droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. The droid, the environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
 | Runners, `env_factory.py` | already take a `Scenario` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
 `import syn_grid.scenario.registry` works and `build_scenario` returns the spatial `Scenario`. Two scenarios built
-from the same config compare equal. `scenario.build_world()` raises until phase 3. `import syn_grid.app` and
+from the same config compare equal. `scenario.build_world()` stops at the droid's import until phase 3. `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail until phase 5.
 
 ---
@@ -140,7 +142,7 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 1. Droid: energy and score as two numbers; takes its digesters and the grid size. It keeps its engine to itself and
    gives a reader a digester by class through `get_digester(...)`. `TierChainTermination` already reads `energy` and
    calls `get_digester`.
-2. World: takes the grid, the droid, the orbs and `max_active_orbs`; counts the steps of an episode. It fills the
+2. World: takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid; counts the steps of an episode. It fills the
    field at reset and brings back an orb that is ready when there is room. When it counts,
    `steps_left` leaves the signature of `TerminationRules.evaluate`.
    Each step it asks its orbs whether they are ready or expired. An orb does not notify the world.
@@ -157,7 +159,7 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 | 3 | `core/orbs/synergy/chain/tier_orb.py`, `core/orbs/direct/negative_orb.py` | pass the lifespan through |
 | 4 | `scenario/blocks/populations/` | hand each orb its lifespan: `None` for tier orbs, a number for the negative orb |
 | 5 | `core/droid/synergy_droid.py` | takes digesters and the grid size as values, makes its own engine, splits energy from score, and gets `get_digester` |
-| 6 | `core/grid_world.py` | takes the grid, the droid, the orbs and `max_active_orbs`, counts the steps, fills the field at reset, and asks its orbs each step |
+| 6 | `core/grid_world.py` | takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, counts the steps, fills the field at reset, and asks its orbs each step |
 | 7 | `core/orbs/orb_factory.py` | deleted, once the world no longer imports it |
 | 8 | `scenario/blocks/recipes/world_recipe.py` | the body of `__call__`, the last piece of phase 4 |
 | 9 | `scenario/families/goal/tier_chain/builders.py` | pass the negative orb's lifespan to its population, since it follows from the grid size |
@@ -177,6 +179,32 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 - `GridWorld.reset()` without an rng re-rolls the layout.
 
 **Done when:** a world can be built by hand in a script, reset with a seed, and stepped with actions.
+
+**State on 2026-10-14: start here next session.** The owner wires the droid, and the agent guides. Done: the droid's
+constructor takes values, energy and score are apart (both start in `reset()`, energy is held between 0 and
+`max_energy`, the score has no bounds), the world's constructor takes `max_steps` and keeps the step clock, and
+`WorldRecipe.__call__` has its body. Left in step 5, in this order:
+
+1. Wire `owed_at_episode_end` so `SynergyDroid.settle()` runs: add it to the `OrbDigester` protocol in
+   `core/droid/digestion/digester.py`, add an engine method of the same name that sums every digester's answer, and
+   give `NegDigester` one that returns 0.0. The tier digesters have it already.
+2. `get_digester(...)` on the droid, passing through to the engine's `get`. Termination and the readers call it.
+3. The engine made private: `self.digestion_engine` becomes `self._engine`.
+4. The tier digester base's `owed_at_episode_end` docstring says whatever ends the episode adds it to the reward; the
+   droid's `settle()` pays it now.
+5. Docstrings and comments in `synergy_droid.py`, left until the wiring is done: `__init__` and `reset` still speak of
+   a starting score, `consume_orb` of its score, and `settle` has none. Then `./scripts/tidy.sh` for the import order
+   and the trailing comma.
+6. Docs, for the agent once the wiring is in: the decision that termination adds `owed_at_episode_end` changes, since
+   the droid settles it and termination keeps only `timeout_penalty`; who calls `settle()`, termination or the
+   environment, goes in `open-questions.md`; and the docs that call the protocol file `digestion.py` are fixed, as it
+   is `digester.py`.
+
+Why the droid settles: the score is for the HUD and the custom logger, both read at the end of an episode. If the
+threshold mode's gathered sum is paid by termination, it goes around the droid and the score misses it. Settled
+through the droid, the score is the return less `timeout_penalty` in every mode. Max-tier and step-wise owe 0, so no
+mode is checked. Termination must stop adding `owed_at_episode_end` when `settle()` is first called, or threshold
+pays the chain twice.
 
 ---
 

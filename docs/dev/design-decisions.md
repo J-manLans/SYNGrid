@@ -202,7 +202,11 @@ takes everything else from the bundles and the field's size. What a family adds 
 termination. The old function was typed with `TierWorldConf` only because it sat in the tier-chain builders.
 
 With it, two scenarios built from the same config compare equal, and a scenario's full world config can be read from
-outside the builder, as `scenario.build_world.world_conf`.
+outside the builder, as `scenario.build_world.world_conf`. Equality is what lets `==` answer "is this still the
+scenario I think it is?": when a scenario is locked, against one built from its old YAML; when a saved agent is
+evaluated, against the scenario it trained on; and when a scenario is saved from a GUI, as the last check that it
+loads back the same. Nothing compares scenarios yet. It describes the scenario and not its behaviour: whether two
+equal scenarios step the same is for a replay with the same seed.
 
 **Where:** `scenario/blocks/recipes/tier_digester_recipe.py` and `world_recipe.py`; `_tier_bundle` and
 `_tier_chain_scenario` in `scenario/families/goal/tier_chain/builders.py`.
@@ -218,6 +222,12 @@ arguments has nowhere to get `max_tier` and the penalty from.
 the same two values, and a sandbox that reads its mode from config would hand the same recipe the class it chose.
 - The recipe in `core/`, beside the digesters. Rejected for the reason the populations are not there: only the
 scenario layer needs a way to make a digester later. Core is handed digesters.
+- Recipes handed down a layer at a time: the world given a way to make its droid and the populations, the droid given
+the digester recipes, each calling what it is handed. Discussed on 2026-10-14 and turned down. Every world gets its
+own pieces either way, so nothing is gained there. It needs a `DroidRecipe` besides, puts makers in core's
+constructors, and spreads the per-world making over three classes instead of keeping it in `WorldRecipe.__call__`.
+It would pay off only if a world or droid had to remake its parts itself, and resetting goes through their `reset()`.
+The flat version keeps the scenario out of the world: core takes finished pieces.
 - The folder named `scenario/digestion/`, as it was for a few hours on 2026-10-12. Renamed to `scenario/recipes/`
 because `core/droid/digestion/` is where digestion happens and two packages should not end in the same word, because
 `populations/` beside it is named after what its files are, and because a recipe need not make a digester. Both
@@ -231,8 +241,10 @@ class that goes in this field.
 YAML: the bundles of two builds compare equal, each call returns a new digester, and the tier orbs fed in order to
 the digesters the bundles make pay what the three tier orbs are worth together.
 
-`WorldRecipe` is written without its body: calling it raises `NotImplementedError`, because the droid and the world
-do not take pieces until phase 3. Checked on 2026-10-12 with the spatial YAML: two builds of the same config compare
+`WorldRecipe` was written without its body on 2026-10-12, and the body was written on 2026-10-14, before the droid
+and the world it calls, so that it states what their constructors take. The droid is handed its digesters, the grid
+and `max_energy`, `step_penalty` and `boundary_penalty` as plain values and not `DroidConf`, since core takes pieces
+and not config. Checked on 2026-10-12 with the spatial YAML: two builds of the same config compare
 equal and are hashable, and a different grid, a different `chain_break_penalty` and an added negative block each
 make a scenario that does not equal the first. That it needs nothing of a family is read from the config models and
 from the steps the old function listed, not from a body that runs. Delay is the one to watch: its field freezes
@@ -556,8 +568,9 @@ are unchanged for the goal scenarios, but the bound moves from the old `max_scor
 **Decision:** `max_steps` is a field of `world_conf`, and the world is what counts the steps of an episode. Anything
 that needs the steps left (termination, the observation, the HUD, the metrics) reads it from the world it is handed.
 
-**Where:** `WorldConf.max_steps` in `config/models/scenario/common_models.py`. The count itself still has to move
-into `GridWorld`; it is on `ObservationHandler` today.
+**Where:** `WorldConf.max_steps` in `config/models/scenario/common_models.py`; the count is `GridWorld.steps_left`,
+a read-only property. Each action takes a step and a reset restarts it. Since 2026-10-14 the world keeps it, while
+the environment still counts on `ObservationHandler` and hands that count on.
 
 **Alternatives considered:**
 
@@ -565,6 +578,10 @@ into `GridWorld`; it is on `ObservationHandler` today.
 and a reader that is handed just the world could not get at it.
 - At the top of the scenario config, beside `world_conf`. Rejected because the steps taken are state that changes
 during an episode, and that state belongs in the world.
+- On the environment, which already calls every consumer. Raised again on 2026-10-14 and turned down: every
+consumer is handed the world already, so a count on the world reaches them all with nothing passed, while a count on
+the environment has to be handed to termination, the perception and the HUD each. The world has no use for the count
+itself; it holds it because everything else can reach it.
 - In `grid_conf`. Rejected because that block is the geometry; the episode length is about time and is set
 independently of the grid's shape.
 - In `goal_conf`. Rejected because a continuous episode also ends on the clock.

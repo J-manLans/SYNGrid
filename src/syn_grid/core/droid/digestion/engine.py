@@ -9,7 +9,7 @@ it knows is which digester owns which orb kind.
 from collections.abc import Iterable
 from typing import Final, TypeVar
 
-from syn_grid.core.droid.digestion.digestion import OrbDigester
+from syn_grid.core.droid.digestion.digester import OrbDigester
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import OrbKind
 

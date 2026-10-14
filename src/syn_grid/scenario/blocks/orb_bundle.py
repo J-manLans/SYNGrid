@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from syn_grid.scenario.blocks.populations.population import OrbPopulation
 
 if TYPE_CHECKING:
-    from syn_grid.core.droid.digestion.digestion import OrbDigester
+    from syn_grid.core.droid.digestion.digester import OrbDigester
 
 
 @dataclass(frozen=True)

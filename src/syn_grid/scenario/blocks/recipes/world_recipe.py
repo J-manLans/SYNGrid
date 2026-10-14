@@ -50,9 +50,33 @@ class WorldRecipe:
     max_active_orbs: int
 
     def __call__(self) -> GridWorld:
-        # orbs = [orb for bundle in self.orb_bundles for orb in bundle.population.create()]
-        # digesters = [bundle.make_digester() for bundle in self.orb_bundles]
-        # grid = (self.world_conf.grid_conf.grid_rows, self.world_conf.grid_conf.grid_cols)
-        # TODO(phase 3): build the droid from the digesters, the grid and `droid_conf`, then return
-        # GridWorld(grid, droid, orbs, self.max_active_orbs).
-        raise NotImplementedError("WorldRecipe waits for core to take pieces (phase 3)")
+        # TODO(phase 3): move these imports to the top of the module once the droid and the world
+        # import. At module level they would break `import syn_grid.scenario.registry`.
+        from syn_grid.core.droid.synergy_droid import SynergyDroid
+        from syn_grid.core.grid_world import GridWorld
+
+        grid_conf = self.world_conf.grid_conf
+        droid_conf = self.world_conf.droid_conf
+        grid = (grid_conf.grid_rows, grid_conf.grid_cols)
+
+        orbs = [
+            orb for bundle in self.orb_bundles for orb in bundle.population.create()
+        ]
+        digesters = [bundle.make_digester() for bundle in self.orb_bundles]
+
+        # TODO(phase 3): the droid's constructor is written in step 5; this call is what it must take.
+        droid = SynergyDroid(
+            digesters,
+            grid,
+            max_energy=droid_conf.max_energy,
+            step_penalty=droid_conf.step_penalty,
+            boundary_penalty=droid_conf.boundary_penalty,
+        )
+
+        return GridWorld(
+            grid,
+            self.max_active_orbs,
+            self.world_conf.max_steps,
+            orbs,
+            droid,
+        )

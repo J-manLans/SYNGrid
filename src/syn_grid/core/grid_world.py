@@ -2,16 +2,8 @@ from typing import Final
 
 from numpy.random import Generator, default_rng
 
-from syn_grid.config.models import (
-    DroidConf,
-    GridWorldConf,
-    NegativeConf,
-    OrbFactoryConf,
-    TierConf,
-)
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_factory import OrbFactory
 from syn_grid.core.orbs.orb_meta import OrbMeta, SynergyKind
 from syn_grid.gymnasium.action_space import DroidAction
 
@@ -23,37 +15,43 @@ class GridWorld:
 
     def __init__(
         self,
-        conf: GridWorldConf,
-        orb_manager_conf: OrbFactoryConf,
-        droid_conf: DroidConf,
-        negative_orb_conf: NegativeConf,
-        tier_orb_conf: TierConf,
+        grid_dimensions: tuple[int, int],
+        max_active_orbs: int,
+        max_steps: int,
+        orbs: list[BaseOrb],
+        droid: SynergyDroid,
     ):
         """
-        Initializes the grid world. Defines the game world's size and initializes the droid and orbs.
+        Holds the grid's size, the droid and the orbs it is handed, how many orbs the field may hold at once, and the
+        step clock of an episode.
         """
 
         # World
-        self._conf: Final[GridWorldConf] = conf
+        self._max_active_orbs: Final[int] = max_active_orbs
+        self._rows: Final[int] = grid_dimensions[0]
+        self._cols: Final[int] = grid_dimensions[1]
+
+        # Step clock
+        self._max_steps: Final[int] = max_steps
+        self._steps_left: int = max_steps
 
         # Droid
-        self.droid: Final[SynergyDroid] = SynergyDroid(
-            droid_conf, conf.single_chain_mode
-        )
+        self.droid: Final[SynergyDroid] = droid
 
         # Orbs
         self._active_orbs: Final[list[BaseOrb]] = []
         self._inactive_orbs: list[BaseOrb] = []
-        self.ALL_ORBS: Final[list[BaseOrb]] = OrbFactory(
-            orb_manager_conf, negative_orb_conf, tier_orb_conf
-        ).create_orbs()
+        self.ALL_ORBS: Final[list[BaseOrb]] = orbs
 
         self._remap_sparse_identities_to_dense()
 
     def reset(self, rng: Generator | None = None) -> None:
         """
-        Reset the droid to its starting position and re-spawns the orb at a random location
+        Reset the droid to its starting position, re-spawns the orb at a random location and restarts the step clock.
         """
+
+        # Reset the step clock
+        self._steps_left = self._max_steps
 
         # Reset Droid
         self.droid.reset()
@@ -72,7 +70,7 @@ class GridWorld:
 
         if self._conf.single_chain_mode:
             # spawn all orbs
-            for _ in range(self._conf.max_active_orbs):
+            for _ in range(self._max_active_orbs):
                 self._spawn_random_orb_if_ready()
         else:
             # Spawn the first orb
@@ -85,6 +83,8 @@ class GridWorld:
     # === Logic === #
 
     def perform_droid_action(self, agent_action: DroidAction) -> float:
+        self._steps_left -= 1
+
         reward = 0.0
         step_penalty = self.droid.perform_action(agent_action)
 
@@ -110,13 +110,19 @@ class GridWorld:
             self._reactivate_all_orbs()
         elif (
             not self._conf.single_chain_mode
-            and len(self._active_orbs) < self._conf.max_active_orbs
+            and len(self._active_orbs) < self._max_active_orbs
         ):
             self._spawn_random_orb_if_ready()
 
         return step_penalty + reward
 
     # === Getters === #
+
+    @property
+    def steps_left(self) -> int:
+        """How many steps the episode has left. Each action takes one, and a reset restarts it at `max_steps`."""
+
+        return self._steps_left
 
     def get_orb_positions(self, only_active: bool) -> list[list[int]]:
         if only_active:
@@ -189,8 +195,8 @@ class GridWorld:
 
         while True:
             position = [
-                int(self._rng.integers(0, self._conf.grid_rows)),
-                int(self._rng.integers(0, self._conf.grid_cols)),
+                int(self._rng.integers(0, self._rows)),
+                int(self._rng.integers(0, self._cols)),
             ]
 
             if self._empty_spawn_cell(position):

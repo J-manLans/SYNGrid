@@ -40,7 +40,8 @@ done. `scenario.py` and the blocks are written, and the spatial builder returns
 a `Scenario`. The populations are in `scenario/blocks/populations/`: the tier-chain
 one makes the spatial scenario's tier orbs, and the negative one is in the
 bundle a config with a `neg_orb_conf` block gets. Its termination and its
-world readers are written. Calling `build_world` raises `NotImplementedError`.
+world readers are written. `build_world` has its body, and calling it stops
+at the droid's import.
 The other three builders raise too.
 `core/droid/digestion/digestion.py` holds the digester protocol, and the
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
@@ -219,8 +220,9 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   field, optional or mandatory. The base `WorldConf` declares no orb fields.
 - Energy and score are two numbers. `max_energy` is both the start and the cap,
   and replaces `starting_score` and `max_score`.
-- The step clock lives in the world. `max_steps` is in `world_conf`; the count
-  itself is still on `ObservationHandler`.
+- The step clock lives in the world. `max_steps` is in `world_conf`, and
+  `GridWorld` takes it and counts down `steps_left`. The environment still
+  counts on `ObservationHandler` and passes that count on.
 - Digestion pays for orbs and termination pays for the clock. The tier digester
   pays the orbs, the chain break and the completed chain; termination pays
   `timeout_penalty`. There is no `completion_reward`.
@@ -366,11 +368,19 @@ decisions on this branch:
 - **`env_factory.make` passes a `Scenario`,** but `SYNGridEnv` still takes
   `world_conf` and `obs_conf`.
 - **Two scenarios built from the same config compare equal,** since
-  `build_world` became a `WorldRecipe` on 2026-10-12. Calling the recipe
-  raises `NotImplementedError`: its body waits for phase 3.
+  `build_world` became a `WorldRecipe` on 2026-10-12.
+- **`WorldRecipe.__call__` has its body since 2026-10-14,** written before the
+  droid it calls. It joins the bundles' orbs, makes one digester per bundle,
+  builds a `SynergyDroid` from the digesters, the grid and `max_energy`,
+  `step_penalty` and `boundary_penalty` as plain values, and returns
+  `GridWorld(grid, max_active_orbs, max_steps, orbs, droid)`. The droid's
+  signature is what step 5 of phase 3 must take. It imports the droid and the
+  world inside `__call__`, since at module level they would break
+  `import syn_grid.scenario.registry`. Calling it on the spatial scenario
+  raises `ImportError` from `synergy_droid.py`.
 - **The spatial builder's bundles are complete, and nothing joins them.** The
   tier bundle makes the orbs with their rewards and a max-tier digester from
-  the config. `build_world` raises before it uses either.
+  the config. `build_world` uses both, and stops at the droid's import.
 - **`TierChainTermination.evaluate` is written against a droid that does not
   exist yet.** It reads `world.droid.energy` and calls
   `world.droid.get_digester(TierDigester)`; today's droid has `score` and a public
@@ -392,6 +402,12 @@ decisions on this branch:
 - **The engine and the digesters were only tried in throwaway scripts.** No
   test covers them. The negative digester was fed a stand-in object, not a
   real negative orb.
+- **`GridWorld` is half rebuilt.** On 2026-10-14 its constructor was changed
+  to take the grid, `max_active_orbs`, `max_steps`, the orbs and the droid,
+  and it got the step clock: `reset` restarts it, `perform_droid_action` takes
+  a step, and `steps_left` is a read-only property. Nobody reads it yet.
+  `reset` and `perform_droid_action` still read `self._conf`, which the
+  constructor no longer sets. Nothing was run.
 - **The world still fills and refills the orb field with the old code.** The
   scenario hands it `max_active_orbs` through `WorldRecipe`, whose body does
   not run yet.

@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.config.models import ObsConfig, WorldConfig
+from syn_grid.scenario.scenario import Scenario
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.action_space import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
@@ -35,8 +35,7 @@ class SYNGridEnv(gym.Env):
 
     def __init__(
         self,
-        world_conf: WorldConfig,
-        obs_conf: ObsConfig,
+        scenario: Scenario,
         render_mode: str | None = None,
     ):
         # Set up bench environment;
@@ -44,16 +43,11 @@ class SYNGridEnv(gym.Env):
 
         # TODO: starting to look like episode termination could need its own method for storing
         # these...or make it a class
-        self.delay_mode = world_conf.grid_world_conf.delay_mode
-        self.timeout_penalty = world_conf.droid_conf.timeout_penalty
+        # self.delay_mode = world_conf.grid_world_conf.delay_mode
+        # self.timeout_penalty = world_conf.droid_conf.timeout_penalty
 
-        self.world = GridWorld(
-            world_conf.grid_world_conf,
-            world_conf.orb_factory_conf,
-            world_conf.droid_conf,
-            world_conf.negative_orb_conf,
-            world_conf.tier_orb_conf,
-        )
+        self.world = scenario.build_world()
+
 
         if self.render_mode in self.metadata["render_modes"]:
             self.renderer = PygameRenderer(

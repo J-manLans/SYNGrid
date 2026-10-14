@@ -86,6 +86,9 @@ def _empty_spawn_cell(self, position: list[np.int64]) -> bool:
 ```
 
 - Use inline comments sparingly, only for clarification, not obvious code.
+- A comment starts with a capital letter. A comment of one sentence has no period; a comment of more than one
+  sentence ends each sentence with one, the last included: `# Reset the step clock`, but
+  `# Spawn every orb. The field is full from the start.`
 
 ## 5. Headings and structure
 For all classes, use headings to improve readability and navigation, as of now 3 main sections are used:
