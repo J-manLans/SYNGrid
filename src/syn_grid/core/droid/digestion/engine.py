@@ -67,9 +67,7 @@ class DigestionEngine:
         It changes nothing. The droid settles it when the episode ends.
         """
 
-        return sum(
-            digester.undigested() for digester in self._digesters.values()
-        )
+        return sum(digester.undigested() for digester in self._digesters.values())
 
     def get(self, digester_class: type[D]) -> D:
         """Return the digester that is an instance of this class.

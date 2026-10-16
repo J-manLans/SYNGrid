@@ -10,7 +10,10 @@ from syn_grid.legacy.gymnasium_legacy.action_space import DroidAction
 from syn_grid.legacy.gymnasium_legacy.observation_space.observation_handler import (
     ObservationHandler,
 )
-from syn_grid.legacy.gymnasium_legacy.utils.episode_logging.keys import SYN_STATS_KEY, LogKey
+from syn_grid.legacy.gymnasium_legacy.utils.episode_logging.keys import (
+    SYN_STATS_KEY,
+    LogKey,
+)
 from syn_grid.legacy.gymnasium_legacy.utils.episode_termination import check_episode_end
 from syn_grid.legacy.rendering_legacy.pygame_renderer import PygameRenderer
 

@@ -1317,3 +1317,27 @@ rejects the combination.
 `main`. It is the shape the legacy app has.
 
 **Status:** settled. `play()` and `main` have not been run, since both need the environment.
+
+---
+
+## Episode state is first set in `reset` (2026-10-16)
+
+**Decision:** A component's episode state is assigned for the first time in its `reset`, not in `__init__`.
+`__init__` holds what does not change during an episode: config values, bounds and owned parts. In the droid,
+`position`, `energy` and `score` exist only once `reset` has run.
+
+**Where:** `core/droid/synergy_droid.py`. Every layer that has a reset is meant to follow it, and the layers are
+aligned to it as the rebuild reaches them.
+
+**Alternatives considered:**
+
+- Episode state given a starting value in `__init__` and set again in `reset`. Rejected because a missing reset
+  then fails silently: the first episode runs on the constructor's values, and a later one on the values the last
+  episode left behind.
+
+**Why this one:** It is a check at run time that every episode starts from `reset`. Reading episode state before
+the first reset raises `AttributeError` at once, instead of running an episode that did not start where it should.
+The cost is that a type checker sees attributes declared outside `__init__`, and that nothing may read them before
+the first reset.
+
+**Status:** settled for the droid. The other components are aligned as the rebuild reaches them.

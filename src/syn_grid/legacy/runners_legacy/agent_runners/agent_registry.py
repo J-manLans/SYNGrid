@@ -1,6 +1,12 @@
 from syn_grid.legacy.runners_legacy.agent_runners.agent_bundle import AgentBundle
-from syn_grid.legacy.runners_legacy.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.legacy.runners_legacy.agent_runners.sb3 import FrameStackPPO, LstmPPO, StatelessPPO
+from syn_grid.legacy.runners_legacy.agent_runners.base_agent_runner import (
+    BaseAgentRunner,
+)
+from syn_grid.legacy.runners_legacy.agent_runners.sb3 import (
+    FrameStackPPO,
+    LstmPPO,
+    StatelessPPO,
+)
 
 ALGORITHMS: dict[str, type[BaseAgentRunner]] = {
     "PPO": StatelessPPO,

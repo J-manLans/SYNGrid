@@ -9,7 +9,7 @@ from syn_grid.core.orbs.orb_meta import (
     OrbMeta,
     SynergyKind,
 )
-from syn_grid.gymnasium.action_space import DroidAction
+from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.utils.paths_util import get_syn_grid_path
 
 

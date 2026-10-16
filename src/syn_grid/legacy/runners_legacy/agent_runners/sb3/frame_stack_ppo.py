@@ -4,11 +4,15 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import VecEnv, VecFrameStack
 
 from syn_grid.legacy.runners_legacy.agent_runners.agent_bundle import AgentBundle
-from syn_grid.legacy.runners_legacy.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
+from syn_grid.legacy.runners_legacy.agent_runners.sb3.base_sb3_runner import (
+    BaseSB3Runner,
+)
 from syn_grid.legacy.runners_legacy.agent_runners.sb3.execution_strategy import (
     StatelessExecutionStrategy,
 )
-from syn_grid.legacy.runners_legacy.agent_runners.sb3.policy_resolver import resolve_policy
+from syn_grid.legacy.runners_legacy.agent_runners.sb3.policy_resolver import (
+    resolve_policy,
+)
 
 
 class FrameStackPPO(BaseSB3Runner[PPO]):

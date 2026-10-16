@@ -6,7 +6,9 @@ from syn_grid.legacy.config_legacy.models import (
 from syn_grid.legacy.gymnasium_legacy.utils.env_factory import register_env
 from syn_grid.legacy.runners_legacy.agent_runners.agent_bundle import AgentBundle
 from syn_grid.legacy.runners_legacy.agent_runners.agent_registry import build_runner
-from syn_grid.legacy.runners_legacy.agent_runners.base_agent_runner import BaseAgentRunner
+from syn_grid.legacy.runners_legacy.agent_runners.base_agent_runner import (
+    BaseAgentRunner,
+)
 from syn_grid.legacy.runners_legacy.human_runner.human_runner import HumanRunner
 
 # ================= #

@@ -52,6 +52,7 @@ syn_grid/
 │   │   │   │   └── neg_digester.py
 │   │   │   ├── digester.py
 │   │   │   └── engine.py
+│   │   ├── droid_action.py
 │   │   └── synergy_droid.py
 │   ├── orbs/
 │   │   ├── direct/
@@ -88,7 +89,6 @@ syn_grid/
 │   │   │   └── keys.py
 │   │   ├── env_factory.py
 │   │   └── episode_termination.py
-│   ├── action_space.py
 │   └── environment.py
 │
 ├── legacy/

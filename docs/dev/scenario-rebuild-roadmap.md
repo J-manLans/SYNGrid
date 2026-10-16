@@ -19,24 +19,24 @@ small check.
 | `blocks/observation.py`, `termination.py`, `blocks/populations/population.py` | written: the rules dataclass and the two protocols. A population has `create` and `count` |
 | `blocks/populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
 | `blocks/populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It gives the orb no lifespan |
-| `families/goal/tier_chain/termination.py` | written: the four endings, what the chain is owed, and the timeout penalty. It reads `energy` and `get_digester(...)` from the droid, which has neither until phase 3 |
+| `families/goal/tier_chain/termination.py` | written: the four endings, what the chain is owed, and the timeout penalty. It reads `energy` and `get_digester(...)` from the droid |
 | `families/goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
-| `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Its body is written against the droid and world constructors of phase 3, steps 5 and 6, and stops at the droid's import |
+| `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Its body builds the droid and the world, and returns a `GridWorld` for the spatial scenario since 2026-10-16 |
 | `blocks/recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
 | `core/droid/digestion/digester.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float, `undigested`). The routing key, `OrbKind`, is in `orb_meta.py` |
 | `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes, each with `undigested`. The spatial builder names the max-tier one |
 | `core/droid/digestion/digesters/neg_digester.py` | written: `NegDigester` pays the orb's own reward, counts `negatives_eaten` and is owed nothing at the end. The negative bundle names it |
 | `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
-| `core/droid/digestion/engine.py` | written: a router with `reset`, `digest`, `get` and `undigested`, built from digesters. The droid still constructs it the old way |
-| `core/droid/synergy_droid.py` | being rebuilt (step 5 of phase 3): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine, and holds energy and score. Every reward goes through it: `on_termination(penalty)` takes in what digestion is owed and what the ending costs, and adds them to the score and leaves energy alone. See the phase 3 state for what is left |
+| `core/droid/digestion/engine.py` | written: a router with `reset`, `digest`, `get` and `undigested`, built from digesters. The droid builds it from the digesters it is handed |
+| `core/droid/synergy_droid.py` | written (step 5 of phase 3, done 2026-10-16): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine and keeps it private, and holds energy and score, which are first set in `reset`. Every reward goes through it: `on_termination(ending_reward)` takes in what digestion has left undigested and what the ending costs or pays, adds them to the score and leaves energy alone. `get_digester(...)` gives a reader a digester by class |
 | `core/grid_world.py` | being rebuilt (step 6 of phase 3): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` and `perform_droid_action` still read `self._conf`, which is gone, so it does not run |
-| `core/` (droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. The droid, the environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
+| `core/` (orbs), `gymnasium/`, `rendering/` | the droid and the world import since 2026-10-16. The rest still import the old config and do not import. The environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
 | Runners, `env_factory.py` | already take a `Scenario` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
 `import syn_grid.scenario.registry` works and `build_scenario` returns the spatial `Scenario`. Two scenarios built
-from the same config compare equal. `scenario.build_world()` stops at the droid's import until phase 3. `import syn_grid.app` and
+from the same config compare equal. `scenario.build_world()` returns a `GridWorld` since 2026-10-16, whose `reset` does not run yet. `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail until phase 5.
 
 ---
@@ -170,8 +170,7 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 - The recipe's body comes last because it calls the constructors that steps 5 and 6 define.
 - At step 6, `steps_left` can leave `TerminationRules.evaluate`, and the open question of orbs or populations is
   settled. With a lifespan per orb from step 2, a list of orbs is enough.
-- The droid and the world both import `DroidAction` from `syn_grid.gymnasium.action_space`. Whether that imports on
-  its own was not checked, and it decides whether core can be run in a script before phase 5.
+- `DroidAction` is in `core/droid/droid_action.py` since 2026-10-16, so core imports nothing from `gymnasium/`.
 
 **Check while here** (from the "things that bite" list in `AGENTS.md`):
 
@@ -180,19 +179,18 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 
 **Done when:** a world can be built by hand in a script, reset with a seed, and stepped with actions.
 
-**State on 2026-10-14: start here next session.** The owner wires the droid, and the agent guides. Done: the droid's
-constructor takes values, energy starts in `reset()` and is held between 0 and `max_energy`, the world's constructor
-takes `max_steps` and keeps the step clock, and `WorldRecipe.__call__` has its body. Left in step 5, in this order:
+**State on 2026-10-16: start here next session.** Step 5, the droid, is done. It has `get_digester(...)`, keeps its
+engine private as `_digestion_engine`, has its docstrings, and is formatted. Its episode state is first set in
+`reset`; see "Episode state is first set in `reset`" in `design-decisions.md`. `on_termination(ending_reward)` adds
+what digestion has left undigested and what the ending costs or pays to the score, and leaves energy alone. The
+digesters' names follow the digestion metaphor: `undigested()`, `chain_worth` and `chain_tier`.
 
-1. `get_digester(...)` on the droid, passing through to the engine's `get`. Termination and the readers call it.
-2. The engine made private: `self.digestion_engine` becomes `self._engine`.
-3. Docstrings and comments in `synergy_droid.py`, left until the wiring is done. Then `./scripts/tidy.sh` for the import order and the trailing
-   comma.
-4. Done on 2026-10-16: the docs that called the protocol file `digestion.py` now call it `digester.py`.
+`WorldRecipe.__call__` returns a `GridWorld` for the spatial scenario, with a droid that resets. The world's `reset`
+and `perform_droid_action` still read `self._conf`. Steps 1 to 4, the orbs' lifespans and cool-downs, have not been
+checked against the code; the world's step 6 needs them, since it asks its orbs each step.
 
-Done on 2026-10-15: the score is back on the droid, beside energy, and every reward goes through it. The droid has
-`on_termination(penalty)`, which takes in the engine's `undigested` and the ending's cost. Termination returns only
-`EpisodeOutcome.ending_reward` and its `evaluate` takes no `reward`.
+Done on 2026-10-15: the score is back on the droid, beside energy, and every reward goes through it. Termination
+returns only `EpisodeOutcome.ending_reward` and its `evaluate` takes no `reward`.
 
 For phase 5: the step is the droid acting, `termination.evaluate(world, steps_left)`, and if the episode ended
 `world.droid.on_termination(outcome.ending_reward)` when `outcome.terminated`. The step's reward is the sum of the two.

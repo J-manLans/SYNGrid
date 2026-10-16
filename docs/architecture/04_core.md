@@ -13,6 +13,7 @@ core/
 │   │   │   └── neg_digester.py
 │   │   ├── digester.py
 │   │   └── engine.py
+│   ├── droid_action.py
 │   └── synergy_droid.py
 ├── orbs/
 │   ├── direct/

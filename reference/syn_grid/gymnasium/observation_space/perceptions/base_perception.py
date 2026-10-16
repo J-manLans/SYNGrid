@@ -105,7 +105,7 @@ class BasePerception(ABC):
             [
                 steps_left,
                 min(state.droid.score, self._observation_rules.max_score),
-                state.droid.digestion_engine.get(TierOrbDigester).chained_tiers,
+                state.droid._digestion_engine.get(TierOrbDigester).chained_tiers,
             ],
             dtype=np.float32,
         )

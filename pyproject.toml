@@ -75,5 +75,11 @@ include-package-data = true
 [tool.setuptools.package-data]
 "syn_grid" = ["assets/**/*"]
 
+[tool.ruff]
+# The legacy strain is a frozen copy and is never edited, formatting included.
+extend-exclude = ["src/syn_grid/legacy"]
+# Also when a file is named directly, as an editor does on save.
+force-exclude = true
+
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]

@@ -7,7 +7,7 @@ from numpy.random import Generator, default_rng
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.orbs.orb_meta import OrbMeta
-from syn_grid.gymnasium.action_space import DroidAction
+from syn_grid.core.droid.droid_action import DroidAction
 
 if TYPE_CHECKING:
     from syn_grid.scenario.blocks.populations.population import OrbPopulation

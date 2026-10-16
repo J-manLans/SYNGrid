@@ -96,7 +96,7 @@ class BasePerception(ABC):
             [
                 steps_left,
                 min(state.droid.score, self._perception_conf.max_score),
-                state.droid.digestion_engine.chained_tiers,
+                state.droid._digestion_engine.chained_tiers,
             ],
             dtype=np.float32,
         )

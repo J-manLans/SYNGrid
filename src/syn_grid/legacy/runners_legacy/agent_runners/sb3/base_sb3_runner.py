@@ -6,8 +6,12 @@ from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, VecNormalize
 
 from syn_grid.legacy.runners_legacy.agent_runners.agent_bundle import AgentBundle
-from syn_grid.legacy.runners_legacy.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.legacy.runners_legacy.agent_runners.sb3.artifact_manager import ArtifactManager
+from syn_grid.legacy.runners_legacy.agent_runners.base_agent_runner import (
+    BaseAgentRunner,
+)
+from syn_grid.legacy.runners_legacy.agent_runners.sb3.artifact_manager import (
+    ArtifactManager,
+)
 from syn_grid.legacy.runners_legacy.agent_runners.sb3.execution_strategy import (
     ExecutionStrategy,
 )

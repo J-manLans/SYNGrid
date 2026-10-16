@@ -32,7 +32,7 @@ class TierChainTermination:
     timeout_penalty: float # TODO: think this should be optional
 
     def evaluate(self, world: GridWorld, steps_left: int, reward: float) -> EpisodeOutcome:
-        engine = world.droid.digestion_engine
+        engine = world.droid._digestion_engine
 
         # The score ending is switched off for tier chains. Thesis: it adds
         # nothing here. A wall hit is already punished when it happens, the

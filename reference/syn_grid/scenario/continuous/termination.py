@@ -27,7 +27,7 @@ class ContinuousTermination:
         terminated = world.droid.score <= 0
 
         if steps_left <= 0:
-            reward = world.droid.digestion_engine.get(TierOrbDigester).pending_reward
+            reward = world.droid._digestion_engine.get(TierOrbDigester).pending_reward
             terminated = True
 
         return EpisodeOutcome(terminated=terminated, truncated=False, reward=reward)

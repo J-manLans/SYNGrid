@@ -12,7 +12,11 @@ Usage:
 
 from syn_grid.legacy.config_legacy.config_manager import ConfigManager
 from syn_grid.legacy.config_legacy.models import FullConf
-from syn_grid.legacy.gymnasium_legacy.utils.env_factory import check_my_env, make, register_env
+from syn_grid.legacy.gymnasium_legacy.utils.env_factory import (
+    check_my_env,
+    make,
+    register_env,
+)
 
 
 def main() -> None:

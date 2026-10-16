@@ -10,7 +10,7 @@ from syn_grid.core.digestion.tier_digester import (
     ChainProgressed,
     TierOrbDigester,
 )
-from syn_grid.gymnasium.action_space import DroidAction
+from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
@@ -137,14 +137,14 @@ class SYNGridEnv(gym.Env):
 
         hud_data["score"] = self.world.droid.score
         hud_data["moves"] = self._observation_handler.steps_left
-        hud_data["current tier chain"] = self.world.droid.digestion_engine.get(
+        hud_data["current tier chain"] = self.world.droid._digestion_engine.get(
             TierOrbDigester
         ).chained_tiers
 
         return hud_data
 
     def _get_state_info(self) -> dict[str, Any]:
-        engine = self.world.droid.digestion_engine
+        engine = self.world.droid._digestion_engine
 
         return {
             LogKey.CHAINS_BROKEN: engine.count(ChainBroken),

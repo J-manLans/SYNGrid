@@ -22,7 +22,6 @@ gymnasium/
 │   │   └── keys.py
 │   ├── env_factory.py
 │   └── episode_termination.py
-├── action_space.py
 └── environment.py
 ```
 

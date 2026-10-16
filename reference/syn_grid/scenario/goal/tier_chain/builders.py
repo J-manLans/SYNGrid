@@ -98,16 +98,16 @@ def _tier_chain_scenario(
 # ---------------- #
 
 def _chain_progress(world: GridWorld) -> float:
-    return world.droid.digestion_engine.get(TierOrbDigester).chained_tiers
+    return world.droid._digestion_engine.get(TierOrbDigester).chained_tiers
 
 def _chains_broken(world: GridWorld) -> float:
-    return world.droid.digestion_engine.count(ChainBroken)
+    return world.droid._digestion_engine.count(ChainBroken)
 
 def _chains_progressed(world: GridWorld) -> float:
-    return world.droid.digestion_engine.count(ChainProgressed)
+    return world.droid._digestion_engine.count(ChainProgressed)
 
 def _chains_completed(world: GridWorld) -> float:
-    return world.droid.digestion_engine.count(ChainCompleted)
+    return world.droid._digestion_engine.count(ChainCompleted)
 
 
 def _build_tier_chain_world(

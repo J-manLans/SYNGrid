@@ -40,9 +40,9 @@ done. `scenario.py` and the blocks are written, and the spatial builder returns
 a `Scenario`. The populations are in `scenario/blocks/populations/`: the tier-chain
 one makes the spatial scenario's tier orbs, and the negative one is in the
 bundle a config with a `neg_orb_conf` block gets. Its termination and its
-world readers are written. `build_world` has its body, and calling it stops
-at the droid's import.
-The other three builders raise too.
+world readers are written. `build_world` has its body, and on 2026-10-16
+calling it on the spatial scenario returned a `GridWorld`; the world's `reset`
+does not run yet. The other three builders raise.
 `core/droid/digestion/digester.py` holds the digester protocol, and the
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring
@@ -56,7 +56,8 @@ negative bundle names it. The rest of `core/`, `gymnasium/` and
 phase 5.
 
 Phases 1 and 2 of the roadmap are done on the scenario side, and phase 3 is
-next: the droid, the world and the orbs take pieces instead of config. Phase 2
+under way: the droid, the world and the orbs take pieces instead of config.
+The droid, step 5, is done since 2026-10-16. Phase 2
 left four things written against a core that does not exist yet; the roadmap
 lists them at the end of its phase 2.
 
@@ -298,6 +299,10 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - Human play is not an agent runner. `app.main` runs `HumanRunner` and returns
   before an agent runner is built, and human control overrides the snapshot and
   the runner config with no check.
+- Episode state is first set in `reset`, not in `__init__`, so reading it
+  before the first reset raises instead of running an episode that did not
+  start where it should. The droid follows it; the other layers are aligned
+  as the rebuild reaches them.
 
 What is still open is listed in `docs/dev/open-questions.md`, grouped by the
 roadmap phase that needs the answer. Read it before giving a design opinion, and
@@ -382,18 +387,20 @@ decisions on this branch:
   builds a `SynergyDroid` from the digesters, the grid and `max_energy`,
   `step_penalty` and `boundary_penalty` as plain values, and returns
   `GridWorld(grid, max_active_orbs, max_steps, orbs, droid)`. The droid's
-  signature is what step 5 of phase 3 must take. It imports the droid and the
-  world inside `__call__`, since at module level they would break
-  `import syn_grid.scenario.registry`. Calling it on the spatial scenario
-  raises `ImportError` from `synergy_droid.py`.
-- **The spatial builder's bundles are complete, and nothing joins them.** The
-  tier bundle makes the orbs with their rewards and a max-tier digester from
-  the config. `build_world` uses both, and stops at the droid's import.
-- **`TierChainTermination.evaluate` calls a droid method that does not exist
-  yet.** It reads `world.droid.energy` and calls
-  `world.droid.get_digester(TierDigester)`; the droid has `energy` and a public
-  `digestion_engine`, and no `get_digester`. It was run with a stand-in world
-  around real digesters. It still takes `steps_left` as an argument.
+  signature is the one the droid took in step 5 of phase 3. The droid and
+  the world are imported at module level since 2026-10-16, and
+  `import syn_grid.scenario.registry` still works. On that day calling it on
+  the spatial scenario returned a `GridWorld` with a droid that resets. The
+  world's own `reset` was not run; it still reads `self._conf`. The old
+  `if TYPE_CHECKING:` import of `GridWorld` is still in the file, and ruff
+  reports it as `TC004`.
+- **The spatial builder's bundles are complete, and `build_world` joins
+  them.** The tier bundle makes the orbs with their rewards and a max-tier
+  digester from the config.
+- **`TierChainTermination.evaluate` reads `world.droid.energy` and calls
+  `world.droid.get_digester(TierDigester)`,** both on the droid since
+  2026-10-16. It was run with a stand-in world around real digesters, before
+  the droid had `get_digester`. It still takes `steps_left` as an argument.
 - **The droid's `on_termination` is written, and nothing calls it yet.** Since
   2026-10-15 it keeps the score again and settles in `on_termination`, which
   since 2026-10-16 adds to the score and not to energy. The
@@ -404,10 +411,10 @@ decisions on this branch:
   negative bundle, the `_Neg` tag, a `negatives_eaten` metric and one more orb
   in the field size, the observation slots and the sort limit. Nothing below
   the scenario has run with it.
-- **The world readers in the tier-chain builders are written against a droid
-  that does not exist yet.** Each returns a counter from
-  `world.droid.get_digester(...)`, so Pyright reports the method as unknown
-  five times. They were read from a stand-in world around real digesters.
+- **The world readers in the tier-chain builders** each return a value from
+  `world.droid.get_digester(...)`. They were read from a stand-in world around
+  real digesters, and have not run against the real droid. Pyright was not run
+  after `get_digester` was added.
   Nothing outside `scenario/` reads `scenario.metrics` or `scenario.hud`:
   `environment.py` still fills the episode info from the old engine's `stats`.
 - **`core/orbs/orb_factory.py` calls `TierOrb` with a signature it no longer

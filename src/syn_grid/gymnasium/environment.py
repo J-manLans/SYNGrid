@@ -4,15 +4,14 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.scenario.scenario import Scenario
-from syn_grid.core.grid_world import GridWorld
-from syn_grid.gymnasium.action_space import DroidAction
+from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
 from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY, LogKey
 from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 from syn_grid.rendering.pygame_renderer import PygameRenderer
+from syn_grid.scenario.scenario import Scenario
 
 
 class SYNGridEnv(gym.Env):
@@ -150,12 +149,12 @@ class SYNGridEnv(gym.Env):
 
         hud_data["score"] = self.world.droid.score
         hud_data["moves"] = self._observation_handler.steps_left
-        hud_data["current tier chain"] = self.world.droid.digestion_engine.chained_tiers
+        hud_data["current tier chain"] = self.world.droid._digestion_engine.chained_tiers
 
         return hud_data
 
     def _get_state_info(self) -> dict[str, Any]:
-        stats = self.world.droid.digestion_engine.stats
+        stats = self.world.droid._digestion_engine.stats
 
         return {
             LogKey.CHAINS_BROKEN: stats["chains_broken"],
