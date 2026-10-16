@@ -24,12 +24,12 @@ small check.
 | `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Its body is written against the droid and world constructors of phase 3, steps 5 and 6, and stops at the droid's import |
 | `blocks/recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
-| `core/droid/digestion/digestion.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float, `owed_at_episode_end`). The routing key, `OrbKind`, is in `orb_meta.py` |
-| `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes, each with `owed_at_episode_end`. The spatial builder names the max-tier one |
+| `core/droid/digestion/digester.py` | written: the `OrbDigester` protocol (`KIND`, `reset`, `digest` returning a float, `undigested`). The routing key, `OrbKind`, is in `orb_meta.py` |
+| `core/droid/digestion/digesters/tier_chain/` | written: the `TierDigester` base and the max-tier, step-wise and threshold modes, each with `undigested`. The spatial builder names the max-tier one |
 | `core/droid/digestion/digesters/neg_digester.py` | written: `NegDigester` pays the orb's own reward, counts `negatives_eaten` and is owed nothing at the end. The negative bundle names it |
 | `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
-| `core/droid/digestion/engine.py` | written: a router with `reset`, `digest`, `get` and `owed_at_episode_end`, built from digesters. The droid still constructs it the old way |
-| `core/droid/synergy_droid.py` | being rebuilt (step 5 of phase 3): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine, and holds energy and score. Every reward goes through it: `on_termination(penalty)` takes in what digestion is owed and what the ending costs. See the phase 3 state for what is left |
+| `core/droid/digestion/engine.py` | written: a router with `reset`, `digest`, `get` and `undigested`, built from digesters. The droid still constructs it the old way |
+| `core/droid/synergy_droid.py` | being rebuilt (step 5 of phase 3): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine, and holds energy and score. Every reward goes through it: `on_termination(penalty)` takes in what digestion is owed and what the ending costs, and adds them to the score and leaves energy alone. See the phase 3 state for what is left |
 | `core/grid_world.py` | being rebuilt (step 6 of phase 3): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` and `perform_droid_action` still read `self._conf`, which is gone, so it does not run |
 | `core/` (droid, orbs), `gymnasium/`, `rendering/` | still import the old config; do not import. The droid, the environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
 | Runners, `env_factory.py` | already take a `Scenario` |
@@ -63,7 +63,7 @@ switching `USE_LEGACY` and running. No step-by-step trace is recorded.
 
 **Produces:** something that turns a consumed orb into a reward, with no knowledge of scenarios.
 
-**Files:** `core/droid/digestion/digestion.py`, `engine.py`, and `digesters/tier_chain/`, which holds the tier base
+**Files:** `core/droid/digestion/digester.py`, `engine.py`, and `digesters/tier_chain/`, which holds the tier base
 and one file per scoring mode.
 
 **Settled on 2026-10-11:**
@@ -78,7 +78,7 @@ digester, and when `get` is asked for a class that is not registered.
 
 **Write:**
 
-1. `digestion.py`: the `OrbDigester` protocol with `KIND`, `reset` and `digest`. The routing key is the orb's kind,
+1. `digester.py`: the `OrbDigester` protocol with `KIND`, `reset` and `digest`. The routing key is the orb's kind,
    `OrbKind` in `orb_meta.py`. Written.
 2. `digesters/tier_chain/`: the tier base holding the chain, the counts and the chain's summed reward, and the
    max-tier, step-wise and threshold modes. Written.
@@ -188,10 +188,10 @@ takes `max_steps` and keeps the step clock, and `WorldRecipe.__call__` has its b
 2. The engine made private: `self.digestion_engine` becomes `self._engine`.
 3. Docstrings and comments in `synergy_droid.py`, left until the wiring is done. Then `./scripts/tidy.sh` for the import order and the trailing
    comma.
-4. Docs, for the agent: the docs that call the protocol file `digestion.py` are fixed, as it is `digester.py`.
+4. Done on 2026-10-16: the docs that called the protocol file `digestion.py` now call it `digester.py`.
 
 Done on 2026-10-15: the score is back on the droid, beside energy, and every reward goes through it. The droid has
-`on_termination(penalty)`, which takes in the engine's `owed_at_episode_end` and the ending's cost. Termination returns only
+`on_termination(penalty)`, which takes in the engine's `undigested` and the ending's cost. Termination returns only
 `EpisodeOutcome.ending_reward` and its `evaluate` takes no `reward`.
 
 For phase 5: the step is the droid acting, `termination.evaluate(world, steps_left)`, and if the episode ended

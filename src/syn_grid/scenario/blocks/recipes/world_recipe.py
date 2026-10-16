@@ -13,6 +13,10 @@ from typing import TYPE_CHECKING
 
 from syn_grid.config.models.scenario.common_models import WorldConf
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
+# TODO(phase 3): move these imports to the top of the module once the droid and the world
+# import. At module level they would break `import syn_grid.scenario.registry`.
+from syn_grid.core.droid.synergy_droid import SynergyDroid
+from syn_grid.core.grid_world import GridWorld
 
 if TYPE_CHECKING:
     from syn_grid.core.grid_world import GridWorld
@@ -50,11 +54,6 @@ class WorldRecipe:
     max_active_orbs: int
 
     def __call__(self) -> GridWorld:
-        # TODO(phase 3): move these imports to the top of the module once the droid and the world
-        # import. At module level they would break `import syn_grid.scenario.registry`.
-        from syn_grid.core.droid.synergy_droid import SynergyDroid
-        from syn_grid.core.grid_world import GridWorld
-
         grid_conf = self.world_conf.grid_conf
         droid_conf = self.world_conf.droid_conf
         grid = (grid_conf.grid_rows, grid_conf.grid_cols)

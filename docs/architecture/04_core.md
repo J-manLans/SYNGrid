@@ -11,7 +11,7 @@ core/
 │   │   │   │   ├── threshold_digester.py
 │   │   │   │   └── tier_digester.py
 │   │   │   └── neg_digester.py
-│   │   ├── digestion.py
+│   │   ├── digester.py
 │   │   └── engine.py
 │   └── synergy_droid.py
 ├── orbs/
@@ -55,7 +55,7 @@ the step and boundary penalties, and passes a consumed orb to its
 `DigestionEngine`. It still creates the engine from three config values, which
 the engine no longer takes.
 
-The digestion package is rebuilt, and nothing uses it yet. `digestion.py` holds
+The digestion package is rebuilt, and nothing uses it yet. `digester.py` holds
 the contract: the `OrbDigester` protocol of `KIND`, `reset` and a `digest` that
 returns a reward. `engine.py` is a router built from digesters: it hands a
 consumed orb to the digester of its kind, `OrbKind` in `orb_meta.py`, returns

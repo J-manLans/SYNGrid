@@ -33,7 +33,7 @@ class MaxTierDigester(TierDigester):
     #        API        #
     # ================= #
 
-    def owed_at_episode_end(self) -> float:
+    def undigested(self) -> float:
         return 0.0
 
     # ================= #
@@ -47,4 +47,4 @@ class MaxTierDigester(TierDigester):
         return self._CHAIN_BREAK_PENALTY
 
     def _score_completion(self, orb: BaseOrb) -> float:
-        return self.chain_reward + orb.REWARD
+        return self.chain_worth + orb.REWARD

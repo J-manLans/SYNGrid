@@ -61,14 +61,14 @@ class DigestionEngine:
 
         return self._digesters[kind].digest(orb)
 
-    def owed_at_episode_end(self) -> float:
+    def undigested(self) -> float:
         """Return what every digester has gathered and not paid, summed.
 
         It changes nothing. The droid settles it when the episode ends.
         """
 
         return sum(
-            digester.owed_at_episode_end() for digester in self._digesters.values()
+            digester.undigested() for digester in self._digesters.values()
         )
 
     def get(self, digester_class: type[D]) -> D:

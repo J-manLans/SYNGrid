@@ -128,7 +128,7 @@ def _tier_chain_scenario(
 
 def _chain_progress(world: GridWorld) -> float:
     """The length of the chain right now."""
-    return world.droid.get_digester(TierDigester).chained_tiers
+    return world.droid.get_digester(TierDigester).chain_tier
 
 
 def _chains_broken(world: GridWorld) -> float:

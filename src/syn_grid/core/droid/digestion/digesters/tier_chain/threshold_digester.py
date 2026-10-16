@@ -36,8 +36,8 @@ class ThresholdDigester(TierDigester):
     #        API        #
     # ================= #
 
-    def owed_at_episode_end(self) -> float:
-        return self.chain_reward
+    def undigested(self) -> float:
+        return self.chain_worth
 
     # ================= #
     #      Scoring      #
@@ -48,13 +48,13 @@ class ThresholdDigester(TierDigester):
 
     def _score_break(self, orb: BaseOrb) -> float:
         repeated_base_tier = (
-            self.chained_tiers == self._BASE_TIER and orb.META.TIER == self._BASE_TIER
+            self.chain_tier == self._BASE_TIER and orb.META.TIER == self._BASE_TIER
         )
 
         if repeated_base_tier:
             return self._CHAIN_BREAK_PENALTY
 
-        return self._CHAIN_BREAK_PENALTY + self.chain_reward
+        return self._CHAIN_BREAK_PENALTY + self.chain_worth
 
     def _score_completion(self, orb: BaseOrb) -> float:
-        return self.chain_reward + orb.REWARD
+        return self.chain_worth + orb.REWARD

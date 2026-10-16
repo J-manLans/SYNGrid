@@ -12,7 +12,7 @@ core/droid/digestion/
 │   │   ├── threshold_digester.py
 │   │   └── tier_digester.py
 │   └── neg_digester.py
-├── digestion.py
+├── digester.py
 └── engine.py
 
 core/orbs/

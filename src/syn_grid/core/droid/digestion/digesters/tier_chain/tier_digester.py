@@ -33,9 +33,9 @@ class TierDigester(ABC):
 
     Attributes:
         KIND: the orb kind this digester owns.
-        chained_tiers: the tier the running chain has reached, 0 if there is no
+        chain_tier: the tier the running chain has reached, 0 if there is no
             chain.
-        chain_reward: the summed reward of the orbs in the running chain. A
+        chain_worth: the summed reward of the orbs in the running chain. A
             break or a completion clears it, and a tier 1 orb that starts a new
             chain starts a new sum.
         chains_progressed: how many times a chain has grown this episode.
@@ -78,7 +78,7 @@ class TierDigester(ABC):
         if tier is None:
             raise ValueError("A tier digester can only digest an orb with a tier")
 
-        if tier != self.chained_tiers + 1:
+        if tier != self.chain_tier + 1:
             reward = self._score_break(orb)
             self.chains_broken += 1
             self._clear_chain()
@@ -97,7 +97,7 @@ class TierDigester(ABC):
         return reward
 
     @abstractmethod
-    def owed_at_episode_end(self) -> float:
+    def undigested(self) -> float:
         """Return what the running chain is owed if the episode ends now.
 
         It is what the chain has gathered and digestion has not paid. The
@@ -111,21 +111,21 @@ class TierDigester(ABC):
     def _clear_chain(self) -> None:
         """Leave no chain, and nothing summed."""
 
-        self.chained_tiers = self._NO_CHAIN
-        self.chain_reward = 0.0
+        self.chain_tier = self._NO_CHAIN
+        self.chain_worth = 0.0
 
     def _grow_chain(self, tier: int, reward: float) -> None:
         """Move the chain to this tier and add the orb's reward to the sum."""
 
-        self.chained_tiers = tier
-        self.chain_reward += reward
+        self.chain_tier = tier
+        self.chain_worth += reward
 
     # ================= #
     #      Scoring      #
     # ================= #
 
-    # Each is called before the chain moves, so `chained_tiers` and
-    # `chain_reward` are still what they were when the orb was eaten.
+    # Each is called before the chain moves, so `chain_tier` and
+    # `chain_worth` are still what they were when the orb was eaten.
 
     @abstractmethod
     def _score_progress(self, orb: BaseOrb) -> float:

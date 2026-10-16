@@ -37,7 +37,7 @@ class StepWiseDigester(TierDigester):
     #        API        #
     # ================= #
 
-    def owed_at_episode_end(self) -> float:
+    def undigested(self) -> float:
         return 0.0
 
     # ================= #
@@ -49,7 +49,7 @@ class StepWiseDigester(TierDigester):
 
     def _score_break(self, orb: BaseOrb) -> float:
         restarts_chain = (
-            orb.META.TIER == self._BASE_TIER and self.chained_tiers != self._BASE_TIER
+            orb.META.TIER == self._BASE_TIER and self.chain_tier != self._BASE_TIER
         )
 
         if restarts_chain:

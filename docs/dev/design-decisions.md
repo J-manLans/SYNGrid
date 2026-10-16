@@ -25,7 +25,7 @@ Each entry says when it would be worth reopening.
 
 **Decision:** Digestion is the droid's own organ. The package holds three things:
 
-- `digestion.py`, the contract: the `OrbDigester` protocol, which is `KIND`, `reset` and `digest`. `KIND` is the
+- `digester.py`, the contract: the `OrbDigester` protocol, which is `KIND`, `reset` and `digest`. `KIND` is the
   routing key, an `OrbKind` from `core/orbs/orb_meta.py`. `digest` returns the reward as a float.
 - `engine.py`, a router. It holds no scoring rules: it hands an eaten orb to the digester registered for the orb's
   kind, and it lets a reader fetch a digester by its class.
@@ -68,7 +68,7 @@ can only come from a builder wired wrong, and both would go unnoticed.
 digesters to build and how each is configured, through the bundle's `make_digester`, but it doesn't own their code.
 
 **Status:** settled; who creates the engine was settled on 2026-10-11, and what the engine does on a miss on
-2026-10-12. `digestion.py` and `engine.py` are written. The droid does not take digesters yet: it still builds the
+2026-10-12. `digester.py` and `engine.py` are written. The droid does not take digesters yet: it still builds the
 engine from three config values, so `synergy_droid.py`, and the places that read the old engine's `chained_tiers`,
 `stats` and `_pending_reward`, wait for phases 3 and 5. `NegDigester` is in `digesters/neg_digester.py`: it pays the
 orb's own reward and counts `negatives_eaten`, so a metric can report it.
@@ -94,7 +94,7 @@ Settled on 2026-10-12, with the alternative of a public `digestion_engine` attri
 would walk three levels into the droid. `TierChainTermination` is written against the method; the droid does not
 have it yet.
 
-**Where:** `core/droid/digestion/digestion.py`, `engine.py`, and the attributes of
+**Where:** `core/droid/digestion/digester.py`, `engine.py`, and the attributes of
 `digesters/tier_chain/tier_digester.py`.
 
 **Alternatives considered:**
@@ -140,13 +140,13 @@ A scoring mode is a subclass that writes three methods: `_score_progress`, `_sco
 Each is handed the orb and returns a reward, and each is called before the chain moves, so the mode sees the chain as
 it was when the orb was eaten. The scenario's builder picks the subclass.
 
-A mode writes a fourth method, `owed_at_episode_end`, which is public and takes nothing. It returns what the running
+A mode writes a fourth method, `undigested`, which is public and takes nothing. It returns what the running
 chain has gathered and digestion has not paid, and changes nothing. A termination reads it; the entry "Digestion pays
 for orbs, and termination pays for the clock" says how it is used. Added on 2026-10-12. Since 2026-10-15 it is on the
 `OrbDigester` protocol, and the droid settles the engine's sum of it when the episode ends.
 
-The base holds what every mode shares and what readers outside take from it: `chained_tiers`, the counters
-`chains_progressed`, `chains_broken` and `chains_completed`, and `chain_reward`, the summed reward of the orbs in the
+The base holds what every mode shares and what readers outside take from it: `chain_tier`, the counters
+`chains_progressed`, `chains_broken` and `chains_completed`, and `chain_worth`, the summed reward of the orbs in the
 running chain. It takes `max_tier` at construction, and each mode takes what it pays with.
 
 Whether a `ScoringMode` enum exists as a router for the continuous sandbox is still open. If it does, its only job is
@@ -277,7 +277,7 @@ The break is one rule in every mode and every scenario: a tier orb that is not t
 wrong tier while a chain is running, a wrong tier with no chain running, and a tier 1 eaten while a chain is running,
 a second tier 1 at chain 1 included.
 
-A tier 1 that breaks a longer chain is the first orb of a new one. It counts toward the new chain's `chain_reward`,
+A tier 1 that breaks a longer chain is the first orb of a new one. It counts toward the new chain's `chain_worth`,
 and in step-wise it is paid its reward on top of the penalty, so a chain completed after a restart pays its full
 worth in every mode.
 
@@ -333,7 +333,7 @@ the restart rule if a goal scenario ever lets tier orbs respawn. Noted on 2026-1
 
 Checked on 2026-10-11 in a throwaway script: over every sequence of up to 7 orbs on a 4-tier chain, step-wise and
 threshold paid the same total, counting what threshold still held at the end. Checked again on 2026-10-12 with
-`owed_at_episode_end` as what threshold still held: no mismatch in the 21,844 sequences.
+`undigested` as what threshold still held: no mismatch in the 21,844 sequences.
 
 Not carried over and not discussed to a decision: legacy threshold's `reward_multiplier`, which scaled and rounded
 each orb's reward. If it returns, it is a setting of the orb's reward and not of the mode.
@@ -523,10 +523,10 @@ less than before, and each orb kind can be varied without touching the others.
 
 ---
 
-## Energy and score are two numbers, and every reward goes through the droid (2026-10-10, changed 2026-10-14 and 2026-10-15)
+## Energy and score are two numbers, and every reward goes through the droid (2026-10-10, changed 2026-10-14, 2026-10-15 and 2026-10-16)
 
 **Decision:** Energy and score are two numbers, and the droid keeps both. Every reward the agent is paid goes through
-the droid, so both take in the same rewards.
+the droid. Both take in the rewards paid during the episode; what is paid when it ends goes to the score alone.
 
 - **Energy** is what the droid has left. It starts at `max_energy`, stays between 0 and `max_energy`, and the episode
   ends when it reaches 0, in every scenario. The droid starts fully charged and cannot be overcharged, so one config
@@ -534,13 +534,14 @@ the droid, so both take in the same rewards.
 - **Score** is how the episode went: the episode's return, the sum of every reward the environment hands back. It
   starts at 0 in `reset`, has no bounds and no config, and equals what SB3's `Monitor` logs.
 
-Both move in the droid's `_apply_reward`, energy clamped and score not. A reward reaches it by one of three paths:
+During the episode both move in the droid's `_apply_reward`, energy clamped and score not. A reward reaches the droid
+by one of three paths:
 
 | Path | What it carries |
 |---|---|
 | `perform_action` | the step penalty and the boundary penalty |
 | `consume_orb` | what digestion pays for the eaten orb |
-| `on_termination(penalty)` | what the droid's digestion is owed when the episode ends (the engine's `owed_at_episode_end`, the sum of every digester's), plus what termination says the ending costs |
+| `on_termination(penalty)` | what the droid's digestion is owed when the episode ends (the engine's `undigested`, the sum of every digester's), plus what termination says the ending costs. It goes to the score and leaves energy as it was |
 
 `on_termination` is the droid being told the episode is over: digest what you have gathered, and take what the
 ending costs. In a goal scenario that cost is the timeout penalty when the clock alone ended the episode, and 0
@@ -548,7 +549,7 @@ otherwise. The name follows `terminated`, and the environment calls it only when
 
 The step in the environment is: the droid acts, termination decides, and if `outcome.terminated` the environment
 adds `world.droid.on_termination(outcome.ending_reward)`. The step's reward is the sum of what the droid took in. The observation, the HUD and the metrics are read after that, so on the last step they see the final
-energy and score. Termination decides on the state before anything is settled, so a payout cannot change whether
+score, and the energy the episode ended with. Termination decides on the state before anything is settled, so a payout cannot change whether
 the episode ends.
 
 A reward at full charge raises the score but not the energy. The score cannot fall much below minus `max_energy`,
@@ -558,7 +559,7 @@ The observation carries energy, in the slot where the old code carried its score
 `max_energy`, so there is no separate bound to configure and nothing to clip.
 
 **Where:** `DroidConf.max_energy` in `config/models/scenario/common_models.py`, replacing `starting_score`;
-`core/droid/synergy_droid.py`; `owed_at_episode_end` on the `OrbDigester` protocol in
+`core/droid/synergy_droid.py`; `undigested` on the `OrbDigester` protocol in
 `core/droid/digestion/digester.py` and on the engine; `EpisodeOutcome.ending_reward` in `scenario/blocks/termination.py`.
 
 **Alternatives considered:**
@@ -570,7 +571,7 @@ score in name and a life in behaviour. Rejected because the two meanings want di
 Rejected because a droid that cannot be overcharged gives an exact bound, which removed `PerceptionConf`,
 `TierDenseObsConf` and `max_score`.
 - "Life" as the name. Rejected in favour of "energy", which suits a droid.
-- The score kept by the droid while termination added `timeout_penalty` and `owed_at_episode_end` to the last step's
+- The score kept by the droid while termination added `timeout_penalty` and `undigested` to the last step's
 reward without going through it, as it was from 2026-10-10. Rejected on 2026-10-14: the droid's score missed both, and
 in threshold it lacked the chain's worth on the last frame of the HUD and in the logger.
 - A `settle()` on the droid for the owed sum alone, with termination still adding the timeout. Talked through on
@@ -593,7 +594,7 @@ could not reach.
 world, and every termination strategy would have to remember it.
 - An observer, the digesters pushing what they are owed to the droid. Not needed: nothing has to happen while the
 episode runs, and the droid asks its digestion once, when it is told the episode ended.
-- Termination reading `owed_at_episode_end` and adding it, as it did from 2026-10-12. Rejected on 2026-10-15: what is
+- Termination reading `undigested` and adding it, as it did from 2026-10-12. Rejected on 2026-10-15: what is
 owed is the droid's own digestion, so the droid settles it, and termination pays only for the clock.
 
 **Why this one:** Energy is the old number under an honest name, so the four goal scenarios behave as before: in each
@@ -602,6 +603,14 @@ every reward passes through, energy and score cannot drift from what the agent w
 handed the world reaches both. The rule it costs is that no reward reaches the agent except through the droid. The
 droid has no general way in for a reward, so the first reward from somewhere new needs its own path, decided then. The
 return without the timeout can still be had: subtract `timeout_penalty` when the clock ended the episode.
+
+The ending's payout leaves energy alone because energy is the world's state and the episode is over. In threshold a
+droid can run out of energy while it holds a chain; with the payout in energy it showed energy again on its last frame,
+though running out was why the episode ended. Nothing learns from it: after `terminated` the last observation is not
+bootstrapped, and a truncated episode does not call `on_termination`. Changed on 2026-10-16. Rejected with it: paying
+the ending into energy as well, which revived that droid on its last frame. Not taken up: a held chain reviving a droid
+that runs out while steps remain. It needs termination to ask whether the clock is left before ending on energy, which
+reads poorly, and it lets a payout change whether the episode ends.
 
 **Status:** settled on 2026-10-15, and written in the droid, the digestion protocol, the engine and the termination.
 On that day a script ran a threshold episode ending on the clock through a real droid, real digesters and
@@ -666,7 +675,7 @@ orb's reward are paid before termination is asked, and they stay. Termination re
 `EpisodeOutcome.ending_reward` and changes nothing; the environment puts it through the droid. The entry "Energy and
 score are two numbers, and every reward goes through the droid" says how the step runs.
 
-What a chain is owed is stated by the tier digester's `owed_at_episode_end`: what it has gathered in threshold, and 0
+What a chain is owed is stated by the tier digester's `undigested`: what it has gathered in threshold, and 0
 in max-tier and step-wise. Every digester has the method, and the negative digester returns 0. The droid settles it on
 every step where the episode ends, whatever the cause: energy reaching 0, the clock, and in a goal scenario a break or
 a completion. Nothing asks which mode is running. A tier 1 that breaks a chain starts a new one, so a threshold
@@ -701,12 +710,12 @@ does not end the episode has no termination to pay it.
 prize, and a second number for the same event would have to be looked up in a second place.
 - A rule per scoring mode inside one termination, as the old termination had. Rejected because it puts a
 scoring-mode conditional in termination.
-- A termination of its own for a threshold scenario, which pays `chain_reward`. Rejected because the digester's mode
+- A termination of its own for a threshold scenario, which pays `chain_worth`. Rejected because the digester's mode
 and the termination would be chosen in two places that can disagree, and the sandbox, where the mode comes from
 config, would need the conditional after all.
-- Termination reading `owed_at_episode_end` and adding it to the step's reward, from 2026-10-12 to 2026-10-15.
+- Termination reading `undigested` and adding it to the step's reward, from 2026-10-12 to 2026-10-15.
 Rejected because what is owed is the droid's own digestion, and paying it outside the droid left energy without it.
-- `owed_at_episode_end` with a default of 0 on the base. Rejected because a new mode that holds a sum would then pay
+- `undigested` with a default of 0 on the base. Rejected because a new mode that holds a sum would then pay
 nothing at a timeout without anyone being told. It is abstract, so every mode has to say.
 - Nothing settled when energy reaches 0 (legacy). Rejected because a threshold chain would then be paid at every
 ending but one. The cost is accepted: an agent that runs out of energy while it holds a chain is paid on the step it
@@ -752,8 +761,8 @@ threshold. No test covers it.
 
 - Settled on 2026-10-12: what a running chain is paid when an episode ends. On 2026-10-10 every goal scenario paid
 "what the chain was holding" by one rule, which worked because max-tier never held anything. The base digester keeps
-`chain_reward` in every mode since 2026-10-11, so a max-tier scenario must not pay it while a threshold scenario
-does. Each mode now says what its chain is owed. `owed_at_episode_end` is written in the base and the three modes.
+`chain_worth` in every mode since 2026-10-11, so a max-tier scenario must not pay it while a threshold scenario
+does. Each mode now says what its chain is owed. `undigested` is written in the base and the three modes.
 Termination paid it until 2026-10-15; the droid settles it since.
 
 A scenario-level completion reward earns a place only when the goal is something no single digester can see, such as

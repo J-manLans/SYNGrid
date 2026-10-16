@@ -43,7 +43,7 @@ bundle a config with a `neg_orb_conf` block gets. Its termination and its
 world readers are written. `build_world` has its body, and calling it stops
 at the droid's import.
 The other three builders raise too.
-`core/droid/digestion/digestion.py` holds the digester protocol, and the
+`core/droid/digestion/digester.py` holds the digester protocol, and the
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring
 modes are written in `digesters/tier_chain/`, and the spatial builder names the
@@ -224,6 +224,8 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   actions, digestion, and `on_termination`, which takes in what digestion is
   owed and what termination says the ending costs. Changed on
   2026-10-15, reversing the score in the environment from 2026-10-14.
+  Since 2026-10-16 the ending's payout goes to the score alone and leaves
+  energy as the episode ended it.
 - The step clock lives in the world. `max_steps` is in `world_conf`, and
   `GridWorld` takes it and counts down `steps_left`. The environment still
   counts on `ObservationHandler` and passes that count on.
@@ -244,7 +246,7 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - Termination decides and changes nothing. It returns
   `EpisodeOutcome.ending_reward`, which the environment puts through
   `droid.on_termination`; `evaluate` takes no `reward`. What a digester is owed at the
-  end (`owed_at_episode_end`, on the protocol, the gathered sum in threshold
+  end (`undigested`, on the protocol, the gathered sum in threshold
   and 0 elsewhere) is settled by the droid. One termination class serves all
   three modes. The clock is charged only when it alone ended the episode.
 - A tier orb is worth `base_reward * tier ** growth_factor`, set on the shared
@@ -393,7 +395,8 @@ decisions on this branch:
   `digestion_engine`, and no `get_digester`. It was run with a stand-in world
   around real digesters. It still takes `steps_left` as an argument.
 - **The droid's `on_termination` is written, and nothing calls it yet.** Since
-  2026-10-15 it keeps the score again and settles in `on_termination`. The
+  2026-10-15 it keeps the score again and settles in `on_termination`, which
+  since 2026-10-16 adds to the score and not to energy. The
   environment's step, which calls them, is phase 5; its TODO says how. A
   script ran a threshold episode ending on the clock through the real droid,
   digesters and termination: the score equalled the summed rewards.

@@ -50,7 +50,7 @@ syn_grid/
 │   │   │   │   │   ├── threshold_digester.py
 │   │   │   │   │   └── tier_digester.py
 │   │   │   │   └── neg_digester.py
-│   │   │   ├── digestion.py
+│   │   │   ├── digester.py
 │   │   │   └── engine.py
 │   │   └── synergy_droid.py
 │   ├── orbs/
