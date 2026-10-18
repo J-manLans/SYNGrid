@@ -22,9 +22,10 @@ from syn_grid.core.orbs.synergy.chain.tier_orb import TierOrb
 class TierChainPopulation:
     """One orb per tier, tiers 1...max_tier.
 
-    A tier chain is a fixed sequence, so the pool is the sequence. `max_tier`
-    is the pool size, which is why a tier chain spawns `max_tier` orbs at reset
-    rather than a configured count. Frozen so it compares by value.
+    A tier chain is a fixed sequence, so the population is the sequence: one
+    orb for each tier and no weighting. `max_tier` is the number of orbs, so
+    how many there are is never configured. Frozen so two scenarios built from
+    the same config hold equal populations.
 
     Attributes:
         max_tier: the highest tier, and the number of orbs.
@@ -45,9 +46,18 @@ class TierChainPopulation:
 
     @property
     def count(self) -> int:
+        """The number of orbs, `max_tier`: one for each tier."""
+
         return self.max_tier
 
     def create(self) -> list[BaseOrb]:
+        """Return one tier orb for each tier, in order from 1 to `max_tier`.
+
+        Each is worth `base_reward * tier ** growth_factor` and is handed this
+        population's cool-down and lifespan. They come back off the field, and
+        the world places them.
+        """
+
         return [
             TierOrb(
                 tier,

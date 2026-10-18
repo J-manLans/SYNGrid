@@ -23,7 +23,8 @@ class NegPopulation:
     """One negative orb.
 
     The orb leaves the field when it is eaten or when its lifespan runs out,
-    and returns elsewhere after its cool-down. Frozen so it compares by value.
+    and returns elsewhere after its cool-down. Frozen so two scenarios built
+    from the same config hold equal populations.
 
     Attributes:
         reward: what eating the orb pays, 0 or negative.
@@ -39,7 +40,14 @@ class NegPopulation:
 
     @property
     def count(self) -> int:
+        """Always 1: a fixed field holds exactly one negative orb, and how many is not config."""
+
         return 1
 
     def create(self) -> list[BaseOrb]:
+        """Return the negative orb, with this population's reward, cool-down and lifespan.
+
+        It comes back off the field, and the world places it.
+        """
+
         return [NegativeOrb(self.reward, self.cool_down, self.life_span)]
