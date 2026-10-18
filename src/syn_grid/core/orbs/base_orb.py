@@ -20,8 +20,7 @@ class BaseOrb(ABC):
     ):
         self.position: list[int] = [-1, -1]
         self.REWARD: Final[float] = reward
-        # TODO(phase 3): a cool-down of None is an orb that does not return in the episode. Nothing
-        # handles it yet: `de_spawn` and `consume` hand it to the timer, which needs a number.
+        # A cool-down of None is an orb that does not return in the episode: the timer never completes.
         self._COOL_DOWN: Final[int | None] = cool_down
         self.META: Final[OrbMeta] = meta
         self.TIMER: Final[Timer] = Timer()
