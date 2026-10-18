@@ -16,27 +16,17 @@ class BaseOrb(ABC):
         self,
         reward: float,
         cool_down: int | None,
+        life_span: int | None,
         meta: OrbMeta,
     ):
         self.position: list[int] = [-1, -1]
         self.REWARD: Final[float] = reward
-        # A cool-down of None is an orb that does not return in the episode: the timer never completes.
+        # A cool-down of None is an orb that does not return in the episode, and a lifespan of None
+        # is an orb that does not expire: in both cases the timer never completes.
         self._COOL_DOWN: Final[int | None] = cool_down
+        self._LIFE_SPAN: Final[int | None] = life_span
         self.META: Final[OrbMeta] = meta
         self.TIMER: Final[Timer] = Timer()
-
-    @classmethod
-    def set_life_span(cls, grid_rows: int, grid_cols: int) -> None:
-        """
-        Set the maximum lifespan based on the grid size.
-
-        The lifespan is defined as the maximum number of steps required to traverse the grid from one corner to the opposite corner using Manhattan distance.
-
-        :param grid_rows: Number of rows
-        :param grid_cols: Number of columns
-        """
-
-        cls._life_span = (grid_rows - 1) + (grid_cols - 1)
 
     def reset(self) -> None:
         self.is_active = False
@@ -51,7 +41,7 @@ class BaseOrb(ABC):
 
         self.position = position
         self.is_active = True
-        self.TIMER.set(self._life_span)
+        self.TIMER.set(self._LIFE_SPAN)
 
     def de_spawn(self) -> None:
         """Removes the orb without giving any reward."""
@@ -65,3 +55,13 @@ class BaseOrb(ABC):
         self.is_active = False
         self.TIMER.set(self._COOL_DOWN)
         return self
+
+    def has_expired(self) -> bool:
+        """Return whether the orb is on the field and its lifespan has run out."""
+
+        return self.is_active and self.TIMER.is_completed()
+
+    def is_ready(self) -> bool:
+        """Return whether the orb is off the field and its cool-down has run out."""
+
+        return not self.is_active and self.TIMER.is_completed()

@@ -33,12 +33,15 @@ class TierChainPopulation:
             `base_reward * tier ** growth_factor`.
         cool_down: the number of steps an orb is off the field before it can
             appear again, or None for orbs that do not return in the episode.
+        life_span: the number of steps an orb stays on the field before it
+            leaves, or None for orbs that stay until they are eaten.
     """
 
     max_tier: int
     base_reward: float
     growth_factor: float
     cool_down: int | None
+    life_span: int | None
 
     @property
     def count(self) -> int:
@@ -52,6 +55,7 @@ class TierChainPopulation:
                 self.base_reward,
                 self.growth_factor,
                 self.cool_down,
+                self.life_span,
             )
             for tier in range(1, self.max_tier + 1)
         ]

@@ -18,7 +18,7 @@ small check.
 | `scenario/scenario.py`, `blocks/hud.py`, `blocks/metrics.py`, `blocks/orb_bundle.py` | written, from the skeleton |
 | `blocks/observation.py`, `termination.py`, `blocks/populations/population.py` | written: the rules dataclass and the two protocols. A population has `create` and `count` |
 | `blocks/populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
-| `blocks/populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It gives the orb no lifespan |
+| `blocks/populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It hands the orb a lifespan, which the builder states |
 | `families/goal/tier_chain/termination.py` | written: the four endings, what the chain is owed, and the timeout penalty. It reads `energy` and `get_digester(...)` from the droid |
 | `families/goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
 | `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Its body builds the droid and the world, and returns a `GridWorld` for the spatial scenario since 2026-10-16 |
@@ -174,7 +174,9 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 
 **Check while here** (from the "things that bite" list in `AGENTS.md`):
 
-- `BaseOrb._life_span` is a class attribute shared by every env in the process. Step 2 removes it.
+- `BaseOrb._life_span` was a class attribute shared by every env in the process. Step 2 removed it on 2026-10-18.
+  `gymnasium/observation_space/perceptions/base_perception.py` still reads `BaseOrb._life_span` for the
+  observation, so the observation pass has to find the maximum lifespan elsewhere.
 - `GridWorld.reset()` without an rng re-rolls the layout.
 
 **Done when:** a world can be built by hand in a script, reset with a seed, and stepped with actions.
@@ -186,8 +188,15 @@ what digestion has left undigested and what the ending costs or pays to the scor
 digesters' names follow the digestion metaphor: `undigested()`, `chain_worth` and `chain_tier`.
 
 `WorldRecipe.__call__` returns a `GridWorld` for the spatial scenario, with a droid that resets. The world's `reset`
-and `perform_droid_action` still read `self._conf`. Steps 1 to 4, the orbs' lifespans and cool-downs, have not been
-checked against the code; the world's step 6 needs them, since it asks its orbs each step.
+and `perform_droid_action` still read `self._conf`.
+
+**State on 2026-10-18.** Steps 1 to 4 are done, together with the part of step 9 that hands the negative orb its
+lifespan. `Timer` takes `None` as never completing. `BaseOrb` takes a lifespan beside the cool-down, and answers
+`has_expired()` and `is_ready()`. `TierOrb` and `NegativeOrb` pass the lifespan through, and both populations take it
+as a field. The tier-chain builders state it: `_tier_bundle` hands `None` to the tier orbs beside their `None` cool-down, since
+every scenario in the family lays the whole chain out at once, and `_negative_bundle` gets
+`_reachable_life_span(rows, cols)`. Next is step 6, the world: it still ticks
+the timers and tests `is_completed()` itself, and should ask `has_expired()` and `is_ready()` instead.
 
 Done on 2026-10-15: the score is back on the droid, beside energy, and every reward goes through it. Termination
 returns only `EpisodeOutcome.ending_reward` and its `evaluate` takes no `reward`.

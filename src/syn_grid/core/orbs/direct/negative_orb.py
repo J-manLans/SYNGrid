@@ -14,9 +14,10 @@ class NegativeOrb(BaseOrb):
     #       Init        #
     # ================= #
 
-    def __init__(self, penalty: float, cool_down: int):
+    def __init__(self, penalty: float, cool_down: int, life_span: int):
         super().__init__(
             penalty,
             cool_down,
+            life_span,
             OrbMeta(DirectKind.NEGATIVE),
         )

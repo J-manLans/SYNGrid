@@ -872,12 +872,18 @@ nothing in the world or in spawning. It also puts the rule that an eaten tier or
 no spawning rule can forget it, and it makes the lifespan a value per orb where it is a class attribute shared by
 every environment in the process.
 
-**Status:** settled on 2026-10-12 and partly built. Both populations are written, the spatial builder uses
-`_tier_bundle`, `_negative_bundle` is written, and `TierOrb` and `BaseOrb` accept a cool-down of `None`. Nothing
-acts on it: `BaseOrb` hands the cool-down to its timer, which needs a number, has no way to say it is ready to
-return, and takes no lifespan. `NegativeOrb` is built without a lifespan. `tier_orb_expires` left the scenario's
-rules on 2026-10-13, when `SpawningRules` was removed. The lifespan follows from the grid size, so a
-builder has to hand it to the population.
+**Status:** settled on 2026-10-12 and built on 2026-10-18. `BaseOrb` takes a lifespan beside the cool-down and
+`Timer` treats `None` as never completing, so an orb with no cool-down stays off and an orb with no lifespan stays on.
+`BaseOrb` answers `has_expired()` (on the field and out of time) and `is_ready()` (off the field and out of time), and
+the class attribute is gone. `tier_orb_expires` left the scenario's rules on 2026-10-13, when `SpawningRules` was
+removed.
+
+The lifespan is stated where the population is built. An orb that despawns gets `_reachable_life_span(rows, cols)`,
+the longest walk between two cells, so the droid can reach it from anywhere on the grid. An orb that does not despawn
+is handed `None`. Every tier-chain scenario (spatial, scaling and delay) lays the whole chain out at once and leaves
+it until it is eaten, so `_tier_bundle` hands `None` to the tier orbs beside their `None` cool-down, and no builder
+chooses it. The negative orb is handed a number by the shared `_tier_chain_scenario`. A family whose tier orbs
+expire would state a number in its own bundle.
 
 ---
 

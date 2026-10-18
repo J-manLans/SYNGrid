@@ -29,7 +29,8 @@ here. A question that is only half answered stays, with what is left of it.
   a class attribute shared by every world in the process. If the lifespan becomes a value each orb is handed, that
   reason is gone and a list is the simpler choice. If it does not, the world has to act before the orbs exist, and it
   would take the bundles' populations and call each. There is no single population any more, since each bundle has
-  its own. Raised on 2026-10-12.
+  its own. Raised on 2026-10-12. Since 2026-10-18 the lifespan is a value each orb is handed, so a list is enough;
+  the question is closed at step 6 of phase 3.
   See: "An orb carries its own cool-down and lifespan" and "A tier bundle makes its digester from a frozen recipe"
   in `design-decisions.md`; `reference/syn_grid/core/grid_world.py`.
 

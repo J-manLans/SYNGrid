@@ -87,7 +87,11 @@ def _tier_chain_scenario(
     if world_conf.neg_orb_conf is not None:
         scenario_tag += "_Neg"
         metrics += (Metric("negatives_eaten", _negatives_eaten),)
-        orb_bundles += (_negative_bundle(world_conf.neg_orb_conf),)
+        grid_conf = world_conf.grid_conf
+        negative_life_span = _reachable_life_span(
+            grid_conf.grid_rows, grid_conf.grid_cols
+        )
+        orb_bundles += (_negative_bundle(world_conf.neg_orb_conf, negative_life_span),)
 
     # How many orbs the field holds. The world's field size, the observation's slots and its sort
     # limit all follow from it.
@@ -156,6 +160,17 @@ def _negatives_eaten(world: GridWorld) -> float:
 # ----------- #
 
 
+def _reachable_life_span(grid_rows: int, grid_cols: int) -> int:
+    """
+    The number of steps an orb stays on the field when it must be reachable from anywhere.
+
+    It is the longest walk between two cells of the grid, from one corner to the opposite one,
+    so a droid standing anywhere has time to reach an orb that appeared on the field.
+    """
+
+    return (grid_rows - 1) + (grid_cols - 1)
+
+
 def _tier_bundle(
     tier_orb_conf: TierOrbConf,
     scoring_mode: Callable[[int, float], TierDigester],
@@ -176,6 +191,8 @@ def _tier_bundle(
             # No cool-down: an eaten tier orb does not return in that episode, so a chain can
             # never be broken with a tier 1.
             cool_down=None,
+            # No lifespan: the whole chain is laid out at once and stays until it is eaten.
+            life_span=None,
         ),
         make_digester=TierDigesterRecipe(
             scoring_mode=scoring_mode,
@@ -185,11 +202,11 @@ def _tier_bundle(
     )
 
 
-def _negative_bundle(negative_conf: NegOrbConf) -> OrbBundle:
+def _negative_bundle(negative_conf: NegOrbConf, life_span: int) -> OrbBundle:
     """
     The negative orb and its digester, for a config that has a negative block.
 
-    A tier chain holds one negative orb. It spawns, despawns at the end of its lifespan and
+    A tier chain holds one negative orb. It spawns, despawns at the end of `life_span` and
     returns elsewhere after its cool-down.
     """
 
@@ -197,6 +214,7 @@ def _negative_bundle(negative_conf: NegOrbConf) -> OrbBundle:
         population=NegPopulation(
             reward=negative_conf.reward,
             cool_down=negative_conf.cool_down,
+            life_span=life_span,
         ),
         make_digester=NegDigester,
     )

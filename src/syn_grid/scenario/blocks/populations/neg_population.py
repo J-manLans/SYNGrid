@@ -29,17 +29,17 @@ class NegPopulation:
         reward: what eating the orb pays, 0 or negative.
         cool_down: the number of steps the orb is off the field before it can
             appear again.
+        life_span: the number of steps the orb stays on the field before it
+            leaves.
     """
 
     reward: float
     cool_down: int
-
-    # TODO(phase 3): hand the orb its lifespan here once `BaseOrb` takes one per orb. It follows
-    # from the grid size, so the builder has to pass it in.
+    life_span: int
 
     @property
     def count(self) -> int:
         return 1
 
     def create(self) -> list[BaseOrb]:
-        return [NegativeOrb(self.reward, self.cool_down)]
+        return [NegativeOrb(self.reward, self.cool_down, self.life_span)]

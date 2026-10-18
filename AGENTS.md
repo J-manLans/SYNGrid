@@ -259,8 +259,9 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - An orb carries its own cool-down and lifespan, each a number or `None`. A
   cool-down of `None` is an orb that does not return in the episode, which is
   what a tier-chain tier orb has. The world asks every orb the same questions
-  and no kind. The populations are written; `BaseOrb` does not act on `None`
-  yet and takes no lifespan.
+  and no kind. The populations hand each orb both, `BaseOrb` acts on `None` in
+  either (its timer never completes) and answers `has_expired()` and
+  `is_ready()`. Since 2026-10-18.
 - A tier bundle's `make_digester` is a `TierDigesterRecipe`: a frozen dataclass
   of the scoring mode's class, `max_tier` and `chain_break_penalty`, in
   `scenario/blocks/recipes/`. It compares by value, which a `partial` does not. The
@@ -503,10 +504,8 @@ Each of these cost a wrong conclusion in this repo.
 ## Things that bite regardless of the refactor
 
 Carried over from earlier versions of this file. The roadmap's phase 3 is where
-the first two are dealt with.
+the first one is dealt with.
 
-- **`BaseOrb._life_span` is a class attribute** set whenever a world is built,
-  and shared by every env in the process.
 - **`GridWorld.reset()` with no argument uses an unseeded rng,** so a second
   reset re-rolls the orb layout. Pass `np.random.default_rng(seed)`.
 - **Every perception returns the same buffer each step,** so `obs_t is

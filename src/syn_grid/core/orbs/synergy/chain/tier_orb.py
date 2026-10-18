@@ -24,6 +24,7 @@ class TierOrb(BaseOrb):
         base_reward: float,
         growth_factor: float,
         cool_down: int | None,
+        life_span: int | None,
     ):
         if tier > max_tier:
             raise ValueError("Tier is higher than the allowed max")
@@ -34,6 +35,7 @@ class TierOrb(BaseOrb):
         super().__init__(
             self._calculate_reward(tier),
             cool_down,
+            life_span,
             OrbMeta(SynergyKind.TIER, tier),
         )
 
