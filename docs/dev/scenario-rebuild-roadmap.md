@@ -31,7 +31,8 @@ small check.
 | `core/droid/digestion/engine.py` | written: a router with `reset`, `digest`, `get` and `undigested`, built from digesters. The droid builds it from the digesters it is handed |
 | `core/droid/synergy_droid.py` | written (step 5 of phase 3, done 2026-10-16): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine and keeps it private, and holds energy and score, which are first set in `reset`. Every reward goes through it: `on_termination(ending_reward)` takes in what digestion has left undigested and what the ending costs or pays, adds them to the score and leaves energy alone. `get_digester(...)` gives a reader a digester by class |
 | `core/grid_world.py` | being rebuilt (step 6 of phase 3): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` and `perform_droid_action` still read `self._conf`, which is gone, so it does not run |
-| `core/` (orbs), `gymnasium/`, `rendering/` | the droid and the world import since 2026-10-16. The rest still import the old config and do not import. The environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
+| `core/utils/timer.py`, `core/orbs/base_orb.py`, `tier_orb.py`, `negative_orb.py` | written (steps 1 to 3 of phase 3, done 2026-10-18): a timer set to `None` never completes. An orb takes its own cool-down and lifespan, each a number or `None`, and answers `has_expired()` and `is_ready()`. The class-level `_life_span` is gone. The world does not ask the orbs yet |
+| `core/orbs/orb_factory.py`, `gymnasium/`, `rendering/` | the droid and the world import since 2026-10-16. The rest still import the old config and do not import. The environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
 | Runners, `env_factory.py` | already take a `Scenario` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
@@ -154,15 +155,15 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 
 | # | File | What changes |
 |---|---|---|
-| 1 | `core/utils/timer.py` | only if needed, so a timer can stand for "never" when a cool-down or lifespan is `None` |
-| 2 | `core/orbs/base_orb.py` | takes a lifespan per orb, acts on a cool-down of `None`, and says whether it is ready to return and whether it has expired. The class-level `_life_span` goes |
-| 3 | `core/orbs/synergy/chain/tier_orb.py`, `core/orbs/direct/negative_orb.py` | pass the lifespan through |
-| 4 | `scenario/blocks/populations/` | hand each orb its lifespan: `None` for tier orbs, a number for the negative orb |
+| 1 | `core/utils/timer.py` | only if needed, so a timer can stand for "never" when a cool-down or lifespan is `None`. Done 2026-10-18 |
+| 2 | `core/orbs/base_orb.py` | takes a lifespan per orb, acts on a cool-down of `None`, and says whether it is ready to return and whether it has expired. The class-level `_life_span` goes. Done 2026-10-18 |
+| 3 | `core/orbs/synergy/chain/tier_orb.py`, `core/orbs/direct/negative_orb.py` | pass the lifespan through. Done 2026-10-18 |
+| 4 | `scenario/blocks/populations/` | hand each orb its lifespan: `None` for tier orbs, a number for the negative orb. Done 2026-10-18 |
 | 5 | `core/droid/synergy_droid.py` | takes digesters and the grid size as values, makes its own engine, splits energy from score, gets `on_termination`, and gets `get_digester` |
 | 6 | `core/grid_world.py` | takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, counts the steps, fills the field at reset, and asks its orbs each step |
 | 7 | `core/orbs/orb_factory.py` | deleted, once the world no longer imports it |
 | 8 | `scenario/blocks/recipes/world_recipe.py` | the body of `__call__`, the last piece of phase 4 |
-| 9 | `scenario/families/goal/tier_chain/builders.py` | pass the negative orb's lifespan to its population, since it follows from the grid size |
+| 9 | `scenario/families/goal/tier_chain/builders.py` | pass the negative orb's lifespan to its population, since it follows from the grid size. Done 2026-10-18, with `_reachable_life_span` |
 
 - The orbs come first because they import nothing that is broken, so they can be tried alone.
 - The droid comes before the world because the world is handed a droid. With `energy` and `get_digester` on the
@@ -181,7 +182,7 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 
 **Done when:** a world can be built by hand in a script, reset with a seed, and stepped with actions.
 
-**State on 2026-10-16: start here next session.** Step 5, the droid, is done. It has `get_digester(...)`, keeps its
+**State on 2026-10-16.** Step 5, the droid, is done. It has `get_digester(...)`, keeps its
 engine private as `_digestion_engine`, has its docstrings, and is formatted. Its episode state is first set in
 `reset`; see "Episode state is first set in `reset`" in `design-decisions.md`. `on_termination(ending_reward)` adds
 what digestion has left undigested and what the ending costs or pays to the score, and leaves energy alone. The
@@ -190,7 +191,7 @@ digesters' names follow the digestion metaphor: `undigested()`, `chain_worth` an
 `WorldRecipe.__call__` returns a `GridWorld` for the spatial scenario, with a droid that resets. The world's `reset`
 and `perform_droid_action` still read `self._conf`.
 
-**State on 2026-10-18.** Steps 1 to 4 are done, together with the part of step 9 that hands the negative orb its
+**State on 2026-10-18: start here next session.** Steps 1 to 4 are done, together with the part of step 9 that hands the negative orb its
 lifespan. `Timer` takes `None` as never completing. `BaseOrb` takes a lifespan beside the cool-down, and answers
 `has_expired()` and `is_ready()`. `TierOrb` and `NegativeOrb` pass the lifespan through, and both populations take it
 as a field. The tier-chain builders state it: `_tier_bundle` hands `None` to the tier orbs beside their `None` cool-down, since
@@ -283,6 +284,9 @@ one.
 - Which global features an observation carries, and whether the HUD and the observation share readers.
 - Whether non-tier synergy orbs despawn like negative orbs.
 - The shape of `obs_conf`.
+- What the observation shows for an orb that never expires. `base_perception.py` and `composite_grid_markovian.py`
+  put `orb.TIMER.remaining` into the observation, which is `None` for a tier orb on the field. `base_perception.py`
+  also reads `BaseOrb._life_span`, which is gone.
 
 **Write:**
 
@@ -329,6 +333,13 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 - Bring `AGENTS.md` and `docs/architecture/` in line with what was built.
 - Lock the scenarios that have reproduced their legacy results: move their fixed values from the YAML into the
   builder (see `codebase-ideas.md`).
+- A naming pass, once everything is wired and legacy is gone, so every part is named in the same pass. The tier
+  chain family is the case in point: what it guarantees is that it is a single chain, laid out whole. Its names echo
+  `tier_chain` at three levels. The family's own (the folder, the four `build_tier_chain_*` builders,
+  `_tier_chain_scenario` and `TierChainTermination`) are the cheap ones. The scenario names (the
+  `GOAL_TIER_CHAIN_*` enum members and `goal_tier_chain_*.yaml`) also tie the rebuild to saved configs and the
+  thesis. The mechanic's names (`digesters/tier_chain/`, `TierChainPopulation`) describe the orbs and stay.
+  See: "Every scenario in the tier chain family is a single chain" in `design-decisions.md`.
 
 ---
 

@@ -16,6 +16,9 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Family:** the scenarios that share a folder, a config hierarchy and a helper. The tier chain family is spatial,
   delay, scaling sparse and scaling dense. The families are in `scenario/families/`, grouped under `goal/` and,
   when one is written, `continuous/`.
+- **Single chain:** what every scenario in the tier chain family is: one chain, all of it laid out on the field at
+  once and left there until it is eaten. So its tier orbs have no lifespan and no cool-down. A scenario whose tier
+  orbs expire or return would not belong to this family.
 - **Variant:** a scenario in a family that needs a config field the family lacks, and so has models of its own.
   Delay is the only one.
 - **Sandbox:** the planned continuous scenario where every value can be set and orb kinds can be added. It is not on
@@ -46,8 +49,9 @@ Terms are grouped by area. The last section lists the words that are used in two
   such as `TierChainTermination`.
 - **Population:** what makes one orb kind's orbs for a world. It decides which orbs exist, once per world. Putting
   them on the field is spawning, which the world does. The populations are shared, in `scenario/blocks/populations/`.
-- **Count:** how many orbs a population makes. In a fixed field the counts of the bundles add up to the field size.
-  In a sampled field they add up to the pool, and the field size is a config value.
+- **Count:** how many orbs a population makes, known before any world exists. In a fixed field the counts of the
+  bundles add up to the field size, the observation's slots and its sort limit, so no orbs are made only to count
+  them. In a sampled field they add up to the pool, and the field size is a config value.
 - **Bundle:** an `OrbBundle`: one orb kind's population and a way to make its digester.
 - **Recipe:** a frozen object a scenario holds that makes something with episode state when it is called, once per
   world. It holds the values the thing is made from and compares by value. There are two. A tier bundle holds a
@@ -98,9 +102,14 @@ Terms are grouped by area. The last section lists the words that are used in two
   written.
 - **Tier:** a tier orb's place in the chain, from 1 up to `max_tier`. Every other orb has no tier.
 - **Identity:** the number the agent sees for an orb. Orbs of the same kind and tier share it.
-- **Lifespan:** how many steps an orb stays on the field before it despawns.
+- **Lifespan:** how many steps an orb stays on the field before it despawns, or `None` for an orb that stays until
+  it is eaten. It belongs to the orb.
 - **Despawn:** an orb leaving the field without being eaten.
-- **Cool-down:** how many steps an orb is off the field after it is eaten or despawns.
+- **Cool-down:** how many steps an orb is off the field after it is eaten or despawns, or `None` for an orb that
+  does not return in the episode. The next episode's reset places every orb again.
+- **Expired, ready:** the two questions an orb answers about its timer, `has_expired()` and `is_ready()`. An orb
+  has expired when it is on the field and its lifespan has run out, and is ready when it is off the field and its
+  cool-down has run out. A timer set to `None` never completes, so such an orb is never expired or ready.
 
 ## Digestion
 

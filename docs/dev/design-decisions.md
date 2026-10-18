@@ -887,6 +887,34 @@ expire would state a number in its own bundle.
 
 ---
 
+## Every scenario in the tier chain family is a single chain (2026-10-18)
+
+**Decision:** The tier chain family is the scenarios whose whole chain is laid out on the field at once and left
+there until it is eaten, whatever `max_tier` is. Spatial, scaling sparse, scaling dense and delay are all that. So the
+family states, once, that its tier orbs have no cool-down and no lifespan, in `_tier_bundle`, and no scenario in the
+family can change it.
+
+**Where:** `_tier_bundle` in `scenario/families/goal/tier_chain/builders.py`, beside `cool_down=None`.
+
+**Alternatives considered:**
+
+- A `life_span` argument on `_tier_bundle`, which the spatial builder set to `None`. Built and removed on the same
+day. It read as if spatial were the special case, and every scenario in the family would pass the same value.
+- Keyword arguments for the cool-down and lifespan, defaulting to `None`, so a scenario could override them. Not
+written: a scenario whose tier orbs expire or return is not a single chain, so it would go in a different family,
+and the populations already take any values.
+- Renaming the family to `single_chain`. Deferred to one naming pass at the end of the rebuild, when the other
+scenarios are written and legacy is deleted. See "What the tier chain family and its scenarios are called" in
+`open-questions.md`.
+
+**Why this one:** A default that every member of a family shares belongs to the family, and an argument nobody varies
+only invites the question of why it is there. The populations and the orbs stay free of the special case, since they
+take values and do not know what family they are in.
+
+**Status:** settled for the family as it is. Revisit if a scenario is added whose tier orbs expire or return.
+
+---
+
 ## The scenario package is blocks, families, a registry and a scenario (2026-10-12)
 
 **Decision:** `scenario/` has two folders and two files at its top level.

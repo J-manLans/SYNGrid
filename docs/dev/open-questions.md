@@ -54,6 +54,11 @@ here. A question that is only half answered stays, with what is left of it.
 - **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.**
   See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only kind and tier" in
   `design-decisions.md`.
+- **What the observation shows for an orb that never expires.** A tier orb has no lifespan, so its timer's
+  `remaining` is `None` while it is on the field, and two perceptions put that number into the observation. A 0, a
+  -1 or a separate flag are the options. `base_perception.py` also reads the class attribute `BaseOrb._life_span`,
+  which is gone. Raised on 2026-10-18.
+  See: the roadmap's phase 7; "An orb carries its own cool-down and lifespan" in `design-decisions.md`.
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
   into what the droid sees and how it is encoded, the two halves may belong to different sides.
   See: "Scenario configs live with the scenario, as blocks in the world" in `design-decisions.md`; "A perception is
@@ -135,6 +140,10 @@ See: "A locked scenario loads a small model, and its builder makes the full conf
 
 ## Not tied to a phase
 
+- **What the tier chain family and its scenarios are called.** Every scenario in the family is a single chain, laid
+  out whole, so `single_chain` may describe it better than `tier_chain`, which is also the mechanic's name. Left to
+  one naming pass at the end of the rebuild. Raised on 2026-10-18.
+  See: the roadmap's phase 10; "Every scenario in the tier chain family is a single chain" in `design-decisions.md`.
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox scenario. It is written as a reservation
   inside an entry marked settled. The sandbox is not on the roadmap.
   See: "A new scoring mode is a new scenario" in `design-decisions.md`.

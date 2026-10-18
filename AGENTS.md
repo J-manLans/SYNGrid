@@ -57,7 +57,8 @@ phase 5.
 
 Phases 1 and 2 of the roadmap are done on the scenario side, and phase 3 is
 under way: the droid, the world and the orbs take pieces instead of config.
-The droid, step 5, is done since 2026-10-16. Phase 2
+The droid, step 5, is done since 2026-10-16, and the timer and the orbs, steps
+1 to 4, since 2026-10-18; the world, step 6, is next. Phase 2
 left four things written against a core that does not exist yet; the roadmap
 lists them at the end of its phase 2.
 
@@ -262,6 +263,13 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   and no kind. The populations hand each orb both, `BaseOrb` acts on `None` in
   either (its timer never completes) and answers `has_expired()` and
   `is_ready()`. Since 2026-10-18.
+- Every scenario in the tier chain family is a single chain: the whole chain is
+  laid out at once and left until it is eaten, whatever `max_tier` is. The
+  family states once, in `_tier_bundle`, that its tier orbs have no cool-down and
+  no lifespan, and no scenario in it can change that. The negative orb's
+  lifespan is `_reachable_life_span(rows, cols)`, the longest walk between two
+  cells. The family's names (`tier_chain`) are left to one naming pass at the
+  end of the rebuild.
 - A tier bundle's `make_digester` is a `TierDigesterRecipe`: a frozen dataclass
   of the scoring mode's class, `max_tier` and `chain_break_penalty`, in
   `scenario/blocks/recipes/`. It compares by value, which a `partial` does not. The
@@ -379,6 +387,11 @@ decisions on this branch:
   those files imports.
 - **`core/orbs/orb_factory.py` and `gymnasium/utils/episode_termination.py`**
   are still present. The roadmap removes both files.
+- **Two perceptions read a timer that can now be `None`.** `base_perception.py`
+  and `composite_grid_markovian.py` put `orb.TIMER.remaining` into the
+  observation, and a tier orb on the field has no lifespan. `base_perception.py`
+  also reads `BaseOrb._life_span`, which is gone. Neither file imports; the
+  observation pass settles it.
 - **`env_factory.make` passes a `Scenario`,** but `SYNGridEnv` still takes
   `world_conf` and `obs_conf`.
 - **Two scenarios built from the same config compare equal,** since
