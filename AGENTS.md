@@ -57,8 +57,10 @@ phase 5.
 
 Phases 1 and 2 of the roadmap are done on the scenario side, and phase 3 is
 under way: the droid, the world and the orbs take pieces instead of config.
-The droid, step 5, is done since 2026-10-16, and the timer and the orbs, steps
-1 to 4, since 2026-10-18; the world, step 6, is next. Phase 2
+The droid, step 5, is done since 2026-10-16, and so is the removal of
+`orb_factory.py`, step 7. The recipe's body, step 8, has been written since
+2026-10-14. The timer and the orbs, steps 1 to 4, are done since 2026-10-18;
+the world, step 6, is the only step left. Phase 2
 left four things written against a core that does not exist yet; the roadmap
 lists them at the end of its phase 2.
 
@@ -380,13 +382,12 @@ decisions on this branch:
   `design-decisions.md`.
 - **Scenario config models** are in `config/models/scenario/`: `common_models.py`
   and `orb_models.py`. A family's own models are in its `config.py`.
-- **`core/droid/digestion/engine.py` is the new router, and nothing calls it
-  the new way.** `synergy_droid.py` still builds it from three config values,
-  and `environment.py`, `episode_termination.py` and `base_perception.py` still
-  read the old engine's `chained_tiers`, `stats` and `_pending_reward`. None of
-  those files imports.
-- **`core/orbs/orb_factory.py` and `gymnasium/utils/episode_termination.py`**
-  are still present. The roadmap removes both files.
+- **`core/droid/digestion/engine.py` is the new router.** The droid builds it
+  from the digesters it is handed. `environment.py`, `episode_termination.py`
+  and `base_perception.py` still read the old engine's `chained_tiers`, `stats`
+  and `_pending_reward`. None of those files imports.
+- **`gymnasium/utils/episode_termination.py`** is still present. The roadmap
+  removes it. `core/orbs/orb_factory.py` was deleted on 2026-10-16.
 - **Two perceptions read a timer that can now be `None`.** `base_perception.py`
   and `composite_grid_markovian.py` put `orb.TIMER.remaining` into the
   observation, and a tier orb on the field has no lifespan. `base_perception.py`
@@ -403,11 +404,10 @@ decisions on this branch:
   `GridWorld(grid, max_active_orbs, max_steps, orbs, droid)`. The droid's
   signature is the one the droid took in step 5 of phase 3. The droid and
   the world are imported at module level since 2026-10-16, and
-  `import syn_grid.scenario.registry` still works. On that day calling it on
-  the spatial scenario returned a `GridWorld` with a droid that resets. The
-  world's own `reset` was not run; it still reads `self._conf`. The old
-  `if TYPE_CHECKING:` import of `GridWorld` is still in the file, and ruff
-  reports it as `TC004`.
+  `import syn_grid.scenario.registry` still works. On 2026-10-16 and again on
+  2026-10-19 calling it on the spatial scenario returned a fresh `GridWorld`
+  with a droid that resets. The world's own `reset` was not run; it still
+  reads `self._conf`.
 - **The spatial builder's bundles are complete, and `build_world` joins
   them.** The tier bundle makes the orbs with their rewards and a max-tier
   digester from the config.
@@ -431,8 +431,6 @@ decisions on this branch:
   after `get_digester` was added.
   Nothing outside `scenario/` reads `scenario.metrics` or `scenario.hud`:
   `environment.py` still fills the episode info from the old engine's `stats`.
-- **`core/orbs/orb_factory.py` calls `TierOrb` with a signature it no longer
-  has.** The file does not import and the roadmap removes it.
 - **The engine and the digesters were only tried in throwaway scripts.** No
   test covers them. The negative digester was fed a stand-in object, not a
   real negative orb.
