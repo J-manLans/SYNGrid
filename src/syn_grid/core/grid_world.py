@@ -1,6 +1,6 @@
 from typing import Final
 
-from numpy.random import Generator, default_rng
+from numpy.random import Generator
 
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
@@ -42,9 +42,10 @@ class GridWorld:
 
         self._remap_sparse_identities_to_dense()
 
-    def reset(self, rng: Generator | None = None) -> None:
+    def reset(self, rng: Generator) -> None:
         """
-        Reset the droid to its starting position, fill the orb field and restart the step clock.
+        Reset the droid to its starting position, fill the orb field and restart the step clock. The orbs are placed
+        with `rng`, so the same generator gives the same layout.
         """
 
         # Reset the step clock
@@ -56,9 +57,6 @@ class GridWorld:
         # Reset the orbs
         for orb in self.ALL_ORBS:
             orb.reset()
-
-        if rng is None:
-            rng = default_rng()
 
         self._rng = rng
 
