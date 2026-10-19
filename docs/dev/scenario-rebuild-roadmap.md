@@ -30,14 +30,14 @@ small check.
 | `core/orbs/orb_meta.py` | stores kind and tier; the radix identity is unchanged |
 | `core/droid/digestion/engine.py` | written: a router with `reset`, `digest`, `get` and `undigested`, built from digesters. The droid builds it from the digesters it is handed |
 | `core/droid/synergy_droid.py` | written (step 5 of phase 3, done 2026-10-16): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine and keeps it private, and holds energy and score, which are first set in `reset`. Every reward goes through it: `on_termination(ending_reward)` takes in what digestion has left undigested and what the ending costs or pays, adds them to the score and leaves energy alone. `get_digester(...)` gives a reader a digester by class |
-| `core/grid_world.py` | being rebuilt (step 6 of phase 3): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` and `perform_droid_action` still read `self._conf`, which is gone, so it does not run |
-| `core/utils/timer.py`, `core/orbs/base_orb.py`, `tier_orb.py`, `negative_orb.py` | written (steps 1 to 3 of phase 3, done 2026-10-18): a timer set to `None` never completes. An orb takes its own cool-down and lifespan, each a number or `None`, and answers `has_expired()` and `is_ready()`. The class-level `_life_span` is gone. The world does not ask the orbs yet |
+| `core/grid_world.py` | written (step 6 of phase 3, done 2026-10-19): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` takes an rng and fills the field. `perform_droid_action` is the droid's `take_step` plus what follows from the field: orbs tick, the droid eats one it stands on, expired orbs go, and one ready orb comes back if there is room. The world keeps no list of orbs and asks each one. `orbs_on_field()` replaces the three getters, so `environment.py`'s `render` still calls getters that are gone. Two delay methods are parked in it with a `# TODO(delay)` and still read `self._conf`. It was run in throwaway scripts on the spatial scenario, with and without a negative orb |
+| `core/utils/timer.py`, `core/orbs/base_orb.py`, `tier_orb.py`, `negative_orb.py` | written (steps 1 to 3 of phase 3, done 2026-10-18): a timer set to `None` never completes. An orb takes its own cool-down and lifespan, each a number or `None`, and answers `has_expired()` and `is_ready()`. The class-level `_life_span` is gone. The world asks them since 2026-10-19 |
 | `gymnasium/`, `rendering/` | the droid and the world import since 2026-10-16. The rest still import the old config and do not import. The environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
 | Runners, `env_factory.py` | already take a `Scenario` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
 `import syn_grid.scenario.registry` works and `build_scenario` returns the spatial `Scenario`. Two scenarios built
-from the same config compare equal. `scenario.build_world()` returns a `GridWorld` since 2026-10-16, whose `reset` does not run yet. `import syn_grid.app` and
+from the same config compare equal. `scenario.build_world()` returns a `GridWorld` since 2026-10-16, which resets and steps since 2026-10-19. `import syn_grid.app` and
 `python3 -m syn_grid.check_env` fail until phase 5.
 
 ---
@@ -178,7 +178,7 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 - `BaseOrb._life_span` was a class attribute shared by every env in the process. Step 2 removed it on 2026-10-18.
   `gymnasium/observation_space/perceptions/base_perception.py` still reads `BaseOrb._life_span` for the
   observation, so the observation pass has to find the maximum lifespan elsewhere.
-- `GridWorld.reset()` without an rng re-rolls the layout.
+- `GridWorld.reset()` without an rng re-rolled the layout. It takes a required rng since 2026-10-19.
 
 **Done when:** a world can be built by hand in a script, reset with a seed, and stepped with actions.
 
@@ -188,10 +188,13 @@ engine private as `_digestion_engine`, has its docstrings, and is formatted. Its
 what digestion has left undigested and what the ending costs or pays to the score, and leaves energy alone. The
 digesters' names follow the digestion metaphor: `undigested()`, `chain_worth` and `chain_tier`.
 
-`WorldRecipe.__call__` returns a `GridWorld` for the spatial scenario, with a droid that resets. The world's `reset`
-and `perform_droid_action` still read `self._conf`.
+`WorldRecipe.__call__` returns a `GridWorld` for the spatial scenario, with a droid that resets.
 
-**State on 2026-10-19: only step 6 is left.** Steps 5, 7 and 8 were checked and are done, as the table says.
+**State on 2026-10-19: phase 3 is done.** Steps 5, 7 and 8 were checked and are done, as the table says. Step 6 was
+written in five small commits: the world asks its orbs instead of keeping two lists, `orbs_on_field()` replaces the
+three getters, the droid's `perform_action` is `take_step`, `reset` requires an rng, and the delay methods and the
+identity remap carry TODOs. Left over from it: the environment's `render` calls the old getters (phase 9), the
+delay methods move into the delay scenario (phase 8), and the identity remap stays until phase 7.
 
 **State on 2026-10-18.** Steps 1 to 4 are done, together with the part of step 9 that hands the negative orb its
 lifespan. `Timer` takes `None` as never completing. `BaseOrb` takes a lifespan beside the cool-down, and answers

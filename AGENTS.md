@@ -56,11 +56,12 @@ negative bundle names it. The rest of `core/`, `gymnasium/` and
 phase 5.
 
 Phases 1 and 2 of the roadmap are done on the scenario side, and phase 3 is
-under way: the droid, the world and the orbs take pieces instead of config.
+done since 2026-10-19: the droid, the world and the orbs take pieces instead of
+config.
 The droid, step 5, is done since 2026-10-16, and so is the removal of
 `orb_factory.py`, step 7. The recipe's body, step 8, has been written since
 2026-10-14. The timer and the orbs, steps 1 to 4, are done since 2026-10-18;
-the world, step 6, is the only step left. Phase 2
+the world, step 6, since 2026-10-19, which finishes phase 3. Phase 2
 left four things written against a core that does not exist yet; the roadmap
 lists them at the end of its phase 2.
 
@@ -434,15 +435,23 @@ decisions on this branch:
 - **The engine and the digesters were only tried in throwaway scripts.** No
   test covers them. The negative digester was fed a stand-in object, not a
   real negative orb.
-- **`GridWorld` is half rebuilt.** On 2026-10-14 its constructor was changed
-  to take the grid, `max_active_orbs`, `max_steps`, the orbs and the droid,
-  and it got the step clock: `reset` restarts it, `perform_droid_action` takes
-  a step, and `steps_left` is a read-only property. Nobody reads it yet.
-  `reset` and `perform_droid_action` still read `self._conf`, which the
-  constructor no longer sets. Nothing was run.
-- **The world still fills and refills the orb field with the old code.** The
-  scenario hands it `max_active_orbs` through `WorldRecipe`, whose body does
-  not run yet.
+- **`GridWorld` is rebuilt since 2026-10-19.** The constructor takes the grid,
+  `max_active_orbs`, `max_steps`, the orbs and the droid. `reset(rng)` restarts
+  the step clock, resets the droid and the orbs, and fills the field.
+  `perform_droid_action` is the droid's `take_step` and what follows from the
+  field: every orb ticks, the droid eats the orb it stands on (before an expiry
+  is checked, so it wins an orb on its last tick), expired orbs leave, and one
+  ready orb comes back in a random free cell if there is room. The world keeps
+  no list of orbs and asks each one `is_active`, `has_expired()` and
+  `is_ready()`. `orbs_on_field()` replaces the three `get_orb_*` getters, so
+  `environment.py`'s `render` still calls getters that are gone. It was run in
+  throwaway scripts on the spatial scenario, with and without a negative orb,
+  and no test covers it. `scenario.build_world()` gives a world that resets and
+  steps.
+- **Two delay methods are parked in the world.** `_deactivate_all_orbs` and
+  `_reactivate_all_orbs` are used by no one and still read `self._conf.delay`,
+  which is gone, so Pyright reports one error there. A `# TODO(delay)` says
+  they move into the delay scenario (phase 8).
 - **`scenario/families/continuous/` is an empty package.** It holds only an
   `__init__.py`. No continuous family is written.
 - **Tests import the legacy strain.** On 2026-10-11 collection found 230 tests
@@ -517,8 +526,9 @@ Each of these cost a wrong conclusion in this repo.
 Carried over from earlier versions of this file. The roadmap's phase 3 is where
 the first one is dealt with.
 
-- **`GridWorld.reset()` with no argument uses an unseeded rng,** so a second
-  reset re-rolls the orb layout. Pass `np.random.default_rng(seed)`.
+- **`GridWorld.reset` needs an rng.** Since 2026-10-19 it has no unseeded
+  fallback. Pass `np.random.default_rng(seed)`, or let the environment pass its
+  seeded `np_random`.
 - **Every perception returns the same buffer each step,** so `obs_t is
   obs_{t+1}`. Anything that keeps two observations must copy.
 - **`reproduction_package/` is committed and large.** Do not add to it. It is a
