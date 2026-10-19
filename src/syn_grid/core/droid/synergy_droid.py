@@ -72,7 +72,7 @@ class SynergyDroid:
     #        API        #
     # ================= #
 
-    def perform_action(self, agent_action: DroidAction) -> float:
+    def take_step(self, agent_action: DroidAction) -> float:
         """Move the droid one cell and return what the move cost.
 
         A move costs the step penalty. A move into the edge of the grid leaves the droid where it

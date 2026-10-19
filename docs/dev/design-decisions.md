@@ -539,7 +539,7 @@ by one of three paths:
 
 | Path | What it carries |
 |---|---|
-| `perform_action` | the step penalty and the boundary penalty |
+| `take_step` | the step penalty and the boundary penalty |
 | `consume_orb` | what digestion pays for the eaten orb |
 | `on_termination(penalty)` | what the droid's digestion is owed when the episode ends (the engine's `undigested`, the sum of every digester's), plus what termination says the ending costs. It goes to the score and leaves energy as it was |
 

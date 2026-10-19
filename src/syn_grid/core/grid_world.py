@@ -76,7 +76,7 @@ class GridWorld:
         self._steps_left -= 1
 
         reward = 0.0
-        step_penalty = self.droid.perform_action(agent_action)
+        step_penalty = self.droid.take_step(agent_action)
 
         for orb in self.ALL_ORBS:
             orb.TIMER.tick()
