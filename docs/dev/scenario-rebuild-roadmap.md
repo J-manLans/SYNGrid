@@ -267,7 +267,8 @@ run plays an episode to each of its endings.
    difference before calling it behavioural.
 2. Train several seeds on each side and compare the curves.
 
-**Known differences to account for:** anything that changed on purpose is in `design-decisions.md`. The rewards are
+**Known differences to account for:** anything that changed on purpose is in `design-decisions.md`, and the changes
+that could move the observation or the reward are in `landscape-changes.md`. The rewards are
 expected to differ: a completed max-tier chain pays what its orbs are worth, where legacy paid a fixed 10. Set the
 base reward so the two are of similar size before comparing curves.
 

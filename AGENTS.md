@@ -30,6 +30,9 @@ Where to look, in this order:
   why. Read it before giving a design opinion.
 - `docs/dev/open-questions.md` is what has not been decided yet.
 - `docs/dev/codebase-ideas.md` is ideas that are not problems to solve now.
+- `docs/dev/landscape-changes.md` is the changes that could move what the agent sees or is paid. Read it when a
+  comparison with legacy shows a difference, and add to it when a change touches the reward, the observation or the
+  layout of orbs.
 - `docs/dev/glossary.md` is what the words mean. Use its terms, and add a term
   there when a new one is coined.
 - `docs/dev/regressions.md` is for behaviour that worked before and does not
