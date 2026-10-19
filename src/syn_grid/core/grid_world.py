@@ -4,7 +4,6 @@ from numpy.random import Generator, default_rng
 
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.orb_meta import OrbMeta
 from syn_grid.core.droid.droid_action import DroidAction
 
 
@@ -89,7 +88,7 @@ class GridWorld:
                 orb.de_spawn()
 
         # Bring back one ready orb if the field has room
-        if len(self._orbs_on_field()) < self._max_active_orbs:
+        if len(self.orbs_on_field()) < self._max_active_orbs:
             self._spawn_random_orb_if_ready()
 
         return step_penalty + reward
@@ -102,23 +101,10 @@ class GridWorld:
 
         return self._steps_left
 
-    def get_orb_positions(self, only_active: bool) -> list[list[int]]:
-        if only_active:
-            return [o.position for o in self._orbs_on_field()]
+    def orbs_on_field(self) -> list[BaseOrb]:
+        """The orbs that are on the field now, which are the ones that can be seen and eaten."""
 
-        return [o.position for o in self.ALL_ORBS]
-
-    def get_orb_is_active_status(self, only_active: bool) -> list[bool]:
-        if only_active:
-            return [o.is_active for o in self._orbs_on_field()]
-
-        return [o.is_active for o in self.ALL_ORBS]
-
-    def get_orb_meta(self, only_active: bool) -> list[OrbMeta]:
-        if only_active:
-            return [o.META for o in self._orbs_on_field()]
-
-        return [o.META for o in self.ALL_ORBS]
+        return [o for o in self.ALL_ORBS if o.is_active]
 
     # ================= #
     #      Helpers      #
@@ -148,17 +134,14 @@ class GridWorld:
     # === API === #
 
     def _deactivate_all_orbs(self) -> None:
-        for orb in self._orbs_on_field():
+        for orb in self.orbs_on_field():
             orb.reset()
             orb.TIMER.set(self._conf.delay)
 
     def _reactivate_all_orbs(self) -> None:
-        for orb in self._orbs_on_field():
+        for orb in self.orbs_on_field():
             if orb.TIMER.is_completed():
                 orb.spawn(orb.position)
-
-    def _orbs_on_field(self) -> list[BaseOrb]:
-        return [o for o in self.ALL_ORBS if o.is_active]
 
     # === Global === #
 
@@ -185,7 +168,7 @@ class GridWorld:
             return False
 
         # Check against the orbs on the field
-        for orb in self._orbs_on_field():
+        for orb in self.orbs_on_field():
             if position == orb.position:
                 return False
 
