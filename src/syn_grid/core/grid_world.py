@@ -110,6 +110,8 @@ class GridWorld:
 
     # === Init === #
 
+    # TODO(phase 7): the remap and `max_identity` stay until the observation pass settles where an orb's dense
+    # identity lives (see open-questions.md).
     def _remap_sparse_identities_to_dense(self) -> None:
         """Remap radix identities to dense sequential indices to simplify learning"""
 
@@ -131,6 +133,9 @@ class GridWorld:
 
     # === API === #
 
+    # TODO(delay): `_deactivate_all_orbs` and `_reactivate_all_orbs` are used by no one. They move into the delay
+    # scenario when it is built (phase 8, see open-questions.md), which holds the delay. They still read
+    # `self._conf.delay`, which the world no longer has.
     def _deactivate_all_orbs(self) -> None:
         for orb in self.orbs_on_field():
             orb.reset()
