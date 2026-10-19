@@ -8,6 +8,14 @@ from syn_grid.core.droid.droid_action import DroidAction
 
 
 class GridWorld:
+    """
+    The grid an episode is played on. It runs the orb field and the step clock around the droid it is handed.
+
+    The world has one rule for every scenario. Orbs leave the field when the droid eats them or their lifespan runs
+    out, and one orb that is ready returns each step if the field has room. A scenario shapes the field through the
+    orbs it hands over, and states only how many may be on the field at once.
+    """
+
     # ================= #
     #       Init        #
     # ================= #
@@ -71,6 +79,14 @@ class GridWorld:
     # === Logic === #
 
     def perform_droid_action(self, agent_action: DroidAction) -> float:
+        """
+        Run one tick of the world, set off by one droid action.
+
+        The droid takes its step, every orb's timer ticks, the droid eats the orb it stands on, an orb whose lifespan
+        ran out leaves the field, and one ready orb returns if the field has room. The droid is checked first, so it
+        wins an orb on the last tick of its life. Returns the step's cost plus what the eaten orb paid.
+        """
+
         self._steps_left -= 1
 
         reward = 0.0
@@ -149,6 +165,8 @@ class GridWorld:
     # === Global === #
 
     def _spawn_random_orb_if_ready(self) -> None:
+        """Put one random ready orb in a random free cell. Does nothing when no orb is ready."""
+
         ready_orbs = [o for o in self.ALL_ORBS if o.is_ready()]
         if not ready_orbs:
             return
@@ -166,6 +184,8 @@ class GridWorld:
                 break
 
     def _empty_spawn_cell(self, position: list[int]) -> bool:
+        """Whether a cell is free of the droid and of every orb on the field."""
+
         # Check against droid
         if position == self.droid.position:
             return False

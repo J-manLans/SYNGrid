@@ -6,6 +6,12 @@ from syn_grid.core.utils.timer import Timer
 
 
 class BaseOrb(ABC):
+    """
+    An orb that is either on the field or off it. It carries its reward, its own cool-down and lifespan, and one
+    timer that counts whichever of the two applies. It knows when it has expired and when it is ready to return,
+    and leaves placing it to the world.
+    """
+
     # ================= #
     #       Init        #
     # ================= #
@@ -29,6 +35,8 @@ class BaseOrb(ABC):
         self.TIMER: Final[Timer] = Timer()
 
     def reset(self) -> None:
+        """Take the orb off the field and make it ready to spawn."""
+
         self.is_active = False
         self.TIMER.reset()
 
