@@ -110,6 +110,11 @@ class GridWorld:
     # === Getters === #
 
     @property
+    def grid_dimensions(self) -> tuple[int, int]:
+        """The grid's size as (rows, cols)."""
+        return self._rows, self._cols
+
+    @property
     def steps_left(self) -> int:
         """How many steps the episode has left. Each action takes one, and a reset restarts it at `max_steps`."""
 
@@ -126,8 +131,8 @@ class GridWorld:
 
     # === Init === #
 
-    # TODO(phase 7): the remap and `max_identity` stay until the observation pass settles where an orb's dense
-    # identity lives (see open-questions.md).
+    # TODO(phase 7): the remap and `max_identity` stay until the observation pass settles where an
+    # orb's dense identity lives (see open-questions.md).
     def _remap_sparse_identities_to_dense(self) -> None:
         """Remap radix identities to dense sequential indices to simplify learning"""
 
@@ -152,15 +157,15 @@ class GridWorld:
     # TODO(delay): `_deactivate_all_orbs` and `_reactivate_all_orbs` are used by no one. They move into the delay
     # scenario when it is built (phase 8, see open-questions.md), which holds the delay. They still read
     # `self._conf.delay`, which the world no longer has.
-    def _deactivate_all_orbs(self) -> None:
-        for orb in self.orbs_on_field():
-            orb.reset()
-            orb.TIMER.set(self._conf.delay)
+    # def _deactivate_all_orbs(self) -> None:
+    #     for orb in self.orbs_on_field():
+    #         orb.reset()
+    #         orb.TIMER.set(self._conf.delay)
 
-    def _reactivate_all_orbs(self) -> None:
-        for orb in self.orbs_on_field():
-            if orb.TIMER.is_completed():
-                orb.spawn(orb.position)
+    # def _reactivate_all_orbs(self) -> None:
+    #     for orb in self.orbs_on_field():
+    #         if orb.TIMER.is_completed():
+    #             orb.spawn(orb.position)
 
     # === Global === #
 

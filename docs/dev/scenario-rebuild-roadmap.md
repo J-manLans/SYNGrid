@@ -8,12 +8,12 @@ The route is a vertical slice: get `goal_tier_chain_spatial` running end to end 
 legacy as a reference, and only then widen to the other scenarios. Until phase 5 nothing runs, so each phase before it has its own
 small check.
 
-**Order of work since 2026-10-21:** phase 5, 6, 8, 9, 7, 7b and then 10. The phase numbers are kept so that the
+**Order of work since 2026-10-21:** phase 5, 6, 8, 9, 7, 7b, 7c and then 10. The phase numbers are kept so that the
 references to them stay valid, and they are renumbered in the close-out pass. The observation pass (7) and the
 renderer rework (7b) come late on purpose. The legacy check (6) then runs while the observation is still the legacy
 one, so a difference there comes from the environment or the world, and the observation pass is the only change in
 its step. The renderer rework comes after the observation pass because its fog overlay needs the view radius that
-pass adds.
+pass adds. The modular HUD (7c) comes after the rework, since it changes the look that 7b is checked against.
 
 ---
 
@@ -359,6 +359,33 @@ the observation and the reward are unchanged.
 
 ---
 
+## Phase 7c: The modular HUD
+
+**Produces:** a HUD stacked from drawn pieces, so a scenario can list any number of elements and they come out in
+the same style.
+
+**Files:** `rendering/hud_view.py`, the HUD theme file and the HUD pieces in `rendering/assets/`.
+
+**Settle first:**
+
+- Where a bar sits. A stack grows in one direction, so a bar across it either lives in a cap at a fixed size or
+  stretches with the stack.
+- What the window does when the HUD and the grid differ in height. The taller of the two sets it.
+
+**Write:**
+
+1. The pieces, drawn by the owner: a top cap, a row piece that tiles with matching connector edges, and a bottom cap,
+   all of one width.
+2. The theme file describes each piece: its picture and the anchors inside it, measured from the piece's own corner.
+   Every row reuses the row piece's anchors.
+3. The HUD view stacks the cap, one row per element the scenario lists and the bottom cap, in the order of
+   `scenario.hud`.
+
+**Done when:** a scenario that lists one more element gets one more row with no change to the art, the code or the
+theme file, and the observation and the reward are unchanged.
+
+---
+
 ## Phase 8: The rest of the tier-chain family
 
 One scenario at a time, each held against its thesis runs in `reproduction_package/` as a reference.
@@ -384,7 +411,8 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 
 ## Phase 10: Close out
 
-- Tests: yours to curate; the old suite targets the old schema.
+- Tests: the owner rebuilds the suite mostly from scratch, against the new structure. The old suite targets the old
+  schema and imports the legacy strain.
 - Renumber the phases in the order they were done, and update every reference to a phase number.
 - Delete `legacy/` and the `USE_LEGACY` switch once the comparison is no longer needed.
 - Bring `AGENTS.md` and `docs/architecture/` in line with what was built.

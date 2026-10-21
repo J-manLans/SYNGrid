@@ -9,7 +9,6 @@ from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
 from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY, LogKey
-from syn_grid.gymnasium.utils.episode_termination import check_episode_end
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.scenario.scenario import Scenario
 
@@ -39,30 +38,25 @@ class SYNGridEnv(gym.Env):
     ):
         # Set up bench environment;
         self.render_mode = render_mode
-
-        # TODO: starting to look like episode termination could need its own method for storing
-        # these...or make it a class
-        # self.delay_mode = world_conf.grid_world_conf.delay_mode
-        # self.timeout_penalty = world_conf.droid_conf.timeout_penalty
-
         self.world = scenario.build_world()
+        self._hud = scenario.hud
 
 
         if self.render_mode in self.metadata["render_modes"]:
             self.renderer = PygameRenderer(
-                world_conf.renderer_conf, render_mode, self.metadata["render_fps"]
+                self.world.grid_dimensions, render_mode, self.metadata["render_fps"]
             )
 
         # Set up Gymnasium environment:
 
-        # Gymnasium also requires us to define action_space — which is the agent's possible
+        # Gymnasium requires us to define action_space — which is the agent's possible
         # actions. Training code can call action_space.sample() to randomly select an action.
         self.action_space = spaces.Discrete(len(DroidAction))
 
         # Same goes with observation_space: this provides the agent with a structured view
         # of the world that it uses to decide its actions.
         self._observation_handler = ObservationHandler(
-            obs_conf, len(self.world.ALL_ORBS), self.world.max_identity
+            scenario.observation, self.world.grid_dimensions, self.world.max_identity
         )
         self.observation_space = self._observation_handler.setup_obs_space()
 
@@ -127,11 +121,13 @@ class SYNGridEnv(gym.Env):
         )
 
     def render(self) -> np.ndarray | None:
+        orbs = self.world.orbs_on_field()
+
         frame = self.renderer.render(
             self.world.droid.position,
-            self.world.get_orb_is_active_status(True),
-            self.world.get_orb_positions(True),
-            self.world.get_orb_meta(True),
+            [True] * len(orbs),
+            [orb.position for orb in orbs],
+            [orb.META for orb in orbs],
             self._get_hud_data(),
         )
 
@@ -150,6 +146,10 @@ class SYNGridEnv(gym.Env):
         hud_data["score"] = self.world.droid.score
         hud_data["moves"] = self._observation_handler.steps_left
         hud_data["current tier chain"] = self.world.droid._digestion_engine.chained_tiers
+
+        hud_data = {el.label: el.read(self.world) for el in self._hud}
+        hud_data["score"] = self.world.droid.energy
+        hud_data["moves"] = self.world.steps_left
 
         return hud_data
 

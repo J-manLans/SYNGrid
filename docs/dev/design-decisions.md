@@ -1411,10 +1411,20 @@ the first reset.
   only the dynamic numbers.
 - pygame_gui for the game HUD. Not chosen: it is built for interactive UI and a time-based update loop, where the
   HUD is a static readout redrawn once per step.
-- A drawer per scenario. Left for later; the theme file does not rule it out.
+- A drawer per scenario. Left for later; the theme file does not rule it out. The modular HUD below makes it
+  unnecessary for a scenario that only adds elements.
 
 **Why this one:** The renderer stays free of `core/` and of config, the HUD's look is edited as data, and a new
 scenario adds elements without a change in the renderer. The bars that remembered the first episode's moves and the
 highest score ever seen go away, since a bar takes its maximum from its element.
 
-**Status:** settled. Nothing of it is written yet; the roadmap places it in phases 5 and 7b.
+**The modular HUD is the plan (2026-10-21).** The single `hud.png` caps how many elements fit, since a painted slot
+holds one thing. The HUD is to be stacked from drawn pieces instead: a top cap, a row piece that tiles with matching
+connector edges, and a bottom cap, all of one width. The theme file then holds anchors inside each piece, measured
+from the piece's own corner, and a new element adds a row and no number. The numbers stay, because the art decides
+where things land, and a layout manager would not know that either; they stop being magic because they are named
+data beside the pieces. This answers what happens when a scenario lists more elements than the picture has slots.
+Rejected along the way: generic slots painted into one picture, filled in order, which still caps the count; and a
+picture that gives only the frame with the slots drawn in code, which moves the look out of the art.
+
+**Status:** settled. Nothing of it is written yet; the roadmap places it in phases 5, 7b and 7c.

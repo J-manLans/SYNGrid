@@ -1,25 +1,33 @@
 import sys
+from typing import Final
 
 import numpy as np
 import pygame
 
-from syn_grid.config.models import RendererConf
+from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.core.orbs.orb_meta import (
     DirectKind,
     OrbMeta,
     SynergyKind,
 )
-from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.utils.paths_util import get_syn_grid_path
 
 
 class PygameRenderer:
+    _GRAPHIC_RESOURCES: Final[dict[str, str]] = {
+        "droid_img": "assets/sprites/droid.png",
+        "positive_orb_img": "assets/sprites/positive_orb.png",
+        "negative_orb_img": "assets/sprites/negative_orb.png",
+        "floor_img": "assets/tiles/floor.png",
+        "hud_img": "assets/sprites/hud.png",
+    }
+
     # ================= #
     #       Init        #
     # ================= #
 
     def __init__(
-        self, renderer_conf: RendererConf, render_mode: str | None, fps: int
+        self, grid_dimensions: tuple[int, int], render_mode: str | None, fps: int
     ) -> None:
         """
         Initializes the Pygame renderer.
@@ -32,8 +40,9 @@ class PygameRenderer:
         - Graphic elements
         """
 
-        self._renderer_conf = renderer_conf
-        self._render_mode = render_mode
+        self._rows: Final[int] = grid_dimensions[0]
+        self._cols: Final[int] = grid_dimensions[1]
+        self._render_mode: Final[str | None] = render_mode
 
         # Default font
         pygame.font.init()
@@ -52,7 +61,7 @@ class PygameRenderer:
         # Define game window size (width, height)
         self.window_size = (
             self._window_width,
-            (self._cell_height * self._renderer_conf.grid_rows)
+            (self._cell_height * self._rows)
             + (self._grid_offset * 3)
             + self._hud_height,
         )
@@ -154,31 +163,26 @@ class PygameRenderer:
 
         # Different measurements for coherence
         self._grid_offset = self._cell_width // 4
-        self._window_width = (
-            self._cell_width * self._renderer_conf.grid_cols
-        ) + self._grid_offset * 2
+        self._window_width = (self._cell_width * self._cols) + self._grid_offset * 2
         self._hud_height = self._cell_height * 4
         self._hud_width = self._cell_width * 5
         self._padding = 10
 
     def _load_graphics(self) -> None:
-        """Load graphics via the config file"""
+        """Load the application's static graphics."""
 
-        self.graphics = {}
-        for (
-            field_name,
-            relative_path,
-        ) in self._renderer_conf.img_assets.model_dump().items():
-            full_path = get_syn_grid_path(relative_path)
-            self.graphics[field_name] = pygame.image.load(full_path)
+        self.graphics = {
+            name: pygame.image.load(get_syn_grid_path(path))
+            for name, path in self._GRAPHIC_RESOURCES.items()
+        }
 
     # === API ===#
 
     def _draw_floor_and_orbs(self, orb_positions, orb_meta, is_active_statuses):
         """Draw floor tiles and orbs"""
 
-        for r in range(self._renderer_conf.grid_rows):
-            for c in range(self._renderer_conf.grid_cols):
+        for r in range(self._rows):
+            for c in range(self._cols):
                 pos = (
                     (c * self._cell_width) + self._grid_offset,
                     (r * self._cell_height) + self._grid_offset,
@@ -247,10 +251,8 @@ class PygameRenderer:
         hud_img = self.graphics["hud_img"]
         hud_rect = hud_img.get_rect(
             topleft=(
-                self._grid_offset
-                + (self._renderer_conf.grid_cols - 5) * self._cell_width // 2,
-                (self._cell_height * self._renderer_conf.grid_rows)
-                + self._grid_offset * 2,
+                self._grid_offset + (self._cols - 5) * self._cell_width // 2,
+                (self._cell_height * self._rows) + self._grid_offset * 2,
             )
         )
         self._window_surface.blit(hud_img, hud_rect)
