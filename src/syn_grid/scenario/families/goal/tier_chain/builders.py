@@ -18,7 +18,7 @@ from syn_grid.core.droid.digestion.digesters.tier_chain.max_tier_digester import
 from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
 )
-from syn_grid.scenario.blocks.hud import HudStat
+from syn_grid.scenario.blocks.hud import HudBar, HudStat, energy, score, steps_left
 from syn_grid.scenario.blocks.metrics import Metric
 from syn_grid.scenario.blocks.observation import ObservationRules
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
@@ -63,7 +63,7 @@ def _tier_chain_scenario(
     - observation: the slot count and the sort limit are the number of orbs the bundles make.
       The tier bound is `max_tier`.
     - termination: out of energy, a broken chain, a finished chain, or the clock.
-    - hud: the current chain length.
+    - hud: energy, score, steps left and the current chain length.
     - metrics: chains broken, progressed and completed, plus negatives eaten when the config has
       a negative block.
     - build_world: a `WorldRecipe` holding this scenario's world config, bundles and field
@@ -73,7 +73,12 @@ def _tier_chain_scenario(
     world_conf = scenario_conf.world_conf
     max_tier = world_conf.tier_orb_conf.max_tier
 
-    hud = (HudStat("current tier chain", _chain_progress),)
+    hud = (
+        HudBar("energy", world_conf.droid_conf.max_energy, energy),
+        HudStat("score", score),
+        HudBar("steps left", world_conf.max_steps, steps_left),
+        HudStat("current tier chain", _chain_progress),
+    )
 
     # The names are the old engine's stats keys. The logger's LogKey comes in phase 9.
     metrics = (

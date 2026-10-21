@@ -140,18 +140,16 @@ class SYNGridEnv(gym.Env):
 
     # === Gymnasium contract === #
 
-    def _get_hud_data(self) -> dict[str, int | float]:
-        hud_data: dict[str, int | float] = {}
+    def _get_hud_data(self) -> dict[str, float]:
+        values = {el.label: el.read(self.world) for el in self._hud}
 
-        hud_data["score"] = self.world.droid.score
-        hud_data["moves"] = self._observation_handler.steps_left
-        hud_data["current tier chain"] = self.world.droid._digestion_engine.chained_tiers
-
-        hud_data = {el.label: el.read(self.world) for el in self._hud}
-        hud_data["score"] = self.world.droid.energy
-        hud_data["moves"] = self.world.steps_left
-
-        return hud_data
+        # TODO(7b): the renderer finds its values under legacy's keys. In 7b it is handed each
+        # element with its value, and this mapping goes.
+        return {
+            "score": values["energy"],
+            "moves": values["steps left"],
+            "current tier chain": values["current tier chain"],
+        }
 
     def _get_state_info(self) -> dict[str, Any]:
         stats = self.world.droid._digestion_engine.stats
