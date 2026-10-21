@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. Last updated 2026-10-13.
+Guidance for AI agents working in this repository. Last updated 2026-10-21.
 Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
@@ -67,6 +67,10 @@ The droid, step 5, is done since 2026-10-16, and so is the removal of
 the world, step 6, since 2026-10-19, which finishes phase 3. Phase 2
 left four things written against a core that does not exist yet; the roadmap
 lists them at the end of its phase 2.
+
+Phase 5, the Gymnasium side, started on 2026-10-21, and the owner writes it by
+hand. The roadmap's "State on 2026-10-21" under phase 5 says what is wired. The
+order of the later phases changed the same day: 5, 6, 8, 9, 7, 7b, 7c, 10.
 
 **No file in the working strain is final.** A file can be a stub, half-moved or
 about to change shape, and its docstrings describe what it is meant to be, not
@@ -390,15 +394,24 @@ decisions on this branch:
   from the digesters it is handed. `environment.py`, `episode_termination.py`
   and `base_perception.py` still read the old engine's `chained_tiers`, `stats`
   and `_pending_reward`. None of those files imports.
-- **`gymnasium/utils/episode_termination.py`** is still present. The roadmap
-  removes it. `core/orbs/orb_factory.py` was deleted on 2026-10-16.
+- **`gymnasium/utils/episode_termination.py` is gone,** deleted on 2026-10-16
+  in `403e076` together with `core/orbs/orb_factory.py`. `environment.py`'s
+  `step` still calls its `check_episode_end`, with no import.
+- **The renderer takes `grid_dimensions`** and loads its images from a
+  `_GRAPHIC_RESOURCES` table, brought back on 2026-10-21 from `87684a8` on
+  `refactor-of-scenario-refactor`. Its `render` keeps the old signature, and
+  the environment builds the old lists from `orbs_on_field()`. On 2026-10-21 it
+  drew off-screen frames from a real spatial world on 5x5, 5x7 and 7x5 grids.
+  Human mode was not run.
 - **Two perceptions read a timer that can now be `None`.** `base_perception.py`
   and `composite_grid_markovian.py` put `orb.TIMER.remaining` into the
   observation, and a tier orb on the field has no lifespan. `base_perception.py`
   also reads `BaseOrb._life_span`, which is gone. Neither file imports; the
   observation pass settles it.
-- **`env_factory.make` passes a `Scenario`,** but `SYNGridEnv` still takes
-  `world_conf` and `obs_conf`.
+- **`SYNGridEnv` takes a `Scenario`** since 2026-10-21. Its `__init__` builds
+  the world and the renderer from it and keeps `scenario.hud`. It still does
+  not import: `ObservationHandler` takes the old `ObsConfig`, and `step` still
+  uses the old termination.
 - **Two scenarios built from the same config compare equal,** since
   `build_world` became a `WorldRecipe` on 2026-10-12.
 - **`WorldRecipe.__call__` has its body since 2026-10-14,** written before the
@@ -433,8 +446,14 @@ decisions on this branch:
   `world.droid.get_digester(...)`. They were read from a stand-in world around
   real digesters, and have not run against the real droid. Pyright was not run
   after `get_digester` was added.
-  Nothing outside `scenario/` reads `scenario.metrics` or `scenario.hud`:
-  `environment.py` still fills the episode info from the old engine's `stats`.
+- **The HUD is read through `scenario.hud`** since 2026-10-21. `hud.py` has
+  the shared readers `energy`, `score` and `steps_left`, and the tier-chain
+  helper lists energy, score, steps left and the chain. On 2026-10-21 every
+  element was read from a real spatial world after three steps. The
+  environment's `_get_hud_data` maps the labels onto the renderer's three old
+  keys, under a `TODO(7b)`, so the score element is read and not drawn.
+  Nothing outside `scenario/` reads `scenario.metrics`: `environment.py` still
+  fills the episode info from the old engine's `stats`.
 - **The engine and the digesters were only tried in throwaway scripts.** No
   test covers them. The negative digester was fed a stand-in object, not a
   real negative orb.

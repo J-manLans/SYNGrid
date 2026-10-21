@@ -110,6 +110,12 @@ here. A question that is only half answered stays, with what is left of it.
 - **`reward_multiplier`.** Legacy threshold scoring applied it to each orb's reward. It was not carried over and not
   discussed to a decision.
 
+- **How a builder adds what only its scenario shows.** Raised on 2026-10-21 for delay's countdown on the HUD. The
+  family's own elements are listed in `_tier_chain_scenario`. Passing a builder's extras in as a parameter, as the
+  tier bundle is, keeps the helper the one place a scenario is composed. The other option is a `replace` on the
+  finished `Scenario`. Delay also has its own termination, so this is settled together with the helper's other
+  parameters.
+
 ## Phase 9: Logging
 
 Nothing open yet. The logger reads `scenario.metrics`.
