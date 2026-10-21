@@ -103,6 +103,10 @@ composes from. Nothing is shaped for that now. The blocks (termination as a prot
 Turning a sandbox setup into a goal scenario is not a copy of its config: the sandbox is continuous and has its own
 world model, so the goal and the termination are decided by hand.
 
+The owner wants to learn pygame_gui and would use it for this GUI. It is built for interactive widgets and themes
+them through a JSON file, which is what a form of fields, dropdowns and buttons needs. The game HUD stays in plain
+pygame, see "The renderer takes plain values, and the HUD is the scenario's list" in `design-decisions.md`.
+
 ---
 
 ## A bundle that carries everything its orb kind brings (2026-10-12)

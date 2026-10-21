@@ -43,10 +43,6 @@ here. A question that is only half answered stays, with what is left of it.
   `on_termination` already says; a truncation would then need its own path only if it pays something. Raised on 2026-10-15.
   See: `design-decisions.md`, "Energy and score are two numbers, and every reward goes through the droid".
 
-- **Where the renderer's settings come from.** The old `RendererConf` has no counterpart in the new models. A preview
-  in a GUI would need them too.
-  See: the roadmap's phase 5.
-
 ## Phase 7: The observation pass
 
 - **Which global features an observation carries, and whether the HUD and the observation share readers.**
@@ -114,10 +110,9 @@ here. A question that is only half answered stays, with what is left of it.
 - **`reward_multiplier`.** Legacy threshold scoring applied it to each orb's reward. It was not carried over and not
   discussed to a decision.
 
-## Phase 9: Logging and HUD
+## Phase 9: Logging
 
-- **The form of the HUD.** A small vocabulary of elements the renderer can draw, or a drawer per scenario.
-  See: the roadmap's phase 9.
+Nothing open yet. The logger reads `scenario.metrics`.
 
 ## Phase 10: Locking a scenario
 

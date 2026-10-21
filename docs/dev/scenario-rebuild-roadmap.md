@@ -8,6 +8,13 @@ The route is a vertical slice: get `goal_tier_chain_spatial` running end to end 
 legacy as a reference, and only then widen to the other scenarios. Until phase 5 nothing runs, so each phase before it has its own
 small check.
 
+**Order of work since 2026-10-21:** phase 5, 6, 8, 9, 7, 7b and then 10. The phase numbers are kept so that the
+references to them stay valid, and they are renumbered in the close-out pass. The observation pass (7) and the
+renderer rework (7b) come late on purpose. The legacy check (6) then runs while the observation is still the legacy
+one, so a difference there comes from the environment or the world, and the observation pass is the only change in
+its step. The renderer rework comes after the observation pass because its fog overlay needs the view radius that
+pass adds.
+
 ---
 
 ## Where things stand
@@ -241,18 +248,30 @@ from the same config compare equal, and `scenario.build_world()` returns a new w
 
 ## Phase 5: The Gymnasium side
 
-**Produces:** an environment that runs a `Scenario`.
+**Produces:** an environment that runs a `Scenario`, headless and with a human at the keys, on the existing renderer
+and the existing perceptions with the smallest changes that make them run. The rework of both comes in phases 7 and 7b.
 
 **Files:** `gymnasium/environment.py`, `gymnasium/observation_space/`, `gymnasium/utils/episode_termination.py`
-(removed), `rendering/pygame_renderer.py`.
+(removed), `rendering/pygame_renderer.py`, `core/grid_world.py`.
 
-**Settle first:** where the renderer's settings come from. The old `RendererConf` has no counterpart in the new models.
+**Settled:** where the renderer's settings come from. `RendererConf` goes. The renderer's images become constants in
+the renderer, the grid size comes from the world, and the frame rate from the environment's metadata. See "The
+renderer takes plain values, and the HUD is the scenario's list" in `design-decisions.md`.
 
 **Write:**
 
-1. The environment takes the scenario, builds its world from it, and asks `scenario.termination` when an episode ends.
-2. The observation handler reads the steps left from the world.
-3. The HUD and the episode info read from `scenario.hud` and `scenario.metrics`, or a minimal stand-in.
+1. The world gets a public, read-only `grid_dimensions`.
+2. The environment takes the scenario, builds its world from it, and asks `scenario.termination` when an episode
+   ends. The steps left come from the world. The TODO in `step` has the order.
+3. Remove `episode_termination.py`.
+4. The HUD and the episode info read from `scenario.hud` and `scenario.metrics`. The scenario's `hud` lists energy,
+   score and steps left beside the chain, through the shared readers in `scenario/blocks/hud.py`. The renderer keeps
+   its hand-placed look and takes a dictionary of values, which the environment fills from the HUD elements by label.
+5. The renderer takes the grid size as plain values and the environment hands it the orbs on the field, from
+   `orbs_on_field()`.
+6. The perceptions get the smallest change that makes them run: a tier orb's timer is `None`, and
+   `base_perception.py` reads `BaseOrb._life_span`. Before patching, look at what legacy wrote in that slot for a tier
+   orb that never ticks, and write the same, so the patch is not a difference at the legacy check.
 
 **Done when:** `python3 -m syn_grid.check_env` passes, random actions stay inside the observation space, and a human
 run plays an episode to each of its endings.
@@ -261,7 +280,8 @@ run plays an episode to each of its endings.
 
 ## Phase 6: Check against legacy
 
-**Produces:** evidence that the rebuilt spatial scenario learns at least as well as the baseline.
+**Produces:** evidence that the rebuilt spatial scenario learns at least as well as the baseline. It runs after
+phase 5 and before the observation pass.
 
 1. Replay the phase 0 action sequence through the rebuild and diff the observation per step. Read the size of a
    difference before calling it behavioural.
@@ -282,8 +302,8 @@ one.
 
 **Produces:** an observation the scenario describes, and the new orb meta.
 
-**Files:** `core/orbs/orb_meta.py`, `scenario/blocks/observation.py`, `gymnasium/observation_space/`,
-`rendering/pygame_renderer.py`, the observation part of the config.
+**Files:** `core/orbs/orb_meta.py`, `scenario/blocks/observation.py`, `gymnasium/observation_space/`, the
+observation part of the config.
 
 **Settle first:**
 
@@ -301,11 +321,41 @@ one.
 2. Global features supplied by the scenario: energy, steps left, chain progress. Chain progress has to stay: the
    break rule pays a first and a second tier 1 differently, and only the chain position tells them apart.
 3. The two verified perceptions against the new rules.
+4. The view radius, a field on `ObservationRules` that the limited-view perception reads in place of its hardcoded
+   distance, and that the renderer's fog overlay reads in phase 7b. One number, so the picture cannot show a window
+   different from the one the agent has.
 
 **Do this as the only change in its step**, and diff the observation against legacy again. Check whether anything
 scales the observation by its upper bound.
 
 **Done when:** the observation trace matches legacy for spatial, or every difference is explained.
+
+---
+
+## Phase 7b: The renderer rework
+
+**Produces:** a renderer split by reason to change, a HUD the scenario describes and a theme file draws, and a fog
+overlay that shows what the agent sees.
+
+**Files:** `rendering/pygame_renderer.py`, `rendering/world_view.py`, `rendering/hud_view.py`, `rendering/assets/`,
+`runners/human_runner/`, `pyproject.toml`.
+
+**Write:**
+
+1. Move the renderer's images and font into `rendering/assets/` with `git mv`: `sprites/`, `tiles/` and `fonts/`.
+   `sounds/` stays in `assets/`, since the runner uses it. Add the new folder to the package data. A pure move, in
+   its own commit.
+2. Split `pygame_renderer.py` into a coordinator, `world_view.py` and `hud_view.py`, as pure moves. Three modules,
+   with no base classes or interfaces.
+3. Move `get_user_action` and its quit handling to the human runner.
+4. The HUD view reads a theme file beside `hud.png`, with named anchor positions in place of the hand-tuned numbers.
+   A bar takes its maximum from the element, so no bar remembers an earlier episode, which replaces
+   `_max_seen_score` and `_initial_moves`. The label matching from phase 5 goes.
+5. The world view takes a view radius and dims every cell farther from the droid than that, with the same distance
+   the perception uses. The radius is the `ObservationRules` field from phase 7.
+
+**Done when:** a human run looks as before apart from the fog, the HUD can be changed by editing the theme file, and
+the observation and the reward are unchanged.
 
 ---
 
@@ -325,16 +375,17 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 
 ---
 
-## Phase 9: Logging and HUD
+## Phase 9: Logging
 
 - The logger reads `scenario.metrics`. Expected to be a localized change.
-- The form of the HUD: a small vocabulary of elements, or a drawer per scenario.
+- The form of the HUD is settled and is done in phase 7b.
 
 ---
 
 ## Phase 10: Close out
 
 - Tests: yours to curate; the old suite targets the old schema.
+- Renumber the phases in the order they were done, and update every reference to a phase number.
 - Delete `legacy/` and the `USE_LEGACY` switch once the comparison is no longer needed.
 - Bring `AGENTS.md` and `docs/architecture/` in line with what was built.
 - Lock the scenarios that have reproduced their legacy results: move their fixed values from the YAML into the

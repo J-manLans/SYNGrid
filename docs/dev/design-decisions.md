@@ -1375,3 +1375,46 @@ The cost is that a type checker sees attributes declared outside `__init__`, and
 the first reset.
 
 **Status:** settled for the droid. The other components are aligned as the rebuild reaches them.
+
+---
+
+## The renderer takes plain values, and the HUD is the scenario's list (2026-10-21)
+
+**Decision:** The renderer is handed plain values and never reads the world or a config.
+
+- **From the world,** through the environment: the droid's position, the orbs on the field with their position, kind
+  and tier, and the grid size, which is a public `grid_dimensions` on the world.
+- **From the scenario,** through `scenario.hud`: everything else the HUD shows. The scenario lists static elements,
+  a label, a kind, a maximum for a bar and a reader that is handed the world. The environment calls the readers and
+  hands the renderer the values. Energy, score and steps left are listed there too, through shared readers in
+  `scenario/blocks/hud.py`, so `hud.py` holds no number that changes.
+- **Placement belongs to the renderer.** A scenario says what to show and in what order, never a pixel. The renderer
+  places elements from a theme file that sits beside `hud.png` and names the anchor positions inside the picture.
+- **`RendererConf` is gone.** The images are constants in the renderer, the grid size comes from the world and the
+  frame rate from the environment's metadata.
+- **The fog overlay** takes a view radius, with the same distance the perception uses, and dims every cell farther
+  from the droid than that. The radius is one field on `ObservationRules`, read by the perception and by the
+  renderer. It is added in the observation pass.
+- **The game HUD stays in plain pygame.** pygame_gui is kept for the config GUI, where it fits.
+
+**Where:** `rendering/`, `scenario/blocks/hud.py`, `gymnasium/environment.py`. The work is in phases 5 and 7b of
+`scenario-rebuild-roadmap.md`.
+
+**Alternatives considered:**
+
+- A generic layout that draws any list of elements as labelled rows. Rejected because the HUD is part of how the
+  benchmark looks and feels, and a generic readout is what a log file already gives. It also moves the design out of
+  the owner's hands.
+- Each scenario states a placement for its elements. Rejected because it puts rendering inside the scenario layer.
+- Energy, score and steps as fixed furniture the renderer draws from the droid and world, with the scenario listing
+  only extras. Rejected because the owner preferred to pack everything static into the HUD, with the world giving
+  only the dynamic numbers.
+- pygame_gui for the game HUD. Not chosen: it is built for interactive UI and a time-based update loop, where the
+  HUD is a static readout redrawn once per step.
+- A drawer per scenario. Left for later; the theme file does not rule it out.
+
+**Why this one:** The renderer stays free of `core/` and of config, the HUD's look is edited as data, and a new
+scenario adds elements without a change in the renderer. The bars that remembered the first episode's moves and the
+highest score ever seen go away, since a bar takes its maximum from its element.
+
+**Status:** settled. Nothing of it is written yet; the roadmap places it in phases 5 and 7b.
