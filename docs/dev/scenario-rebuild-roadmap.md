@@ -284,10 +284,11 @@ run plays an episode to each of its endings.
   `check_episode_end`, from a file that is gone, and counts the steps on the observation handler.
 - Step 3 was done on 2026-10-16: `episode_termination.py` went in `403e076`.
 - Step 4 is done for the HUD. `scenario/blocks/hud.py` has the shared readers `energy`, `score` and `steps_left`, and
-  the tier-chain helper lists energy, score, steps left and the chain. `_get_hud_data` reads every element and maps
-  the labels onto the renderer's three old keys, `score` (energy), `moves` and `current tier chain`, under a
-  `TODO(7b)`. The score element is read and not drawn until 7b. A new element is not drawn until 7b either, unless a
-  key is added to that mapping. The episode info still reads the old engine's `stats`.
+  the tier-chain helper lists energy, score, steps left and the chain. `_get_hud_data` returns every element's value
+  under its label. The renderer is handed `scenario.hud` when it is built and keeps each bar's maximum by label, so the
+  energy bar fills against `max_energy` and the steps bar against `max_steps`. `_draw_hud` picks `energy`, `steps
+  left` and `current tier chain` by label, under a TODO for 7b. The score element is read and not drawn until 7b, and
+  neither is a new element. The episode info still reads the old engine's `stats`.
 - Step 5 is done. The renderer takes `grid_dimensions` and loads its images from a `_GRAPHIC_RESOURCES` table, taken
   from `87684a8` on `refactor-of-scenario-refactor`. `render` keeps its old signature, and the environment builds
   the old lists from `orbs_on_field()`, all of them active.
@@ -391,8 +392,9 @@ overlay that shows what the agent sees.
    with no base classes or interfaces.
 3. Move `get_user_action` and its quit handling to the human runner.
 4. The HUD view reads a theme file beside `hud.png`, with named anchor positions in place of the hand-tuned numbers.
-   A bar takes its maximum from the element, so no bar remembers an earlier episode, which replaces
-   `_max_seen_score` and `_initial_moves`. The label matching from phase 5 goes.
+   Each element is drawn by its kind, so the HUD draws the elements a scenario lists and picks none by label. The
+   label matching from phase 5 goes, and with it the energy number drawn under the energy bar, a leftover of
+   legacy's score; the score is drawn from its own element. Bars already fill against `HudBar.maximum` since phase 5.
 5. The world view takes a view radius and dims every cell farther from the droid than that, with the same distance
    the perception uses. The radius is the `ObservationRules` field from phase 7.
 

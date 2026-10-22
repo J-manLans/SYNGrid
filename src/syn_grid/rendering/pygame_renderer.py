@@ -10,6 +10,7 @@ from syn_grid.core.orbs.orb_meta import (
     OrbMeta,
     SynergyKind,
 )
+from syn_grid.scenario.blocks.hud import HudBar, HudElement
 from syn_grid.utils.paths_util import get_syn_grid_path
 
 
@@ -27,13 +28,18 @@ class PygameRenderer:
     # ================= #
 
     def __init__(
-        self, grid_dimensions: tuple[int, int], render_mode: str | None, fps: int
+        self,
+        grid_dimensions: tuple[int, int],
+        hud: tuple[HudElement, ...],
+        render_mode: str | None,
+        fps: int,
     ) -> None:
         """
         Initializes the Pygame renderer.
 
         Sets:
         - Size of grid world
+        - The full value of each HUD bar, by label
         - One logic step fps, not game.
         - Game colors
         - Game font
@@ -43,6 +49,11 @@ class PygameRenderer:
         self._rows: Final[int] = grid_dimensions[0]
         self._cols: Final[int] = grid_dimensions[1]
         self._render_mode: Final[str | None] = render_mode
+        self._bar_max: Final[dict[str, float]] = {
+            hud_element.label: hud_element.maximum
+            for hud_element in hud
+            if isinstance(hud_element, HudBar)
+        }
 
         # Default font
         pygame.font.init()
@@ -258,27 +269,22 @@ class PygameRenderer:
         self._window_surface.blit(hud_img, hud_rect)
 
         # --- Energy and moves bar --- #
-        self._draw_life_bar(hud_data["score"], hud_rect)
-        self._draw_moves_bar(hud_data["moves"], hud_rect)
+        self._draw_energy_bar(hud_data["energy"], hud_rect)
+        self._draw_steps_bar(hud_data["steps left"], hud_rect)
 
         # --- Current tier chain --- #
-
+        # TODO: This will go in phase 7b, since it is scenario specific stats
         chained_tiers = hud_data["current tier chain"]
         if chained_tiers > -1:
             self._draw_hud_stat(
                 chained_tiers, hud_rect.x + 33, hud_rect.y + (hud_rect.height - 68)
             )
 
-    def _draw_life_bar(self, current_score: float, hud_rect: pygame.Rect):
+    def _draw_energy_bar(self, current_energy: float, hud_rect: pygame.Rect):
         """
-        Draw a dynamic life bar inside hud_rect.
-        Bar fills relative to highest score reached so far (max_seen_score).
+        Draw the energy bar inside hud_rect.
+        Bar fills relative to the energy bar's maximum.
         """
-
-        # --- Update max_seen_score dynamically --- #
-        if not hasattr(self, "_max_seen_score"):
-            self._max_seen_score = max(current_score, 1)  # init, avoid div by zero
-        self._max_seen_score = max(self._max_seen_score, current_score)
 
         bar_height = 10
         bar_width = hud_rect.width - 116
@@ -287,7 +293,7 @@ class PygameRenderer:
         bar_y = hud_rect.y + 23
 
         # --- Calculate fill proportion --- #
-        fill_ratio = current_score / self._max_seen_score
+        fill_ratio = current_energy / self._bar_max["energy"]
         fill_width = int(fill_ratio * bar_width)
         fill_width = max(0, fill_width)  # clamp to [0, fill_width]
 
@@ -300,18 +306,15 @@ class PygameRenderer:
         status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
         pygame.draw.rect(self._window_surface, (75, 75, 75), status_rect, 2)
 
-        self._draw_hud_stat(round(current_score, 2), hud_rect.x + 120, hud_rect.y + 45)
+        self._draw_hud_stat(round(current_energy, 2), hud_rect.x + 120, hud_rect.y + 45)
 
-    def _draw_moves_bar(self, remaining_moves: float, hud_rect: pygame.Rect):
+    def _draw_steps_bar(self, remaining_steps: float, hud_rect: pygame.Rect):
         """
-        Draw a dynamic life bar inside hud_rect.
-        Bar fills relative to highest score reached so far (max_seen_score).
+        Draw the steps-left bar inside hud_rect.
+        Bar fills relative to the steps-left bar's maximum.
         """
 
-        # --- Catch initial episode moves --- #
-        if not hasattr(self, "_initial_moves"):
-            self._initial_moves = remaining_moves
-        ratio = remaining_moves / self._initial_moves
+        ratio = remaining_steps / self._bar_max["steps left"]
 
         bar_height = hud_rect.height - 73
         bar_width = 10

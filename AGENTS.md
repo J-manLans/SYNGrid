@@ -450,8 +450,11 @@ decisions on this branch:
   the shared readers `energy`, `score` and `steps_left`, and the tier-chain
   helper lists energy, score, steps left and the chain. On 2026-10-21 every
   element was read from a real spatial world after three steps. The
-  environment's `_get_hud_data` maps the labels onto the renderer's three old
-  keys, under a `TODO(7b)`, so the score element is read and not drawn.
+  environment's `_get_hud_data` returns the values by label. The renderer is
+  handed `scenario.hud` when it is built, fills each bar against its
+  `HudBar.maximum`, and picks energy, steps left and the chain by label, so the
+  score element is read and not drawn. On 2026-10-22 it drew off-screen frames
+  from a real spatial world over two episodes.
   Nothing outside `scenario/` reads `scenario.metrics`: `environment.py` still
   fills the episode info from the old engine's `stats`.
 - **The engine and the digesters were only tried in throwaway scripts.** No

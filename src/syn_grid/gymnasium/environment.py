@@ -44,7 +44,10 @@ class SYNGridEnv(gym.Env):
 
         if self.render_mode in self.metadata["render_modes"]:
             self.renderer = PygameRenderer(
-                self.world.grid_dimensions, render_mode, self.metadata["render_fps"]
+                self.world.grid_dimensions,
+                self._hud,
+                render_mode,
+                self.metadata["render_fps"],
             )
 
         # Set up Gymnasium environment:
@@ -141,14 +144,8 @@ class SYNGridEnv(gym.Env):
     # === Gymnasium contract === #
 
     def _get_hud_data(self) -> dict[str, float]:
-        values = {el.label: el.read(self.world) for el in self._hud}
-
-        # TODO(7b): the renderer finds its values under legacy's keys. In 7b it is handed each
-        # element with its value, and this mapping goes.
         return {
-            "score": values["energy"],
-            "moves": values["steps left"],
-            "current tier chain": values["current tier chain"],
+            hud_element.label: hud_element.read(self.world) for hud_element in self._hud
         }
 
     def _get_state_info(self) -> dict[str, Any]:
