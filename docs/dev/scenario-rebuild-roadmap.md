@@ -292,10 +292,13 @@ run plays an episode to each of its endings.
 - Step 5 is done. The renderer takes `grid_dimensions` and loads its images from a `_GRAPHIC_RESOURCES` table, taken
   from `87684a8` on `refactor-of-scenario-refactor`. `render` keeps its old signature, and the environment builds
   the old lists from `orbs_on_field()`, all of them active.
-- Step 6 is not started. The handler is to take `scenario.observation`, `grid_dimensions` and `max_identity`, with
-  no orb count and no step count. The two perceptions in the enum read only the grid size, the slot count, the sort
-  limit and `max_identity`, so the chain progress and the timer are not on their path. What breaks them is
-  `BaseOrb._life_span` in `BasePerception.__init__`.
+- Step 6 is done for the two perceptions in the enum. The handler takes `scenario.observation`, `grid_dimensions`
+  and `max_identity`, and `PERCEPTIONS` is keyed by `Perception` and holds only those two. `BasePerception` takes the
+  same three and keeps the grid size, `observation_slot_count`, `sort_limit` and `max_identity`. Neither perception
+  writes the timer, so the legacy question about the lifespan slot is not on their path. The helpers only the other
+  five perceptions use still read the old config, under `TODO(phase 7)`. The handler still counts the steps, which
+  goes with step 2. On 2026-10-22 both perceptions stayed inside their `Box` over 20 random episodes of 50 steps on
+  the spatial world.
 
 **Next: the renderer is handed a description of the HUD.** Discuss further before implementation.
 
