@@ -296,6 +296,28 @@ run plays an episode to each of its endings.
   limit and `max_identity`, so the chain progress and the timer are not on their path. What breaks them is
   `BaseOrb._life_span` in `BasePerception.__init__`.
 
+**Next: the renderer is handed a description of the HUD.** Discuss further before implementation.
+
+Raised on 2026-10-22. Today the environment reads every HUD element and maps the labels onto the renderer's three old
+keys. The idea is to split what the renderer needs to know about the HUD from what only the environment needs:
+
+- `scenario/blocks/hud.py` gets a frozen `HudSpec` (a label, a kind and a maximum that is `None` for a stat) and a
+  function `hud_specs(elements)` that turns the scenario's HUD tuple into a tuple of them, without the readers. The
+  record is defined in `hud.py` so that `scenario/` does not import `rendering/`.
+- The environment calls `hud_specs` once, when it builds the renderer, and hands the result to the renderer's
+  `__init__`. The renderer takes the bars' maximums from it.
+- Each frame the environment calls the readers and passes only the numbers, in the same order as the specs. The
+  renderer never holds a reader and never needs the world.
+- The label-to-legacy-key mapping in `_get_hud_data` goes. With the number of specs known at `__init__`, the HUD
+  height can be fixed there, and the `_max_seen_score` and `_initial_moves` workarounds in the draw helpers go.
+
+Still to settle before it is written:
+
+- Whether it lands in phase 5 or waits for 7b, where the modular HUD makes the same split. The mapping can stand
+  until then.
+- What a spec carries beyond the three fields, for example a block type or a size for the modular HUD.
+- What the renderer does with a spec it has no place to draw.
+
 ---
 
 ## Phase 6: Check against legacy
