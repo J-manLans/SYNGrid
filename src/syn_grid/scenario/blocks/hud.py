@@ -3,6 +3,7 @@ What a scenario shows on the HUD.
 
 A scenario lists its HUD elements; the renderer knows how to draw each kind.
 Every element is a static description plus a reader that is handed the world.
+The readers every scenario can use are in `readers.py`.
 """
 
 from __future__ import annotations
@@ -44,27 +45,3 @@ class HudBar:
 
 
 HudElement = HudStat | HudBar
-
-
-# ----------------- #
-#   World readers   #
-# ----------------- #
-
-# What every scenario can show, whatever its orbs. A family's own readers live beside its
-# builder. Module-level so that two scenarios built from the same config hold the same function
-# objects and compare equal.
-
-
-def energy(world: GridWorld) -> float:
-    """The droid's energy right now."""
-    return world.droid.energy
-
-
-def score(world: GridWorld) -> float:
-    """The droid's score so far this episode."""
-    return world.droid.score
-
-
-def steps_left(world: GridWorld) -> float:
-    """How many steps the episode has left."""
-    return world.steps_left

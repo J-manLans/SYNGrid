@@ -14,6 +14,7 @@ scenario/
 │   ├── metrics.py
 │   ├── observation.py
 │   ├── orb_bundle.py
+│   ├── readers.py
 │   └── termination.py
 ├── families/
 │   ├── continuous/
@@ -47,7 +48,8 @@ A `Scenario` is a frozen description: `scenario_name` and `scenario_tag`, the
 and `build_world`, a `WorldRecipe`. It holds no world and no episode state, so one
 `Scenario` is shared by every environment in the process. The blocks are
 stateless too. A HUD element and a metric are a static description plus a
-reader that is handed the world. An `OrbBundle` is one orb kind: the population
+reader that is handed the world. The readers every scenario can use are in
+`blocks/readers.py`, and a family's own readers sit beside its builder. An `OrbBundle` is one orb kind: the population
 that makes its orbs and a way to make its digester, so the world builder joins
 the orbs and collects the digesters without asking which kinds they are.
 

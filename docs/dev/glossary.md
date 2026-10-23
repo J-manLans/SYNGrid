@@ -60,7 +60,8 @@ Terms are grouped by area. The last section lists the words that are used in two
   and the field's size. Recipes are in `scenario/blocks/recipes/`.
 - **Brick:** one orb kind as a unit: its bundle in the scenario layer and its `*_orb_conf` block in the config.
 - **Reader:** a module-level function that is handed the world and returns a number. The HUD, the metrics and the
-  observation's global features are each a description plus a reader.
+  observation's global features are each a description plus a reader, and one reader can serve all three. The
+  readers every scenario can use are in `scenario/blocks/readers.py`; a family's own sit beside its builder.
 - **`build_world`:** the scenario's field that returns a new world on each call. Everything that changes during an
   episode is made there.
 

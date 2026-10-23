@@ -39,7 +39,7 @@ pass adds. The modular HUD (7c) comes after the rework, since it changes the loo
 | `core/droid/synergy_droid.py` | written (step 5 of phase 3, done 2026-10-16): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine and keeps it private, and holds energy and score, which are first set in `reset`. Every reward goes through it: `on_termination(ending_reward)` takes in what digestion has left undigested and what the ending costs or pays, adds them to the score and leaves energy alone. `get_digester(...)` gives a reader a digester by class |
 | `core/grid_world.py` | written (step 6 of phase 3, done 2026-10-19): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` takes an rng and fills the field. `perform_droid_action` is the droid's `take_step` plus what follows from the field: orbs tick, the droid eats one it stands on, expired orbs go, and one ready orb comes back if there is room. The world keeps no list of orbs and asks each one. `orbs_on_field()` replaces the three getters, so `environment.py`'s `render` still calls getters that are gone. Two delay methods are parked in it with a `# TODO(delay)` and still read `self._conf`. It was run in throwaway scripts on the spatial scenario, with and without a negative orb |
 | `core/utils/timer.py`, `core/orbs/base_orb.py`, `tier_orb.py`, `negative_orb.py` | written (steps 1 to 3 of phase 3, done 2026-10-18): a timer set to `None` never completes. An orb takes its own cool-down and lifespan, each a number or `None`, and answers `has_expired()` and `is_ready()`. The class-level `_life_span` is gone. The world asks them since 2026-10-19 |
-| `scenario/blocks/hud.py` | the element types and the shared readers `energy`, `score` and `steps_left`, since 2026-10-21. The tier-chain helper lists energy, score, steps left and the chain |
+| `scenario/blocks/hud.py`, `scenario/blocks/readers.py` | the element types, since 2026-10-21, and the shared readers `energy`, `score` and `steps_left`, in their own file since 2026-10-23. The tier-chain helper lists energy, score, steps left and the chain |
 | `gymnasium/`, `rendering/` | phase 5 started on 2026-10-21; see its state below. The droid and the world import since 2026-10-16. The rest still import the old config and do not import. The environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
 | Runners, `env_factory.py` | already take a `Scenario` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
@@ -266,7 +266,7 @@ renderer takes plain values, and the HUD is the scenario's list" in `design-deci
    ends. The steps left come from the world. The TODO in `step` has the order.
 3. Remove `episode_termination.py`.
 4. The HUD and the episode info read from `scenario.hud` and `scenario.metrics`. The scenario's `hud` lists energy,
-   score and steps left beside the chain, through the shared readers in `scenario/blocks/hud.py`. The renderer keeps
+   score and steps left beside the chain, through the shared readers in `scenario/blocks/readers.py`. The renderer keeps
    its hand-placed look and takes a dictionary of values, which the environment fills from the HUD elements by label.
 5. The renderer takes the grid size as plain values and the environment hands it the orbs on the field, from
    `orbs_on_field()`.
@@ -283,7 +283,7 @@ run plays an episode to each of its endings.
 - Step 2 is started. `__init__` takes the scenario, builds the world and keeps `scenario.hud`. `step` still calls
   `check_episode_end`, from a file that is gone, and counts the steps on the observation handler.
 - Step 3 was done on 2026-10-16: `episode_termination.py` went in `403e076`.
-- Step 4 is done for the HUD. `scenario/blocks/hud.py` has the shared readers `energy`, `score` and `steps_left`, and
+- Step 4 is done for the HUD. `scenario/blocks/readers.py` has the shared readers `energy`, `score` and `steps_left`, and
   the tier-chain helper lists energy, score, steps left and the chain. `_get_hud_data` returns every element's value
   under its label. The renderer is handed `scenario.hud` when it is built and keeps each bar's maximum by label, so the
   energy bar fills against `max_energy` and the steps bar against `max_steps`. `_draw_hud` picks `energy`, `steps

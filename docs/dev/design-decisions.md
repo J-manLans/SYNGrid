@@ -1388,7 +1388,9 @@ the first reset.
 - **From the scenario,** through `scenario.hud`: everything else the HUD shows. The scenario lists static elements,
   a label, a kind, a maximum for a bar and a reader that is handed the world. The environment calls the readers and
   hands the renderer the values. Energy, score and steps left are listed there too, through shared readers in
-  `scenario/blocks/hud.py`, so `hud.py` holds no number that changes.
+  `scenario/blocks/readers.py`, so `hud.py` holds no number that changes. The readers moved out of `hud.py` on
+  2026-10-23: the observation's global features use them too, and a builder importing them from the HUD read as if
+  the observation depended on it.
 - **Placement belongs to the renderer.** A scenario says what to show and in what order, never a pixel. The renderer
   places elements from a theme file that sits beside `hud.png` and names the anchor positions inside the picture.
 - **`RendererConf` is gone.** The images are constants in the renderer, the grid size comes from the world and the

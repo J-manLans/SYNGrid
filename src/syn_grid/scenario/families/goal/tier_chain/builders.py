@@ -18,7 +18,7 @@ from syn_grid.core.droid.digestion.digesters.tier_chain.max_tier_digester import
 from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
 )
-from syn_grid.scenario.blocks.hud import HudBar, HudStat, energy, score, steps_left
+from syn_grid.scenario.blocks.hud import HudBar, HudStat
 from syn_grid.scenario.blocks.metrics import Metric
 from syn_grid.scenario.blocks.observation import ObservationRules
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
@@ -26,6 +26,7 @@ from syn_grid.scenario.blocks.populations.neg_population import NegPopulation
 from syn_grid.scenario.blocks.populations.tier_chain_population import (
     TierChainPopulation,
 )
+from syn_grid.scenario.blocks.readers import energy, score, steps_left
 from syn_grid.scenario.blocks.recipes.tier_digester_recipe import TierDigesterRecipe
 from syn_grid.scenario.blocks.recipes.world_recipe import WorldRecipe
 from syn_grid.scenario.families.goal.tier_chain.config import (
@@ -127,6 +128,7 @@ def _tier_chain_scenario(
 #   World readers   #
 # ----------------- #
 
+# The family's own readers; the ones every scenario can use are in `scenario/blocks/readers.py`.
 # Handed to the hud, the metrics and the observation. Module-level so that two scenarios built
 # from the same config hold the same function objects and compare equal. Each takes its number
 # from the digester that counts it, which the droid hands out by class.

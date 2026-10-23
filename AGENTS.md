@@ -446,8 +446,9 @@ decisions on this branch:
   `world.droid.get_digester(...)`. They were read from a stand-in world around
   real digesters, and have not run against the real droid. Pyright was not run
   after `get_digester` was added.
-- **The HUD is read through `scenario.hud`** since 2026-10-21. `hud.py` has
-  the shared readers `energy`, `score` and `steps_left`, and the tier-chain
+- **The HUD is read through `scenario.hud`** since 2026-10-21. The shared
+  readers `energy`, `score` and `steps_left` are in `scenario/blocks/readers.py`
+  since 2026-10-23, and the tier-chain
   helper lists energy, score, steps left and the chain. On 2026-10-21 every
   element was read from a real spatial world after three steps. The
   environment's `_get_hud_data` returns the values by label. The renderer is
