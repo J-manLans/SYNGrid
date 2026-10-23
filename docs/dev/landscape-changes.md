@@ -147,6 +147,19 @@ legacy.
 **Status:** open, with a `# TODO(phase 7)` in `grid_world.py`.
 **Check:** Phase 7.
 
+### Position bounds are exact
+
+**Change:** The upper bound of a row and a column in the `Box` is `rows - 1` and `cols - 1`, for the droid and for
+every orb slot.
+**Touches:** observation
+**Before:** The bound was `rows` and `cols`, one more than any position can be.
+**Now:** The bound is the largest position. The values observed are unchanged.
+**Expected size:** None expected. The runners wrap the env in `VecNormalize(norm_obs=True)`, which scales by running
+statistics and not by the bounds, and SB3 rescales a `Box` by its bounds only for an image space.
+**Status:** expected same, not tested.
+**Check:** Phase 5, `check_env` on the spatial scenario. Revisit if a perception or feature extractor ever divides by
+`observation_space.high`.
+
 ---
 
 ## The reward

@@ -33,7 +33,6 @@ class ObservationHandler:
         grid_dimensions: tuple[int, int],
         max_identity: int,
     ) -> None:
-        self._max_steps: Final[int] = observation.max_steps
         perception_type: type[BasePerception] = PERCEPTIONS[observation.perception]
         self.perception: Final[BasePerception] = perception_type(
             observation, grid_dimensions, max_identity
@@ -47,8 +46,7 @@ class ObservationHandler:
         return self.perception.setup_obs_space()
 
     def reset(self) -> None:
-        self.steps_left: int = self._max_steps
         self.perception.reset()
 
     def get_observation(self, state: GridWorld) -> Any:
-        return self.perception.get_observation(state, self.steps_left)
+        return self.perception.get_observation(state)

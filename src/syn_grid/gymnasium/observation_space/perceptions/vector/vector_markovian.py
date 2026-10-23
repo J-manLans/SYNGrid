@@ -17,16 +17,11 @@ class VectorMarkovian(BasePerception):
 
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
-        droid_high = self._get_max_droid_positions()
+        droid_high = self._get_max_droid_position()
 
-        orb_high = np.concatenate(
-            [
-                np.array([self._ACTIVE_FLAG], dtype=np.float32),
-                self._get_max_orb_base(),
-            ]
-        )
+        orb_high = self._get_max_orb_values()
         self._orb_features = orb_high.shape[0]
-        orb_high = np.tile(orb_high, self._get_observable_orb_count())
+        orb_high = np.tile(orb_high, self._slot_count)
         self._orb_start_index = droid_high.shape[0]
 
         high = np.concatenate([droid_high, orb_high])
@@ -42,10 +37,10 @@ class VectorMarkovian(BasePerception):
             dtype=np.float32,
         )
 
-    def get_observation(self, state: GridWorld, steps_left: int) -> np.ndarray:
+    def get_observation(self, state: GridWorld) -> np.ndarray:
         # Droid data
         droid_y, droid_x = state.droid.position
-        self._obs_data[0 : self._orb_start_index] = self._get_droid_values(
+        self._obs_data[0 : self._orb_start_index] = self._get_droid_position(
             droid_y, droid_x
         )
 

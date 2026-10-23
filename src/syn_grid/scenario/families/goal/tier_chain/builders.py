@@ -71,7 +71,6 @@ def _tier_chain_scenario(
     """
 
     world_conf = scenario_conf.world_conf
-    max_tier = world_conf.tier_orb_conf.max_tier
 
     hud = (
         HudBar("energy", world_conf.droid_conf.max_energy, energy),
@@ -104,10 +103,8 @@ def _tier_chain_scenario(
 
     observation = ObservationRules(
         perception=scenario_conf.obs_conf.observation_handler_conf.perception,
-        max_steps=world_conf.max_steps,
         observation_slot_count=orb_count,
         sort_limit=orb_count,
-        max_tier=max_tier,
         global_features=(),
     )
 

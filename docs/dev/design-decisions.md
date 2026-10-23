@@ -555,8 +555,9 @@ the episode ends.
 A reward at full charge raises the score but not the energy. The score cannot fall much below minus `max_energy`,
 because the episode ends first; the last penalty can overshoot by its own size.
 
-The observation carries energy, in the slot where the old code carried its score. Its bounds are exactly 0 and
-`max_energy`, so there is no separate bound to configure and nothing to clip.
+A perception with global values carries energy, in the slot where the old code carried its score. Its bounds are
+exactly 0 and `max_energy`, so there is no separate bound to configure and nothing to clip. The two perceptions in
+the `Perception` enum carry neither; see "The kept perceptions observe only what earned its place".
 
 **Where:** `DroidConf.max_energy` in `config/models/scenario/common_models.py`, replacing `starting_score`;
 `core/droid/synergy_droid.py`; `undigested` on the `OrbDigester` protocol in
@@ -1428,3 +1429,29 @@ Rejected along the way: generic slots painted into one picture, filled in order,
 picture that gives only the frame with the slots drawn in code, which moves the look out of the art.
 
 **Status:** settled. Nothing of it is written yet; the roadmap places it in phases 5, 7b and 7c.
+
+---
+
+## The kept perceptions observe only what earned its place (recorded 2026-10-23)
+
+**Decision:** `vector_markovian` and `vector_fog_of_war` observe the droid's position and one block per orb slot
+(active flag, row, column, identity), and no global values. Steps left, the score and the chain's tier are not in
+them, and neither is an orb's timer.
+
+**Where:** `gymnasium/observation_space/perceptions/vector/`. The tier-chain builder sets `global_features=()` on its
+`ObservationRules`.
+
+**Alternatives considered:**
+
+- An observation like `vector_markovian_easy`, with the global values in front and an optional timer per orb. This
+  was the starting point. The owner then ablated it one value at a time, and every value without which the agent did
+  as well or better was removed. What is left is what the agent did worse without.
+
+**Why this one:** A value the agent does not need costs input size and gives the policy something to fit that does
+not help it. The ablation decided by performance and not by what seemed useful to know.
+
+**Status:** settled for the two perceptions in the `Perception` enum. The ablation was run before the rebuild, and
+which scenarios, seeds and algorithms it covered is not recorded here. Revisit if a scenario has to be solved from a
+value these perceptions leave out, such as the gathered sum in threshold scoring. The perceptions outside the enum
+still carry the global values, and when they come back in phase 7 this entry is the reason not to add those values
+to the two kept ones by default.

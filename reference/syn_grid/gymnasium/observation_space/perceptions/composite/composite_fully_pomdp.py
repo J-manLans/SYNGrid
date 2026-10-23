@@ -31,12 +31,12 @@ class CompositeFullyPOMDP(BasePerception):
         self._orb_data.fill(self._MISSING_ORB_VALUE)
 
     def setup_obs_space(self) -> spaces.Space:
-        droid_high = self._get_max_droid_positions()
+        droid_high = self._get_max_droid_position()
         orb_high = np.tile(
             np.concatenate(
                 [
                     np.array([self._ACTIVE_FLAG], dtype=np.float32),
-                    self._get_max_orb_base(),
+                    self._get_max_orb_values(),
                 ]
             ),
             (self._get_observable_orb_count(), 1),
@@ -68,7 +68,7 @@ class CompositeFullyPOMDP(BasePerception):
     ) -> dict[str, np.ndarray]:
         # Droid data
         droid_y, droid_x = state.droid.position
-        self._droid_data[:] = self._get_droid_values(droid_y, droid_x)
+        self._droid_data[:] = self._get_droid_position(droid_y, droid_x)
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
         sorted_orbs = self._sort_orbs_by_manhattan_dist_to_droid(

@@ -33,11 +33,11 @@ class CompositeMarkovian(BasePerception):
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
         global_high = self._get_max_global_values()
-        droid_high = self._get_max_droid_positions()
+        droid_high = self._get_max_droid_position()
 
         orb_parts = [
             np.array([self._ACTIVE_FLAG], dtype=np.float32),
-            self._get_max_orb_base(),
+            self._get_max_orb_values(),
         ]
         if self._perception_conf.include_timer:
             orb_parts.append(self._get_max_orb_extended())
@@ -83,7 +83,7 @@ class CompositeMarkovian(BasePerception):
 
         # Droid data
         droid_y, droid_x = state.droid.position
-        self._droid_data[:] = self._get_droid_values(droid_y, droid_x)
+        self._droid_data[:] = self._get_droid_position(droid_y, droid_x)
 
         # Sort orbs by distance to droid, inactive orbs go to the bottom
         sorted_orbs = self._sort_orbs_by_manhattan_dist_to_droid(

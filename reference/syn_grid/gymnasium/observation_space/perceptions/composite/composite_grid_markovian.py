@@ -51,7 +51,7 @@ class CompositeGridMarkovian(BasePerception):
         )
 
         # Create H,W,C and let C be the length of the list
-        rows, cols = self._get_max_droid_positions()
+        rows, cols = self._get_max_droid_position()
         rows = int(rows) + 1
         cols = int(cols) + 1
         channels = grid_channels_high.shape[0]

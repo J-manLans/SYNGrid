@@ -40,19 +40,14 @@ class ObservationRules:
 
     Attributes:
         perception: which perception encodes the world.
-        max_steps: the episode's step budget.
         observation_slot_count: sizes the observation vector.
         sort_limit: caps the distance sort that chooses which orbs are written
             into those slots.
-        max_tier: the upper bound a tier value is encoded against, for the
-            perceptions that give tier its own channel.
         global_features: the global values this scenario's observation carries,
             in order. A scenario leaves out what its agent should not see.
     """
 
     perception: Perception
-    max_steps: int
     observation_slot_count: int
     sort_limit: int
-    max_tier: int
     global_features: tuple[GlobalFeature, ...]
