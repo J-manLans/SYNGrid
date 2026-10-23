@@ -45,15 +45,17 @@ here. A question that is only half answered stays, with what is left of it.
 
 ## Phase 7: The observation pass
 
-- **Which global features an observation carries, and whether the HUD and the observation share readers.**
-  See: the roadmap's phase 7.
+- **Which global features an observation carries.** The two kept perceptions carry none, after the owner's
+  ablation. The question is open for the perceptions rewritten in phase 7.
+  See: the roadmap's phase 7; "The kept perceptions observe only what earned its place" and "The HUD and the
+  observation share readers and keep their own lists" in `design-decisions.md`.
 - **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.**
   See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only kind and tier" in
   `design-decisions.md`.
 - **What the observation shows for an orb that never expires.** A tier orb has no lifespan, so its timer's
-  `remaining` is `None` while it is on the field, and two perceptions put that number into the observation. A 0, a
-  -1 or a separate flag are the options. `base_perception.py` also reads the class attribute `BaseOrb._life_span`,
-  which is gone. Raised on 2026-10-18.
+  `remaining` is `None` while it is on the field. Neither perception in `src` writes the timer; legacy's composite
+  perceptions did, and a rewritten one would need a number. A 0, a -1 or a separate flag are the options. Raised on
+  2026-10-18.
   See: the roadmap's phase 7; "An orb carries its own cool-down and lifespan" in `design-decisions.md`.
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
   into what the droid sees and how it is encoded, the two halves may belong to different sides.
@@ -63,11 +65,32 @@ here. A question that is only half answered stays, with what is left of it.
   perceptions it allows, or a perception is split into two settings and the scenario fixes how much the droid sees.
   Spatial allows one perception today, so there is nothing to choose between until it has a second.
   See: "A locked scenario offers the perceptions that make sense for it" in `design-decisions.md`.
-- **Whether the pixel observation gets a limited view, and which kind.** `GridPixel` is a docstring with no code. A
+- **Whether the pixel observation gets a limited view, and which kind.** `GridPixel` is a docstring with no code in
+  `legacy/`, and is not in `src`. A
   crop of the window loses the droid's position; the full grid with the rest blacked out keeps it.
   See: "A perception is two things" in `codebase-ideas.md`.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
   See: "Two orb categories, and an orb meta that stores only kind and tier" in `design-decisions.md`.
+
+## Phase 7b: The renderer rework
+
+- **What the renderer is handed about the HUD.** Raised on 2026-10-22. The renderer is handed `scenario.hud` when it
+  is built, keeps each bar's maximum by label and picks energy, steps left and the chain by label. The idea is a
+  frozen `HudSpec` (a label, a kind and a maximum that is `None` for a stat) in `hud.py`, made from the HUD tuple
+  without the readers, so the renderer never holds a reader. Each frame the environment would pass only the numbers,
+  in the order of the specs, and the HUD's height could be fixed when the renderer is built. Open: whether it lands
+  before 7b, what a spec carries beyond the three fields (a block type or a size for the modular HUD), and what the
+  renderer does with a spec it has no place to draw.
+  See: "The renderer takes plain values, and the HUD is the scenario's list" in `design-decisions.md`.
+
+## Phase 7c: The modular HUD
+
+- **Where a bar sits.** A stack grows in one direction, so a bar across it either lives in a cap at a fixed size or
+  stretches with the stack.
+  See: the roadmap's phase 7c.
+- **What the window does when the HUD and the grid differ in height.** The roadmap leans towards the taller of the
+  two setting it.
+  See: the roadmap's phase 7c.
 
 ## Phase 8: The rest of the tier-chain family
 

@@ -239,8 +239,9 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   Since 2026-10-16 the ending's payout goes to the score alone and leaves
   energy as the episode ended it.
 - The step clock lives in the world. `max_steps` is in `world_conf`, and
-  `GridWorld` takes it and counts down `steps_left`. The environment still
-  counts on `ObservationHandler` and passes that count on.
+  `GridWorld` takes it and counts down `steps_left`. The observation handler
+  keeps no count since 2026-10-23; `environment.py`'s `step` still decrements
+  and reads the handler's `steps_left`, which is gone.
 - Digestion pays for orbs and termination pays for the clock. The tier digester
   pays the orbs, the chain break and the completed chain; termination pays
   `timeout_penalty`. There is no `completion_reward`.
@@ -391,9 +392,8 @@ decisions on this branch:
 - **Scenario config models** are in `config/models/scenario/`: `common_models.py`
   and `orb_models.py`. A family's own models are in its `config.py`.
 - **`core/droid/digestion/engine.py` is the new router.** The droid builds it
-  from the digesters it is handed. `environment.py`, `episode_termination.py`
-  and `base_perception.py` still read the old engine's `chained_tiers`, `stats`
-  and `_pending_reward`. None of those files imports.
+  from the digesters it is handed. `environment.py` still reads the old
+  engine's `stats` and `_pending_reward`, and does not import.
 - **`gymnasium/utils/episode_termination.py` is gone,** deleted on 2026-10-16
   in `403e076` together with `core/orbs/orb_factory.py`. `environment.py`'s
   `step` still calls its `check_episode_end`, with no import.
@@ -403,15 +403,17 @@ decisions on this branch:
   the environment builds the old lists from `orbs_on_field()`. On 2026-10-21 it
   drew off-screen frames from a real spatial world on 5x5, 5x7 and 7x5 grids.
   Human mode was not run.
-- **Two perceptions read a timer that can now be `None`.** `base_perception.py`
-  and `composite_grid_markovian.py` put `orb.TIMER.remaining` into the
-  observation, and a tier orb on the field has no lifespan. `base_perception.py`
-  also reads `BaseOrb._life_span`, which is gone. Neither file imports; the
-  observation pass settles it.
+- **Only the two perceptions in the `Perception` enum are in `src`** since
+  2026-10-23: `vector_markovian` and `vector_fog_of_war`. The other five are
+  in `legacy/` and are rewritten from there in phase 7. `BasePerception` keeps
+  only what the two use: the position bounds (`rows - 1`, `cols - 1`), the slot
+  count, the sort limit and `max_identity`. Neither writes an orb's timer. The
+  observation handler imports, and on 2026-10-23 both perceptions stayed inside
+  their `Box` on a real spatial world on 5x5, 5x7 and 7x5 grids.
 - **`SYNGridEnv` takes a `Scenario`** since 2026-10-21. Its `__init__` builds
   the world and the renderer from it and keeps `scenario.hud`. It still does
-  not import: `ObservationHandler` takes the old `ObsConfig`, and `step` still
-  uses the old termination.
+  not import: `step` still uses the old termination and the handler's step
+  count.
 - **Two scenarios built from the same config compare equal,** since
   `build_world` became a `WorldRecipe` on 2026-10-12.
 - **`WorldRecipe.__call__` has its body since 2026-10-14,** written before the

@@ -125,20 +125,22 @@ getters. It would matter if the observation pass reads this list.
 **Change:** A tier orb's timer holds `None` while it is on the field.
 **Touches:** observation
 **Before:** Every orb had a number.
-**Now:** Two perceptions put `orb.TIMER.remaining` into the observation, and `base_perception.py` reads a class
-attribute that is gone.
-**Expected size:** Those two perceptions do not run unchanged.
+**Now:** Neither perception in `src` writes an orb's timer. The legacy perceptions that did are rewritten in phase 7.
+**Expected size:** None for the two kept perceptions. A rewritten perception that writes the timer needs a number for
+`None`.
 **Status:** open. It is a question in `open-questions.md`, under phase 7.
 **Check:** Phase 7. Whatever number or flag replaces `None` changes the observation, so it has to be compared with
 legacy.
 
 ### Where the step count comes from
 
-**Change:** The world keeps the step clock. The environment still counts on the observation handler.
+**Change:** The world keeps the step clock. The observation handler keeps no count since 2026-10-23, and no
+perception in `src` observes the steps left.
 **Touches:** observation
-**Expected size:** An off-by-one in the steps left would shift one feature by a step.
+**Expected size:** None for the two kept perceptions. Where a global feature reads `world.steps_left`, an off-by-one
+against legacy would shift that feature by a step.
 **Status:** not checked.
-**Check:** Phase 5, when the handler is made to read the world's count.
+**Check:** Phase 7, when a global feature reads the world's count.
 
 ### The dense identity
 

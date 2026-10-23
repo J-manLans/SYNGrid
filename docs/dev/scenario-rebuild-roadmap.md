@@ -184,8 +184,8 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 **Check while here** (from the "things that bite" list in `AGENTS.md`):
 
 - `BaseOrb._life_span` was a class attribute shared by every env in the process. Step 2 removed it on 2026-10-18.
-  `gymnasium/observation_space/perceptions/base_perception.py` still reads `BaseOrb._life_span` for the
-  observation, so the observation pass has to find the maximum lifespan elsewhere.
+  No perception in `src` reads it since 2026-10-23. A perception that writes an orb's timer in phase 7 has to find
+  the maximum lifespan elsewhere.
 - `GridWorld.reset()` without an rng re-rolled the layout. It takes a required rng since 2026-10-19.
 
 **Done when:** a world can be built by hand in a script, reset with a seed, and stepped with actions.
@@ -281,7 +281,8 @@ run plays an episode to each of its endings.
 
 - Step 1 is done: the world has a read-only `grid_dimensions`, `(rows, cols)`, and each caller unpacks it.
 - Step 2 is started. `__init__` takes the scenario, builds the world and keeps `scenario.hud`. `step` still calls
-  `check_episode_end`, from a file that is gone, and counts the steps on the observation handler.
+  `check_episode_end`, from a file that is gone, and decrements and reads the observation handler's `steps_left`,
+  which the handler no longer has since 2026-10-23. The steps left are to come from `world.steps_left`.
 - Step 3 was done on 2026-10-16: `episode_termination.py` went in `403e076`.
 - Step 4 is done for the HUD. `scenario/blocks/readers.py` has the shared readers `energy`, `score` and `steps_left`, and
   the tier-chain helper lists energy, score, steps left and the chain. `_get_hud_data` returns every element's value
@@ -294,33 +295,12 @@ run plays an episode to each of its endings.
   the old lists from `orbs_on_field()`, all of them active.
 - Step 6 is done for the two perceptions in the enum. The handler takes `scenario.observation`, `grid_dimensions`
   and `max_identity`, and `PERCEPTIONS` is keyed by `Perception` and holds only those two. `BasePerception` takes the
-  same three and keeps the grid size, `observation_slot_count`, `sort_limit` and `max_identity`. Neither perception
-  writes the timer, so the legacy question about the lifespan slot is not on their path. The helpers only the other
-  five perceptions use still read the old config, under `TODO(phase 7)`. The handler still counts the steps, which
-  goes with step 2. On 2026-10-22 both perceptions stayed inside their `Box` over 20 random episodes of 50 steps on
-  the spatial world.
-
-**Next: the renderer is handed a description of the HUD.** Discuss further before implementation.
-
-Raised on 2026-10-22. Today the environment reads every HUD element and maps the labels onto the renderer's three old
-keys. The idea is to split what the renderer needs to know about the HUD from what only the environment needs:
-
-- `scenario/blocks/hud.py` gets a frozen `HudSpec` (a label, a kind and a maximum that is `None` for a stat) and a
-  function `hud_specs(elements)` that turns the scenario's HUD tuple into a tuple of them, without the readers. The
-  record is defined in `hud.py` so that `scenario/` does not import `rendering/`.
-- The environment calls `hud_specs` once, when it builds the renderer, and hands the result to the renderer's
-  `__init__`. The renderer takes the bars' maximums from it.
-- Each frame the environment calls the readers and passes only the numbers, in the same order as the specs. The
-  renderer never holds a reader and never needs the world.
-- The label-to-legacy-key mapping in `_get_hud_data` goes. With the number of specs known at `__init__`, the HUD
-  height can be fixed there, and the `_max_seen_score` and `_initial_moves` workarounds in the draw helpers go.
-
-Still to settle before it is written:
-
-- Whether it lands in phase 5 or waits for 7b, where the modular HUD makes the same split. The mapping can stand
-  until then.
-- What a spec carries beyond the three fields, for example a block type or a size for the modular HUD.
-- What the renderer does with a spec it has no place to draw.
+  same three and keeps the position bounds, `observation_slot_count`, `sort_limit` and `max_identity`. Neither
+  perception writes the timer, so the legacy question about the lifespan slot is not on their path. On 2026-10-23
+  the other five perceptions and the helpers only they used were deleted; their copies are in `legacy/`. The
+  position bounds became exact (`rows - 1`, `cols - 1`), the handler stopped counting steps and `get_observation`
+  takes only the world. `ObservationRules` lost `max_steps` and `max_tier`, which nothing read. On 2026-10-23 both
+  perceptions stayed inside their `Box` over 3,000 random steps on 5x5, 5x7 and 7x5 spatial worlds.
 
 ---
 
@@ -353,20 +333,22 @@ observation part of the config.
 
 **Settle first:**
 
-- Which global features an observation carries, and whether the HUD and the observation share readers.
+- Which global features an observation carries. They share their readers with the HUD and keep their own list.
 - Whether non-tier synergy orbs despawn like negative orbs.
 - The shape of `obs_conf`.
-- What the observation shows for an orb that never expires. `base_perception.py` and `composite_grid_markovian.py`
-  put `orb.TIMER.remaining` into the observation, which is `None` for a tier orb on the field. `base_perception.py`
-  also reads `BaseOrb._life_span`, which is gone.
+- What the observation shows for an orb that never expires, for a perception that writes an orb's timer. A tier
+  orb's `orb.TIMER.remaining` is `None` while it is on the field. Neither perception in `src` writes the timer.
 
 **Write:**
 
 1. The orb identity: where the dense id lives, and whether the radix formula becomes a plain sort on kind and tier.
    `OrbMeta` already stores only kind and tier.
-2. Global features supplied by the scenario: energy, steps left, chain progress. Chain progress has to stay: the
-   break rule pays a first and a second tier 1 differently, and only the chain position tells them apart.
-3. The two verified perceptions against the new rules.
+2. Global features supplied by the scenario, as `GlobalFeature`s in `ObservationRules.global_features`, each with
+   its bound and a reader from `scenario/blocks/readers.py` or the family's builder. The two kept perceptions carry
+   none, after the owner's ablation; see "The kept perceptions observe only what earned its place" in
+   `design-decisions.md`. Chain progress is needed where tier orbs return, since a first and a second tier 1 then
+   pay differently and only the chain position tells them apart. In the tier-chain family no tier orb returns.
+3. The other perceptions, rewritten from their copies in `legacy/` against the new rules.
 4. The view radius, a field on `ObservationRules` that the limited-view perception reads in place of its hardcoded
    distance, and that the renderer's fog overlay reads in phase 7b. One number, so the picture cannot show a window
    different from the one the agent has.

@@ -321,8 +321,10 @@ gets one rule for order: eat the tier one above the chain.
 **Status:** settled and built. What follows from it and is not done:
 
 - The population gives the tier orbs their rewards since 2026-10-12, from `base_reward` and `growth_factor`.
-- The rule assumes the agent sees where the chain is. Without that, a first and a second tier 1 look alike and pay
-differently. Keep the chain position in the observation.
+- The rule assumes the agent knows where the chain is. Where tier orbs return, a first and a second tier 1 look
+alike and pay differently, so the chain position has to be in the observation. In the tier-chain family no tier orb
+returns, the orbs left on the field show where the chain is, and the owner's ablation removed the chain position
+without a loss; see "The kept perceptions observe only what earned its place".
 - In a goal scenario the rule assumes an eaten tier orb does not return in that episode. A tier 1 that breaks a chain
 starts a new one and is paid for it, at once in step-wise and at the ending in threshold. Where orbs respawn that is
 right, because the new chain can be completed. Where a break ends the episode it would pay for a chain that can never
@@ -634,8 +636,9 @@ are unchanged for the goal scenarios, but the bound moves from the old `max_scor
 that needs the steps left (termination, the observation, the HUD, the metrics) reads it from the world it is handed.
 
 **Where:** `WorldConf.max_steps` in `config/models/scenario/common_models.py`; the count is `GridWorld.steps_left`,
-a read-only property. Each action takes a step and a reset restarts it. Since 2026-10-14 the world keeps it, while
-the environment still counts on `ObservationHandler` and hands that count on.
+a read-only property. Each action takes a step and a reset restarts it. Since 2026-10-14 the world keeps it. The
+observation handler's own count went on 2026-10-23; the environment's `step` still reads it and is to read
+`world.steps_left` instead.
 
 **Alternatives considered:**
 
@@ -1234,7 +1237,8 @@ world, and no fully Markovian one. A scenario whose test does not depend on how 
 
 **Where:** not applied. The `Perception` enum in `config/models/scenario/common_models.py` has two values, and the
 only one spatial allows is `vector_fog_of_war`. `PERCEPTIONS` in `gymnasium/observation_space/observation_handler.py`
-names seven classes; the five outside the enum come back in the observation pass.
+names those two, and they are the only perceptions in `src`. The other five are in `legacy/` and are rewritten in the
+observation pass.
 
 **Alternatives considered:**
 
@@ -1252,7 +1256,8 @@ the droid sees the whole grid does not test what the scenario is named for.
 - How the rule is written. Either each locked scenario lists the perceptions it allows, or a perception is split into
   how much the droid sees and how that is encoded, and the scenario fixes the first; see `codebase-ideas.md`. There
   is nothing to choose between until spatial has a second allowed perception.
-- The pixel observation. `GridPixel` is a docstring with no code, and whether it gets a limited view is not decided.
+- The pixel observation. `GridPixel` is a docstring with no code in `legacy/`, and whether it gets a limited view is
+  not decided.
 
 ---
 
@@ -1454,6 +1459,34 @@ not help it. The ablation decided by performance and not by what seemed useful t
 
 **Status:** settled for the two perceptions in the `Perception` enum. The ablation was run before the rebuild, and
 which scenarios, seeds and algorithms it covered is not recorded here. Revisit if a scenario has to be solved from a
-value these perceptions leave out, such as the gathered sum in threshold scoring. The perceptions outside the enum
-still carry the global values, and when they come back in phase 7 this entry is the reason not to add those values
-to the two kept ones by default.
+value these perceptions leave out, such as the gathered sum in threshold scoring. The legacy perceptions outside
+the enum carry the global values, and when they are rewritten in phase 7 this entry is the reason not to add those
+values to the two kept ones by default.
+
+---
+
+## The HUD and the observation share readers and keep their own lists (2026-10-23)
+
+**Decision:** A number the HUD shows and the observation carries is read by the same module-level reader, and each
+consumer lists it in its own tuple: a `HudBar` or `HudStat` in `hud`, a `GlobalFeature` in
+`ObservationRules.global_features`. The readers every scenario can use are in `scenario/blocks/readers.py`; a
+family's own readers sit beside its builder.
+
+**Where:** `scenario/blocks/readers.py`, `scenario/blocks/hud.py`, `scenario/blocks/observation.py`, the family
+builders.
+
+**Alternatives considered:**
+
+- One list that feeds both, with a flag per entry for who sees it. Rejected because the two diverge on purpose: the
+  HUD shows energy, score, steps left and the chain, and the ablation left the observation none of them. The flags
+  would grow with every consumer.
+- A shared base type, a bound and a reader, that a `HudBar` and a `GlobalFeature` both take. Not chosen: it saves two
+  arguments per repeated line and couples the two files. Worth it if a third consumer appears.
+- The shared readers kept in `hud.py`. Rejected because a builder importing a reader from the HUD for a global
+  feature reads as if the observation depended on the HUD.
+
+**Why this one:** The consumers want different things. The HUD needs a label and a bound only for a bar, the
+observation always needs a bound and a fixed order, and score suits the HUD but has no upper bound for a `Box`. The
+repeated line in a builder shows the choice that matters, whether the agent sees the value.
+
+**Status:** settled.
