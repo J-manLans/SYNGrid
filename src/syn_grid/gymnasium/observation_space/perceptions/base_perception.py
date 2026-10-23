@@ -10,6 +10,14 @@ from syn_grid.scenario.blocks.observation import ObservationRules
 
 
 class BasePerception(ABC):
+    """Encodes the world as one observation for the agent.
+
+    An observation is built from the droid's position and a number of orb slots. A filled slot
+    holds the orb's active flag, row, column and identity; an empty slot is all zeros, so no orb
+    reads as one. The slot count, the sort limit and the bounds come from the scenario and the
+    world, and a perception decides which orbs fill the slots and how they are laid out.
+    """
+
     # ================= #
     #        Init       #
     # ================= #
@@ -66,7 +74,8 @@ class BasePerception(ABC):
     def _sort_orbs_by_manhattan_dist_to_droid(
         self, orbs: list[BaseOrb], droid_y: int, droid_x: int
     ) -> list[BaseOrb]:
-        """Sort orbs by distance to droid, inactive orbs go to the bottom"""
+        """Sort orbs by Manhattan distance to the droid, inactive orbs last, and keep the first
+        ``sort_limit``."""
 
         return sorted(
             orbs,
@@ -89,22 +98,9 @@ class BasePerception(ABC):
 
     @abstractmethod
     def get_observation(self, state: GridWorld) -> Any:
-        """
-        Get current observation from the environment.
+        """Encode the world as it is now.
 
-        Returns:
-            An observation for the agent, format depends on concrete implementation
-
-            **CompositePerception**:
-                - Returns Dict[str, np.ndarray]
-                - Each np.ndarray can have any shape (1D, 2D, 3D, HWC, etc.)
-
-            **VectorPerception**:
-                - Returns np.ndarray of shape (N,)
-
-            **SpatialPerception**:
-                - Returns np.ndarray of shape (C, H, W)
-
-        The return type must match the observation_space defined in setup_obs_space().
+        The result fits the space ``setup_obs_space`` returned. A perception fills and returns the
+        same buffer every step, so a caller that keeps two observations must copy them.
         """
         ...

@@ -362,8 +362,8 @@ scales the observation by its upper bound.
 
 ## Phase 7b: The renderer rework
 
-**Produces:** a renderer split by reason to change, a HUD the scenario describes and a theme file draws, and a fog
-overlay that shows what the agent sees.
+**Produces:** a renderer split by reason to change, and a fog overlay that shows what the agent sees. The HUD keeps
+its look and its label matching; the modular HUD in 7c replaces both.
 
 **Files:** `rendering/pygame_renderer.py`, `rendering/world_view.py`, `rendering/hud_view.py`, `rendering/assets/`,
 `runners/human_runner/`, `pyproject.toml`.
@@ -376,29 +376,25 @@ overlay that shows what the agent sees.
 2. Split `pygame_renderer.py` into a coordinator, `world_view.py` and `hud_view.py`, as pure moves. Three modules,
    with no base classes or interfaces.
 3. Move `get_user_action` and its quit handling to the human runner.
-4. The HUD view reads a theme file beside `hud.png`, with named anchor positions in place of the hand-tuned numbers.
-   Each element is drawn by its kind, so the HUD draws the elements a scenario lists and picks none by label. The
-   label matching from phase 5 goes, and with it the energy number drawn under the energy bar, a leftover of
-   legacy's score; the score is drawn from its own element. Bars already fill against `HudBar.maximum` since phase 5.
-5. The world view takes a view radius and dims every cell farther from the droid than that, with the same distance
+4. The world view takes a view radius and dims every cell farther from the droid than that, with the same distance
    the perception uses. The radius is the `ObservationRules` field from phase 7.
 
-**Done when:** a human run looks as before apart from the fog, the HUD can be changed by editing the theme file, and
-the observation and the reward are unchanged.
+**Done when:** a human run looks as before apart from the fog, and the observation and the reward are unchanged.
 
 ---
 
 ## Phase 7c: The modular HUD
 
-**Produces:** a HUD stacked from drawn pieces, so a scenario can list any number of elements and they come out in
-the same style.
+**Produces:** a HUD stacked from drawn pieces and drawn by element kind, so a scenario can list any number of
+elements and they come out in the same style. It replaces the single `hud.png` and the label matching from phase 5.
 
 **Files:** `rendering/hud_view.py`, the HUD theme file and the HUD pieces in `rendering/assets/`.
 
 **Settle first:**
 
 - Where a bar sits. A stack grows in one direction, so a bar across it either lives in a cap at a fixed size or
-  stretches with the stack.
+  stretches with the stack. Another option is a row piece per element kind, a stat row and a bar row, of one width
+  and with the same connector edges, so a bar is a row like any other.
 - What the window does when the HUD and the grid differ in height. The taller of the two sets it.
 
 **Write:**
@@ -409,6 +405,10 @@ the same style.
    Every row reuses the row piece's anchors.
 3. The HUD view stacks the cap, one row per element the scenario lists and the bottom cap, in the order of
    `scenario.hud`.
+4. Each element is drawn by its kind, so the HUD draws the elements a scenario lists and picks none by label. The
+   label matching from phase 5 goes, and with it the energy number drawn under the energy bar, a leftover of
+   legacy's score; the score is drawn from its own element. Bars already fill against `HudBar.maximum` since phase 5.
+   The theme file replaces the hand-tuned numbers in the draw helpers.
 
 **Done when:** a scenario that lists one more element gets one more row with no change to the art, the code or the
 theme file, and the observation and the reward are unchanged.
@@ -434,7 +434,6 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 ## Phase 9: Logging
 
 - The logger reads `scenario.metrics`. Expected to be a localized change.
-- The form of the HUD is settled and is done in phase 7b.
 
 ---
 

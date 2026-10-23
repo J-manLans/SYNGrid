@@ -8,6 +8,9 @@ from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
 
 
 class VectorFogOfWar(BasePerception):
+    """A flat vector of the droid's position and the orbs within one cell of it, diagonals
+    included, nearest first. The slots it does not fill stay empty."""
+
     # ================= #
     #        API        #
     # ================= #

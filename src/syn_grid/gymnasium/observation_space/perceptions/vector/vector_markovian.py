@@ -8,6 +8,8 @@ from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
 
 
 class VectorMarkovian(BasePerception):
+    """A flat vector of the droid's position and every orb on the field, nearest first."""
+
     # ================= #
     #        API        #
     # ================= #

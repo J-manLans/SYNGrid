@@ -1397,7 +1397,9 @@ the first reset.
   2026-10-23: the observation's global features use them too, and a builder importing them from the HUD read as if
   the observation depended on it.
 - **Placement belongs to the renderer.** A scenario says what to show and in what order, never a pixel. The renderer
-  places elements from a theme file that sits beside `hud.png` and names the anchor positions inside the picture.
+  places elements from a theme file that names the anchor positions inside the HUD's pictures. The theme file is
+  written once, for the modular HUD's pieces in phase 7c; the single `hud.png` keeps its hand-tuned numbers until
+  then.
 - **`RendererConf` is gone.** The images are constants in the renderer, the grid size comes from the world and the
   frame rate from the environment's metadata.
 - **The fog overlay** takes a view radius, with the same distance the perception uses, and dims every cell farther
@@ -1468,8 +1470,9 @@ values to the two kept ones by default.
 ## An orb's timer is not observed (2026-10-23)
 
 **Decision:** The agent is not shown how long an orb will stay or how long until it returns. It sees an orb when it is
-on the field, and it does not when it is not. The timer was only in `vector_markovian_easy`, and the owner's ablation
-removed it along with the other values that did not earn their place.
+on the field, and it does not when it is not. In legacy the timer was an option in `vector_markovian_easy` and
+`composite_markovian`, and always written by `composite_grid_markovian`; neither kept perception had it. The owner's
+ablation removed it from the vector observation along with the other values that did not earn their place.
 
 **Where:** the two kept perceptions in `gymnasium/observation_space/perceptions/vector/`. A rewritten perception in
 phase 7 does not get a timer by default.

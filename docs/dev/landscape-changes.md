@@ -151,12 +151,14 @@ against legacy would shift that feature by a step.
 
 ### The observation carries no chain progress and no orb timers
 
-**Change:** Neither kept perception shows the chain's tier or an orb's remaining time. The chain's tier was a global
-value in legacy's perceptions that carried globals, and the timer was an option in `vector_markovian_easy`.
+**Change:** None against legacy's `vector_fog_of_war` and `vector_markovian`, which never carried either. Recorded
+so that a rewritten perception or a continuous scenario does not assume the agent sees them.
 **Touches:** observation
-**Before:** The perceptions outside the enum could carry both, and the ablation before the rebuild removed them from
-the ones that were kept.
-**Now:** The agent sees the droid's position and each orb slot's active flag, row, column and identity.
+**Before:** In legacy the chain's tier was a global value in `vector_markovian_easy` and the composite perceptions,
+and the timer was an option in `vector_markovian_easy` and `composite_markovian` and always in
+`composite_grid_markovian`. The owner's ablation before the rebuild left both out of the vector observation.
+**Now:** The agent sees the droid's position and each orb slot's active flag, row, column and identity, as in legacy's
+kept perceptions. A phase 6 comparison on them shows no difference here.
 **Expected size:** None where one chain lies on the board, since the orbs still there show how far the agent got. It
 matters where tier orbs return, as in a continuous scenario: a stateless agent has no way to know where it is in the
 chain. For the delay scenario the missing timer is the measurement and is on purpose.

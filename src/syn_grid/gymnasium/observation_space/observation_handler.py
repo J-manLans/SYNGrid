@@ -23,6 +23,12 @@ PERCEPTIONS: Final[dict[Perception, type[BasePerception]]] = {
 
 
 class ObservationHandler:
+    """Turns the world into the agent's observation, through the perception the scenario names.
+
+    Attributes:
+        perception: the perception that encodes the world, picked from ``PERCEPTIONS``.
+    """
+
     # ================= #
     #       Init        #
     # ================= #

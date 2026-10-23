@@ -65,11 +65,12 @@ here. A question that is only half answered stays, with what is left of it.
 - **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.**
   See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only kind and tier" in
   `design-decisions.md`.
-- **What the observation shows for an orb that never expires.** A tier orb has no lifespan, so its timer's
-  `remaining` is `None` while it is on the field. Neither perception in `src` writes the timer; legacy's composite
-  perceptions did, and a rewritten one would need a number. A 0, a -1 or a separate flag are the options. Raised on
-  2026-10-18.
-  See: the roadmap's phase 7; "An orb carries its own cool-down and lifespan" in `design-decisions.md`.
+- **What the observation shows for an orb that never expires,** if a rewritten perception brings the timer back.
+  The default is no timer. A tier orb has no lifespan, so its timer's `remaining` is `None` while it is on the field.
+  Neither perception in `src` writes the timer; legacy's composite perceptions did, and a rewritten one would need a
+  number. A 0, a -1 or a separate flag are the options. Raised on 2026-10-18.
+  See: the roadmap's phase 7; "An orb's timer is not observed" and "An orb carries its own cool-down and lifespan"
+  in `design-decisions.md`.
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
   into what the droid sees and how it is encoded, the two halves may belong to different sides.
   See: "Scenario configs live with the scenario, as blocks in the world" in `design-decisions.md`; "A perception is
@@ -85,21 +86,19 @@ here. A question that is only half answered stays, with what is left of it.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
   See: "Two orb categories, and an orb meta that stores only kind and tier" in `design-decisions.md`.
 
-## Phase 7b: The renderer rework
+## Phase 7c: The modular HUD
 
 - **What the renderer is handed about the HUD.** Raised on 2026-10-22. The renderer is handed `scenario.hud` when it
   is built, keeps each bar's maximum by label and picks energy, steps left and the chain by label. The idea is a
   frozen `HudSpec` (a label, a kind and a maximum that is `None` for a stat) in `hud.py`, made from the HUD tuple
   without the readers, so the renderer never holds a reader. Each frame the environment would pass only the numbers,
   in the order of the specs, and the HUD's height could be fixed when the renderer is built. Open: whether it lands
-  before 7b, what a spec carries beyond the three fields (a block type or a size for the modular HUD), and what the
+  before 7c, what a spec carries beyond the three fields (a block type or a size for the modular HUD), and what the
   renderer does with a spec it has no place to draw.
   See: "The renderer takes plain values, and the HUD is the scenario's list" in `design-decisions.md`.
-
-## Phase 7c: The modular HUD
-
 - **Where a bar sits.** A stack grows in one direction, so a bar across it either lives in a cap at a fixed size or
-  stretches with the stack.
+  stretches with the stack. Or a row piece per element kind, a stat row and a bar row, of one width and with the
+  same connector edges, so a bar is a row like any other. Raised on 2026-10-23.
   See: the roadmap's phase 7c.
 - **What the window does when the HUD and the grid differ in height.** The roadmap leans towards the taller of the
   two setting it.
