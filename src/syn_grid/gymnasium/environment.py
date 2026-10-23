@@ -8,7 +8,7 @@ from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
-from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY, LogKey
+from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.scenario.scenario import Scenario
 
@@ -40,7 +40,8 @@ class SYNGridEnv(gym.Env):
         self.render_mode = render_mode
         self.world = scenario.build_world()
         self._hud = scenario.hud
-
+        self._termination = scenario.termination
+        self._metrics = scenario.metrics
 
         if self.render_mode in self.metadata["render_modes"]:
             self.renderer = PygameRenderer(
@@ -84,30 +85,19 @@ class SYNGridEnv(gym.Env):
         return self.obs, {}
 
     def step(self, action: int):
-        # TODO(phase 5): every reward goes through the droid, which keeps energy and score. After
-        # termination.evaluate(world, steps_left), if outcome.terminated:
-        # world.droid.on_termination(outcome.ending_reward), which settles what digestion is owed
-        # and adds the ending's cost. The step's reward is the sum of the two, and the observation,
-        # HUD and metrics are read after.
-        # Settling on truncation is open (open-questions.md).
+        # NOTE: settling on truncation is open (open-questions.md).
         info: dict[str, Any] = {}
 
         # Perform action and adjust variables affected by it
         reward = self.world.perform_droid_action(DroidAction(action))
-        self._observation_handler.steps_left -= 1
-        terminated, truncated, reward = check_episode_end(
-            self.world,
-            self._observation_handler.steps_left,
-            self.delay_mode,
-            self.timeout_penalty,
-            reward,
-        )
+        outcome = self._termination.evaluate(self.world)
 
-        # TODO: this should only emit if csv output is enabled in the agent for evaluation.
-        # So think about how to handle this. Either just keep it (a cheap calculation), or disable
-        # recording in the digestive engine when not enabled
-        if terminated or truncated:
-            info[SYN_STATS_KEY] = self._get_state_info()
+        if outcome.terminated:
+            reward += self.world.droid.on_termination(outcome.ending_reward)
+
+        # The metrics are read after the droid is settled, so they see how the episode ended.
+        if outcome.terminated or outcome.truncated:
+            info[SYN_STATS_KEY] = self._get_episode_metrics()
 
         if self.render_mode in self.metadata["render_modes"]:
             self.render()
@@ -118,8 +108,8 @@ class SYNGridEnv(gym.Env):
         return (
             self.obs,
             reward,
-            terminated,
-            truncated,
+            outcome.terminated,
+            outcome.truncated,
             info,
         )
 
@@ -148,11 +138,5 @@ class SYNGridEnv(gym.Env):
             hud_element.label: hud_element.read(self.world) for hud_element in self._hud
         }
 
-    def _get_state_info(self) -> dict[str, Any]:
-        stats = self.world.droid._digestion_engine.stats
-
-        return {
-            LogKey.CHAINS_BROKEN: stats["chains_broken"],
-            LogKey.CHAIN_PROGRESSED: stats["chains_progressed"],
-            LogKey.CHAINS_COMPLETED: stats["chains_completed"],
-        }
+    def _get_episode_metrics(self) -> dict[str, float]:
+        return {metric.name: metric.read(self.world) for metric in self._metrics}

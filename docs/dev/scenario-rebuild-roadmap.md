@@ -40,7 +40,7 @@ pass adds. The modular HUD (7c) comes after the rework, since it changes the loo
 | `core/grid_world.py` | written (step 6 of phase 3, done 2026-10-19): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` takes an rng and fills the field. `perform_droid_action` is the droid's `take_step` plus what follows from the field: orbs tick, the droid eats one it stands on, expired orbs go, and one ready orb comes back if there is room. The world keeps no list of orbs and asks each one. `orbs_on_field()` replaces the three getters, so `environment.py`'s `render` still calls getters that are gone. Two delay methods are parked in it with a `# TODO(delay)` and still read `self._conf`. It was run in throwaway scripts on the spatial scenario, with and without a negative orb |
 | `core/utils/timer.py`, `core/orbs/base_orb.py`, `tier_orb.py`, `negative_orb.py` | written (steps 1 to 3 of phase 3, done 2026-10-18): a timer set to `None` never completes. An orb takes its own cool-down and lifespan, each a number or `None`, and answers `has_expired()` and `is_ready()`. The class-level `_life_span` is gone. The world asks them since 2026-10-19 |
 | `scenario/blocks/hud.py`, `scenario/blocks/readers.py` | the element types, since 2026-10-21, and the shared readers `energy`, `score` and `steps_left`, in their own file since 2026-10-23. The tier-chain helper lists energy, score, steps left and the chain |
-| `gymnasium/`, `rendering/` | phase 5 started on 2026-10-21; see its state below. The droid and the world import since 2026-10-16. The rest still import the old config and do not import. The environment, `episode_termination.py` and the base perception still read the old engine's `chained_tiers`, `stats` and `_pending_reward` |
+| `gymnasium/`, `rendering/` | phase 5 started on 2026-10-21; see its state below. The environment imports and `check_env` passes on the spatial scenario since 2026-10-23. The CSV logger writes the scenario's metrics |
 | Runners, `env_factory.py` | already take a `Scenario` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
@@ -277,19 +277,21 @@ renderer takes plain values, and the HUD is the scenario's list" in `design-deci
 **Done when:** `python3 -m syn_grid.check_env` passes, random actions stay inside the observation space, and a human
 run plays an episode to each of its endings.
 
-**State on 2026-10-21.** The owner writes this phase by hand.
+**State on 2026-10-23.** The owner writes this phase by hand. What is left is the human run to each ending.
 
 - Step 1 is done: the world has a read-only `grid_dimensions`, `(rows, cols)`, and each caller unpacks it.
-- Step 2 is started. `__init__` takes the scenario, builds the world and keeps `scenario.hud`. `step` still calls
-  `check_episode_end`, from a file that is gone, and decrements and reads the observation handler's `steps_left`,
-  which the handler no longer has since 2026-10-23. The steps left are to come from `world.steps_left`.
+- Step 2 is done since 2026-10-23. `__init__` takes the scenario, builds the world, the renderer and the observation
+  handler, and keeps its HUD, termination and metrics. `step` asks `termination.evaluate(world)`, which reads the
+  steps left from the world, and adds what `droid.on_termination` settles to the last step's reward.
+  `python3 -m syn_grid.check_env` passes, and over 663 random episodes the summed rewards equalled the score.
 - Step 3 was done on 2026-10-16: `episode_termination.py` went in `403e076`.
 - Step 4 is done for the HUD. `scenario/blocks/readers.py` has the shared readers `energy`, `score` and `steps_left`, and
   the tier-chain helper lists energy, score, steps left and the chain. `_get_hud_data` returns every element's value
   under its label. The renderer is handed `scenario.hud` when it is built and keeps each bar's maximum by label, so the
   energy bar fills against `max_energy` and the steps bar against `max_steps`. `_draw_hud` picks `energy`, `steps
-  left` and `current tier chain` by label, under a TODO for 7b. The score element is read and not drawn until 7b, and
-  neither is a new element. The episode info still reads the old engine's `stats`.
+  left` and `current tier chain` by label, under a TODO for 7c. The score element is read and not drawn until 7c, and
+  neither is a new element. Since 2026-10-23 the episode info is the scenario's metrics by name, read after the droid
+  is settled, and the CSV logger takes its columns from the metric names.
 - Step 5 is done. The renderer takes `grid_dimensions` and loads its images from a `_GRAPHIC_RESOURCES` table, taken
   from `87684a8` on `refactor-of-scenario-refactor`. `render` keeps its old signature, and the environment builds
   the old lists from `orbs_on_field()`, all of them active.
@@ -433,7 +435,9 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 
 ## Phase 9: Logging
 
-- The logger reads `scenario.metrics`. Expected to be a localized change.
+- The CSV logger reads `scenario.metrics` since 2026-10-23: the environment puts them in `info` at the end of an
+  episode, and the logger's columns are `RecordEpisodeStatistics`'s `r`, `l` and `t` followed by the metric names.
+  What is left is to check the CSVs of a real training and evaluation run.
 
 ---
 

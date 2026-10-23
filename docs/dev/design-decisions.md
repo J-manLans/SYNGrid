@@ -636,9 +636,8 @@ are unchanged for the goal scenarios, but the bound moves from the old `max_scor
 that needs the steps left (termination, the observation, the HUD, the metrics) reads it from the world it is handed.
 
 **Where:** `WorldConf.max_steps` in `config/models/scenario/common_models.py`; the count is `GridWorld.steps_left`,
-a read-only property. Each action takes a step and a reset restarts it. Since 2026-10-14 the world keeps it. The
-observation handler's own count went on 2026-10-23; the environment's `step` still reads it and is to read
-`world.steps_left` instead.
+a read-only property. Each action takes a step and a reset restarts it. Since 2026-10-14 the world keeps it. Since
+2026-10-23 it is the only count: the observation handler's went, and termination reads `world.steps_left`.
 
 **Alternatives considered:**
 
@@ -1407,7 +1406,7 @@ the first reset.
   renderer. It is added in the observation pass.
 - **The game HUD stays in plain pygame.** pygame_gui is kept for the config GUI, where it fits.
 
-**Where:** `rendering/`, `scenario/blocks/hud.py`, `gymnasium/environment.py`. The work is in phases 5 and 7b of
+**Where:** `rendering/`, `scenario/blocks/hud.py`, `gymnasium/environment.py`. The work is in phases 5, 7b and 7c of
 `scenario-rebuild-roadmap.md`.
 
 **Alternatives considered:**

@@ -40,7 +40,7 @@ class TierChainTermination:
 
     timeout_penalty: float
 
-    def evaluate(self, world: GridWorld, steps_left: int) -> EpisodeOutcome:
+    def evaluate(self, world: GridWorld) -> EpisodeOutcome:
         tier_digester = world.droid.get_digester(TierDigester)
 
         # Gather ending states
@@ -48,7 +48,7 @@ class TierChainTermination:
         chain_ended = (
             tier_digester.chains_broken > 0 or tier_digester.chains_completed > 0
         )
-        out_of_steps = steps_left <= 0
+        out_of_steps = world.steps_left <= 0
 
         # Check if episode ended
         if not (out_of_energy or chain_ended or out_of_steps):

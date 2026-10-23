@@ -51,6 +51,6 @@ class EpisodeOutcome:
 
 
 class TerminationRules(Protocol):
-    def evaluate(self, world: GridWorld, steps_left: int) -> EpisodeOutcome:
+    def evaluate(self, world: GridWorld) -> EpisodeOutcome:
         """Decide whether the episode ends this step, and what the ending adds."""
         ...

@@ -52,11 +52,8 @@ router, built from digesters. The tier digester's base and its three scoring
 modes are written in `digesters/tier_chain/`, and the spatial builder names the
 max-tier one through a `TierDigesterRecipe` in `scenario/blocks/recipes/`.
 The negative digester is written in `digesters/neg_digester.py`, and the
-negative bundle names it. The rest of `core/`, `gymnasium/` and
-`rendering/` still import the old config, so
-`import syn_grid.scenario.registry` works while `import syn_grid.app` and
-`python3 -m syn_grid.check_env` fail. The roadmap expects that until its
-phase 5.
+negative bundle names it. Since 2026-10-23 `import syn_grid.app` works and
+`python3 -m syn_grid.check_env` passes on the spatial scenario.
 
 Phases 1 and 2 of the roadmap are done on the scenario side, and phase 3 is
 done since 2026-10-19: the droid, the world and the orbs take pieces instead of
@@ -69,7 +66,8 @@ left four things written against a core that does not exist yet; the roadmap
 lists them at the end of its phase 2.
 
 Phase 5, the Gymnasium side, started on 2026-10-21, and the owner writes it by
-hand. The roadmap's "State on 2026-10-21" under phase 5 says what is wired. The
+hand. The roadmap's "State on 2026-10-23" under phase 5 says what is wired;
+what is left of it is a human run to each ending. The
 order of the later phases changed the same day: 5, 6, 8, 9, 7, 7b, 7c, 10.
 
 **No file in the working strain is final.** A file can be a stub, half-moved or
@@ -239,9 +237,9 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   Since 2026-10-16 the ending's payout goes to the score alone and leaves
   energy as the episode ended it.
 - The step clock lives in the world. `max_steps` is in `world_conf`, and
-  `GridWorld` takes it and counts down `steps_left`. The observation handler
-  keeps no count since 2026-10-23; `environment.py`'s `step` still decrements
-  and reads the handler's `steps_left`, which is gone.
+  `GridWorld` takes it and counts down `steps_left`. Termination, the HUD and
+  the metrics read it from the world; the observation handler keeps no count
+  since 2026-10-23.
 - Digestion pays for orbs and termination pays for the clock. The tier digester
   pays the orbs, the chain break and the completed chain; termination pays
   `timeout_penalty`. There is no `completion_reward`.
@@ -362,9 +360,9 @@ decisions on this branch:
   runner `tag` and the algorithm, not from the scenario name.
 - **The agent runners import and can be built, and nothing runs past that.**
   On 2026-10-13 `build_runner` made all three from the real configs, each with
-  its run id, its output folders and its policy. `train()` and `eval()` need an
-  environment. `HumanRunner` and `app.py` import `SYNGridEnv`, so they do not
-  import.
+  its run id, its output folders and its policy. `HumanRunner` and `app.py`
+  import since 2026-10-23, when `SYNGridEnv` started to import. `train()`,
+  `eval()` and `HumanRunner.play()` were not run.
 - **`alg` in the runner config is an `Algorithm` enum,** in
   `config/models/runner_models.py`, and the `RUNNER` table in
   `runner_registry.py` is keyed by it. A wrong name fails when the config is
@@ -392,11 +390,11 @@ decisions on this branch:
 - **Scenario config models** are in `config/models/scenario/`: `common_models.py`
   and `orb_models.py`. A family's own models are in its `config.py`.
 - **`core/droid/digestion/engine.py` is the new router.** The droid builds it
-  from the digesters it is handed. `environment.py` still reads the old
-  engine's `stats` and `_pending_reward`, and does not import.
+  from the digesters it is handed. Nothing outside the droid reads it; a
+  reader takes a digester through `droid.get_digester(...)`.
 - **`gymnasium/utils/episode_termination.py` is gone,** deleted on 2026-10-16
-  in `403e076` together with `core/orbs/orb_factory.py`. `environment.py`'s
-  `step` still calls its `check_episode_end`, with no import.
+  in `403e076` together with `core/orbs/orb_factory.py`. The environment asks
+  `scenario.termination` since 2026-10-23.
 - **The renderer takes `grid_dimensions`** and loads its images from a
   `_GRAPHIC_RESOURCES` table, brought back on 2026-10-21 from `87684a8` on
   `refactor-of-scenario-refactor`. Its `render` keeps the old signature, and
@@ -411,9 +409,14 @@ decisions on this branch:
   observation handler imports, and on 2026-10-23 both perceptions stayed inside
   their `Box` on a real spatial world on 5x5, 5x7 and 7x5 grids.
 - **`SYNGridEnv` takes a `Scenario`** since 2026-10-21. Its `__init__` builds
-  the world and the renderer from it and keeps `scenario.hud`. It still does
-  not import: `step` still uses the old termination and the handler's step
-  count.
+  the world, the renderer and the observation handler from it, and keeps its
+  `hud`, `termination` and `metrics`. Since 2026-10-23 `step` takes the
+  droid's reward, asks `termination.evaluate(world)`, adds
+  `droid.on_termination(outcome.ending_reward)` to the reward when the episode
+  is terminated, and at the end of an episode puts the metrics, by name, in
+  `info` under `SYN_STATS_KEY`. Gymnasium's `check_env` and the repo's
+  `check_env` pass. Over 663 random episodes the summed rewards equalled the
+  droid's score in every one. Human mode was not run.
 - **Two scenarios built from the same config compare equal,** since
   `build_world` became a `WorldRecipe` on 2026-10-12.
 - **`WorldRecipe.__call__` has its body since 2026-10-14,** written before the
@@ -425,29 +428,29 @@ decisions on this branch:
   the world are imported at module level since 2026-10-16, and
   `import syn_grid.scenario.registry` still works. On 2026-10-16 and again on
   2026-10-19 calling it on the spatial scenario returned a fresh `GridWorld`
-  with a droid that resets. The world's own `reset` was not run; it still
-  reads `self._conf`.
+  with a droid that resets.
 - **The spatial builder's bundles are complete, and `build_world` joins
   them.** The tier bundle makes the orbs with their rewards and a max-tier
   digester from the config.
 - **`TierChainTermination.evaluate` reads `world.droid.energy` and calls
   `world.droid.get_digester(TierDigester)`,** both on the droid since
   2026-10-16. It was run with a stand-in world around real digesters, before
-  the droid had `get_digester`. It still takes `steps_left` as an argument.
-- **The droid's `on_termination` is written, and nothing calls it yet.** Since
-  2026-10-15 it keeps the score again and settles in `on_termination`, which
-  since 2026-10-16 adds to the score and not to energy. The
-  environment's step, which calls them, is phase 5; its TODO says how. A
-  script ran a threshold episode ending on the clock through the real droid,
-  digesters and termination: the score equalled the summed rewards.
+  the droid had `get_digester`. Since 2026-10-23 `evaluate` takes only the
+  world and reads `world.steps_left`, in the protocol and in the class.
+- **The droid's `on_termination` is called by the environment's `step`**
+  since 2026-10-23, and returns what it adds to the last step's reward. Since
+  2026-10-16 it adds to the score and not to energy. Earlier a script ran a
+  threshold episode ending on the clock through the real droid, digesters and
+  termination: the score equalled the summed rewards. Only max-tier has run
+  through the environment.
 - **A config with a `neg_orb_conf` block builds a `Scenario`.** It gets the
   negative bundle, the `_Neg` tag, a `negatives_eaten` metric and one more orb
   in the field size, the observation slots and the sort limit. Nothing below
   the scenario has run with it.
 - **The world readers in the tier-chain builders** each return a value from
-  `world.droid.get_digester(...)`. They were read from a stand-in world around
-  real digesters, and have not run against the real droid. Pyright was not run
-  after `get_digester` was added.
+  `world.droid.get_digester(...)`. Since 2026-10-23 they run against the real
+  droid, through the HUD and the metrics the environment reads. Pyright was not
+  run after `get_digester` was added.
 - **The HUD is read through `scenario.hud`** since 2026-10-21. The shared
   readers `energy`, `score` and `steps_left` are in `scenario/blocks/readers.py`
   since 2026-10-23, and the tier-chain
@@ -458,8 +461,13 @@ decisions on this branch:
   `HudBar.maximum`, and picks energy, steps left and the chain by label, so the
   score element is read and not drawn. On 2026-10-22 it drew off-screen frames
   from a real spatial world over two episodes.
-  Nothing outside `scenario/` reads `scenario.metrics`: `environment.py` still
-  fills the episode info from the old engine's `stats`.
+- **The CSV logger writes the scenario's metrics** since 2026-10-23.
+  `CSVEpisodeLogger` takes the metric names, and its header is `LogKey`
+  (`r`, `l`, `t`, from `RecordEpisodeStatistics`) followed by them. `LogKey`
+  holds only those three. On 2026-10-23 it wrote a CSV through the real
+  environment for spatial, and with a negative orb, which adds
+  `negatives_eaten`. `plot/plot_utils.py` still names the chain members that
+  were removed from `LogKey`.
 - **The engine and the digesters were only tried in throwaway scripts.** No
   test covers them. The negative digester was fed a stand-in object, not a
   real negative orb.
@@ -471,8 +479,7 @@ decisions on this branch:
   is checked, so it wins an orb on its last tick), expired orbs leave, and one
   ready orb comes back in a random free cell if there is room. The world keeps
   no list of orbs and asks each one `is_active`, `has_expired()` and
-  `is_ready()`. `orbs_on_field()` replaces the three `get_orb_*` getters, so
-  `environment.py`'s `render` still calls getters that are gone. It was run in
+  `is_ready()`. `orbs_on_field()` replaces the three `get_orb_*` getters. It was run in
   throwaway scripts on the spatial scenario, with and without a negative orb,
   and no test covers it. `scenario.build_world()` gives a world that resets and
   steps.

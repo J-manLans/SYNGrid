@@ -6,9 +6,9 @@ SYN_STATS_KEY: Final[str] = "syn_grid_episode"
 
 
 class LogKey(str, Enum):
+    """The episode statistics ``RecordEpisodeStatistics`` records. A scenario's own columns
+    are the names of its metrics."""
+
     REWARD = "r"
     LENGTH = "l"
     TIME = "t"
-    CHAINS_BROKEN = "chains_broken"
-    CHAIN_PROGRESSED = "chain_progressed"
-    CHAINS_COMPLETED = "chains_completed"

@@ -117,7 +117,11 @@ class BaseAgentRunner(ABC):
         """
 
         return CSVEpisodeLogger(
-            env, self._log_dir / sub_dir, self.get_unique_model_id(), env_idx
+            env,
+            self._log_dir / sub_dir,
+            self.get_unique_model_id(),
+            tuple(metric.name for metric in self.scenario.metrics),
+            env_idx,
         )
 
     # --- Video recording ---#
@@ -169,8 +173,7 @@ class BaseAgentRunner(ABC):
         matches = list(dir.glob(file_name))
         if not matches:
             raise FileNotFoundError(
-                f"\nNo model found for path: {file_name}"
-                f"\nIn: {self._save_folder}"
+                f"\nNo model found for path: {file_name}\nIn: {self._save_folder}"
             )
 
         # Multiple matching files may exist, so use the most recently modified one.
