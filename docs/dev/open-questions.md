@@ -49,6 +49,19 @@ here. A question that is only half answered stays, with what is left of it.
   ablation. The question is open for the perceptions rewritten in phase 7.
   See: the roadmap's phase 7; "The kept perceptions observe only what earned its place" and "The HUD and the
   observation share readers and keep their own lists" in `design-decisions.md`.
+- **Whether chain progress is observed where tier orbs return.** In the thesis scenarios one chain lies on the board,
+  so the orbs still there tell the agent how far it got: tier 1 gone and tier 2 on the field means tier 2 is next.
+  That is why dropping chain progress cost nothing. Where tier orbs spawn and despawn, as in a continuous scenario,
+  the field no longer says where the agent is in the chain, and the progress has to come from somewhere.
+  It is a different kind of value from an orb's timer. A timer is about the world, and an agent can learn it by
+  watching. Chain progress is the agent's own history. An LSTM can keep a count in its hidden state, though it has to
+  learn to, and probably slowly. A stateless agent cannot carry anything between steps, so without it the next tier
+  is a guess from the field when several tiers are present. It would do badly, not nothing. Leaving it out would
+  then stop measuring credit assignment and make the task close to unsolvable for one architecture.
+  It goes in `ObservationRules.global_features`, decided per scenario, in phase 7 or when a continuous family is
+  built. Raised on 2026-10-23.
+  See: the roadmap's phase 7; "An orb's timer is not observed" and "The kept perceptions observe only what earned
+  its place" in `design-decisions.md`.
 - **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.**
   See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only kind and tier" in
   `design-decisions.md`.

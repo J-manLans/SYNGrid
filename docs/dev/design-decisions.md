@@ -1465,6 +1465,36 @@ values to the two kept ones by default.
 
 ---
 
+## An orb's timer is not observed (2026-10-23)
+
+**Decision:** The agent is not shown how long an orb will stay or how long until it returns. It sees an orb when it is
+on the field, and it does not when it is not. The timer was only in `vector_markovian_easy`, and the owner's ablation
+removed it along with the other values that did not earn their place.
+
+**Where:** the two kept perceptions in `gymnasium/observation_space/perceptions/vector/`. A rewritten perception in
+phase 7 does not get a timer by default.
+
+**Alternatives considered:**
+
+- Showing the time left on an orb, and for a missing orb the time until it returns. Not chosen: it is more input
+  than the agent needs, and it can learn what happens in the world by watching it.
+
+**Why this one:** The delay scenario tests whether an agent can bridge a gap it cannot see the end of. A countdown in
+the observation would let it read the gap off the input, and the memory question would shrink to almost nothing.
+That would also weaken the comparison in the thesis, where the LSTM's advantage was meant to show in that gap. So in
+delay, withholding the timer is the measurement. The spatial scenario works the same way: the agent has to remember
+what it cannot see and is not told.
+
+Two things follow that are not changed here. An orb that vanishes is only seen to vanish by an agent that compares
+this step with the last, and a stateless agent cannot. That is the stateless-versus-memory difference the benchmark
+measures, so it is not fixed. And chain progress is not a timer: it is the agent's own history, and it is an open
+question in `open-questions.md` for a scenario where tier orbs return.
+
+**Status:** settled for the delay scenario and the two kept perceptions. Not decided for a rewritten perception or a
+continuous scenario beyond that the default is no timer. The owner is not sure the timers will come back.
+
+---
+
 ## The HUD and the observation share readers and keep their own lists (2026-10-23)
 
 **Decision:** A number the HUD shows and the observation carries is read by the same module-level reader, and each

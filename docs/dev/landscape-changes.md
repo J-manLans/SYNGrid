@@ -149,6 +149,20 @@ against legacy would shift that feature by a step.
 **Status:** open, with a `# TODO(phase 7)` in `grid_world.py`.
 **Check:** Phase 7.
 
+### The observation carries no chain progress and no orb timers
+
+**Change:** Neither kept perception shows the chain's tier or an orb's remaining time. The chain's tier was a global
+value in legacy's perceptions that carried globals, and the timer was an option in `vector_markovian_easy`.
+**Touches:** observation
+**Before:** The perceptions outside the enum could carry both, and the ablation before the rebuild removed them from
+the ones that were kept.
+**Now:** The agent sees the droid's position and each orb slot's active flag, row, column and identity.
+**Expected size:** None where one chain lies on the board, since the orbs still there show how far the agent got. It
+matters where tier orbs return, as in a continuous scenario: a stateless agent has no way to know where it is in the
+chain. For the delay scenario the missing timer is the measurement and is on purpose.
+**Status:** on purpose. Chain progress for a continuous scenario is an open question.
+**Check:** When a continuous family is written, or when a perception is rewritten in phase 7.
+
 ### Position bounds are exact
 
 **Change:** The upper bound of a row and a column in the `Box` is `rows - 1` and `cols - 1`, for the droid and for
