@@ -143,33 +143,18 @@ Things the switch depends on:
 - The config schemas differ, so a comparison only means something if both
   config files describe the same world. Compare several seeds per side.
 
-## The reference material
+## The reference
 
-`reference/` at the repo root holds three things.
+The reference is the branch `refactor-of-scenario-refactor`, on `origin` and
+locally. Read a file from it with
+`git show refactor-of-scenario-refactor:src/syn_grid/<path>` or in a temporary
+worktree. "Reading the reference" below lists its traps.
 
-- **`reference/skeleton/scenario/`** is the intended structure of the scenario
-  layer: modules, classes, protocols and signatures, with no logic. The files in
-  `src/syn_grid/scenario/` started as copies of it and have moved on; where the
-  two differ, `src` is the newer one. It still imports the config models from
-  `syn_grid.config.models.common_scenario_models` and has a `utils/helpers.py`;
-  both are gone from `src`.
-- **`reference/syn_grid/`** is a copy of the package from
-  `refactor-of-scenario-refactor`. Its config and runner folders are named
-  `copied-config/` and `copied-runners/`, and it contains an older copy of the
-  skeleton.
-- **`reference/scenario-stubs.patch`** holds the stubs for the block files, the
-  tier-chain population and termination, and the builders. It is committed and
-  its content is in `src`, which has moved on since, so it no longer applies.
-
-Conventions the owner asked for in skeleton files:
-
-- Every function is a signature, a docstring saying what it does or composes,
-  and a `...` body. Ruff's `PIE790` objects to that, so each file carries
-  `# ruff: noqa: PIE790`.
-- Imports use the real package paths (`syn_grid.scenario...`,
-  `syn_grid.core...`), so they resolve to the live modules.
-- Tables that are structure, such as `SCENARIOS`, are filled in.
-- Do not invent Effect orbs or `Cancellation`. They have no implementation.
+A `reference/` folder at the repo root held a copy of that package, the
+skeleton of the scenario layer and the stubs patch. It was removed on
+2026-10-23: the copy matched the branch apart from renames spilled from `src`,
+and `src` had moved past the skeleton and the patch. It is in the history up
+to `2b181e0`.
 
 ## Design direction
 

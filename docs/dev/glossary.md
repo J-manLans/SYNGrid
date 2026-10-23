@@ -162,8 +162,9 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Strain:** one of the two copies of the code. The working strain is `src/syn_grid/`; the legacy strain is the
   frozen copy in `src/syn_grid/legacy/`.
 - **Legacy:** the stable code from before the rebuild. It is a reference and not a target.
-- **Reference:** the `reference/` folder, and the branch `refactor-of-scenario-refactor` it was copied from.
-- **Skeleton:** `reference/skeleton/scenario/`: the intended structure of the scenario layer, with no logic.
+- **Reference:** the branch `refactor-of-scenario-refactor`, read for how things were done and not built on.
+- **Skeleton:** the intended structure of the scenario layer, with no logic, that the files in `src/syn_grid/scenario/`
+  started from. It was kept in a `reference/` folder, removed on 2026-10-23.
 - **Reproduction package:** `reproduction_package/`, the configs and results of the thesis runs.
 - **Phase:** a step of `scenario-rebuild-roadmap.md`.
 

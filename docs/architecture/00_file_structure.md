@@ -6,7 +6,6 @@
 SYNGrid/
 ├── docs/
 ├── output/
-├── reference/
 ├── reproduction_package/
 ├── scripts/
 ├── src/syn_grid/

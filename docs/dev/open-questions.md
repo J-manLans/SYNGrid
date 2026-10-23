@@ -32,7 +32,7 @@ here. A question that is only half answered stays, with what is left of it.
   its own. Raised on 2026-10-12. Since 2026-10-18 the lifespan is a value each orb is handed, so a list is enough;
   the question is closed at step 6 of phase 3.
   See: "An orb carries its own cool-down and lifespan" and "A tier bundle makes its digester from a frozen recipe"
-  in `design-decisions.md`; `reference/syn_grid/core/grid_world.py`.
+  in `design-decisions.md`; `src/syn_grid/core/grid_world.py` on `refactor-of-scenario-refactor`.
 
 ## Phase 5: The Gymnasium side
 
