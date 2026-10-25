@@ -12,6 +12,9 @@ from syn_grid.runners.agent_runners.sb3.execution_strategy import (
     ExecutionStrategy,
 )
 from syn_grid.runners.agent_runners.sb3.policy_resolver import resolve_policy
+from syn_grid.runners.agent_runners.sb3.run_controls_callback import (
+    RunControlsCallback,
+)
 from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
 A = TypeVar("A", bound=BaseAlgorithm)
@@ -60,9 +63,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
         super().__init__(runner_bundle)
         self._execution_strategy = execution_strategy
 
-        policy = resolve_policy(
-            self.scenario.observation.perception, algorithm
-        )
+        policy = resolve_policy(self.scenario.observation.perception, algorithm)
         hyper_parameters = {"policy": policy, **hyper_parameters}
 
         self._artifact_manager: ArtifactManager[A] = ArtifactManager(
@@ -210,16 +211,24 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
     def _train_model(self, model: A, env: VecEnv):
         """Train the model for the configured number of iterations and save progress."""
 
+        debugging_callback = (
+            RunControlsCallback(self._handle_run_controls)
+            if self._train_conf.render_mode == "human"
+            else None
+        )
+
         try:
             for i in range(1, self._train_conf.iterations + 1):
                 model.learn(
                     total_timesteps=self._train_conf.timesteps,
+                    callback=debugging_callback,
                     tb_log_name=self.get_unique_model_id(),
                     reset_num_timesteps=False,
                 )
 
                 self._maybe_save_model(model, env)
-        except KeyboardInterrupt:
+        # SystemExit is Escape or closing the window of a human render.
+        except (KeyboardInterrupt, SystemExit):
             print("Training interrupted")
             # If you interrupt training manually, the model gets saved on that step count
             self._maybe_save_model(model, env)
@@ -250,9 +259,22 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
     def _eval_model(self, env: VecEnv, model: A):
         obs = env.reset()
         try:
-            for _ in range(self._eval_conf.num_eval_episodes):
+            num_episodes = self._eval_conf.num_eval_episodes
+            renderer = (
+                env.get_attr("renderer", indices=0)[0]
+                if self._eval_conf.render_mode == "human"
+                else None
+            )
+
+            for episode in range(1, num_episodes + 1):
+                if renderer is not None:
+                    renderer.set_title(f"SYNGrid · episode {episode}/{num_episodes}")
+
                 self._execution_strategy.reset(env.num_envs)
                 while True:
+                    if renderer is not None:
+                        self._handle_run_controls(renderer)
+
                     action = self._execution_strategy.predict(model, obs)
                     obs, _, dones, _ = env.step(action)
                     self._execution_strategy.on_step(dones)

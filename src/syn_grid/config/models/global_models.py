@@ -7,11 +7,13 @@ from pydantic import BaseModel, Field, model_validator
 #      Helper Types       #
 # ======================= #
 
+
 class ScenarioName(str, Enum):
     GOAL_TIER_CHAIN_SPATIAL = "goal_tier_chain_spatial"
     GOAL_TIER_CHAIN_TIER_SCALING_SPARSE = "goal_tier_chain_tier_scaling_sparse"
     GOAL_TIER_CHAIN_TIER_SCALING_DENSE = "goal_tier_chain_tier_scaling_dense"
     GOAL_TIER_CHAIN_DELAY = "goal_tier_chain_delay"
+
 
 # ======================= #
 #  Nested Configurations  #
@@ -28,9 +30,11 @@ class SnapshotConf(BaseModel, frozen=True, extra="forbid", strict=True):
             raise ValueError("snapshot.id must be set when snapshot is enabled")
         return self
 
+
 # ============================= #
 #    Top-Level Configurations   #
 # ============================= #
+
 
 class GlobalConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """

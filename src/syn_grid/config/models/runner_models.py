@@ -1,4 +1,3 @@
-
 from enum import Enum
 from typing import Annotated, Literal
 
@@ -8,14 +7,17 @@ from pydantic import BaseModel, Field, model_validator
 #      Helper Types       #
 # ======================= #
 
+
 class Algorithm(str, Enum):
     PPO = "PPO"
     FSPPO = "FSPPO"
     RPPO = "RPPO"
 
+
 # ======================= #
 #  Nested Configurations   #
 # ======================= #
+
 
 class CommonConf(BaseModel, frozen=True, extra="forbid", strict=True):
     alg: Annotated[Algorithm, Field(strict=False)]
@@ -67,9 +69,11 @@ class EvalConf(BaseModel, frozen=True, extra="forbid", strict=True):
             raise ValueError("record_video requires render_mode='rgb_array'")
         return self
 
+
 # ============================= #
 #    Top-Level Configurations   #
 # ============================= #
+
 
 class RunnerConf(BaseModel, frozen=True, extra="forbid", strict=True):
     common_conf: CommonConf

@@ -63,7 +63,7 @@ class ConfigManager:
     # ================= #
 
     def _create_yaml_path(self, config_name: str) -> Path:
-        yaml_path = get_syn_grid_path("config", 'yaml', config_name)
+        yaml_path = get_syn_grid_path("config", "yaml", config_name)
 
         if not yaml_path.exists():
             raise FileNotFoundError(f"Config file not found: {yaml_path}")

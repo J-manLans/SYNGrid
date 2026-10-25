@@ -84,7 +84,7 @@ def _single_tier_chain_scenario(
     # The names are the old engine's stats keys. The logger's LogKey comes in phase 9.
     metrics = (
         Metric("chains_broken", _chains_broken),
-        Metric("chains_progressed", _chains_progressed),
+        Metric("chain_progresses", _chain_progresses),
         Metric("chains_completed", _chains_completed),
     )
 
@@ -145,9 +145,9 @@ def _chains_broken(world: GridWorld) -> float:
     return world.droid.get_digester(TierDigester).chains_broken
 
 
-def _chains_progressed(world: GridWorld) -> float:
+def _chain_progresses(world: GridWorld) -> float:
     """How many times a chain has grown by one tier this episode."""
-    return world.droid.get_digester(TierDigester).chains_progressed
+    return world.droid.get_digester(TierDigester).chain_progresses
 
 
 def _chains_completed(world: GridWorld) -> float:
@@ -257,7 +257,9 @@ def build_single_tier_chain_spatial(
     # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
     tier_bundle = _tier_bundle(world_conf.tier_orb_conf, MaxTierDigester)
 
-    return _single_tier_chain_scenario(scenario_name, scenario_tag, scenario_conf, tier_bundle)
+    return _single_tier_chain_scenario(
+        scenario_name, scenario_tag, scenario_conf, tier_bundle
+    )
 
 
 def build_single_tier_chain_scaling_sparse(

@@ -12,7 +12,6 @@ Names that are configured identically share a config class. A name gets its own 
 field the family lacks, and that subclass lives beside the family it departs from.
 """
 
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Generic, TypeVar

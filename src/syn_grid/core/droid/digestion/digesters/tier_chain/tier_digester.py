@@ -62,7 +62,7 @@ class TierDigester(ABC):
         """Clear the chain and the counters, at the start of an episode."""
 
         self._clear_chain()
-        self.chains_progressed = 0
+        self.chain_progresses = 0
         self.chains_broken = 0
         self.chains_completed = 0
 
@@ -91,7 +91,7 @@ class TierDigester(ABC):
             self._clear_chain()
         else:
             reward = self._score_progress(orb)
-            self.chains_progressed += 1
+            self.chain_progresses += 1
             self._grow_chain(tier, orb.REWARD)
 
         return reward

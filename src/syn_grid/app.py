@@ -37,11 +37,9 @@ def main() -> None:
 # ================= #
 
 
-def load_experiment_configs(config_manager: ConfigManager) -> tuple[
-    GlobalConf,
-    ScenarioConf,
-    RunnerConf
-]:
+def load_experiment_configs(
+    config_manager: ConfigManager,
+) -> tuple[GlobalConf, ScenarioConf, RunnerConf]:
     """
     Load the global, scenario, and runner configurations.
 
@@ -53,8 +51,7 @@ def load_experiment_configs(config_manager: ConfigManager) -> tuple[
 
     global_conf = config_manager.load_config("global_config.yaml", GlobalConf)
     scenario_conf = config_manager.load_config(
-        f"{global_conf.scenario.value}.yaml",
-        SCENARIOS[global_conf.scenario].conf_class
+        f"{global_conf.scenario.value}.yaml", SCENARIOS[global_conf.scenario].conf_class
     )
     runner_conf = config_manager.load_config("runner_config.yaml", RunnerConf)
 
@@ -82,8 +79,7 @@ def dispatch(
 
     if global_conf.snapshot.enabled:
         config_manager.save_snapshot(
-            f"{global_conf.scenario.value}.yaml",
-            runner.get_unique_model_id()
+            f"{global_conf.scenario.value}.yaml", runner.get_unique_model_id()
         )
         print("Config snapshot saved. Exiting.")
         return

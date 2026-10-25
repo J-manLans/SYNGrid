@@ -63,6 +63,9 @@ class PygameRenderer:
         self._hud_font = pygame.font.Font(
             get_syn_grid_path("assets", "fonts", "Minecraft.ttf"), 30
         )
+        self._summary_font = pygame.font.Font(
+            get_syn_grid_path("assets", "fonts", "Minecraft.ttf"), 20
+        )
 
         # Initialize assets
         self._init_colors()
@@ -152,6 +155,64 @@ class PygameRenderer:
 
         return action
 
+    def draw_summary(self, summary: dict[str, float]) -> None:
+        """
+        Draws an episode summary over the last frame, one line per entry, in human mode.
+
+        The frame is dimmed and each entry is written as `label: value`, in the order given.
+        """
+
+        self._dim_frame()
+
+        lines = [
+            self._summary_font.render(
+                f"{label}: {round(value, 2)}", True, self._text_clr
+            )
+            for label, value in summary.items()
+        ]
+        self._draw_lines(lines, top=self._grid_offset * 2, centred=False)
+
+        pygame.display.update()
+
+    def draw_pause(self) -> None:
+        """
+        Draws the pause screen over the last frame, in human mode.
+
+        The frame is dimmed and the keys that resume and quit are written at its centre.
+        """
+
+        self._dim_frame()
+
+        lines = [
+            self._hud_font.render("Paused", True, self._text_clr),
+            self._summary_font.render("Space: resume", True, self._text_clr),
+            self._summary_font.render("Escape: quit", True, self._text_clr),
+        ]
+        top = (self.window_size[1] - sum(line.get_height() for line in lines)) // 2
+        self._draw_lines(lines, top=top, centred=True)
+
+        pygame.display.update()
+
+    def set_title(self, title: str) -> None:
+        """Sets the window's title in human mode."""
+
+        if self._render_mode == "human":
+            pygame.display.set_caption(title)
+
+    def wait_for_key(self) -> None:
+        """Blocks until a key is pressed. Escape or closing the window quits."""
+
+        while True:
+            event = pygame.event.wait()
+
+            if event.type == pygame.QUIT or (
+                event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
+            ):
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                return
+
     # ================= #
     #      Helpers      #
     # ================= #
@@ -162,7 +223,7 @@ class PygameRenderer:
         """Sets all the colors the game uses"""
 
         self._background_clr = (26, 26, 26)
-        self._hud_text_clr = (165, 102, 192)
+        self._text_clr = (165, 102, 192)
 
     def _init_vars(self):
         # Sizes of each cell in the grid
@@ -345,7 +406,7 @@ class PygameRenderer:
             y: Top coordinate of the stat's bounding box
         """
 
-        tier_surf = self._hud_font.render(str(stat), True, self._hud_text_clr)
+        tier_surf = self._hud_font.render(str(stat), True, self._text_clr)
 
         # Place it in the hud
         tier_rect = pygame.Rect(x, y, 64, 52)
@@ -353,6 +414,29 @@ class PygameRenderer:
         # Center it inside a rect
         rect = tier_surf.get_rect(center=tier_rect.center)
         self._window_surface.blit(tier_surf, rect)
+
+    def _dim_frame(self) -> None:
+        """Dims what is drawn, so a screen can be written over the last frame."""
+
+        overlay = pygame.Surface(self.window_size, pygame.SRCALPHA)
+        overlay.fill((*self._background_clr, 220))
+        self._window_surface.blit(overlay, (0, 0))
+
+    def _draw_lines(self, lines: list[pygame.Surface], top: int, centred: bool) -> None:
+        """
+        Draws rendered text lines stacked downwards from `top`.
+
+        Each line is centred in the window, or left-aligned at the grid's margin.
+        """
+
+        y = top
+        for line in lines:
+            if centred:
+                rect = line.get_rect(midtop=(self.window_size[0] // 2, y))
+            else:
+                rect = line.get_rect(topleft=(self._grid_offset * 2, y))
+            self._window_surface.blit(line, rect)
+            y += line.get_height()
 
     def _update(self):
         """Refreshes the display and limits FPS"""
