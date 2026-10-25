@@ -85,17 +85,21 @@ class SYNGridEnv(gym.Env):
         return self.obs, {}
 
     def step(self, action: int):
-        # NOTE: settling on truncation is open (open-questions.md).
         info: dict[str, Any] = {}
 
         # Perform action and adjust variables affected by it
         reward = self.world.perform_droid_action(DroidAction(action))
         outcome = self._termination.evaluate(self.world)
 
+        # A truncation is not settled: the learner bootstraps what the droid holds from the last
+        # observation.
         if outcome.terminated:
             reward += self.world.droid.on_termination(outcome.ending_reward)
 
         # The metrics are read after the droid is settled, so they see how the episode ended.
+        # TODO: still think I should only do this if csv output is on. Basically, I will most use
+        # it when evaluating a trained agent, so storing csv data for each training run seems like
+        # unneeded computation for a benchmark that aims at being lightweight.
         if outcome.terminated or outcome.truncated:
             info[SYN_STATS_KEY] = self._get_episode_metrics()
 

@@ -34,15 +34,6 @@ here. A question that is only half answered stays, with what is left of it.
   See: "An orb carries its own cool-down and lifespan" and "A tier bundle makes its digester from a frozen recipe"
   in `design-decisions.md`; `src/syn_grid/core/grid_world.py` on `refactor-of-scenario-refactor`.
 
-## Phase 5: The Gymnasium side
-
-- **Whether the droid settles when a continuous episode is truncated.** A goal scenario never truncates, so today
-  every ending is a termination and calls `on_termination`. At truncation SB3 bootstraps the value of the remaining future from the terminal
-  observation, so paying out what a running chain has gathered there would count it twice: once as reward and once
-  in the bootstrapped value. Leaning towards settling on `terminated` only, which is what the name
-  `on_termination` already says; a truncation would then need its own path only if it pays something. Raised on 2026-10-15.
-  See: `design-decisions.md`, "Energy and score are two numbers, and every reward goes through the droid".
-
 ## Phase 7: The observation pass
 
 - **Which global features an observation carries.** The two kept perceptions carry none, after the owner's
@@ -58,6 +49,9 @@ here. A question that is only half answered stays, with what is left of it.
   learn to, and probably slowly. A stateless agent cannot carry anything between steps, so without it the next tier
   is a guess from the field when several tiers are present. It would do badly, not nothing. Leaving it out would
   then stop measuring credit assignment and make the task close to unsolvable for one architecture.
+  It also matters at truncation. A truncated episode is not settled, so what a running chain holds is paid only
+  through the value SB3 bootstraps from the last observation, and that value can count the chain only if the agent
+  sees it or remembers it. See "A truncated episode settles nothing" in `design-decisions.md`.
   It goes in `ObservationRules.global_features`, decided per scenario, in phase 7 or when a continuous family is
   built. Raised on 2026-10-23.
   See: the roadmap's phase 7; "An orb's timer is not observed" and "The kept perceptions observe only what earned

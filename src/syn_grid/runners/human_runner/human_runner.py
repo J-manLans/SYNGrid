@@ -38,7 +38,7 @@ class HumanRunner:
                 if action is None:
                     continue
 
-                _, _, terminated, truncated, _ = self._env.step(action.value)
+                _, reward, terminated, truncated, _ = self._env.step(action.value)
 
                 if terminated or truncated:
                     break

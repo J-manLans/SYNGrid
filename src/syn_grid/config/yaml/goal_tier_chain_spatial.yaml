@@ -15,7 +15,7 @@ world_conf:
 
   droid_conf:
     max_energy: 50 # what the droid starts with and the most it can hold; the episode ends at 0
-    step_penalty: -0.001
+    step_penalty: -0.001 # TODO: run ablations on this bastard, thing for a single chain scenario it's redundant
     boundary_penalty: -1.0
 
   goal_conf:
@@ -30,8 +30,8 @@ world_conf:
   # A negative orb is optional for this scenario: one orb that spawns, despawns
   # and returns elsewhere. Uncomment and fill in the values to activate it.
   # neg_orb_conf:
-  #   reward:
-  #   cool_down:
+  #   reward: -3
+  #   cool_down: 10
 
 obs_conf:
   observation_handler_conf:

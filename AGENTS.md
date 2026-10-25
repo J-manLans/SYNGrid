@@ -245,6 +245,10 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   end (`undigested`, on the protocol, the gathered sum in threshold
   and 0 elsewhere) is settled by the droid. One termination class serves all
   three modes. The clock is charged only when it alone ended the episode.
+- A truncated episode settles nothing: `on_termination` runs only on
+  `terminated`, because a learner bootstraps the cut-off future from the last
+  observation and a payout there would count what the droid holds twice.
+  Since 2026-10-25.
 - A tier orb is worth `base_reward * tier ** growth_factor`, set on the shared
   `TierOrbConf` and not rounded. Scaling dense has no config classes of its own.
 - Legacy and `reproduction_package/` are references, not targets.

@@ -584,8 +584,8 @@ timeout too, which removes that objection.
 `receive` was named for callers that do not exist: its one use was the ending's cost, and a general door makes "every
 reward goes through the droid" too easy to satisfy. Settling and paying the ending are one event for the droid, and
 one call cannot be made without the other or in the wrong order.
-- `end_episode(...)` as the name. Rejected because it covers truncation as well, where settling is in doubt. A name
-that follows `terminated` means only the case it was made for.
+- `end_episode(...)` as the name. Rejected because it covers truncation as well, where nothing is settled. A name
+that follows `terminated` means only the case it was made for. See "A truncated episode settles nothing".
 - The score kept by the environment, a running sum of the step rewards after termination. Decided on 2026-10-14 and
 reversed on 2026-10-15. The sum was correct, but energy still missed what termination added, so on the last step the
 agent was paid and energy did not move. The terminal observation is not used to bootstrap after `terminated`, so
@@ -616,17 +616,50 @@ that runs out while steps remain. It needs termination to ask whether the clock 
 reads poorly, and it lets a payout change whether the episode ends.
 
 **Status:** settled on 2026-10-15, and written in the droid, the digestion protocol, the engine and the termination.
+What happens at truncation was settled on 2026-10-25; see "A truncated episode settles nothing".
 On that day a script ran a threshold episode ending on the clock through a real droid, real digesters and
 `TierChainTermination`, with a stand-in for `get_digester`: the score equalled the summed step rewards. The
 environment's step is wired in phase 5. Still open:
 
-- Whether anything is settled when a continuous episode is truncated. See `open-questions.md`.
 - `on_termination` is called once per episode. Calling it twice pays the owed sum twice; the droid does not guard
 against it.
 - Continuous changes on purpose when it is rebuilt: the old number could grow without limit, so a droid could bank
 rewards against later penalties. With a cap it can't.
 - In the observation pass, check whether anything scales the observation by its upper bound. The values in that slot
 are unchanged for the goal scenarios, but the bound moves from the old `max_score` to `max_energy`.
+
+---
+
+## A truncated episode settles nothing (2026-10-25)
+
+**Decision:** The droid is settled only when an episode is terminated. On a truncation the environment does not call
+`on_termination`, so what a digester holds (`undigested`) is not paid and termination's `ending_reward` is not
+taken in. Only a continuous scenario truncates, since a goal scenario never does.
+
+**Where:** `step` in `gymnasium/environment.py`, which calls `droid.on_termination` only on `outcome.terminated`.
+
+**Alternatives considered:**
+
+- Settling on either ending. Rejected because it pays what the droid holds twice. Gymnasium's split of `done` into
+  `terminated` and `truncated` exists so that a learner bootstraps from the last observation at a truncation and not
+  at a termination. SB3 does: it adds `gamma * V(terminal_obs)` to the last reward (PPO in
+  `common/on_policy_algorithm.py`, RecurrentPPO in `ppo_recurrent.py`). That value stands for the rest of an episode
+  that would have gone on, which includes using what the droid holds. Paying it out as well counts it once as reward
+  and once in the value.
+- Settling on truncation for a learner that treats it as terminal. Rejected: that learner is wrong about Gymnasium's
+  contract, and paying for it in the environment would double count for every learner that is right.
+- A separate path that pays something on truncation. Not needed: nothing has come up that a truncation should pay.
+
+**Why this one:** A termination is a real end. The state after it is worth 0 and nothing is bootstrapped past it, so
+what the droid holds is paid then or never. A truncation is a cut made for training. The future it cuts off is still
+counted, through the bootstrapped value, and a payout there would make the cut part of the task. An agent that sees
+the clock would learn to hoard towards it, and one that does not would get reward it cannot predict.
+
+The value can count what the droid holds only if the agent sees it or remembers it. That is the open question on
+chain progress in `open-questions.md`, phase 7. Paying at truncation would hide that gap and not close it.
+
+**Status:** settled. Revisit if a continuous scenario has something that should be paid at the cut. A new algorithm
+does not reopen it, but check that it bootstraps at truncation, or it will undervalue what the droid holds.
 
 ---
 
