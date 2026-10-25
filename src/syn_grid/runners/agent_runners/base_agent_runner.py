@@ -13,7 +13,7 @@ from syn_grid.gymnasium.utils.episode_logging.csv_episode_logger import (
 from syn_grid.rendering.pygame_renderer import PygameRenderer
 from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.utils.date_utils import get_date
-from syn_grid.utils.paths_util import get_project_path
+from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
 
 class BaseAgentRunner(ABC):
@@ -202,6 +202,30 @@ class BaseAgentRunner(ABC):
     def _quit() -> None:
         pygame.quit()
         sys.exit()
+
+    # === Sound === #
+
+    def _play_training_stopped_sound(self) -> None:
+        """
+        Play a sound when training stops, so a long run can be left to finish.
+
+        A machine without an audio device skips the sound and says so.
+        """
+
+        try:
+            pygame.mixer.init()
+        except pygame.error as error:
+            print(f"Training stopped. No sound played: {error}")
+            return
+
+        try:
+            sound = pygame.mixer.Sound(
+                f"{get_syn_grid_path('assets', 'sounds')}/training_complete.wav"
+            )
+            sound.play()
+            pygame.time.wait(int(sound.get_length() * 1000))
+        finally:
+            pygame.mixer.quit()
 
     # === Persistence === #
 
