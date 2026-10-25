@@ -1,5 +1,9 @@
-from typing import Any, cast
+import sys
+from typing import Any, Final, cast
 
+import pygame
+
+from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.gymnasium.environment import SYNGridEnv
 from syn_grid.gymnasium.utils.env_factory import make
 from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY
@@ -22,6 +26,13 @@ class HumanRunner:
     #       Init        #
     # ================= #
 
+    _KEY_ACTIONS: Final[dict[int, DroidAction]] = {
+        pygame.K_LEFT: DroidAction(0),
+        pygame.K_DOWN: DroidAction(1),
+        pygame.K_RIGHT: DroidAction(2),
+        pygame.K_UP: DroidAction(3),
+    }
+
     def __init__(self, scenario: Scenario):
         self._scenario = scenario
         self._env = cast(SYNGridEnv, make(scenario, "human").unwrapped)
@@ -37,11 +48,7 @@ class HumanRunner:
             self._env.reset()
 
             while True:
-                action = self._env.renderer.get_user_action()
-
-                if action is None:
-                    continue
-
+                action = self._get_user_action()
                 _, reward, terminated, truncated, info = self._env.step(action.value)
 
                 if terminated or truncated:
@@ -65,4 +72,31 @@ class HumanRunner:
         }
 
         self._env.renderer.draw_summary(summary)
-        self._env.renderer.wait_for_key()
+        self._next_key()
+
+    def _get_user_action(self) -> DroidAction:
+        """Blocks until an arrow key is pressed and returns its action."""
+
+        while True:
+            action = self._KEY_ACTIONS.get(self._next_key())
+
+            if action is not None:
+                return action
+
+    def _next_key(self) -> int:
+        """
+        Blocks until a key is pressed and returns it.
+
+        Escape or closing the window quits. Other input is ignored.
+        """
+
+        while True:
+            event = pygame.event.wait()
+
+            if event.type == pygame.QUIT or (
+                event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
+            ):
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                return event.key

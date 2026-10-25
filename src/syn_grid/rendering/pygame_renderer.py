@@ -1,10 +1,8 @@
-import sys
 from typing import Final
 
 import numpy as np
 import pygame
 
-from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.core.orbs.orb_meta import (
     DirectKind,
     OrbMeta,
@@ -131,30 +129,6 @@ class PygameRenderer:
                 pygame.surfarray.array3d(self._window_surface), axes=(1, 0, 2)
             )
 
-    def get_user_action(self) -> DroidAction | None:
-        """Used when controlling the droid in HumanRunner mode"""
-
-        action = None
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                elif event.key == pygame.K_LEFT:
-                    action = DroidAction(0)
-                elif event.key == pygame.K_DOWN:
-                    action = DroidAction(1)
-                elif event.key == pygame.K_RIGHT:
-                    action = DroidAction(2)
-                elif event.key == pygame.K_UP:
-                    action = DroidAction(3)
-
-        return action
-
     def draw_summary(self, summary: dict[str, float]) -> None:
         """
         Draws an episode summary over the last frame, one line per entry, in human mode.
@@ -198,20 +172,6 @@ class PygameRenderer:
 
         if self._render_mode == "human":
             pygame.display.set_caption(title)
-
-    def wait_for_key(self) -> None:
-        """Blocks until a key is pressed. Escape or closing the window quits."""
-
-        while True:
-            event = pygame.event.wait()
-
-            if event.type == pygame.QUIT or (
-                event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
-            ):
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                return
 
     # ================= #
     #      Helpers      #
