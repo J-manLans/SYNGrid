@@ -155,7 +155,7 @@ class GridWorld:
     # === API === #
 
     # TODO(delay): `_deactivate_all_orbs` and `_reactivate_all_orbs` are used by no one. They move into the delay
-    # scenario when it is built (phase 8, see open-questions.md), which holds the delay. They still read
+    # scenario when it is built (phase 6, see open-questions.md), which holds the delay. They still read
     # `self._conf.delay`, which the world no longer has.
     # def _deactivate_all_orbs(self) -> None:
     #     for orb in self.orbs_on_field():

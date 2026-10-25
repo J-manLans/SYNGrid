@@ -272,7 +272,7 @@ def build_single_tier_chain_scaling_sparse(
     Scoring: max-tier.
     """
 
-    raise NotImplementedError("scaling sparse is phase 8")
+    raise NotImplementedError("scaling sparse is phase 6")
 
 
 def build_single_tier_chain_scaling_dense(
@@ -285,7 +285,7 @@ def build_single_tier_chain_scaling_dense(
     Scoring: threshold.
     """
 
-    raise NotImplementedError("scaling dense is phase 8")
+    raise NotImplementedError("scaling dense is phase 6")
 
 
 def build_single_tier_chain_delay(
@@ -298,4 +298,4 @@ def build_single_tier_chain_delay(
     Scoring: max-tier.
     """
 
-    raise NotImplementedError("delay is phase 8")
+    raise NotImplementedError("delay is phase 6")

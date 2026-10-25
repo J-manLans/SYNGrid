@@ -8,13 +8,6 @@ The route is a vertical slice: get `goal_tier_chain_spatial` running end to end 
 legacy as a reference, and only then widen to the other scenarios. Until phase 5 nothing runs, so each phase before it has its own
 small check.
 
-**Order of work since 2026-10-21:** phase 5, 6, 8, 9, 7, 7b, 7c and then 10. The phase numbers are kept so that the
-references to them stay valid, and they are renumbered in the close-out pass. The observation pass (7) and the
-renderer rework (7b) come late on purpose. The legacy check (6) then runs while the observation is still the legacy
-one, so a difference there comes from the environment or the world, and the observation pass is the only change in
-its step. The renderer rework comes after the observation pass because its fog overlay needs the view radius that
-pass adds. The modular HUD (7c) comes after the rework, since it changes the look that 7b is checked against.
-
 ---
 
 ## Where things stand
@@ -202,7 +195,7 @@ digesters' names follow the digestion metaphor: `undigested()`, `chain_worth` an
 written in five small commits: the world asks its orbs instead of keeping two lists, `orbs_on_field()` replaces the
 three getters, the droid's `perform_action` is `take_step`, `reset` requires an rng, and the delay methods and the
 identity remap carry TODOs. Left over from it: the environment's `render` calls the old getters (phase 9), the
-delay methods move into the delay scenario (phase 8), and the identity remap stays until phase 7.
+delay methods move into the delay scenario (phase 6), and the identity remap stays until phase 7.
 
 **State on 2026-10-18.** Steps 1 to 4 are done, together with the part of step 9 that hands the negative orb its
 lifespan. `Timer` takes `None` as never completing. `BaseOrb` takes a lifespan beside the cool-down, and answers
@@ -250,7 +243,7 @@ from the same config compare equal, and `scenario.build_world()` returns a new w
 ## Phase 5: The Gymnasium side
 
 **Produces:** an environment that runs a `Scenario`, headless and with a human at the keys, on the existing renderer
-and the existing perceptions with the smallest changes that make them run. The rework of both comes in phases 7 and 7b.
+and the existing perceptions with the smallest changes that make them run. The rework of both comes in phases 7 and 8a.
 
 **Files:** `gymnasium/environment.py`, `gymnasium/observation_space/`, `gymnasium/utils/episode_termination.py`
 (removed), `rendering/pygame_renderer.py`, `core/grid_world.py`.
@@ -289,7 +282,7 @@ run plays an episode to each of its endings.
   the single tier chain helper lists energy, score, steps left and the chain. `get_hud_data()` returns every element's value
   under its label. The renderer is handed `scenario.hud` when it is built and keeps each bar's maximum by label, so the
   energy bar fills against `max_energy` and the steps bar against `max_steps`. `_draw_hud` picks `energy`, `steps
-  left` and `current tier chain` by label, under a TODO for 7c. The score element is read and not drawn until 7c, and
+  left` and `current tier chain` by label, under a TODO for 8b. The score element is read and not drawn until 8b, and
   neither is a new element. Since 2026-10-23 the episode info is the scenario's metrics by name, read after the droid
   is settled, and the CSV logger takes its columns from the metric names.
 - Step 5 is done. The renderer takes `grid_dimensions` and loads its images from a `_GRAPHIC_RESOURCES` table, taken
@@ -308,36 +301,71 @@ run plays an episode to each of its endings.
 and checked every ending: a completed chain, a broken chain, the clock running out and energy running out. When an
 episode ends, `HumanRunner` shows a summary over the last frame: each HUD element, the scenario's metrics and the last
 reward, so an ending's payout can be read off the screen.
-The input work done the same day is step 3 of phase 7b; see "Runners own the window's input, the renderer draws, and
+The input work done the same day is step 3 of phase 8a; see "Runners own the window's input, the renderer draws, and
 the env closes the window" in `design-decisions.md`.
 
 ---
 
-## Phase 6: Check against legacy
+## Phase 6: Rebuild, verify and lock the scenarios
 
-**Produces:** evidence that the rebuilt spatial scenario learns in the same general direction as legacy. It runs
-after phase 5 and before the observation pass. Legacy is a reference and not a target, and it is as it was, so its
-numbers are not something to match.
+**Produces:** every scenario of the single tier chain family rebuilt, shown to learn the way it did in the thesis
+era, and then locked. It runs after phase 5 and before the observation pass. Legacy and the thesis runs are
+references and not targets, and they are as they were, so their numbers are not something to match.
 
-1. Train several seeds on the rebuild and compare the shape of the curves with legacy's.
-2. Only if the curves part ways: replay the phase 0 action sequence through the rebuild and diff the observation per
-   step, to find where. Read the size of a difference before calling it behavioural.
+**Do first:** rename the scenarios, the `GOAL_TIER_CHAIN_*` enum members and the `goal_tier_chain_*.yaml` files, so
+spatial's lock and the new builders and YAMLs start with the right names. The names are not chosen yet. The scenario
+name is also the runner's output folder, so saved models and configs are found under the old name only, and the
+rename also reaches the thesis.
+
+It goes in four parts, in this order:
+
+1. **Rebuild** all the scenarios. Spatial is built. The others are listed under "The rest of the family" below.
+2. **Verify** each one against the thesis era. Train several seeds on the rebuild and compare the shape of the curves
+   with legacy's, or with the thesis runs in `reproduction_package/` where legacy has none. The curves come from
+   TensorBoard, so this step does not wait for the logger in phase 9. Only if the curves part ways: replay the
+   phase 0 action sequence through the rebuild and diff the observation per step, to find where. Read the size of a
+   difference before calling it behavioural.
+3. **Lock** each scenario as soon as its own verification is done, so spatial is locked once its remaining seeds
+   have confirmed it. A lock moves the scenario's fixed values from the YAML into its builder; see
+   `codebase-ideas.md`.
+4. **Record a trace** of each locked scenario with the replay probe: one seed, a fixed action sequence, and every
+   observation, reward and termination flag per step. It is the baseline that phase 7 is diffed against. The probe
+   in `scripts/` imports the legacy strain today, so the first lock ports it to take a `Scenario`.
 
 **Known differences to account for:** anything that changed on purpose is in `design-decisions.md`, and the changes
 that could move the observation or the reward are in `landscape-changes.md`. The rewards are
 expected to differ: a completed max-tier chain pays what its orbs are worth, where legacy paid a fixed 10. Set the
 base reward so the two are of similar size before comparing curves.
 
-**Done when:** runs over several seeds learn in the same general direction as legacy: they climb towards their own
-ceiling and the episodes shorten, as legacy's did. Matching legacy's reward, its curves or its observation traces is
-not required; loosened on 2026-10-25. If legacy did not learn in phase 0, this phase shows the same problem and not a
-new one. Spatial is locked when this phase is done.
+**Done when:** every scenario is rebuilt, its runs over several seeds learn in the same general direction as in the
+thesis era (they climb towards their own ceiling and the episodes shorten), and each is locked. Matching the old
+reward, curves or observation traces is not required; loosened on 2026-10-25. If legacy did not learn in phase 0,
+this phase shows the same problem and not a new one.
 
 **State on 2026-10-25: a first result.** The owner trained RPPO on spatial 5x5 with `vector_fog_of_war`, seed 3. The
 mean reward reached about 8.5, against a ceiling of about 9.02 (tiers 1 to 3 worth `1 + 2^1.5 + 3^1.5`, less a step
 penalty of 0.001 a step), with episodes of about 15 steps. The owner reads it as the rebuild reaching what legacy
 reached. Legacy's ceiling is not the same number, so a comparison is of each side's share of its own ceiling and of
 how fast the curves climb, not of the reward level. What is left is more seeds.
+
+### The rest of the family
+
+Moved here from the old phase 8, so that the scenarios are built in the phase that checks them. One at a time.
+
+
+1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
+2. **Negative orb.** One orb in a tier chain. Its digester, population and bundle are written, and the family helper
+   counts it in the field size, the observation slots and the sort limit and names a `negatives_eaten` metric, whose
+   reader is written. Its lifespan is `_reachable_life_span` since 2026-10-18. On 2026-10-25 the owner played it by
+   hand: it spawned, despawned and returned as planned. The same day the owner trained PPO on spatial 5x5 with
+   `vector_markovian` and a negative orb (`reward: -3`, `cool_down: 10`), and it learned, somewhat slower than
+   without one. Before that run, 20,000 random steps with it stayed inside the observation `Box`. CSV was off, so
+   `negatives_eaten` over the run was not read. It does not affect the chain.
+3. **Delay.** Its own termination strategy, and the field going empty for `delay` steps after a consume, the
+   negative orb with it. Where that mechanic lives and how the scenario triggers it is open; nothing in the scenario
+   layer is reserved for it.
+4. **Dense.** The threshold digester is written, and the droid settles what its chain is owed when the episode
+   ends. What is left is its builder.
 
 ---
 
@@ -356,7 +384,12 @@ observation part of the config.
 - What the observation shows for an orb that never expires, for a perception that writes an orb's timer. A tier
   orb's `orb.TIMER.remaining` is `None` while it is on the field. Neither perception in `src` writes the timer.
 
-**Write:**
+The phase has two parts. 7a comes first and 7b builds on it.
+
+### 7a: Align what is there today
+
+The two perceptions in the `Perception` enum, `vector_markovian` and `vector_fog_of_war`, brought in line with the new
+rules. Nothing new is added.
 
 1. The orb identity: where the dense id lives, and whether the radix formula becomes a plain sort on kind and tier.
    `OrbMeta` already stores only kind and tier.
@@ -365,22 +398,50 @@ observation part of the config.
    none, after the owner's ablation; see "The kept perceptions observe only what earned its place" in
    `design-decisions.md`. Chain progress is needed where tier orbs return, since a first and a second tier 1 then
    pay differently and only the chain position tells them apart. In the single tier chain family no tier orb returns.
-3. The other perceptions, rewritten from their copies in `legacy/` against the new rules.
-4. The view radius, a field on `ObservationRules` that the limited-view perception reads in place of its hardcoded
-   distance, and that the renderer's fog overlay reads in phase 7b. One number, so the picture cannot show a window
+3. The view radius, a field on `ObservationRules` that the limited-view perception reads in place of its hardcoded
+   distance, and that the renderer's fog overlay reads in phase 8a. One number, so the picture cannot show a window
    different from the one the agent has.
 
-**Do this as the only change in its step**, and diff the observation against legacy again. Check whether anything
-scales the observation by its upper bound.
+**Do this slowly, one change at a time.** The orb identity, the global features and the view radius each go in on their
+own, as their own commit, and the replay probe is run after each against the trace recorded in phase 6. A difference
+is explained or reverted before the next change starts. The reward must not change at all, since this phase does not
+touch it. Check whether anything scales the observation by its upper bound.
 
-**Done when:** the observation trace matches legacy for spatial, or every difference is explained.
+The probe shows whether the environment answers the same moves the same way, and nothing about learning. When 7a is
+done, train spatial on a seed or two to see that it still learns.
+
+**Done when:** the observation trace differs from the phase 6 trace only where a change was meant to, the reward
+trace is identical, and spatial still learns.
+
+### 7b: New perceptions, one at a time
+
+Two more perceptions, rewritten from their copies in `legacy/` (`composite/` and `spatial/`) against the new rules.
+Each is added alone, checked, and only then is the next one started.
+
+**Settle first:** how an extractor is chosen. Today the policy name comes from the perception and the algorithm in
+`policy_resolver.py`, and the extractor would be a second thing the perception implies.
+
+**Write:**
+
+1. **Composite.** The observation as a dictionary of groups, not one flat vector. SB3 reads a dictionary through
+   `MultiInputPolicy`, whose default extractor flattens every key and joins them, which is little better than the
+   vector. To let the agent process each group on its own, it needs a features extractor of its own.
+   `runners/agent_runners/utils/extractors.py` holds a first one, `GroupedMetaExtractor`, but nothing imports it, it
+   hardcodes two policy names and the observation keys from before the rebuild, and its own TODO says its logic is
+   unchecked. It is rewritten with this step.
+2. **Pixel.** The grid as an image, for a CNN. SB3's default CNN expects larger images than a small grid gives, so
+   it will most likely need a small extractor of its own as well. The same file holds a `TinyGridCNN` that its TODO
+   says trains but is unchecked.
+
+**Done when:** each new perception stays inside its observation space on random steps and an agent trains on it. How
+well it learns is a result and not a requirement.
 
 ---
 
-## Phase 7b: The renderer rework
+## Phase 8a: The renderer rework
 
 **Produces:** a renderer split by reason to change, and a fog overlay that shows what the agent sees. The HUD keeps
-its look and its label matching; the modular HUD in 7c replaces both.
+its look and its label matching; the modular HUD in 8b replaces both.
 
 **Files:** `rendering/pygame_renderer.py`, `rendering/world_view.py`, `rendering/hud_view.py`, `rendering/assets/`,
 `runners/human_runner/`, `pyproject.toml`.
@@ -391,17 +452,20 @@ its look and its label matching; the modular HUD in 7c replaces both.
    `sounds/` stays in `assets/`, since the runner uses it. Add the new folder to the package data. A pure move, in
    its own commit.
 2. Split `pygame_renderer.py` into a coordinator, `world_view.py` and `hud_view.py`, as pure moves. Three modules,
-   with no base classes or interfaces.
+   with no base classes or interfaces. The coordinator keeps the window, the summary and pause screens, the dimming
+   and text helpers, the title and `close()`. The world view takes the floor, the orbs and the droid. The HUD view
+   takes the HUD.
 3. Move `get_user_action` and its quit handling to the human runner. Done on 2026-10-25, together with the summary,
    the pause screen, the window's title and `close()`, which the split in step 2 moves as they are.
 4. The world view takes a view radius and dims every cell farther from the droid than that, with the same distance
-   the perception uses. The radius is the `ObservationRules` field from phase 7.
+   the perception uses. The radius is the `ObservationRules` field from phase 7. A perception with no limited view
+   has no radius, and then the world view draws no overlay.
 
 **Done when:** a human run looks as before apart from the fog, and the observation and the reward are unchanged.
 
 ---
 
-## Phase 7c: The modular HUD
+## Phase 8b: The modular HUD
 
 **Produces:** a HUD stacked from drawn pieces and drawn by element kind, so a scenario can list any number of
 elements and they come out in the same style. It replaces the single `hud.png` and the label matching from phase 5.
@@ -410,6 +474,9 @@ elements and they come out in the same style. It replaces the single `hud.png` a
 
 **Settle first:**
 
+- What the renderer is handed about the HUD: a frozen spec per element, without its reader, with the environment
+  passing only the numbers each frame, or the HUD elements as they are today. See "What the renderer is handed about
+  the HUD" in `open-questions.md`.
 - Where a bar sits. A stack grows in one direction, so a bar across it either lives in a cap at a fixed size or
   stretches with the stack. Another option is a row piece per element kind, a stat row and a bar row, of one width
   and with the same connector edges, so a bar is a row like any other.
@@ -433,50 +500,36 @@ theme file, and the observation and the reward are unchanged.
 
 ---
 
-## Phase 8: The rest of the single tier chain family
-
-One scenario at a time, each held against its thesis runs in `reproduction_package/` as a reference.
-
-1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
-2. **Negative orb.** One orb in a tier chain. Its digester, population and bundle are written, and the family helper
-   counts it in the field size, the observation slots and the sort limit and names a `negatives_eaten` metric, whose
-   reader is written. Its lifespan is `_reachable_life_span` since 2026-10-18. On 2026-10-25 the owner played it by
-   hand: it spawned, despawned and returned as planned. The same day the owner trained PPO on spatial 5x5 with
-   `vector_markovian` and a negative orb (`reward: -3`, `cool_down: 10`), and it learned, somewhat slower than
-   without one. Before that run, 20,000 random steps with it stayed inside the observation `Box`. CSV was off, so
-   `negatives_eaten` over the run was not read. It does not affect the chain.
-3. **Delay.** Its own termination strategy, and the field going empty for `delay` steps after a consume, the
-   negative orb with it. Where that mechanic lives and how the scenario triggers it is open; nothing in the scenario
-   layer is reserved for it.
-4. **Dense.** The threshold digester is written, and the droid settles what its chain is owed when the episode
-   ends. What is left is its builder.
-
----
-
 ## Phase 9: Logging
 
 - The CSV logger reads `scenario.metrics` since 2026-10-23: the environment puts them in `info` at the end of an
   episode, and the logger's columns are `RecordEpisodeStatistics`'s `r`, `l` and `t` followed by the metric names.
   What is left is to check the CSVs of a real training and evaluation run.
+- The `plot/` package becomes a generic helper that a user builds on. It reads a run's CSV, whose columns are the
+  three episode columns plus whatever metrics the scenario names, and a user subclasses it to make the plots their
+  own scenario needs. Today `plot_utils.py` reads `LogKey.CHAIN_PROGRESSED`, `CHAINS_COMPLETED` and `CHAINS_BROKEN`,
+  which no longer exist, and has hardcoded paths evaluated at import. The plots of the thesis scenarios can ship with
+  it as ready-made subclasses, which also serve as examples of how to write one. What the base class looks like is
+  open; see `open-questions.md`.
+
+**Done when:** a plot is made from the CSV of a real run, through a subclass.
 
 ---
 
 ## Phase 10: Close out
 
-- Tests: the owner rebuilds the suite mostly from scratch, against the new structure. The old suite targets the old
-  schema and imports the legacy strain.
-- Renumber the phases in the order they were done, and update every reference to a phase number.
+- Tests: the suite is rebuilt from scratch against the new structure, kept tight and complete, not large. The old
+  suite targets the old schema and imports the legacy strain. The owner wants tooling that shows paths nobody tested,
+  such as branch coverage, and mutation testing to show tests that pass whatever the code does. Which libraries is
+  open.
 - Delete `legacy/` and the `USE_LEGACY` switch once the comparison is no longer needed.
-- Bring `AGENTS.md` and `docs/architecture/` in line with what was built.
-- Lock each scenario once its runs over several seeds learn in the same general direction as legacy: move its fixed
-  values from the YAML into the builder (see `codebase-ideas.md`). Spatial is done ahead of this phase, as soon as its
-  remaining seeds have run, and its perception is fixed with the rest.
-- A naming pass, once everything is wired and legacy is gone, so every part is named in the same pass. The single
-  tier chain family's own names were done early, on 2026-10-25, before phase 8 adds three builders to it. What is
-  left of it is the scenario names, the `GOAL_TIER_CHAIN_*` enum members and `goal_tier_chain_*.yaml`, which also tie
-  the rebuild to saved configs, the output folders and the thesis. The mechanic's names (`digesters/tier_chain/`,
-  `TierChainPopulation`) describe the orbs and stay.
+- A naming pass, once everything is wired and legacy is gone, so every part is named in the same pass. The scenario
+  names are not part of it; they are renamed soon, before phase 6 builds the other scenarios. The family's names were
+  done on 2026-10-25, and the mechanic's names (`digesters/tier_chain/`, `TierChainPopulation`) describe the orbs
+  and stay. No other name is listed for the pass yet.
   See: "The family is named single tier chain" in `design-decisions.md`.
+
+**Done when:** the new test suite passes, `legacy/` and the `USE_LEGACY` switch are gone, and nothing imports them.
 
 ---
 

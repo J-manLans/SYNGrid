@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. Last updated 2026-10-25.
+Guidance for AI agents working in this repository. Last updated 2026-10-26.
 Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
@@ -67,8 +67,7 @@ lists them at the end of its phase 2.
 
 Phase 5, the Gymnasium side, started on 2026-10-21, and the owner wrote it by
 hand. It is done since 2026-10-25, when the owner reached and checked every
-ending by hand; the roadmap's phase 5 says what is wired. The order of the
-later phases changed on 2026-10-21: 5, 6, 8, 9, 7, 7b, 7c, 10.
+ending by hand; the roadmap's phase 5 says what is wired.
 
 State on 2026-10-25: an agent learned spatial through the rebuild. The owner
 trained RPPO on 5x5, seed 3, to a mean reward of about 8.5 against a ceiling
@@ -77,7 +76,15 @@ details and what is not done. The owner played spatial by hand, with and
 without a negative orb, and a PPO run with a negative orb and the full view
 (`vector_markovian`) learned too. The family was renamed `single_tier_chain`, and the
 window work of the same day moved input out of the renderer, which is step 3
-of phase 7b done early.
+of phase 8a done early.
+
+**Reminder for the agent: the scenario names are still `goal_tier_chain_*`.**
+The family was renamed `single_tier_chain` and the scenario names were
+forgotten. The owner wants them renamed soon, before phase 6 builds the other
+scenarios. When the owner starts a session on phase 6, a builder or a YAML,
+say so first and ask for the new names. The rename touches `ScenarioName`, the
+YAML files, `registry.py`, `global_models.py` and `global_config.yaml`, and
+moves the output folder.
 
 **No file in the working strain is final.** A file can be a stub, half-moved or
 about to change shape, and its docstrings describe what it is meant to be, not
@@ -98,6 +105,12 @@ recorded here and in the roadmap's table, and never in a docstring.
   the work creates or moves files and folders.
 - **Audit and discuss before writing anything.** Say what exists, what is
   missing and what you would create, then wait.
+- **Tell the owner to pull before any coding starts.** Sessions can run in a
+  clone that is not the owner's working tree, and the pushed branch and the
+  owner's local branch drift apart. When a discussion is about to turn into
+  writing code or editing files, say once, in plain words, "pull first, then
+  we start", and wait for the owner to confirm. Do this before the first edit
+  of the session, not after. Discussion and reading need no reminder.
 - **Make the work reviewable.** After writing, list each file touched and what
   changed in it, say what was run and what was only read, and name anything
   written against code that does not exist yet. Code the owner has not read is
@@ -244,7 +257,7 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   effect that belongs to an orb kind goes in that kind's digester.
 - Delay tests long-term credit assignment: after a consume the other orbs
   vanish from the observation for `delay` steps and return in the same cells.
-  Where that mechanic lives is open and left for phase 8.
+  Where that mechanic lives is open and left for phase 6.
 - A goal scenario never truncates: running out of steps sets `terminated`.
   `EpisodeOutcome.truncated` defaults to false and is for a continuous
   scenario, where the clock is not a failure.
@@ -280,9 +293,11 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   `build_single_tier_chain_*` builders, `_single_tier_chain_scenario` and
   `SingleTierChainTermination`. The mechanic keeps `tier_chain`
   (`digesters/tier_chain/`, `TierChainPopulation`). The scenario names,
-  `GOAL_TIER_CHAIN_*` and `goal_tier_chain_*.yaml`, are left to the naming pass
-  in phase 10, since the scenario name is also the output folder. Since
-  2026-10-25.
+  `GOAL_TIER_CHAIN_*` and `goal_tier_chain_*.yaml`, are to be renamed soon,
+  before phase 6 builds the other scenarios; the new names are not chosen.
+  The scenario name is also the output folder, so the rename moves where
+  saved models are found. Family renamed 2026-10-25; scenario names left over
+  and brought forward 2026-10-26.
 - A tier bundle's `make_digester` is a `TierDigesterRecipe`: a frozen dataclass
   of the scoring mode's class, `max_tier` and `chain_break_penalty`, in
   `scenario/blocks/recipes/`. It compares by value, which a `partial` does not. The
@@ -523,7 +538,7 @@ decisions on this branch:
 - **Two delay methods are parked in the world.** `_deactivate_all_orbs` and
   `_reactivate_all_orbs` are used by no one and still read `self._conf.delay`,
   which is gone, so Pyright reports one error there. A `# TODO(delay)` says
-  they move into the delay scenario (phase 8).
+  they move into the delay scenario (phase 6).
 - **`scenario/families/continuous/` is an empty package.** It holds only an
   `__init__.py`. No continuous family is written.
 - **Tests import the legacy strain.** On 2026-10-11 collection found 230 tests

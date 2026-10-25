@@ -34,71 +34,7 @@ here. A question that is only half answered stays, with what is left of it.
   See: "An orb carries its own cool-down and lifespan" and "A tier bundle makes its digester from a frozen recipe"
   in `design-decisions.md`; `src/syn_grid/core/grid_world.py` on `refactor-of-scenario-refactor`.
 
-## Phase 7: The observation pass
-
-- **Which global features an observation carries.** The two kept perceptions carry none, after the owner's
-  ablation. The question is open for the perceptions rewritten in phase 7.
-  See: the roadmap's phase 7; "The kept perceptions observe only what earned its place" and "The HUD and the
-  observation share readers and keep their own lists" in `design-decisions.md`.
-- **Whether chain progress is observed where tier orbs return.** In the thesis scenarios one chain lies on the board,
-  so the orbs still there tell the agent how far it got: tier 1 gone and tier 2 on the field means tier 2 is next.
-  That is why dropping chain progress cost nothing. Where tier orbs spawn and despawn, as in a continuous scenario,
-  the field no longer says where the agent is in the chain, and the progress has to come from somewhere.
-  It is a different kind of value from an orb's timer. A timer is about the world, and an agent can learn it by
-  watching. Chain progress is the agent's own history. An LSTM can keep a count in its hidden state, though it has to
-  learn to, and probably slowly. A stateless agent cannot carry anything between steps, so without it the next tier
-  is a guess from the field when several tiers are present. It would do badly, not nothing. Leaving it out would
-  then stop measuring credit assignment and make the task close to unsolvable for one architecture.
-  It also matters at truncation. A truncated episode is not settled, so what a running chain holds is paid only
-  through the value SB3 bootstraps from the last observation, and that value can count the chain only if the agent
-  sees it or remembers it. See "A truncated episode settles nothing" in `design-decisions.md`.
-  It goes in `ObservationRules.global_features`, decided per scenario, in phase 7 or when a continuous family is
-  built. Raised on 2026-10-23.
-  See: the roadmap's phase 7; "An orb's timer is not observed" and "The kept perceptions observe only what earned
-  its place" in `design-decisions.md`.
-- **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.**
-  See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only kind and tier" in
-  `design-decisions.md`.
-- **What the observation shows for an orb that never expires,** if a rewritten perception brings the timer back.
-  The default is no timer. A tier orb has no lifespan, so its timer's `remaining` is `None` while it is on the field.
-  Neither perception in `src` writes the timer; legacy's composite perceptions did, and a rewritten one would need a
-  number. A 0, a -1 or a separate flag are the options. Raised on 2026-10-18.
-  See: the roadmap's phase 7; "An orb's timer is not observed" and "An orb carries its own cool-down and lifespan"
-  in `design-decisions.md`.
-- **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
-  into what the droid sees and how it is encoded, the two halves may belong to different sides.
-  See: "Scenario configs live with the scenario, as blocks in the world" in `design-decisions.md`; "A perception is
-  two things" in `codebase-ideas.md`.
-- **How "the perceptions that make sense for a scenario" is written.** Either each locked scenario lists the
-  perceptions it allows, or a perception is split into two settings and the scenario fixes how much the droid sees.
-  Spatial is out of it, since its perception is fixed since 2026-10-25.
-  See: "A locked scenario offers the perceptions that make sense for it" in `design-decisions.md`.
-- **Whether the pixel observation gets a limited view, and which kind.** `GridPixel` is a docstring with no code in
-  `legacy/`, and is not in `src`. A
-  crop of the window loses the droid's position; the full grid with the rest blacked out keeps it.
-  See: "A perception is two things" in `codebase-ideas.md`.
-- **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
-  See: "Two orb categories, and an orb meta that stores only kind and tier" in `design-decisions.md`.
-
-## Phase 7c: The modular HUD
-
-- **What the renderer is handed about the HUD.** Raised on 2026-10-22. The renderer is handed `scenario.hud` when it
-  is built, keeps each bar's maximum by label and picks energy, steps left and the chain by label. The idea is a
-  frozen `HudSpec` (a label, a kind and a maximum that is `None` for a stat) in `hud.py`, made from the HUD tuple
-  without the readers, so the renderer never holds a reader. Each frame the environment would pass only the numbers,
-  in the order of the specs, and the HUD's height could be fixed when the renderer is built. Open: whether it lands
-  before 7c, what a spec carries beyond the three fields (a block type or a size for the modular HUD), and what the
-  renderer does with a spec it has no place to draw.
-  See: "The renderer takes plain values, and the HUD is the scenario's list" in `design-decisions.md`.
-- **Where a bar sits.** A stack grows in one direction, so a bar across it either lives in a cap at a fixed size or
-  stretches with the stack. Or a row piece per element kind, a stat row and a bar row, of one width and with the
-  same connector edges, so a bar is a row like any other. Raised on 2026-10-23.
-  See: the roadmap's phase 7c.
-- **What the window does when the HUD and the grid differ in height.** The roadmap leans towards the taller of the
-  two setting it.
-  See: the roadmap's phase 7c.
-
-## Phase 8: The rest of the single tier chain family
+## Phase 6: Build, verify and lock the scenarios
 
 - **Where delay's mechanic lives, and how a scenario triggers it.** Delay tests long-term credit assignment by
   stretching the time between the moments the droid can act on an orb. When the droid eats an orb, every other orb
@@ -145,11 +81,7 @@ here. A question that is only half answered stays, with what is left of it.
   finished `Scenario`. Delay also has its own termination, so this is settled together with the helper's other
   parameters.
 
-## Phase 9: Logging
-
-Nothing open yet. The logger reads `scenario.metrics`.
-
-## Phase 10: Locking a scenario
+### Locking a scenario
 
 All of these are to settle with the first scenario that is locked, which is spatial once its remaining seeds have
 run.
@@ -170,13 +102,89 @@ See: "A locked scenario loads a small model, and its builder makes the full conf
   its perception is fixed. The negative orb would be a yes or no, since its `reward` and `cool_down` are fixed
   values.
 
+## Phase 7: The observation pass
+
+- **Which global features an observation carries.** The two kept perceptions carry none, after the owner's
+  ablation. The question is open for the perceptions rewritten in phase 7.
+  See: the roadmap's phase 7; "The kept perceptions observe only what earned its place" and "The HUD and the
+  observation share readers and keep their own lists" in `design-decisions.md`.
+- **Whether chain progress is observed where tier orbs return.** In the thesis scenarios one chain lies on the board,
+  so the orbs still there tell the agent how far it got: tier 1 gone and tier 2 on the field means tier 2 is next.
+  That is why dropping chain progress cost nothing. Where tier orbs spawn and despawn, as in a continuous scenario,
+  the field no longer says where the agent is in the chain, and the progress has to come from somewhere.
+  It is a different kind of value from an orb's timer. A timer is about the world, and an agent can learn it by
+  watching. Chain progress is the agent's own history. An LSTM can keep a count in its hidden state, though it has to
+  learn to, and probably slowly. A stateless agent cannot carry anything between steps, so without it the next tier
+  is a guess from the field when several tiers are present. It would do badly, not nothing. Leaving it out would
+  then stop measuring credit assignment and make the task close to unsolvable for one architecture.
+  It also matters at truncation. A truncated episode is not settled, so what a running chain holds is paid only
+  through the value SB3 bootstraps from the last observation, and that value can count the chain only if the agent
+  sees it or remembers it. See "A truncated episode settles nothing" in `design-decisions.md`.
+  It goes in `ObservationRules.global_features`, decided per scenario, in phase 7 or when a continuous family is
+  built. Raised on 2026-10-23.
+  See: the roadmap's phase 7; "An orb's timer is not observed" and "The kept perceptions observe only what earned
+  its place" in `design-decisions.md`.
+- **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.**
+  See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only kind and tier" in
+  `design-decisions.md`.
+- **What the observation shows for an orb that never expires,** if a rewritten perception brings the timer back.
+  The default is no timer. A tier orb has no lifespan, so its timer's `remaining` is `None` while it is on the field.
+  Neither perception in `src` writes the timer; legacy's composite perceptions did, and a rewritten one would need a
+  number. A 0, a -1 or a separate flag are the options. Raised on 2026-10-18.
+  See: the roadmap's phase 7; "An orb's timer is not observed" and "An orb carries its own cool-down and lifespan"
+  in `design-decisions.md`.
+- **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
+  into what the droid sees and how it is encoded, the two halves may belong to different sides.
+  See: "Scenario configs live with the scenario, as blocks in the world" in `design-decisions.md`; "A perception is
+  two things" in `codebase-ideas.md`.
+- **How "the perceptions that make sense for a scenario" is written.** Either each locked scenario lists the
+  perceptions it allows, or a perception is split into two settings and the scenario fixes how much the droid sees.
+  Spatial is out of it, since its perception is fixed since 2026-10-25.
+  See: "A locked scenario offers the perceptions that make sense for it" in `design-decisions.md`.
+- **Whether the pixel observation gets a limited view, and which kind.** `GridPixel` is a docstring with no code in
+  `legacy/`, and is not in `src`. A
+  crop of the window loses the droid's position; the full grid with the rest blacked out keeps it.
+  See: "A perception is two things" in `codebase-ideas.md`.
+- **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
+  See: "Two orb categories, and an orb meta that stores only kind and tier" in `design-decisions.md`.
+
+## Phase 8b: The modular HUD
+
+- **What the renderer is handed about the HUD.** Raised on 2026-10-22. The renderer is handed `scenario.hud` when it
+  is built, keeps each bar's maximum by label and picks energy, steps left and the chain by label. The idea is a
+  frozen `HudSpec` (a label, a kind and a maximum that is `None` for a stat) in `hud.py`, made from the HUD tuple
+  without the readers, so the renderer never holds a reader. Each frame the environment would pass only the numbers,
+  in the order of the specs, and the HUD's height could be fixed when the renderer is built. Open: whether it lands
+  before 8b, what a spec carries beyond the three fields (a block type or a size for the modular HUD), and what the
+  renderer does with a spec it has no place to draw.
+  See: "The renderer takes plain values, and the HUD is the scenario's list" in `design-decisions.md`.
+- **Where a bar sits.** A stack grows in one direction, so a bar across it either lives in a cap at a fixed size or
+  stretches with the stack. Or a row piece per element kind, a stat row and a bar row, of one width and with the
+  same connector edges, so a bar is a row like any other. Raised on 2026-10-23.
+  See: the roadmap's phase 8b.
+- **What the window does when the HUD and the grid differ in height.** The roadmap leans towards the taller of the
+  two setting it.
+  See: the roadmap's phase 8b.
+
+## Phase 9: Logging
+
+- **What the plot helper's base class looks like.** Raised on 2026-10-26. The `plot/` package is meant to be a generic
+  helper that a user subclasses for the plots their scenario needs, with the thesis scenarios' plots as ready-made
+  subclasses. Open: what the base class owns (reading the CSV, smoothing, saving the figure) and what a subclass
+  states (which columns and how to draw them), whether it takes its paths as arguments, and where the thesis plots
+  live.
+  See: the roadmap's phase 9.
+
+The logger reads `scenario.metrics`.
+
 ## Not tied to a phase
 
 - **What the single tier chain scenarios are called.** The family's own names became `single_tier_chain` on
   2026-10-25. The scenario names are still `goal_tier_chain_*`: the `ScenarioName` members and the YAML files. A
   rename moves the output folder, since the scenario name is the runner's save folder, so saved models are found
-  under the old name only. Left to the naming pass at the end of the rebuild. Raised on 2026-10-18.
-  See: the roadmap's phase 10; "The family is named single tier chain" in `design-decisions.md`.
+  under the old name only. To be done soon, before phase 6 builds the other scenarios, and not left to the naming
+  pass at the end; the new names are not chosen. Raised on 2026-10-18, brought forward on 2026-10-26.
+  See: the roadmap's phase 6; "The family is named single tier chain" in `design-decisions.md`.
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox scenario. It is written as a reservation
   inside an entry marked settled. The sandbox is not on the roadmap.
   See: "A new scoring mode is a new scenario" in `design-decisions.md`.

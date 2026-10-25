@@ -967,15 +967,16 @@ chain`. The scenario names are unchanged: the `GOAL_TIER_CHAIN_*` members of `Sc
 the mechanic's code could not be told apart by name.
 - `single_chain`. Rejected because it leaves out which chain. A later family with another kind of chain, laid out
 whole, would collide with it, where `single_tier_chain` and, say, `single_color_chain` sit side by side.
-- Waiting for the naming pass in phase 10, as planned on 2026-10-18. Not chosen: phase 8 adds three builders and
+- Waiting for the naming pass in phase 10, as planned on 2026-10-18. Not chosen: phase 6 adds three builders and
 their YAMLs to the family, so a rename then would cost four times what it costs now.
 
 **Why this one:** The guarantee and the mechanic together name the family, and each half can vary on its own: a
 `multi_tier_chain` or a `single_color_chain` reads at once as what differs.
 
-**Status:** done for the family's own names. The scenario names are left to the naming pass in phase 10, because the
+**Status:** done for the family's own names. The scenario names were left to the naming pass in phase 10, because the
 scenario name is also the output folder (`scenario_name` is the runner's save folder), so renaming it moves where
-saved models are found.
+saved models are found. Brought forward on 2026-10-26: they are renamed soon, before phase 6 builds the other
+scenarios, for the same reason the family was.
 
 ---
 
@@ -1467,7 +1468,7 @@ the first reset.
   the observation depended on it.
 - **Placement belongs to the renderer.** A scenario says what to show and in what order, never a pixel. The renderer
   places elements from a theme file that names the anchor positions inside the HUD's pictures. The theme file is
-  written once, for the modular HUD's pieces in phase 7c; the single `hud.png` keeps its hand-tuned numbers until
+  written once, for the modular HUD's pieces in phase 8b; the single `hud.png` keeps its hand-tuned numbers until
   then.
 - **`RendererConf` is gone.** The images are constants in the renderer, the grid size comes from the world and the
   frame rate from the environment's metadata.
@@ -1476,7 +1477,7 @@ the first reset.
   renderer. It is added in the observation pass.
 - **The game HUD stays in plain pygame.** pygame_gui is kept for the config GUI, where it fits.
 
-**Where:** `rendering/`, `scenario/blocks/hud.py`, `gymnasium/environment.py`. The work is in phases 5, 7b and 7c of
+**Where:** `rendering/`, `scenario/blocks/hud.py`, `gymnasium/environment.py`. The work is in phases 5, 8a and 8b of
 `scenario-rebuild-roadmap.md`.
 
 **Alternatives considered:**
@@ -1507,7 +1508,7 @@ Rejected along the way: generic slots painted into one picture, filled in order,
 picture that gives only the frame with the slots drawn in code, which moves the look out of the art.
 
 **Status:** settled. Phase 5's part is written since 2026-10-23: plain values, `scenario.hud`, no `RendererConf`.
-The theme file, the fog overlay and the modular HUD are in phases 7b and 7c.
+The theme file, the fog overlay and the modular HUD are in phases 8a and 8b.
 
 ---
 
@@ -1561,7 +1562,7 @@ so it reads them. Stopping and closing use what the frameworks already have: SB3
 training, and Gymnasium's `close()` for the window, which then closes the same way however a run ends.
 
 **Status:** settled and written on 2026-10-25. The owner tried human play, eval and training with a human renderer.
-It does step 3 of phase 7b ahead of time.
+It does step 3 of phase 8a ahead of time.
 
 ---
 

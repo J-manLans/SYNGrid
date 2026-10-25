@@ -318,7 +318,7 @@ class PygameRenderer:
         self._draw_steps_bar(hud_data["steps left"], hud_rect)
 
         # --- Current tier chain --- #
-        # TODO(phase 7c): drawn by kind instead of picked by label, since it is scenario specific
+        # TODO(phase 8b): drawn by kind instead of picked by label, since it is scenario specific
         chained_tiers = hud_data["current tier chain"]
         if chained_tiers > -1:
             self._draw_hud_stat(

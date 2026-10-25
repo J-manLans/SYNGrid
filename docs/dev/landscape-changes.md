@@ -37,7 +37,7 @@ reached it.
 **Expected size:** Small. Only an orb with a lifespan can expire, so in the single tier chain family it is the negative orb.
 The droid now pays its penalty in a case where it used to escape it.
 **Status:** on purpose.
-**Check:** Phase 8 with the negative orb. Phase 6 if legacy spatial ran with one at all; if it did not, this never
+**Check:** Phase 6, with the negative orb, and with spatial if legacy ran it with one at all; if it did not, this never
 reaches the comparison.
 
 ### The negative orb returns in a single chain
