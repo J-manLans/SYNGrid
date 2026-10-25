@@ -98,7 +98,7 @@ here. A question that is only half answered stays, with what is left of it.
   two setting it.
   See: the roadmap's phase 7c.
 
-## Phase 8: The rest of the tier-chain family
+## Phase 8: The rest of the single tier chain family
 
 - **Where delay's mechanic lives, and how a scenario triggers it.** Delay tests long-term credit assignment by
   stretching the time between the moments the droid can act on an orb. When the droid eats an orb, every other orb
@@ -140,7 +140,7 @@ here. A question that is only half answered stays, with what is left of it.
   discussed to a decision.
 
 - **How a builder adds what only its scenario shows.** Raised on 2026-10-21 for delay's countdown on the HUD. The
-  family's own elements are listed in `_tier_chain_scenario`. Passing a builder's extras in as a parameter, as the
+  family's own elements are listed in `_single_tier_chain_scenario`. Passing a builder's extras in as a parameter, as the
   tier bundle is, keeps the helper the one place a scenario is composed. The other option is a `replace` on the
   finished `Scenario`. Delay also has its own termination, so this is settled together with the helper's other
   parameters.
@@ -170,10 +170,11 @@ See: "A locked scenario loads a small model, and its builder makes the full conf
 
 ## Not tied to a phase
 
-- **What the tier chain family and its scenarios are called.** Every scenario in the family is a single chain, laid
-  out whole, so `single_chain` may describe it better than `tier_chain`, which is also the mechanic's name. Left to
-  one naming pass at the end of the rebuild. Raised on 2026-10-18.
-  See: the roadmap's phase 10; "Every scenario in the tier chain family is a single chain" in `design-decisions.md`.
+- **What the single tier chain scenarios are called.** The family's own names became `single_tier_chain` on
+  2026-10-25. The scenario names are still `goal_tier_chain_*`: the `ScenarioName` members and the YAML files. A
+  rename moves the output folder, since the scenario name is the runner's save folder, so saved models are found
+  under the old name only. Left to the naming pass at the end of the rebuild. Raised on 2026-10-18.
+  See: the roadmap's phase 10; "The family is named single tier chain" in `design-decisions.md`.
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox scenario. It is written as a reservation
   inside an entry marked settled. The sandbox is not on the roadmap.
   See: "A new scoring mode is a new scenario" in `design-decisions.md`.

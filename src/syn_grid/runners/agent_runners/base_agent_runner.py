@@ -1,4 +1,3 @@
-import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -163,24 +162,33 @@ class BaseAgentRunner(ABC):
 
     # === Run controls === #
 
-    def _handle_run_controls(self, renderer: PygameRenderer) -> None:
+    def _handle_run_controls(self, renderer: PygameRenderer) -> bool:
         """
         Read the window's input between two steps of a run with a human renderer.
 
         Space pauses the run and shows the pause screen until Space is pressed again. Escape or
         closing the window quits, paused or not. Any other input is ignored.
+
+        Returns:
+            Whether the player quit, so the run stops.
         """
 
         for event in pygame.event.get():
             if self._is_quit_event(event):
-                self._quit()
+                return True
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 # What was pressed before the pause is dropped, so nothing acts after resuming.
-                self._pause(renderer)
-                return
+                return self._pause(renderer)
 
-    def _pause(self, renderer: PygameRenderer) -> None:
-        """Show the pause screen and block until Space resumes or the player quits."""
+        return False
+
+    def _pause(self, renderer: PygameRenderer) -> bool:
+        """
+        Show the pause screen and block until Space resumes or the player quits.
+
+        Returns:
+            Whether the player quit instead of resuming.
+        """
 
         renderer.draw_pause()
 
@@ -188,20 +196,15 @@ class BaseAgentRunner(ABC):
             event = pygame.event.wait()
 
             if self._is_quit_event(event):
-                self._quit()
+                return True
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                return
+                return False
 
     @staticmethod
     def _is_quit_event(event: pygame.event.Event) -> bool:
         return event.type == pygame.QUIT or (
             event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
         )
-
-    @staticmethod
-    def _quit() -> None:
-        pygame.quit()
-        sys.exit()
 
     # === Sound === #
 

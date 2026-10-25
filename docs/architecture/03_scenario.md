@@ -19,7 +19,7 @@ scenario/
 ├── families/
 │   ├── continuous/
 │   └── goal/
-│       ├── tier_chain/
+│       ├── single_tier_chain/
 │       │   ├── builders.py
 │       │   ├── config.py
 │       │   └── termination.py
@@ -33,7 +33,7 @@ This package holds three different things. `scenario.py` and `blocks/` are the
 of. `registry.py` is the **selection**: the `SCENARIOS` table, whose entry gives
 a scenario name its config class and its builder. `families/` is the
 **construction**: under a group such as `goal/`, a family folder such as
-`tier_chain/` holds its config models in `config.py`, its own implementation
+`single_tier_chain/` holds its config models in `config.py`, its own implementation
 of the termination interface in `termination.py`, and, in `builders.py`, the
 builders that turn a config into a `Scenario`.
 
@@ -56,7 +56,7 @@ the orbs and collects the digesters without asking which kinds they are.
 `build_scenario` looks the scenario name up in `SCENARIOS`. The entry checks
 that the config it is given is its config class, then runs the builder, once at
 startup. Each environment then calls `scenario.build_world()` for a world of
-its own. Four tier-chain names are registered. `build_tier_chain_spatial`
+its own. Four single tier chain names are registered. `build_single_tier_chain_spatial`
 returns a `Scenario`, and the other three builders raise `NotImplementedError`.
 Its bundles make the orbs and the digesters, and two scenarios built from the
 same config compare equal. Its termination and its world readers are written,

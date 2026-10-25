@@ -34,7 +34,7 @@ Leave out a change that only moves code.
 **Before:** The expiry was checked first, so the droid got nothing and the orb went. It looked as if the droid had
 reached it.
 **Now:** The contact check comes first, so the droid is paid.
-**Expected size:** Small. Only an orb with a lifespan can expire, so in the tier chain family it is the negative orb.
+**Expected size:** Small. Only an orb with a lifespan can expire, so in the single tier chain family it is the negative orb.
 The droid now pays its penalty in a case where it used to escape it.
 **Status:** on purpose.
 **Check:** Phase 8 with the negative orb. Phase 6 if legacy spatial ran with one at all; if it did not, this never

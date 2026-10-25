@@ -109,6 +109,7 @@ syn_grid/
 │   │   │   ├── frame_stack_ppo.py
 │   │   │   ├── lstm_ppo.py
 │   │   │   ├── policy_resolver.py
+│   │   │   ├── run_controls_callback.py
 │   │   │   └── stateless_ppo.py
 │   │   ├── utils/
 │   │   │   └── extractors.py
@@ -136,7 +137,7 @@ syn_grid/
 │   ├── families/
 │   │   ├── continuous/
 │   │   └── goal/
-│   │       ├── tier_chain/
+│   │       ├── single_tier_chain/
 │   │       │   ├── builders.py
 │   │       │   ├── config.py
 │   │       │   └── termination.py

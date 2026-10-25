@@ -20,17 +20,21 @@ class RunControlsCallback(BaseCallback):
     Reads the window's input after every training step, through the runner's run controls.
 
     For a training run with a human renderer, which has a single env. The renderer is taken
-    from that env when training starts.
+    from that env when training starts. When the player quits, the callback ends
+    `model.learn()` the way SB3 provides, by returning False, and `stopped` says so.
     """
 
-    def __init__(self, handle_run_controls: Callable[[PygameRenderer], None]):
+    def __init__(self, handle_run_controls: Callable[[PygameRenderer], bool]):
         super().__init__()
         self._handle_run_controls = handle_run_controls
         self._renderer: PygameRenderer
+        self.stopped: bool
 
     def _on_training_start(self) -> None:
         self._renderer = self.training_env.get_attr("renderer", indices=0)[0]
+        self.stopped = False
 
     def _on_step(self) -> bool:
-        self._handle_run_controls(self._renderer)
-        return True
+        player_quit = self._handle_run_controls(self._renderer)
+        self.stopped = player_quit
+        return not player_quit

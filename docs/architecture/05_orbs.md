@@ -33,7 +33,7 @@ scenario/blocks/
 │   └── tier_chain_population.py
 └── orb_bundle.py
 
-scenario/families/goal/tier_chain/
+scenario/families/goal/single_tier_chain/
 └── config.py
 ```
 

@@ -26,8 +26,8 @@ pass adds. The modular HUD (7c) comes after the rework, since it changes the loo
 | `blocks/observation.py`, `termination.py`, `blocks/populations/population.py` | written: the rules dataclass and the two protocols. A population has `create` and `count` |
 | `blocks/populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
 | `blocks/populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It hands the orb a lifespan, which the builder states |
-| `families/goal/tier_chain/termination.py` | written: the four endings, what the chain is owed, and the timeout penalty. It reads `energy` and `get_digester(...)` from the droid |
-| `families/goal/tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
+| `families/goal/single_tier_chain/termination.py` | written: the four endings, what the chain is owed, and the timeout penalty. It reads `energy` and `get_digester(...)` from the droid |
+| `families/goal/single_tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
 | `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Its body builds the droid and the world, and returns a `GridWorld` for the spatial scenario since 2026-10-16 |
 | `blocks/recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
@@ -39,14 +39,14 @@ pass adds. The modular HUD (7c) comes after the rework, since it changes the loo
 | `core/droid/synergy_droid.py` | written (step 5 of phase 3, done 2026-10-16): takes its digesters, the grid and `max_energy`, `step_penalty` and `boundary_penalty` as values, builds its engine and keeps it private, and holds energy and score, which are first set in `reset`. Every reward goes through it: `on_termination(ending_reward)` takes in what digestion has left undigested and what the ending costs or pays, adds them to the score and leaves energy alone. `get_digester(...)` gives a reader a digester by class |
 | `core/grid_world.py` | written (step 6 of phase 3, done 2026-10-19): the constructor takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, and the world keeps the step clock as `steps_left`. `reset` takes an rng and fills the field. `perform_droid_action` is the droid's `take_step` plus what follows from the field: orbs tick, the droid eats one it stands on, expired orbs go, and one ready orb comes back if there is room. The world keeps no list of orbs and asks each one. `orbs_on_field()` replaces the three getters, so `environment.py`'s `render` still calls getters that are gone. Two delay methods are parked in it with a `# TODO(delay)` and still read `self._conf`. It was run in throwaway scripts on the spatial scenario, with and without a negative orb |
 | `core/utils/timer.py`, `core/orbs/base_orb.py`, `tier_orb.py`, `negative_orb.py` | written (steps 1 to 3 of phase 3, done 2026-10-18): a timer set to `None` never completes. An orb takes its own cool-down and lifespan, each a number or `None`, and answers `has_expired()` and `is_ready()`. The class-level `_life_span` is gone. The world asks them since 2026-10-19 |
-| `scenario/blocks/hud.py`, `scenario/blocks/readers.py` | the element types, since 2026-10-21, and the shared readers `energy`, `score` and `steps_left`, in their own file since 2026-10-23. The tier-chain helper lists energy, score, steps left and the chain |
-| `gymnasium/`, `rendering/` | phase 5 started on 2026-10-21; see its state below. The environment imports and `check_env` passes on the spatial scenario since 2026-10-23. The CSV logger writes the scenario's metrics |
-| Runners, `env_factory.py` | already take a `Scenario` |
+| `scenario/blocks/hud.py`, `scenario/blocks/readers.py` | the element types, since 2026-10-21, and the shared readers `energy`, `score` and `steps_left`, in their own file since 2026-10-23. The single tier chain helper lists energy, score, steps left and the chain |
+| `gymnasium/`, `rendering/` | phase 5 started on 2026-10-21; see its state below. The environment imports and `check_env` passes on the spatial scenario since 2026-10-23. The CSV logger writes the scenario's metrics. Since 2026-10-25 the renderer reads no input: it draws a frame, an episode summary and the pause screen, sets the window's title, and is closed through the environment's `close()` |
+| Runners, `env_factory.py` | take a `Scenario`. Training and eval ran on the spatial scenario on 2026-10-25; see phase 6. `HumanRunner` reads its own keys and shows a summary when an episode ends. Eval and training with a human renderer share run controls in `BaseAgentRunner`, training through `RunControlsCallback` |
 | Legacy strain | in `src/syn_grid/legacy/`, switched by `USE_LEGACY` in `__main__.py` |
 
 `import syn_grid.scenario.registry` works and `build_scenario` returns the spatial `Scenario`. Two scenarios built
 from the same config compare equal. `scenario.build_world()` returns a `GridWorld` since 2026-10-16, which resets and steps since 2026-10-19. `import syn_grid.app` and
-`python3 -m syn_grid.check_env` fail until phase 5.
+`python3 -m syn_grid.check_env` work since 2026-10-23, and an agent learned spatial through the rebuild on 2026-10-25.
 
 ---
 
@@ -102,10 +102,10 @@ three cases that raise; nothing in the test suite covers it.
 
 ## Phase 2: The blocks the spatial builder names
 
-**Produces:** the pieces a `Scenario` is made of, for the tier-chain family.
+**Produces:** the pieces a `Scenario` is made of, for the single tier chain family.
 
 **Files:** `scenario/blocks/termination.py`, `observation.py`; `scenario/blocks/populations/`;
- `scenario/families/goal/tier_chain/termination.py`.
+ `scenario/families/goal/single_tier_chain/termination.py`.
 
 **Write:**
 
@@ -129,12 +129,12 @@ world state in each of its four endings.
 around real digesters in all three scoring modes. No test covers any of it. What the phase wrote against things that
 do not exist yet, and so hands to phase 3:
 
-- `TierChainTermination` reads `world.droid.energy` and calls `world.droid.get_digester(...)`. The droid has
+- `SingleTierChainTermination` reads `world.droid.energy` and calls `world.droid.get_digester(...)`. The droid has
   neither, so a type checker reports both.
 - `TierChainPopulation` gives its tier orbs a cool-down of `None`, and `BaseOrb` does not act on it. No orb is
   handed a lifespan.
 - `WorldRecipe` holds `max_active_orbs`, and its body raises.
-- The five world readers in the tier-chain builders call `world.droid.get_digester(...)`. They were written on
+- The five world readers in the single tier chain builders call `world.droid.get_digester(...)`. They were written on
   2026-10-13, after the phase was closed, as the part of phase 4 that could be done early.
 
 ---
@@ -144,12 +144,12 @@ do not exist yet, and so hands to phase 3:
 **Produces:** a world, a droid and orbs that are handed what they need.
 
 **Files:** `core/droid/synergy_droid.py`, `core/grid_world.py`, `core/orbs/`, `core/utils/timer.py`; on the scenario
-side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain builders.
+side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the single tier chain builders.
 
 **Write:**
 
 1. Droid: energy and score as two numbers; takes its digesters and the grid size. It keeps its engine to itself and
-   gives a reader a digester by class through `get_digester(...)`. `TierChainTermination` already reads `energy` and
+   gives a reader a digester by class through `get_digester(...)`. `SingleTierChainTermination` already reads `energy` and
    calls `get_digester`.
 2. World: takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid; counts the steps of an episode. It fills the
    field at reset and brings back an orb that is ready when there is room. When it counts,
@@ -171,11 +171,11 @@ side `blocks/populations/`, `blocks/recipes/world_recipe.py` and the tier-chain 
 | 6 | `core/grid_world.py` | takes the grid, `max_active_orbs`, `max_steps`, the orbs and the droid, counts the steps, fills the field at reset, and asks its orbs each step |
 | 7 | `core/orbs/orb_factory.py` | deleted, once the world no longer imports it. Done 2026-10-16, in `403e076` |
 | 8 | `scenario/blocks/recipes/world_recipe.py` | the body of `__call__`, the last piece of phase 4. Done 2026-10-14, written before the droid; run on the spatial scenario on 2026-10-16 and 2026-10-19, where it returns a fresh `GridWorld` per call |
-| 9 | `scenario/families/goal/tier_chain/builders.py` | pass the negative orb's lifespan to its population, since it follows from the grid size. Done 2026-10-18, with `_reachable_life_span` |
+| 9 | `scenario/families/goal/single_tier_chain/builders.py` | pass the negative orb's lifespan to its population, since it follows from the grid size. Done 2026-10-18, with `_reachable_life_span` |
 
 - The orbs come first because they import nothing that is broken, so they can be tried alone.
 - The droid comes before the world because the world is handed a droid. With `energy` and `get_digester` on the
-  droid, the type errors in the tier-chain termination and builders go away.
+  droid, the type errors in the single tier chain termination and builders go away.
 - The recipe's body comes last because it calls the constructors that steps 5 and 6 define.
 - At step 6, `steps_left` can leave `TerminationRules.evaluate`, and the open question of orbs or populations is
   settled. With a lifespan per orb from step 2, a list of orbs is enough.
@@ -207,7 +207,7 @@ delay methods move into the delay scenario (phase 8), and the identity remap sta
 **State on 2026-10-18.** Steps 1 to 4 are done, together with the part of step 9 that hands the negative orb its
 lifespan. `Timer` takes `None` as never completing. `BaseOrb` takes a lifespan beside the cool-down, and answers
 `has_expired()` and `is_ready()`. `TierOrb` and `NegativeOrb` pass the lifespan through, and both populations take it
-as a field. The tier-chain builders state it: `_tier_bundle` hands `None` to the tier orbs beside their `None` cool-down, since
+as a field. The single tier chain builders state it: `_tier_bundle` hands `None` to the tier orbs beside their `None` cool-down, since
 every scenario in the family lays the whole chain out at once, and `_negative_bundle` gets
 `_reachable_life_span(rows, cols)`. Next is step 6, the world: it still ticks
 the timers and tests `is_completed()` itself, and should ask `has_expired()` and `is_ready()` instead.
@@ -225,7 +225,7 @@ The observation, the HUD and the episode info are read after that, and read the 
 
 **Produces:** a `Scenario` for spatial.
 
-**Files:** `scenario/families/goal/tier_chain/builders.py`.
+**Files:** `scenario/families/goal/single_tier_chain/builders.py`.
 
 **Done on 2026-10-11:** the config is in line with the digesters. The reward ladder is one formula on the shared
 `TierOrbConf`, `completion_reward` is gone from the models, the termination, the builder and the spatial YAML, and
@@ -233,9 +233,9 @@ dense has no config classes of its own.
 
 **Write:**
 
-1. `build_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, and a
+1. `build_single_tier_chain_spatial`: the tag and the tier bundle (tier orbs with their rewards, and a
    `TierDigesterRecipe` that makes a max-tier digester from `max_tier` and `chain_break_penalty`). Written.
-2. `_tier_chain_scenario`: what the family shares.
+2. `_single_tier_chain_scenario`: what the family shares.
 3. The body of `WorldRecipe.__call__` in `scenario/blocks/recipes/world_recipe.py`. The recipe itself is written,
    and the family helper holds one as `build_world`. The body calls the droid's and the world's constructors, so it
    is written last in phase 3.
@@ -286,7 +286,7 @@ run plays an episode to each of its endings.
   `python3 -m syn_grid.check_env` passes, and over 663 random episodes the summed rewards equalled the score.
 - Step 3 was done on 2026-10-16: `episode_termination.py` went in `403e076`.
 - Step 4 is done for the HUD. `scenario/blocks/readers.py` has the shared readers `energy`, `score` and `steps_left`, and
-  the tier-chain helper lists energy, score, steps left and the chain. `_get_hud_data` returns every element's value
+  the single tier chain helper lists energy, score, steps left and the chain. `get_hud_data()` returns every element's value
   under its label. The renderer is handed `scenario.hud` when it is built and keeps each bar's maximum by label, so the
   energy bar fills against `max_energy` and the steps bar against `max_steps`. `_draw_hud` picks `energy`, `steps
   left` and `current tier chain` by label, under a TODO for 7c. The score element is read and not drawn until 7c, and
@@ -303,6 +303,12 @@ run plays an episode to each of its endings.
   position bounds became exact (`rows - 1`, `cols - 1`), the handler stopped counting steps and `get_observation`
   takes only the world. `ObservationRules` lost `max_steps` and `max_tier`, which nothing read. On 2026-10-23 both
   perceptions stayed inside their `Box` over 3,000 random steps on 5x5, 5x7 and 7x5 spatial worlds.
+
+**State on 2026-10-25.** The owner played the spatial scenario by hand, with and without a negative orb. When an
+episode ends, `HumanRunner` shows a summary over the last frame: each HUD element, the scenario's metrics and the last
+reward, so an ending's payout can be read off the screen. Which endings were reached by hand is not recorded here.
+The input work done the same day is step 3 of phase 7b; see "Runners own the window's input, the renderer draws, and
+the env closes the window" in `design-decisions.md`.
 
 ---
 
@@ -323,6 +329,13 @@ base reward so the two are of similar size before comparing curves.
 **Done when:** the observation traces match, or every difference is explained, and the rebuild's curves are no worse
 than legacy's within seed noise. If legacy did not learn in phase 0, this phase shows the same problem and not a new
 one.
+
+**State on 2026-10-25: a first result.** The owner trained RPPO on spatial 5x5 with `vector_fog_of_war`, seed 3. The
+mean reward reached about 8.5, against a ceiling of about 9.02 (tiers 1 to 3 worth `1 + 2^1.5 + 3^1.5`, less a step
+penalty of 0.001 a step), with episodes of about 15 steps. The owner reads it as the rebuild reaching what legacy
+reached. Legacy's ceiling is not the same number, so a comparison is of each side's share of its own ceiling and of
+how fast the curves climb, not of the reward level. Not done: the replay diff, more seeds, an eval with CSV for the
+completion rate, and the legacy curves beside it.
 
 ---
 
@@ -349,7 +362,7 @@ observation part of the config.
    its bound and a reader from `scenario/blocks/readers.py` or the family's builder. The two kept perceptions carry
    none, after the owner's ablation; see "The kept perceptions observe only what earned its place" in
    `design-decisions.md`. Chain progress is needed where tier orbs return, since a first and a second tier 1 then
-   pay differently and only the chain position tells them apart. In the tier-chain family no tier orb returns.
+   pay differently and only the chain position tells them apart. In the single tier chain family no tier orb returns.
 3. The other perceptions, rewritten from their copies in `legacy/` against the new rules.
 4. The view radius, a field on `ObservationRules` that the limited-view perception reads in place of its hardcoded
    distance, and that the renderer's fog overlay reads in phase 7b. One number, so the picture cannot show a window
@@ -377,7 +390,8 @@ its look and its label matching; the modular HUD in 7c replaces both.
    its own commit.
 2. Split `pygame_renderer.py` into a coordinator, `world_view.py` and `hud_view.py`, as pure moves. Three modules,
    with no base classes or interfaces.
-3. Move `get_user_action` and its quit handling to the human runner.
+3. Move `get_user_action` and its quit handling to the human runner. Done on 2026-10-25, together with the summary,
+   the pause screen, the window's title and `close()`, which the split in step 2 moves as they are.
 4. The world view takes a view radius and dims every cell farther from the droid than that, with the same distance
    the perception uses. The radius is the `ObservationRules` field from phase 7.
 
@@ -417,14 +431,16 @@ theme file, and the observation and the reward are unchanged.
 
 ---
 
-## Phase 8: The rest of the tier-chain family
+## Phase 8: The rest of the single tier chain family
 
 One scenario at a time, each held against its thesis runs in `reproduction_package/` as a reference.
 
 1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
 2. **Negative orb.** One orb in a tier chain. Its digester, population and bundle are written, and the family helper
    counts it in the field size, the observation slots and the sort limit and names a `negatives_eaten` metric, whose
-   reader is written. What is left is its lifespan and running it. It does not affect the chain.
+   reader is written. Its lifespan is `_reachable_life_span` since 2026-10-18. On 2026-10-25 the owner played it by
+   hand: it spawned, despawned and returned as planned. What is left is a training run with it. It does not affect
+   the chain.
 3. **Delay.** Its own termination strategy, and the field going empty for `delay` steps after a consume, the
    negative orb with it. Where that mechanic lives and how the scenario triggers it is open; nothing in the scenario
    layer is reserved for it.
@@ -450,13 +466,12 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 - Bring `AGENTS.md` and `docs/architecture/` in line with what was built.
 - Lock the scenarios that have reproduced their legacy results: move their fixed values from the YAML into the
   builder (see `codebase-ideas.md`).
-- A naming pass, once everything is wired and legacy is gone, so every part is named in the same pass. The tier
-  chain family is the case in point: what it guarantees is that it is a single chain, laid out whole. Its names echo
-  `tier_chain` at three levels. The family's own (the folder, the four `build_tier_chain_*` builders,
-  `_tier_chain_scenario` and `TierChainTermination`) are the cheap ones. The scenario names (the
-  `GOAL_TIER_CHAIN_*` enum members and `goal_tier_chain_*.yaml`) also tie the rebuild to saved configs and the
-  thesis. The mechanic's names (`digesters/tier_chain/`, `TierChainPopulation`) describe the orbs and stay.
-  See: "Every scenario in the tier chain family is a single chain" in `design-decisions.md`.
+- A naming pass, once everything is wired and legacy is gone, so every part is named in the same pass. The single
+  tier chain family's own names were done early, on 2026-10-25, before phase 8 adds three builders to it. What is
+  left of it is the scenario names, the `GOAL_TIER_CHAIN_*` enum members and `goal_tier_chain_*.yaml`, which also tie
+  the rebuild to saved configs, the output folders and the thesis. The mechanic's names (`digesters/tier_chain/`,
+  `TierChainPopulation`) describe the orbs and stay.
+  See: "The family is named single tier chain" in `design-decisions.md`.
 
 ---
 

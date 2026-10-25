@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI agents working in this repository. Last updated 2026-10-21.
+Guidance for AI agents working in this repository. Last updated 2026-10-25.
 Trust the code over this file, and say so when they disagree.
 
 ## Where things stand
@@ -69,6 +69,14 @@ Phase 5, the Gymnasium side, started on 2026-10-21, and the owner writes it by
 hand. The roadmap's "State on 2026-10-23" under phase 5 says what is wired;
 what is left of it is a human run to each ending. The
 order of the later phases changed the same day: 5, 6, 8, 9, 7, 7b, 7c, 10.
+
+State on 2026-10-25: an agent learned spatial through the rebuild. The owner
+trained RPPO on 5x5, seed 3, to a mean reward of about 8.5 against a ceiling
+of about 9.02, with episodes of about 15 steps; the roadmap's phase 6 has the
+details and what is not done. The owner played spatial by hand, with and
+without a negative orb. The family was renamed `single_tier_chain`, and the
+window work of the same day moved input out of the renderer, which is step 3
+of phase 7b done early.
 
 **No file in the working strain is final.** A file can be a stub, half-moved or
 about to change shape, and its docstrings describe what it is meant to be, not
@@ -261,13 +269,19 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   and no kind. The populations hand each orb both, `BaseOrb` acts on `None` in
   either (its timer never completes) and answers `has_expired()` and
   `is_ready()`. Since 2026-10-18.
-- Every scenario in the tier chain family is a single chain: the whole chain is
-  laid out at once and left until it is eaten, whatever `max_tier` is. The
-  family states once, in `_tier_bundle`, that its tier orbs have no cool-down and
-  no lifespan, and no scenario in it can change that. The negative orb's
-  lifespan is `_reachable_life_span(rows, cols)`, the longest walk between two
-  cells. The family's names (`tier_chain`) are left to one naming pass at the
-  end of the rebuild.
+- Every scenario in the single tier chain family is a single chain: the whole
+  chain is laid out at once and left until it is eaten, whatever `max_tier` is.
+  The family states once, in `_tier_bundle`, that its tier orbs have no
+  cool-down and no lifespan, and no scenario in it can change that. The negative
+  orb's lifespan is `_reachable_life_span(rows, cols)`, the longest walk between
+  two cells.
+- The family is named `single_tier_chain`: its folder, the
+  `build_single_tier_chain_*` builders, `_single_tier_chain_scenario` and
+  `SingleTierChainTermination`. The mechanic keeps `tier_chain`
+  (`digesters/tier_chain/`, `TierChainPopulation`). The scenario names,
+  `GOAL_TIER_CHAIN_*` and `goal_tier_chain_*.yaml`, are left to the naming pass
+  in phase 10, since the scenario name is also the output folder. Since
+  2026-10-25.
 - A tier bundle's `make_digester` is a `TierDigesterRecipe`: a frozen dataclass
   of the scoring mode's class, `max_tier` and `chain_break_penalty`, in
   `scenario/blocks/recipes/`. It compares by value, which a `partial` does not. The
@@ -306,6 +320,14 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - Human play is not an agent runner. `app.main` runs `HumanRunner` and returns
   before an agent runner is built, and human control overrides the snapshot and
   the runner config with no check.
+- The renderer reads no input. `HumanRunner` reads its own keys and shows a
+  summary when an episode ends. Agent runs with a human renderer share run
+  controls in `BaseAgentRunner` (Space pauses, Escape or the close button
+  quits), eval directly and training through `RunControlsCallback`. Quitting
+  returns instead of raising: the run controls return whether the player quit,
+  eval returns from its loop, and the callback returns False from `_on_step`,
+  SB3's way to end `learn()`, after which training saves. `SYNGridEnv.close()`
+  closes the window in each runner's `finally`. Since 2026-10-25.
 - Episode state is first set in `reset`, not in `__init__`, so reading it
   before the first reset raises instead of running an episode that did not
   start where it should. The droid follows it; the other layers are aligned
@@ -347,11 +369,12 @@ decisions on this branch:
 
 - **Run ids** come from perception, seed, `scenario.scenario_tag`, the optional
   runner `tag` and the algorithm, not from the scenario name.
-- **The agent runners import and can be built, and nothing runs past that.**
-  On 2026-10-13 `build_runner` made all three from the real configs, each with
-  its run id, its output folders and its policy. `HumanRunner` and `app.py`
-  import since 2026-10-23, when `SYNGridEnv` started to import. `train()`,
-  `eval()` and `HumanRunner.play()` were not run.
+- **The runners run.** On 2026-10-13 `build_runner` made all three agent
+  runners from the real configs. `HumanRunner` and `app.py` import since
+  2026-10-23. On 2026-10-25 the owner trained PPO and RPPO on spatial 5x5,
+  evaluated the PPO model, and played spatial by hand. FrameStackPPO was not
+  run. Training with `csv_output` on was not run, so no CSV of a real run has
+  been read.
 - **`alg` in the runner config is an `Algorithm` enum,** in
   `config/models/runner_models.py`, and the `RUNNER` table in
   `runner_registry.py` is keyed by it. A wrong name fails when the config is
@@ -366,7 +389,18 @@ decisions on this branch:
 - **`HumanRunner` is a plain class, not an agent runner.** With `human_control`
   set, `app.main` runs `HumanRunner(scenario).play()` and returns before an
   agent runner is built. Human control overrides the snapshot and the runner
-  config without a warning, which the owner chose on 2026-10-13.
+  config without a warning, which the owner chose on 2026-10-13. `play()`
+  plays one episode. It blocks on pygame's event queue for each move, takes
+  the arrow keys through `_KEY_ACTIONS`, and at the end shows each HUD
+  element, the metrics and the last reward until a key is pressed.
+- **Run controls for agent runs with a human renderer** are in
+  `BaseAgentRunner._handle_run_controls(renderer)`. Eval calls it before each
+  step and puts the episode number in the window's title. Training calls it
+  through `runners/agent_runners/sb3/run_controls_callback.py`, a debugging
+  aid that is added only when `train_conf.render_mode` is `human`. A paused
+  run is stopped, not training in the background.
+- **The training sound** is played by `BaseAgentRunner` when training stops.
+  A machine without an audio device prints a line and skips it.
 - **`runners/agent_runners/utils/extractors.py` is not imported by anything.**
   It hardcodes two policy names and reads observation keys from before the
   rebuild, and Pyright reports 7 errors in it.
@@ -374,6 +408,8 @@ decisions on this branch:
   including the parts that are still from before the rebuild and do not import.
   The runner parts were brought up to 2026-10-13: `01_runners.md`, the runner
   tree in `00_file_structure.md` and the startup flow in `07_runtime_flow.md`.
+  The family's folder name and the runner and renderer changes of 2026-10-25
+  were brought in the same day.
   It does not describe the intended design; that is in the roadmap and
   `design-decisions.md`.
 - **Scenario config models** are in `config/models/scenario/`: `common_models.py`
@@ -389,7 +425,9 @@ decisions on this branch:
   `refactor-of-scenario-refactor`. Its `render` keeps the old signature, and
   the environment builds the old lists from `orbs_on_field()`. On 2026-10-21 it
   drew off-screen frames from a real spatial world on 5x5, 5x7 and 7x5 grids.
-  Human mode was not run.
+  Since 2026-10-25 it reads no input. Besides `render` it has `draw_summary`,
+  `draw_pause`, `set_title` and `close`, and the owner has run it in human
+  mode.
 - **Only the two perceptions in the `Perception` enum are in `src`** since
   2026-10-23: `vector_markovian` and `vector_fog_of_war`. The other five are
   in `legacy/` and are rewritten from there in phase 7. `BasePerception` keeps
@@ -405,7 +443,8 @@ decisions on this branch:
   is terminated, and at the end of an episode puts the metrics, by name, in
   `info` under `SYN_STATS_KEY`. Gymnasium's `check_env` and the repo's
   `check_env` pass. Over 663 random episodes the summed rewards equalled the
-  droid's score in every one. Human mode was not run.
+  droid's score in every one. Since 2026-10-25 its `close()` closes the
+  renderer's window. The owner has run it in human mode.
 - **Two scenarios built from the same config compare equal,** since
   `build_world` became a `WorldRecipe` on 2026-10-12.
 - **`WorldRecipe.__call__` has its body since 2026-10-14,** written before the
@@ -421,7 +460,7 @@ decisions on this branch:
 - **The spatial builder's bundles are complete, and `build_world` joins
   them.** The tier bundle makes the orbs with their rewards and a max-tier
   digester from the config.
-- **`TierChainTermination.evaluate` reads `world.droid.energy` and calls
+- **`SingleTierChainTermination.evaluate` reads `world.droid.energy` and calls
   `world.droid.get_digester(TierDigester)`,** both on the droid since
   2026-10-16. It was run with a stand-in world around real digesters, before
   the droid had `get_digester`. Since 2026-10-23 `evaluate` takes only the
@@ -434,18 +473,20 @@ decisions on this branch:
   through the environment.
 - **A config with a `neg_orb_conf` block builds a `Scenario`.** It gets the
   negative bundle, the `_Neg` tag, a `negatives_eaten` metric and one more orb
-  in the field size, the observation slots and the sort limit. Nothing below
-  the scenario has run with it.
-- **The world readers in the tier-chain builders** each return a value from
+  in the field size, the observation slots and the sort limit. On 2026-10-25
+  the owner played it by hand: the negative orb spawned, despawned and
+  returned as planned. No agent has trained with it.
+- **The world readers in the single tier chain builders** each return a value from
   `world.droid.get_digester(...)`. Since 2026-10-23 they run against the real
   droid, through the HUD and the metrics the environment reads. Pyright was not
   run after `get_digester` was added.
 - **The HUD is read through `scenario.hud`** since 2026-10-21. The shared
   readers `energy`, `score` and `steps_left` are in `scenario/blocks/readers.py`
-  since 2026-10-23, and the tier-chain
+  since 2026-10-23, and the single tier chain
   helper lists energy, score, steps left and the chain. On 2026-10-21 every
   element was read from a real spatial world after three steps. The
-  environment's `_get_hud_data` returns the values by label. The renderer is
+  environment's `get_hud_data()` returns the values by label, for the renderer
+  and the human runner's summary. The renderer is
   handed `scenario.hud` when it is built, fills each bar against its
   `HudBar.maximum`, and picks energy, steps left and the chain by label, so the
   score element is read and not drawn. On 2026-10-22 it drew off-screen frames
@@ -487,7 +528,9 @@ decisions on this branch:
 
 The owner reports that spatial runs on `refactor-of-scenario-refactor` but the
 agent does not learn as it should. No agent has verified this, and the cause is
-unknown. Do not assume the refactor caused it; it may predate it.
+unknown. Do not assume the refactor caused it; it may predate it. On this
+branch an RPPO run learned spatial on 2026-10-25 (see "State on 2026-10-25"
+above), so the problem is not in the rebuild as it stands, on that one seed.
 
 - `docs/dev/rppo-regression.md` is not on this branch. Read it with
   `git show cleanup-after-versioning:docs/dev/rppo-regression.md` before
@@ -560,3 +603,12 @@ the first one is dealt with.
 - **`plot/` is a thesis scratch module** with hardcoded paths evaluated at
   import, and needs the optional `extra` dependencies.
 - **`docs/code_style.md` mandates Black;** the repo uses ruff.
+- **A pygame window and a model load crash together on this machine.** The
+  display runs on the AMD iGPU, so opening a pygame window loads Mesa's
+  `libLLVM-15`, and Triton's own LLVM then segfaults when SB3 loads a model
+  (Adam imports `torch._dynamo`, which imports Triton). It hits any run that
+  opens a window before it creates or loads a model: eval with a human or
+  `rgb_array` renderer, and training with one. Start through `scripts/run_app.sh` or the
+  `launch.json` entry, which run the window on the NVIDIA card, or set
+  `SDL_FRAMEBUFFER_ACCELERATION=0`. The investigation is in
+  `docs/scratch_pad.md`.

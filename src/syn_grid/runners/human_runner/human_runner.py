@@ -1,4 +1,3 @@
-import sys
 from typing import Any, Final, cast
 
 import pygame
@@ -34,7 +33,6 @@ class HumanRunner:
     }
 
     def __init__(self, scenario: Scenario):
-        self._scenario = scenario
         self._env = cast(SYNGridEnv, make(scenario, "human").unwrapped)
 
     # ================= #
@@ -49,6 +47,11 @@ class HumanRunner:
 
             while True:
                 action = self._get_user_action()
+
+                # None is the player quitting.
+                if action is None:
+                    break
+
                 _, reward, terminated, truncated, info = self._env.step(action.value)
 
                 if terminated or truncated:
@@ -64,9 +67,8 @@ class HumanRunner:
     def _show_summary(self, reward: float, info: dict[str, Any]) -> None:
         """Show the episode's summary and wait for a key."""
 
-        world = self._env.world
         summary = {
-            **{element.label: element.read(world) for element in self._scenario.hud},
+            **self._env.get_hud_data(),
             **info[SYN_STATS_KEY],
             "last reward": reward,
         }
@@ -74,20 +76,25 @@ class HumanRunner:
         self._env.renderer.draw_summary(summary)
         self._next_key()
 
-    def _get_user_action(self) -> DroidAction:
-        """Blocks until an arrow key is pressed and returns its action."""
+    def _get_user_action(self) -> DroidAction | None:
+        """Blocks until an arrow key is pressed and returns its action, or None on quitting."""
 
         while True:
-            action = self._KEY_ACTIONS.get(self._next_key())
+            key = self._next_key()
 
+            if key is None:
+                return None
+
+            action = self._KEY_ACTIONS.get(key)
             if action is not None:
                 return action
 
-    def _next_key(self) -> int:
+    def _next_key(self) -> int | None:
         """
         Blocks until a key is pressed and returns it.
 
-        Escape or closing the window quits. Other input is ignored.
+        Escape or closing the window returns None, which is the player quitting. Other input is
+        ignored.
         """
 
         while True:
@@ -96,7 +103,6 @@ class HumanRunner:
             if event.type == pygame.QUIT or (
                 event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
             ):
-                pygame.quit()
-                sys.exit()
+                return None
             if event.type == pygame.KEYDOWN:
                 return event.key

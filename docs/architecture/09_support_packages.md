@@ -29,10 +29,11 @@ utils/
 
 `rendering/` contains `PygameRenderer`, which draws the grid, orbs, droid and
 HUD from the data `SYNGridEnv.render` passes it, either to a window (`human`)
-or to a pixel array (`rgb_array`). It also reads the arrow keys for
-`HumanRunner`. Its images, font and the training-complete sound come from
-`assets/`. It takes its grid size and image paths from a `RendererConf`, which
-is no longer in `config/models/`, so it does not import today.
+or to a pixel array (`rgb_array`). It also draws an episode summary and a pause
+screen over the last frame, sets the window's title, and closes the window when
+the env is closed. It reads no input. Its images and font come from `assets/`,
+and the training-complete sound there is played by the agent runners. It takes
+the grid size from the world and its image paths from its own table.
 
 `utils/` resolves paths — package-relative for config and assets, and relative
 to the current working directory for `output/` — and produces the timestamp

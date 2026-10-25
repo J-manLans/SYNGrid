@@ -125,22 +125,33 @@ class SYNGridEnv(gym.Env):
             [True] * len(orbs),
             [orb.position for orb in orbs],
             [orb.META for orb in orbs],
-            self._get_hud_data(),
+            self.get_hud_data(),
         )
 
         if self.render_mode == "rgb_array":
             return frame
+
+    def close(self) -> None:
+        # Close the renderer's window, if there is one.
+        if self.render_mode in self.metadata["render_modes"]:
+            self.renderer.close()
+
+    # ================== #
+    #        API         #
+    # ================== #
+
+    def get_hud_data(self) -> dict[str, float]:
+        """The value of each of the scenario's HUD elements, by label, read from the world now."""
+
+        return {
+            hud_element.label: hud_element.read(self.world) for hud_element in self._hud
+        }
 
     # ================== #
     #       Helpers      #
     # ================== #
 
     # === Gymnasium contract === #
-
-    def _get_hud_data(self) -> dict[str, float]:
-        return {
-            hud_element.label: hud_element.read(self.world) for hud_element in self._hud
-        }
 
     def _get_episode_metrics(self) -> dict[str, float]:
         return {metric.name: metric.read(self.world) for metric in self._metrics}

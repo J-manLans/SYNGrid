@@ -226,8 +226,12 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
                 )
 
                 self._maybe_save_model(model, env)
-        # SystemExit is Escape or closing the window of a human render.
-        except (KeyboardInterrupt, SystemExit):
+
+                # Quitting from the window ends learn() early, and the remaining iterations too.
+                if debugging_callback is not None and debugging_callback.stopped:
+                    print("Training stopped from the window")
+                    break
+        except KeyboardInterrupt:
             print("Training interrupted")
             # If you interrupt training manually, the model gets saved on that step count
             self._maybe_save_model(model, env)
@@ -258,7 +262,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
                 self._execution_strategy.reset(env.num_envs)
                 while True:
                     if renderer is not None:
-                        self._handle_run_controls(renderer)
+                        player_quit = self._handle_run_controls(renderer)
+                        if player_quit:
+                            return
 
                     action = self._execution_strategy.predict(model, obs)
                     obs, _, dones, _ = env.step(action)

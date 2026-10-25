@@ -115,7 +115,7 @@ pygame, see "The renderer takes plain values, and the HUD is the scenario's list
 the metrics that read its digester, a tag suffix, HUD elements and observation features. The bundle could carry some
 of these, and a family's helper would collect them from its bundles as it now sums their counts.
 
-**Where it came from:** Adding the negative orb to the tier-chain family. Its `if` block in `_tier_chain_scenario`
+**Where it came from:** Adding the negative orb to the single tier chain family. Its `if` block in `_single_tier_chain_scenario`
 adds the bundle, extends the tag and adds the `negatives_eaten` metric: three lines that together mean "add this
 brick".
 

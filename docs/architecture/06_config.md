@@ -17,7 +17,7 @@ config/
 scenario/
 ├── families/
 │   └── goal/
-│       ├── tier_chain/
+│       ├── single_tier_chain/
 │       │   └── config.py
 │       └── config.py
 └── registry.py
@@ -71,7 +71,7 @@ observation.
 
 Each layer adds its own block to the world. `scenario/families/goal/config.py` adds
 `goal_conf`, what missing the deadline costs.
-`scenario/families/goal/tier_chain/config.py` adds `tier_orb_conf`, which is the chain
+`scenario/families/goal/single_tier_chain/config.py` adds `tier_orb_conf`, which is the chain
 length, what each tier is worth and the chain-break penalty, and the optional
 `neg_orb_conf`. Each orb
 kind has its own `*_orb_conf` block in the world, holding what the kind's orbs

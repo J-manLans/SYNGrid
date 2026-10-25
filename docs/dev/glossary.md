@@ -13,12 +13,13 @@ Terms are grouped by area. The last section lists the words that are used in two
   the Gymnasium side needs and a way to build its world. It holds nothing that changes during an episode.
 - **Goal scenario:** a scenario with an objective to reach and a deadline to miss.
 - **Continuous scenario:** a scenario where reaching nothing ends the episode. None is written.
-- **Family:** the scenarios that share a folder, a config hierarchy and a helper. The tier chain family is spatial,
+- **Family:** the scenarios that share a folder, a config hierarchy and a helper. The single tier chain family is spatial,
   delay, scaling sparse and scaling dense. The families are in `scenario/families/`, grouped under `goal/` and,
   when one is written, `continuous/`.
-- **Single chain:** what every scenario in the tier chain family is: one chain, all of it laid out on the field at
-  once and left there until it is eaten. So its tier orbs have no lifespan and no cool-down. A scenario whose tier
-  orbs expire or return would not belong to this family.
+- **Single tier chain:** what every scenario in the family of that name is: one tier chain, all of it laid out on the
+  field at once and left there until it is eaten. So its tier orbs have no lifespan and no cool-down. A scenario whose
+  tier orbs expire or return would not belong to this family. The family's folder is `single_tier_chain/`; the
+  mechanic keeps the name tier chain.
 - **Variant:** a scenario in a family that needs a config field the family lacks, and so has models of its own.
   Delay is the only one.
 - **Sandbox:** the planned continuous scenario where every value can be set and orb kinds can be added. It is not on
@@ -46,7 +47,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Rules:** a frozen description of one part of a scenario's behaviour: `ObservationRules`,
   `TerminationRules`.
 - **Strategy:** a family's own implementation of an interface from `scenario/blocks/`, kept in the family's folder,
-  such as `TierChainTermination`.
+  such as `SingleTierChainTermination`.
 - **Population:** what makes one orb kind's orbs for a world. It decides which orbs exist, once per world. Putting
   them on the field is spawning, which the world does. The populations are shared, in `scenario/blocks/populations/`.
 - **Count:** how many orbs a population makes, known before any world exists. In a fixed field the counts of the
@@ -156,6 +157,10 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Run id:** the name of a run's outputs, made of the perception, the seed, the scenario tag, the runner's optional
   tag and the algorithm.
 - **Snapshot:** a copy of the scenario's YAML saved under the run id.
+- **Human play:** a person plays a scenario by hand through `HumanRunner`. It trains nothing and records nothing,
+  and shows a summary of the episode when it ends.
+- **Run controls:** the keys an agent run with a human renderer reads between two steps: Space pauses, and Escape or
+  the close button quits. Eval and training share them.
 
 ## The rebuild
 

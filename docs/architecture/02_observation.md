@@ -28,7 +28,7 @@ lists seven. It is still built from the old `ObsConfig`, and each perception
 from a `PerceptionConf` that supplies the grid size, the step budget and the
 score and tier bounds. Neither class is in `config/models/` any more, so the
 package does not import. Their replacement is `ObservationRules` in
-`scenario/blocks/observation.py`, which the tier-chain builder fills in and
+`scenario/blocks/observation.py`, which the single tier chain builder fills in and
 nothing reads yet.
 
 The `Perception` enum in the config models names two of the seven,

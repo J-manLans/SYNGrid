@@ -20,6 +20,7 @@ class PygameRenderer:
         "floor_img": "assets/tiles/floor.png",
         "hud_img": "assets/sprites/hud.png",
     }
+    _FONT: Final[str] = "assets/fonts/Minecraft.ttf"
 
     # ================= #
     #       Init        #
@@ -47,23 +48,15 @@ class PygameRenderer:
         self._rows: Final[int] = grid_dimensions[0]
         self._cols: Final[int] = grid_dimensions[1]
         self._render_mode: Final[str | None] = render_mode
-        self._bar_max: Final[dict[str, float]] = {
+        self._bars_max: Final[dict[str, float]] = {
             hud_element.label: hud_element.maximum
             for hud_element in hud
             if isinstance(hud_element, HudBar)
         }
 
-        # Default font
+        # Game font, one per size, loaded the first time a size is used
         pygame.font.init()
-        self._tier_font = pygame.font.Font(
-            get_syn_grid_path("assets", "fonts", "Minecraft.ttf"), 20
-        )
-        self._hud_font = pygame.font.Font(
-            get_syn_grid_path("assets", "fonts", "Minecraft.ttf"), 30
-        )
-        self._summary_font = pygame.font.Font(
-            get_syn_grid_path("assets", "fonts", "Minecraft.ttf"), 20
-        )
+        self._fonts: dict[int, pygame.font.Font] = {}
 
         # Initialize assets
         self._init_colors()
@@ -139,9 +132,7 @@ class PygameRenderer:
         self._dim_frame()
 
         lines = [
-            self._summary_font.render(
-                f"{label}: {round(value, 2)}", True, self._text_clr
-            )
+            self._render_text(f"{label}: {round(value, 2)}", 20, self._text_clr)
             for label, value in summary.items()
         ]
         self._draw_lines(lines, top=self._grid_offset * 2, centred=False)
@@ -158,9 +149,9 @@ class PygameRenderer:
         self._dim_frame()
 
         lines = [
-            self._hud_font.render("Paused", True, self._text_clr),
-            self._summary_font.render("Space: resume", True, self._text_clr),
-            self._summary_font.render("Escape: quit", True, self._text_clr),
+            self._render_text("Paused", 30, self._text_clr),
+            self._render_text("Space: resume", 20, self._text_clr),
+            self._render_text("Escape: quit", 20, self._text_clr),
         ]
         top = (self.window_size[1] - sum(line.get_height() for line in lines)) // 2
         self._draw_lines(lines, top=top, centred=True)
@@ -172,6 +163,11 @@ class PygameRenderer:
 
         if self._render_mode == "human":
             pygame.display.set_caption(title)
+
+    def close(self) -> None:
+        """Closes the window and shuts pygame down."""
+
+        pygame.quit()
 
     # ================= #
     #      Helpers      #
@@ -255,7 +251,7 @@ class PygameRenderer:
             return self._tier_text_cache[tier]
 
         # render main text
-        text_surf = self._tier_font.render(str(tier), True, self._background_clr)
+        text_surf = self._render_text(str(tier), 20, self._background_clr)
 
         # create target surface (copy of base)
         surf = base_img.copy()
@@ -314,7 +310,7 @@ class PygameRenderer:
         bar_y = hud_rect.y + 23
 
         # --- Calculate fill proportion --- #
-        fill_ratio = current_energy / self._bar_max["energy"]
+        fill_ratio = current_energy / self._bars_max["energy"]
         fill_width = int(fill_ratio * bar_width)
         fill_width = max(0, fill_width)  # clamp to [0, fill_width]
 
@@ -335,7 +331,7 @@ class PygameRenderer:
         Bar fills relative to the steps-left bar's maximum.
         """
 
-        ratio = remaining_steps / self._bar_max["steps left"]
+        ratio = remaining_steps / self._bars_max["steps left"]
 
         bar_height = hud_rect.height - 73
         bar_width = 10
@@ -366,7 +362,7 @@ class PygameRenderer:
             y: Top coordinate of the stat's bounding box
         """
 
-        tier_surf = self._hud_font.render(str(stat), True, self._text_clr)
+        tier_surf = self._render_text(str(stat), 30, self._text_clr)
 
         # Place it in the hud
         tier_rect = pygame.Rect(x, y, 64, 52)
@@ -374,6 +370,16 @@ class PygameRenderer:
         # Center it inside a rect
         rect = tier_surf.get_rect(center=tier_rect.center)
         self._window_surface.blit(tier_surf, rect)
+
+    def _render_text(
+        self, text: str, size: int, color: tuple[int, int, int]
+    ) -> pygame.Surface:
+        """Renders text in the game font at `size`, loading that size the first time it is used."""
+
+        if size not in self._fonts:
+            self._fonts[size] = pygame.font.Font(get_syn_grid_path(self._FONT), size)
+
+        return self._fonts[size].render(text, True, color)
 
     def _dim_frame(self) -> None:
         """Dims what is drawn, so a screen can be written over the last frame."""

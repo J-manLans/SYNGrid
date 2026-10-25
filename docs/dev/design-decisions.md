@@ -91,7 +91,7 @@ termination, its metric readers, its HUD and observation readers.
 A reader is handed the world and does not hold the engine. It asks the droid: `world.droid.get_digester(TierDigester)`,
 a method that forwards to the engine's `get`. The engine stays the droid's own, which fits the droid creating it.
 Settled on 2026-10-12, with the alternative of a public `digestion_engine` attribute turned down because every reader
-would walk three levels into the droid. `TierChainTermination` is written against the method; the droid does not
+would walk three levels into the droid. `SingleTierChainTermination` is written against the method; the droid does not
 have it yet.
 
 **Where:** `core/droid/digestion/digester.py`, `engine.py`, and the attributes of
@@ -183,7 +183,7 @@ been built with one, because `build_world` still raises.
 dataclass of three values: `scoring_mode`, which is the tier digester class to create, `max_tier` and
 `chain_break_penalty`. Calling it returns a new digester.
 
-A builder states its scoring mode by naming the class. The tier-chain family does it through `_tier_bundle`, which
+A builder states its scoring mode by naming the class. The single tier chain family does it through `_tier_bundle`, which
 takes the tier orb block and the class and returns the bundle, so each builder's choice is one argument.
 
 The negative bundle needs no recipe. `NegDigester` takes no values, so the class itself is the `make_digester`. A
@@ -200,7 +200,7 @@ bundles and the field's size, and calling it builds a world. It replaced a `func
 Building a world reads the grid, the droid's settings and the step limit, which are all on the base `WorldConf`, and
 takes everything else from the bundles and the field's size. What a family adds to its world config,
 `tier_orb_conf`, `neg_orb_conf` and `goal_conf` in a tier chain, is used up before that, by the bundles and by
-termination. The old function was typed with `TierWorldConf` only because it sat in the tier-chain builders.
+termination. The old function was typed with `TierWorldConf` only because it sat in the single tier chain builders.
 
 With it, two scenarios built from the same config compare equal, and a scenario's full world config can be read from
 outside the builder, as `scenario.build_world.world_conf`. Equality is what lets `==` answer "is this still the
@@ -210,7 +210,7 @@ loads back the same. Nothing compares scenarios yet. It describes the scenario a
 equal scenarios step the same is for a replay with the same seed.
 
 **Where:** `scenario/blocks/recipes/tier_digester_recipe.py` and `world_recipe.py`; `_tier_bundle` and
-`_tier_chain_scenario` in `scenario/families/goal/tier_chain/builders.py`.
+`_single_tier_chain_scenario` in `scenario/families/goal/single_tier_chain/builders.py`.
 
 **Alternatives considered:**
 
@@ -219,7 +219,7 @@ built from the same config would differ in their bundles. `build_world` had that
 too; see below.
 - A module-level function per scoring mode, as `_make_tier_digester` was. Rejected because a function with no
 arguments has nowhere to get `max_tier` and the penalty from.
-- The recipe in the tier-chain builders. Rejected because it holds nothing of the family: every scoring mode takes
+- The recipe in the single tier chain builders. Rejected because it holds nothing of the family: every scoring mode takes
 the same two values, and a sandbox that reads its mode from config would hand the same recipe the class it chose.
 - The recipe in `core/`, beside the digesters. Rejected for the reason the populations are not there: only the
 scenario layer needs a way to make a digester later. Core is handed digesters.
@@ -322,7 +322,7 @@ gets one rule for order: eat the tier one above the chain.
 
 - The population gives the tier orbs their rewards since 2026-10-12, from `base_reward` and `growth_factor`.
 - The rule assumes the agent knows where the chain is. Where tier orbs return, a first and a second tier 1 look
-alike and pay differently, so the chain position has to be in the observation. In the tier-chain family no tier orb
+alike and pay differently, so the chain position has to be in the observation. In the single tier chain family no tier orb
 returns, the orbs left on the field show where the chain is, and the owner's ablation removed the chain position
 without a loss; see "The kept perceptions observe only what earned its place".
 - In a goal scenario the rule assumes an eaten tier orb does not return in that episode. A tier 1 that breaks a chain
@@ -349,7 +349,7 @@ discount and how long the agent explores, then the base reward per scenario, the
 
 **Decision:** Scoring mode is generally not a config setting when it comes to locked down scenarios (continuous sandbox
 mode the exception). A different score-mode means a new registered scenario with its own builder, reusing the shared
-tier-chain helper, and its own config model if the inputs differ. Scaling sparse and scaling dense already work this
+single tier chain helper, and its own config model if the inputs differ. Scaling sparse and scaling dense already work this
 way.
 
 **Where:** `scenario/families/(goal|continuous)/*/builders.py`, `scenario/families/(goal|continuous)/*/config.py`, `scenario/registry.py`
@@ -472,7 +472,7 @@ the "two categories" rule only if an orb turns up that fits neither test.
   orb kind.
 - `scenario/families/goal/config.py` holds what every goal scenario has. `scenario/families/continuous/config.py` will do the same for
   continuous.
-- `scenario/families/goal/tier_chain/config.py` holds the tier-chain family.
+- `scenario/families/goal/single_tier_chain/config.py` holds the single tier chain family.
 
 A scenario config has two halves. `world_conf` is everything the world acts on. `obs_conf` is what the Gymnasium side
 needs to turn the world into an observation, which the world never reads. Each layer adds its own block to the world:
@@ -500,7 +500,7 @@ each scenario declares the field".
 `scenario/registry.py` holds one table, `SCENARIOS`, whose entry gives a name its config class and its builder.
 
 **Where:** `config/models/scenario/common_models.py`, `config/models/scenario/orb_models.py`, `scenario/families/goal/config.py`,
-`scenario/families/goal/tier_chain/config.py`,
+`scenario/families/goal/single_tier_chain/config.py`,
 `scenario/registry.py`, `config/yaml/goal_tier_chain_spatial.yaml`
 
 **Alternatives considered:**
@@ -618,7 +618,7 @@ reads poorly, and it lets a payout change whether the episode ends.
 **Status:** settled on 2026-10-15, and written in the droid, the digestion protocol, the engine and the termination.
 What happens at truncation was settled on 2026-10-25; see "A truncated episode settles nothing".
 On that day a script ran a threshold episode ending on the clock through a real droid, real digesters and
-`TierChainTermination`, with a stand-in for `get_digester`: the score equalled the summed step rewards. The
+`SingleTierChainTermination`, with a stand-in for `get_digester`: the score equalled the summed step rewards. The
 environment's step is wired in phase 5. Still open:
 
 - `on_termination` is called once per episode. Calling it twice pays the owed sum twice; the droid does not guard
@@ -733,8 +733,8 @@ There is no `completion_reward`. Termination reads `chains_completed` to end the
 are. `chain_break_penalty` is in `tier_orb_conf`.
 
 **Where:** `GoalConf` in `scenario/families/goal/config.py`; `TierOrbConf` in `config/models/scenario/orb_models.py`; the
-tier digesters in `core/droid/digestion/digesters/tier_chain/`; `TierChainTermination` in
-`scenario/families/goal/tier_chain/termination.py`.
+tier digesters in `core/droid/digestion/digesters/tier_chain/`; `SingleTierChainTermination` in
+`scenario/families/goal/single_tier_chain/termination.py`.
 
 **Alternatives considered:**
 
@@ -778,7 +778,7 @@ config classes at all. Every scenario writes `timeout_penalty` and `chain_break_
 between the two is whether termination ends the episode. What reaching the goal pays is found in one place.
 
 **Status:** settled, and applied to the config on 2026-10-11: `completion_reward` is gone from `GoalConf`, the
-tier-chain termination, the builder and the spatial YAML. `TierChainTermination.evaluate` is written since
+single tier chain termination, the builder and the spatial YAML. `SingleTierChainTermination.evaluate` is written since
 2026-10-12.
 
 When two endings fall on one step, the clock is charged only if it alone ended the episode. A chain completed or
@@ -829,7 +829,7 @@ scenario; what is done with it depends on how the field is filled. Added on 2026
 | Orbs on the field at once | the same number | `max_active_orbs` from the config, fewer than the pool |
 | Observation slots and sort limit | follow the field | follow the field |
 
-In a fixed field the family's helper sums the counts of its bundles, as `_tier_chain_scenario` does for `orb_count`,
+In a fixed field the family's helper sums the counts of its bundles, as `_single_tier_chain_scenario` does for `orb_count`,
 and nothing adds one by hand when a kind joins. In a sampled field a kind's share of the pool depends on every other
 kind's weight, so one population cannot work out its own count. The family's builder is expected to apportion the
 pool and hand each population its number.
@@ -875,7 +875,7 @@ say they are ready to return. An orb with no cool-down is never ready, so it sta
 episode. It is not thrown away: the next episode's reset places every orb again whatever its cool-down, and the
 observation still has a slot for it.
 
-A population takes these as values and knows no scenario. The tier-chain family's builders hand
+A population takes these as values and knows no scenario. The single tier chain family's builders hand
 `TierChainPopulation` a cool-down of `None`, stated once in `_tier_bundle`. The negative population is handed a
 number. A family whose tier orbs come and go hands the same `TierChainPopulation` numbers.
 
@@ -884,7 +884,7 @@ population is the counterpart of `make_digester`: an `OrbBundle` holds both, and
 world. What they make, an orb and a digester, is in core.
 
 **Where:** `core/orbs/base_orb.py`; `scenario/blocks/populations/tier_chain_population.py` and `neg_population.py`;
-`_tier_bundle` in `scenario/families/goal/tier_chain/builders.py`.
+`_tier_bundle` in `scenario/families/goal/single_tier_chain/builders.py`.
 
 **Alternatives considered:**
 
@@ -916,21 +916,21 @@ removed.
 
 The lifespan is stated where the population is built. An orb that despawns gets `_reachable_life_span(rows, cols)`,
 the longest walk between two cells, so the droid can reach it from anywhere on the grid. An orb that does not despawn
-is handed `None`. Every tier-chain scenario (spatial, scaling and delay) lays the whole chain out at once and leaves
+is handed `None`. Every single tier chain scenario (spatial, scaling and delay) lays the whole chain out at once and leaves
 it until it is eaten, so `_tier_bundle` hands `None` to the tier orbs beside their `None` cool-down, and no builder
-chooses it. The negative orb is handed a number by the shared `_tier_chain_scenario`. A family whose tier orbs
+chooses it. The negative orb is handed a number by the shared `_single_tier_chain_scenario`. A family whose tier orbs
 expire would state a number in its own bundle.
 
 ---
 
-## Every scenario in the tier chain family is a single chain (2026-10-18)
+## Every scenario in the single tier chain family is a single chain (2026-10-18)
 
-**Decision:** The tier chain family is the scenarios whose whole chain is laid out on the field at once and left
+**Decision:** The single tier chain family is the scenarios whose whole chain is laid out on the field at once and left
 there until it is eaten, whatever `max_tier` is. Spatial, scaling sparse, scaling dense and delay are all that. So the
 family states, once, that its tier orbs have no cool-down and no lifespan, in `_tier_bundle`, and no scenario in the
 family can change it.
 
-**Where:** `_tier_bundle` in `scenario/families/goal/tier_chain/builders.py`, beside `cool_down=None`.
+**Where:** `_tier_bundle` in `scenario/families/goal/single_tier_chain/builders.py`, beside `cool_down=None`.
 
 **Alternatives considered:**
 
@@ -939,15 +939,43 @@ day. It read as if spatial were the special case, and every scenario in the fami
 - Keyword arguments for the cool-down and lifespan, defaulting to `None`, so a scenario could override them. Not
 written: a scenario whose tier orbs expire or return is not a single chain, so it would go in a different family,
 and the populations already take any values.
-- Renaming the family to `single_chain`. Deferred to one naming pass at the end of the rebuild, when the other
-scenarios are written and legacy is deleted. See "What the tier chain family and its scenarios are called" in
-`open-questions.md`.
+- Naming the family for the mechanic, `tier_chain`, as it was until 2026-10-25. Renamed then; see "The family is
+named single tier chain".
 
 **Why this one:** A default that every member of a family shares belongs to the family, and an argument nobody varies
 only invites the question of why it is there. The populations and the orbs stay free of the special case, since they
 take values and do not know what family they are in.
 
 **Status:** settled for the family as it is. Revisit if a scenario is added whose tier orbs expire or return.
+
+---
+
+## The family is named single tier chain (2026-10-25)
+
+**Decision:** The family's own names say what it guarantees, one tier chain laid out whole: the folder
+`scenario/families/goal/single_tier_chain/`, the builders `build_single_tier_chain_*`, the helper
+`_single_tier_chain_scenario` and `SingleTierChainTermination`. The mechanic's names stay `tier_chain`, since they
+describe the orbs and not the family: `digesters/tier_chain/`, `TierChainPopulation` and the HUD label `current tier
+chain`. The scenario names are unchanged: the `GOAL_TIER_CHAIN_*` members of `ScenarioName` and
+`goal_tier_chain_*.yaml`.
+
+**Where:** `scenario/families/goal/single_tier_chain/`; `scenario/registry.py`.
+
+**Alternatives considered:**
+
+- `tier_chain`, the name until 2026-10-25. Rejected because it is also the mechanic's name, so the family's code and
+the mechanic's code could not be told apart by name.
+- `single_chain`. Rejected because it leaves out which chain. A later family with another kind of chain, laid out
+whole, would collide with it, where `single_tier_chain` and, say, `single_color_chain` sit side by side.
+- Waiting for the naming pass in phase 10, as planned on 2026-10-18. Not chosen: phase 8 adds three builders and
+their YAMLs to the family, so a rename then would cost four times what it costs now.
+
+**Why this one:** The guarantee and the mechanic together name the family, and each half can vary on its own: a
+`multi_tier_chain` or a `single_color_chain` reads at once as what differs.
+
+**Status:** done for the family's own names. The scenario names are left to the naming pass in phase 10, because the
+scenario name is also the output folder (`scenario_name` is the runner's save folder), so renaming it moves where
+saved models are found.
 
 ---
 
@@ -959,7 +987,7 @@ take values and do not know what family they are in.
   the shared implementations in `populations/` and `recipes/`. The population protocol is in `populations/` with the
   classes that implement it.
 - `families/` is the scenarios built from the blocks. A group such as `goal/` holds what its families share, and a
-  family folder such as `tier_chain/` holds its config models, its builders and the strategies that are its own.
+  family folder such as `single_tier_chain/` holds its config models, its builders and the strategies that are its own.
 - `registry.py` selects a scenario by name, and `scenario.py` is the `Scenario`.
 
 **Where:** `src/syn_grid/scenario/`.
@@ -979,7 +1007,7 @@ and the table that selects one.
 
 **Status:** done on 2026-10-12. `families/continuous/` exists since 2026-10-13 as an empty package.
 
-A strategy that only one family uses stays with that family, as `TierChainTermination` does. The termination
+A strategy that only one family uses stays with that family, as `SingleTierChainTermination` does. The termination
 interface is a file in `blocks/` with no folder of implementations, because none is shared yet.
 
 ---
@@ -1008,8 +1036,8 @@ and why:
 | `on_orb_consumed` | only delay would use it, and delay is not written |
 | the class | one number does not need one |
 
-**Where:** `WorldRecipe.max_active_orbs` in `scenario/blocks/recipes/world_recipe.py`; `_tier_chain_scenario` in
-`scenario/families/goal/tier_chain/builders.py`, which passes the sum of its bundles' counts.
+**Where:** `WorldRecipe.max_active_orbs` in `scenario/blocks/recipes/world_recipe.py`; `_single_tier_chain_scenario` in
+`scenario/families/goal/single_tier_chain/builders.py`, which passes the sum of its bundles' counts.
 
 **Alternatives considered:**
 
@@ -1118,7 +1146,7 @@ YAML, so a wrong guess about the base is cheap to correct.
 
 **Decision:** A tier orb is worth `base_reward * tier ** growth_factor`. A growth factor of 1 gives rewards that grow
 linearly with the tier, and a larger one makes higher tiers worth more than that. Both settings are fields of the
-shared `TierOrbConf`, so every tier-chain scenario states what its orbs are worth. The reward is not rounded.
+shared `TierOrbConf`, so every single tier chain scenario states what its orbs are worth. The reward is not rounded.
 
 Scaling dense has no config classes of its own. It is registered with `TierScenarioConf`, like spatial and scaling
 sparse. Delay keeps its own, because it adds a real field.
@@ -1127,7 +1155,7 @@ Spatial is set to a base of 1 and a growth factor of 1.5. Its three tiers are wo
 together, which is close to the fixed 10 that legacy paid for a completed chain.
 
 **Where:** `TierOrbConf` in `config/models/scenario/orb_models.py`; `TierOrb` in
-`core/orbs/synergy/chain/tier_orb.py`; `scenario/families/goal/tier_chain/config.py`; `scenario/registry.py`;
+`core/orbs/synergy/chain/tier_orb.py`; `scenario/families/goal/single_tier_chain/config.py`; `scenario/registry.py`;
 `config/yaml/goal_tier_chain_spatial.yaml`.
 
 **Alternatives considered:**
@@ -1225,7 +1253,7 @@ scenario's YAML, and `load_experiment_configs` in `app.py`.
 single narrow class suits every scenario: spatial keeps the grid, scaling the grid and the chain length, delay the
 delay.
 - Thin the base models to what every scenario states and move the tunable fields to subclasses (the second sketch).
-Rejected because `_tier_chain_scenario` and the `WorldRecipe` read a full config, and would have to take
+Rejected because `_single_tier_chain_scenario` and the `WorldRecipe` read a full config, and would have to take
 their values from two sources.
 - Fixed values as loose constants passed around the builder, with no full model made. Rejected because the values
 then skip validation and everything below the builder takes a pile of arguments.
@@ -1388,7 +1416,8 @@ rejects the combination.
 **Why this one:** A human playing or an agent running is a choice about the whole run, so it is made once, in
 `main`. It is the shape the legacy app has.
 
-**Status:** settled. `play()` and `main` have not been run, since both need the environment.
+**Status:** settled. `main` and `play()` import since 2026-10-23, and the owner played the spatial scenario by hand
+on 2026-10-25.
 
 ---
 
@@ -1469,7 +1498,61 @@ data beside the pieces. This answers what happens when a scenario lists more ele
 Rejected along the way: generic slots painted into one picture, filled in order, which still caps the count; and a
 picture that gives only the frame with the slots drawn in code, which moves the look out of the art.
 
-**Status:** settled. Nothing of it is written yet; the roadmap places it in phases 5, 7b and 7c.
+**Status:** settled. Phase 5's part is written since 2026-10-23: plain values, `scenario.hud`, no `RendererConf`.
+The theme file, the fog overlay and the modular HUD are in phases 7b and 7c.
+
+---
+
+## Runners own the window's input, the renderer draws, and the env closes the window (2026-10-25)
+
+**Decision:** The renderer reads no input. It draws a frame, an episode summary or the pause screen, sets the
+window's title and closes the window. Each runner reads the keys it needs.
+
+- **Human play.** `HumanRunner` blocks on pygame's event queue until a key comes, takes the arrow keys as actions
+  through a table, and quits on Escape or the close button. When an episode ends it shows a summary over the last
+  frame until a key is pressed: the HUD's values, which it takes from the env's `get_hud_data()` as the renderer
+  does, the metrics from `info` and the last reward.
+- **Agent runs with a human renderer.** The run controls are shared in `BaseAgentRunner`: between two steps, Space
+  pauses on a screen that says how to resume and quit, and Escape or the close button quits. Eval calls them before
+  each step and shows the episode number in the window's title. Training reaches them through `RunControlsCallback`,
+  added only when training renders to a window, which the runner config allows only with one env.
+- **Quitting returns, it does not raise.** The run controls return whether the player quit, and each runner stops
+  the way its loop provides: eval returns from its loop, and the callback returns False from `_on_step`, which is
+  SB3's way to end `model.learn()` early. Training then saves as after any `learn()`, and its remaining iterations
+  are skipped. The human runner's key reader returns `None` and `play()` stops.
+- **Closing.** The window is closed by `SYNGridEnv.close()`, Gymnasium's own method, which calls the renderer's
+  `close()`. Every runner already closes its env in a `finally`.
+
+**Where:** `rendering/pygame_renderer.py`; `gymnasium/environment.py`; `runners/human_runner/human_runner.py`;
+`runners/agent_runners/base_agent_runner.py`; `runners/agent_runners/sb3/run_controls_callback.py` and
+`base_sb3_runner.py`.
+
+**Alternatives considered:**
+
+- Pause read in the renderer's per-frame update, which every human-rendered run passes through, with a flag the human
+  runner sets so its keys are not swallowed. Rejected because it brings input back into the renderer and needs the
+  flag. With each runner reading its own keys, nothing has to be declared.
+- A summary between episodes in eval as well. Rejected: the `VecEnv` resets before the runner sees an episode's last
+  frame, so it would need a wrapper, the CSV is eval's summary, and over hundreds of episodes it is in the way. The
+  episode number in the title and the pause give what watching one episode needs.
+- Each quit path calling `pygame.quit()` itself, as before. Rejected because a run that ended normally or crashed left
+  pygame running until the process ended.
+- A module shared by both kinds of runner that decides what quits. Not needed once the env closes the window: what
+  the two share is one condition, Escape or the close button.
+- Quitting by `sys.exit()`, written on 2026-10-25 and replaced the same day. In training the exception went through
+  SB3's loop, so `on_training_end` and the logger's last flush were skipped, and `_train_model` caught `SystemExit`
+  to save. Returning a flag uses what each loop already has for stopping.
+- The human runner reading the HUD itself from `scenario.hud`. Replaced the same day by the env's `get_hud_data()`,
+  so the HUD is read in one place and the summary cannot drift from it.
+- Polling for a key, as `get_user_action` did. Replaced by a blocking wait, so human play no longer keeps a CPU core
+  busy between moves.
+
+**Why this one:** The renderer has one reason to change, how things look. A runner knows which keys it needs and when,
+so it reads them. Stopping and closing use what the frameworks already have: SB3's callback return for stopping
+training, and Gymnasium's `close()` for the window, which then closes the same way however a run ends.
+
+**Status:** settled and written on 2026-10-25. The owner tried human play, eval and training with a human renderer.
+It does step 3 of phase 7b ahead of time.
 
 ---
 
@@ -1479,7 +1562,7 @@ picture that gives only the frame with the slots drawn in code, which moves the 
 (active flag, row, column, identity), and no global values. Steps left, the score and the chain's tier are not in
 them, and neither is an orb's timer.
 
-**Where:** `gymnasium/observation_space/perceptions/vector/`. The tier-chain builder sets `global_features=()` on its
+**Where:** `gymnasium/observation_space/perceptions/vector/`. The single tier chain builder sets `global_features=()` on its
 `ObservationRules`.
 
 **Alternatives considered:**

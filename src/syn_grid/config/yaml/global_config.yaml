@@ -7,4 +7,4 @@ snapshot:
   enabled: false
   id:
 scenario: goal_tier_chain_spatial
-human_control: true
+human_control: false
