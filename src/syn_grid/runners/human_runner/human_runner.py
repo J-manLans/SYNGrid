@@ -15,10 +15,11 @@ class HumanRunner:
 
     For inspecting a configuration, not for learning. It trains nothing,
     writes no checkpoints, and records no metrics. Its job is to read
-    human input, pass actions to the environment, and stop when the
-    episode ends. When it ends, it shows a summary of the episode over the
-    last frame until a key is pressed: the scenario's HUD values, its
-    metrics and the last step's reward.
+    human input and pass actions to the environment, one episode after
+    another. When an episode ends, it shows a summary over the last frame:
+    the scenario's HUD values, its metrics and the last step's reward.
+    Space then plays the next episode, and Escape or closing the window
+    quits, as it does during an episode.
     """
 
     # ================= #
@@ -40,22 +41,12 @@ class HumanRunner:
     # ================= #
 
     def play(self) -> None:
-        """Play one episode, blocking until it ends or the player quits."""
+        """Play episodes one after another, blocking until the player quits."""
 
         try:
-            self._env.reset()
-
             while True:
-                action = self._get_user_action()
-
-                # None is the player quitting.
-                if action is None:
-                    break
-
-                _, reward, terminated, truncated, info = self._env.step(action.value)
-
-                if terminated or truncated:
-                    self._show_summary(reward, info)
+                player_quit = self._play_episode()
+                if player_quit:
                     break
         finally:
             self._env.close()
@@ -64,8 +55,35 @@ class HumanRunner:
     #      Helpers      #
     # ================= #
 
-    def _show_summary(self, reward: float, info: dict[str, Any]) -> None:
-        """Show the episode's summary and wait for a key."""
+    def _play_episode(self) -> bool:
+        """
+        Play one episode and show its summary.
+
+        Returns:
+            Whether the player quit, during the episode or on its summary.
+        """
+
+        self._env.reset()
+
+        while True:
+            action = self._get_user_action()
+
+            # None is the player quitting.
+            if action is None:
+                return True
+
+            _, reward, terminated, truncated, info = self._env.step(action.value)
+
+            if terminated or truncated:
+                return self._show_summary(reward, info)
+
+    def _show_summary(self, reward: float, info: dict[str, Any]) -> bool:
+        """
+        Show the episode's summary and wait for Space or quitting. Other keys are ignored.
+
+        Returns:
+            Whether the player quit instead of playing again.
+        """
 
         summary = {
             **self._env.get_hud_data(),
@@ -74,7 +92,14 @@ class HumanRunner:
         }
 
         self._env.renderer.draw_summary(summary)
-        self._next_key()
+
+        while True:
+            key = self._next_key()
+
+            if key is None:
+                return True
+            if key == pygame.K_SPACE:
+                return False
 
     def _get_user_action(self) -> DroidAction | None:
         """Blocks until an arrow key is pressed and returns its action, or None on quitting."""

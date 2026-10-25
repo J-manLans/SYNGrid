@@ -60,6 +60,7 @@ class PygameRenderer:
 
         # Initialize assets
         self._init_colors()
+        self._init_text_sizes()
         self._init_vars()
         self._load_graphics()
 
@@ -101,7 +102,7 @@ class PygameRenderer:
         """
 
         # Draw the background first of all
-        self._window_surface.fill(self._background_clr)
+        self._window_surface.fill(self._dark_grey_clr)
 
         col = (droid_pos[1] * self._cell_width) + self._grid_offset
         row = (droid_pos[0] * self._cell_height) + self._grid_offset
@@ -126,16 +127,29 @@ class PygameRenderer:
         """
         Draws an episode summary over the last frame, one line per entry, in human mode.
 
-        The frame is dimmed and each entry is written as `label: value`, in the order given.
+        The frame is dimmed, the keys that play again and quit are written centred at the top, and
+        below them a "Stats" header and each entry as `label: value`, in the order given.
         """
 
         self._dim_frame()
 
-        lines = [
-            self._render_text(f"{label}: {round(value, 2)}", 20, self._text_clr)
+        instructions = [
+            self._render_text("Space: play again", self._large_text, self._yellow_clr),
+            self._render_text("Escape: quit", self._large_text, self._yellow_clr),
+        ]
+        top = self._grid_offset * 2
+        self._draw_lines(instructions, top=top, centred=True)
+
+        stats = [self._render_text("Stats", self._medium_text, self._blue_clr)]
+        # :g shows up to six significant digits, so float noise is cut and whole numbers stay whole
+        stats += [
+            self._render_text(f"{label}: {value:g}", self._small_text, self._purple_clr)
             for label, value in summary.items()
         ]
-        self._draw_lines(lines, top=self._grid_offset * 2, centred=False)
+        # One instruction line's height of space between the instructions and the stats
+        instructions_height = sum(line.get_height() for line in instructions)
+        gap = instructions[0].get_height()
+        self._draw_lines(stats, top=top + instructions_height + gap, centred=False)
 
         pygame.display.update()
 
@@ -143,17 +157,20 @@ class PygameRenderer:
         """
         Draws the pause screen over the last frame, in human mode.
 
-        The frame is dimmed and the keys that resume and quit are written at its centre.
+        The frame is dimmed, and a "Paused" header and the keys that resume and quit are written
+        centred over the grid.
         """
 
         self._dim_frame()
 
         lines = [
-            self._render_text("Paused", 30, self._text_clr),
-            self._render_text("Space: resume", 20, self._text_clr),
-            self._render_text("Escape: quit", 20, self._text_clr),
+            self._render_text("Paused", self._large_text, self._yellow_clr),
+            self._render_text("Space: resume", self._medium_text, self._purple_clr),
+            self._render_text("Escape: quit", self._medium_text, self._purple_clr),
         ]
-        top = (self.window_size[1] - sum(line.get_height() for line in lines)) // 2
+        grid_height = self._cell_height * self._rows
+        text_height = sum(line.get_height() for line in lines)
+        top = self._grid_offset + (grid_height - text_height) // 2
         self._draw_lines(lines, top=top, centred=True)
 
         pygame.display.update()
@@ -176,10 +193,21 @@ class PygameRenderer:
     # === Init ===#
 
     def _init_colors(self) -> None:
-        """Sets all the colors the game uses"""
+        """Sets the game's colors. Yellow and blue are from droid.png, green from hud.png."""
 
-        self._background_clr = (26, 26, 26)
-        self._text_clr = (165, 102, 192)
+        self._dark_grey_clr = (26, 26, 26)
+        self._grey_clr = (75, 75, 75)
+        self._purple_clr = (165, 102, 192)
+        self._yellow_clr = (242, 255, 0)
+        self._green_clr = (38, 202, 40)
+        self._blue_clr = (0, 194, 251)
+
+    def _init_text_sizes(self) -> None:
+        """Sets the game's text sizes, in points."""
+
+        self._small_text = 20
+        self._medium_text = 25
+        self._large_text = 30
 
     def _init_vars(self):
         # Sizes of each cell in the grid
@@ -251,7 +279,7 @@ class PygameRenderer:
             return self._tier_text_cache[tier]
 
         # render main text
-        text_surf = self._render_text(str(tier), 20, self._background_clr)
+        text_surf = self._render_text(str(tier), self._small_text, self._dark_grey_clr)
 
         # create target surface (copy of base)
         surf = base_img.copy()
@@ -316,12 +344,14 @@ class PygameRenderer:
 
         # --- Draw filled portion --- #
         pygame.draw.rect(
-            self._window_surface, (255, 255, 65), (bar_x, bar_y, fill_width, bar_height)
+            self._window_surface,
+            self._yellow_clr,
+            (bar_x, bar_y, fill_width, bar_height),
         )
 
         # --- Draw border --- #
         status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
-        pygame.draw.rect(self._window_surface, (75, 75, 75), status_rect, 2)
+        pygame.draw.rect(self._window_surface, self._grey_clr, status_rect, 2)
 
         self._draw_hud_stat(round(current_energy, 2), hud_rect.x + 120, hud_rect.y + 45)
 
@@ -344,13 +374,13 @@ class PygameRenderer:
         # --- Draw filled portion --- #
         pygame.draw.rect(
             self._window_surface,
-            (58, 216, 48),
+            self._green_clr,
             (bar_x, bar_y + (bar_height - current_height), bar_width, current_height),
         )
 
         # --- Draw border --- #
         status_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
-        pygame.draw.rect(self._window_surface, (75, 75, 75), status_rect, 2)
+        pygame.draw.rect(self._window_surface, self._grey_clr, status_rect, 2)
 
     def _draw_hud_stat(self, stat: float, x, y):
         """
@@ -362,7 +392,7 @@ class PygameRenderer:
             y: Top coordinate of the stat's bounding box
         """
 
-        tier_surf = self._render_text(str(stat), 30, self._text_clr)
+        tier_surf = self._render_text(str(stat), self._large_text, self._purple_clr)
 
         # Place it in the hud
         tier_rect = pygame.Rect(x, y, 64, 52)
@@ -385,7 +415,7 @@ class PygameRenderer:
         """Dims what is drawn, so a screen can be written over the last frame."""
 
         overlay = pygame.Surface(self.window_size, pygame.SRCALPHA)
-        overlay.fill((*self._background_clr, 220))
+        overlay.fill((*self._dark_grey_clr, 220))
         self._window_surface.blit(overlay, (0, 0))
 
     def _draw_lines(self, lines: list[pygame.Surface], top: int, centred: bool) -> None:

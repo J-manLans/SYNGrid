@@ -40,9 +40,10 @@ value nobody chose. The config models describe only what can be tuned.
 Turned down: fixed values as defaults on the scenario's config models. A default can still be overridden, which
 brings back two runs with the same name describing different worlds.
 
-Not yet. A scenario is locked after it has been rebuilt and has reproduced its legacy results, because until then
-the values aren't settled and comparing with legacy is easier with every value in view. Until then every scenario
-states all of its values in its YAML.
+Not yet. A scenario is locked once it has been rebuilt and its runs over several seeds learn in the same general
+direction as legacy, because until then the values aren't settled and comparing with legacy is easier with every
+value in view. Until then every scenario states all of its values in its YAML. Spatial is the first, once its
+remaining seeds have run.
 
 **Settled on 2026-10-12:** how the config models are shaped for a locked scenario. The models stay as the full
 description of a world, a locked scenario gets a small model holding only what a run may choose, and its builder makes

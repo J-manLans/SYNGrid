@@ -71,7 +71,7 @@ here. A question that is only half answered stays, with what is left of it.
   two things" in `codebase-ideas.md`.
 - **How "the perceptions that make sense for a scenario" is written.** Either each locked scenario lists the
   perceptions it allows, or a perception is split into two settings and the scenario fixes how much the droid sees.
-  Spatial allows one perception today, so there is nothing to choose between until it has a second.
+  Spatial is out of it, since its perception is fixed since 2026-10-25.
   See: "A locked scenario offers the perceptions that make sense for it" in `design-decisions.md`.
 - **Whether the pixel observation gets a limited view, and which kind.** `GridPixel` is a docstring with no code in
   `legacy/`, and is not in `src`. A
@@ -151,7 +151,8 @@ Nothing open yet. The logger reads `scenario.metrics`.
 
 ## Phase 10: Locking a scenario
 
-All of these are to settle with the first scenario that is locked.
+All of these are to settle with the first scenario that is locked, which is spatial once its remaining seeds have
+run.
 See: "A locked scenario loads a small model, and its builder makes the full config" in `design-decisions.md`.
 
 - **The common type of a config class.** `ScenarioConf` is named by the `TypeVar` bound in `registry.py`,
@@ -165,8 +166,9 @@ See: "A locked scenario loads a small model, and its builder makes the full conf
 - **Where a rule that spans fields is checked.** A check on the full model is raised in the builder and names a block
   and not a field.
 - **Whether a locked axis has a range,** such as an upper bound on the grid.
-- **What the small model holds besides the axis, and what it is called.** It holds the perception. The negative orb
-  would be a yes or no, since its `reward` and `cool_down` are fixed values.
+- **What the small model holds besides the axis, and what it is called.** For spatial it holds the grid size, since
+  its perception is fixed. The negative orb would be a yes or no, since its `reward` and `cool_down` are fixed
+  values.
 
 ## Not tied to a phase
 

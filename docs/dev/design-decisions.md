@@ -1268,9 +1268,11 @@ that scenario, which is also what a GUI needs to draw a form; `model_json_schema
 the bounds, the perception's choices and the optional orb block. Frozen models compare equal, so on the day a scenario
 is locked the builder's config can be checked against the one its old YAML loaded.
 
-**Status:** settled as the direction on 2026-10-12, and not applied. A scenario is locked after it has been rebuilt
-and has reproduced its legacy results, so no model changes before then. Open, to settle with the first scenario to be
-locked:
+**Status:** settled as the direction on 2026-10-12, and not applied. A scenario is locked once runs over several
+seeds learn in the same general direction as legacy. Matching legacy's numbers is not required, since several
+decisions change the rewards on purpose; changed on 2026-10-25 from "has reproduced its legacy results". Spatial is
+the first, once its remaining seeds have run, so that no value of it can be flipped by accident. Open, to settle with
+it:
 
 - The common type of a config class. `ScenarioConf` is named by the `TypeVar` bound in `registry.py`,
   `ScenarioEntry.build`, `build_scenario` and the return type of `load_experiment_configs`, and a small model is not a
@@ -1284,28 +1286,34 @@ locked:
   not a field: a positive `step_penalty` is reported on `droid_conf`, and a chain too long for the grid on
   `world_conf`.
 - Whether a locked axis has a range, such as an upper bound on the grid.
-- What the small model holds besides the axis. It holds the perception, limited to the ones that suit the scenario;
-  see the next entry. The negative orb would be a yes or no. "Axis model" is then the wrong name for it.
+- What the small model holds besides the axis. For spatial it holds the grid size, since its perception is fixed
+  in the builder; see the next entry. The negative orb would be a yes or no.
 
 ---
 
-## A locked scenario offers the perceptions that make sense for it (2026-10-12)
+## A locked scenario offers the perceptions that make sense for it (2026-10-12, changed for spatial 2026-10-25)
 
 **Decision:** The perception stays a choice in a locked scenario, among the perceptions that fit what the scenario
-tests. Spatial tests memory under a limited view, so it offers only perceptions where the droid sees part of the
-world, and no fully Markovian one. A scenario whose test does not depend on how much the droid sees can offer any.
+tests. A scenario whose test does not depend on how much the droid sees can offer any.
 
-**Where:** not applied. The `Perception` enum in `config/models/scenario/common_models.py` has two values, and the
-only one spatial allows is `vector_fog_of_war`. `PERCEPTIONS` in `gymnasium/observation_space/observation_handler.py`
+Spatial is the exception since 2026-10-25: its perception is fixed in its builder, as `vector_fog_of_war`, and a run
+cannot change it. Spatial tests memory under a limited view, and the owner chose that its runs all see the world the
+same way.
+
+**Where:** not applied. The `Perception` enum in `config/models/scenario/common_models.py` has two values,
+`vector_markovian` and `vector_fog_of_war`. `PERCEPTIONS` in `gymnasium/observation_space/observation_handler.py`
 names those two, and they are the only perceptions in `src`. The other five are in `legacy/` and are rewritten in the
-observation pass.
+observation pass. Spatial's builder fixes its perception when the scenario is locked.
 
 **Alternatives considered:**
 
-- The perception fixed in the builder, as one of a locked scenario's read-only values. Rejected because how the
-world is encoded is a real choice for a run. A composite observation with its own feature extractor can give the
-model a clearer picture than the flat vector, at a cost in speed that matters on weaker hardware, and a user who
-brings a model of their own chooses what it reads.
+- The perception fixed in the builder for every locked scenario. Rejected on 2026-10-12, because how the world is
+encoded is a real choice for a run. A composite observation with its own feature extractor can give the model a
+clearer picture than the flat vector, at a cost in speed that matters on weaker hardware, and a user who brings a
+model of their own chooses what it reads. Taken for spatial on 2026-10-25, which gives up that choice there: a
+rewritten limited-view perception, such as a composite fog of war, is not open to a spatial run.
+- Spatial offering every perception with a limited view, the rule from 2026-10-12 to 2026-10-25. Replaced by the
+fixed perception above.
 - Any perception for any scenario, since the run id starts with the perception. Rejected because a spatial run where
 the droid sees the whole grid does not test what the scenario is named for.
 
@@ -1313,9 +1321,9 @@ the droid sees the whole grid does not test what the scenario is named for.
 
 **Status:** settled as the rule on 2026-10-12. Open:
 
-- How the rule is written. Either each locked scenario lists the perceptions it allows, or a perception is split into
-  how much the droid sees and how that is encoded, and the scenario fixes the first; see `codebase-ideas.md`. There
-  is nothing to choose between until spatial has a second allowed perception.
+- How the rule is written for the locked scenarios other than spatial. Either each lists the perceptions it allows,
+  or a perception is split into how much the droid sees and how that is encoded, and the scenario fixes the first;
+  see `codebase-ideas.md`.
 - The pixel observation. `GridPixel` is a docstring with no code in `legacy/`, and whether it gets a limited view is
   not decided.
 
@@ -1509,9 +1517,10 @@ The theme file, the fog overlay and the modular HUD are in phases 7b and 7c.
 window's title and closes the window. Each runner reads the keys it needs.
 
 - **Human play.** `HumanRunner` blocks on pygame's event queue until a key comes, takes the arrow keys as actions
-  through a table, and quits on Escape or the close button. When an episode ends it shows a summary over the last
-  frame until a key is pressed: the HUD's values, which it takes from the env's `get_hud_data()` as the renderer
-  does, the metrics from `info` and the last reward.
+  through a table, and quits on Escape or the close button. It plays episodes one after another. When an episode
+  ends it shows a summary over the last frame: the HUD's values, which it takes from the env's `get_hud_data()` as
+  the renderer does, the metrics from `info` and the last reward. Space plays again and Escape quits, and the
+  screen says so. Other keys are ignored, so an arrow pressed just as the episode ends does not skip the summary.
 - **Agent runs with a human renderer.** The run controls are shared in `BaseAgentRunner`: between two steps, Space
   pauses on a screen that says how to resume and quit, and Escape or the close button quits. Eval calls them before
   each step and shows the episode number in the window's title. Training reaches them through `RunControlsCallback`,

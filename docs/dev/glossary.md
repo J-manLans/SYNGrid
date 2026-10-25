@@ -33,7 +33,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Axis:** the one thing that varies between runs of a scenario and makes it harder or easier.
 - **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5`.
 - **Locked:** a scenario whose values other than its axis are fixed in its builder and cannot be set from a YAML. A
-  scenario is locked after it has reproduced its legacy results. None is locked.
+  scenario is locked once runs over several seeds learn in the same general direction as legacy. None is locked.
 - **Full model:** a config model that describes a whole world, such as `TierScenarioConf`.
 - **Small model:** a locked scenario's own config model, holding only what a run may choose.
 

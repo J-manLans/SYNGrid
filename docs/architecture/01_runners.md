@@ -55,8 +55,9 @@ controls before each step; training reaches them through
 `HumanRunner` is not an agent runner. When `human_control` is set, `app.main`
 runs it and returns before any agent runner is built, so the snapshot and the
 runner config are ignored. It takes the `Scenario`, builds one bare `SYNGridEnv`
-in `human` render mode, waits for an arrow key for each move until the episode
-ends, and then shows a summary of the episode until a key is pressed.
+in `human` render mode, and plays episodes one after another. It waits for an
+arrow key for each move, and when an episode ends it shows a summary, where
+Space plays again and Escape quits.
 
 Every runner reads its own keys, and the renderer reads none. Quitting stops
 the runner's loop the way the loop provides, SB3's callback return in

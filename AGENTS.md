@@ -65,10 +65,10 @@ the world, step 6, since 2026-10-19, which finishes phase 3. Phase 2
 left four things written against a core that does not exist yet; the roadmap
 lists them at the end of its phase 2.
 
-Phase 5, the Gymnasium side, started on 2026-10-21, and the owner writes it by
-hand. The roadmap's "State on 2026-10-23" under phase 5 says what is wired;
-what is left of it is a human run to each ending. The
-order of the later phases changed the same day: 5, 6, 8, 9, 7, 7b, 7c, 10.
+Phase 5, the Gymnasium side, started on 2026-10-21, and the owner wrote it by
+hand. It is done since 2026-10-25, when the owner reached and checked every
+ending by hand; the roadmap's phase 5 says what is wired. The order of the
+later phases changed on 2026-10-21: 5, 6, 8, 9, 7, 7b, 7c, 10.
 
 State on 2026-10-25: an agent learned spatial through the rebuild. The owner
 trained RPPO on 5x5, seed 3, to a mean reward of about 8.5 against a ceiling
@@ -309,10 +309,13 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - A locked scenario loads a small model holding only what a run may choose, and
   its builder makes the full config from its fixed values. The full models stay
   as they are, and the sandbox and every scenario that is not locked load them
-  directly. Settled as the direction on 2026-10-12 and not applied: no scenario
-  is locked until it has reproduced its legacy results.
-- A locked scenario offers the perceptions that make sense for it. Spatial
-  offers only ones with a limited view.
+  directly. Settled as the direction on 2026-10-12 and not applied. A scenario
+  is locked once runs over several seeds learn in the same general direction
+  as legacy; matching its numbers is not required (changed 2026-10-25).
+  Spatial is locked once its remaining seeds have run.
+- A locked scenario offers the perceptions that make sense for it. Spatial's
+  perception is fixed in its builder, as `vector_fog_of_war`, and a run cannot
+  change it (since 2026-10-25).
 - The algorithm in the runner config is an `Algorithm` enum, and the `RUNNER`
   table is keyed by it, as `ScenarioName` and `SCENARIOS` are.
 - The policy's name comes from the algorithm: the resolver picks it from the
@@ -391,9 +394,10 @@ decisions on this branch:
   set, `app.main` runs `HumanRunner(scenario).play()` and returns before an
   agent runner is built. Human control overrides the snapshot and the runner
   config without a warning, which the owner chose on 2026-10-13. `play()`
-  plays one episode. It blocks on pygame's event queue for each move, takes
-  the arrow keys through `_KEY_ACTIONS`, and at the end shows each HUD
-  element, the metrics and the last reward until a key is pressed.
+  plays episodes one after another until the player quits. It blocks on
+  pygame's event queue for each move and takes the arrow keys through
+  `_KEY_ACTIONS`. An episode ends on a summary of each HUD element, the
+  metrics and the last reward, where Space plays again and Escape quits.
 - **Run controls for agent runs with a human renderer** are in
   `BaseAgentRunner._handle_run_controls(renderer)`. Eval calls it before each
   step and puts the episode number in the window's title. Training calls it
