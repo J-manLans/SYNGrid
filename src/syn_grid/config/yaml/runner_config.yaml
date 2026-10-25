@@ -4,13 +4,13 @@
 # file.
 
 common_conf:
-  alg: RPPO
+  alg: PPO
   agent_steps: '8001536'
   seed: 3
   training: false
   # Optional. Joined onto the scenario's tag in the run id; set it when you
   # change something outside the scenario's own axis.
-  tag: testing_spatial_with_the_new_scenario
+  tag:
 
 train_conf:
   continue_training: false

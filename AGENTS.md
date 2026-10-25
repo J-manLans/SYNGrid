@@ -74,7 +74,8 @@ State on 2026-10-25: an agent learned spatial through the rebuild. The owner
 trained RPPO on 5x5, seed 3, to a mean reward of about 8.5 against a ceiling
 of about 9.02, with episodes of about 15 steps; the roadmap's phase 6 has the
 details and what is not done. The owner played spatial by hand, with and
-without a negative orb. The family was renamed `single_tier_chain`, and the
+without a negative orb, and a PPO run with a negative orb and the full view
+(`vector_markovian`) learned too. The family was renamed `single_tier_chain`, and the
 window work of the same day moved input out of the renderer, which is step 3
 of phase 7b done early.
 
@@ -475,7 +476,9 @@ decisions on this branch:
   negative bundle, the `_Neg` tag, a `negatives_eaten` metric and one more orb
   in the field size, the observation slots and the sort limit. On 2026-10-25
   the owner played it by hand: the negative orb spawned, despawned and
-  returned as planned. No agent has trained with it.
+  returned as planned. The same day a PPO run on spatial 5x5 with
+  `vector_markovian` and a negative orb learned, somewhat slower than without
+  one. CSV was off, so `negatives_eaten` over the run was not read.
 - **The world readers in the single tier chain builders** each return a value from
   `world.droid.get_digester(...)`. Since 2026-10-23 they run against the real
   droid, through the HUD and the metrics the environment reads. Pyright was not

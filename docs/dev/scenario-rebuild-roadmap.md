@@ -439,8 +439,10 @@ One scenario at a time, each held against its thesis runs in `reproduction_packa
 2. **Negative orb.** One orb in a tier chain. Its digester, population and bundle are written, and the family helper
    counts it in the field size, the observation slots and the sort limit and names a `negatives_eaten` metric, whose
    reader is written. Its lifespan is `_reachable_life_span` since 2026-10-18. On 2026-10-25 the owner played it by
-   hand: it spawned, despawned and returned as planned. What is left is a training run with it. It does not affect
-   the chain.
+   hand: it spawned, despawned and returned as planned. The same day the owner trained PPO on spatial 5x5 with
+   `vector_markovian` and a negative orb (`reward: -3`, `cool_down: 10`), and it learned, somewhat slower than
+   without one. Before that run, 20,000 random steps with it stayed inside the observation `Box`. CSV was off, so
+   `negatives_eaten` over the run was not read. It does not affect the chain.
 3. **Delay.** Its own termination strategy, and the field going empty for `delay` steps after a consume, the
    negative orb with it. Where that mechanic lives and how the scenario triggers it is open; nothing in the scenario
    layer is reserved for it.
