@@ -7,7 +7,7 @@ that each scenario type and family extends.
 
 The orb kinds are in `config/models/scenario/orb_models.py`. What every goal scenario
 shares is in `scenario/families/goal/config.py`, and a family's own models are in its
-folder, such as `scenario/families/goal/tier_chain/config.py`.
+folder, such as `scenario/families/goal/single_tier_chain/config.py`.
 """
 
 from enum import Enum

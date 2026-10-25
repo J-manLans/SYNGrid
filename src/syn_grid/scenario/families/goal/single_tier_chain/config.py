@@ -1,5 +1,5 @@
 """
-The tier chain family: Goal/Tier Chain and every variant built on it.
+The single tier chain family: Goal/Single Tier Chain and every variant built on it.
 
 Four registered scenarios share this hierarchy: spatial, delay, and the two
 tier-scaling variants.

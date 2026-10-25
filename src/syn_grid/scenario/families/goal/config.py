@@ -3,7 +3,7 @@ What every goal scenario's configuration shares.
 
 A goal scenario has an objective to reach and a deadline to miss. The blocks
 here are the ones that follow from that, whatever the family; a family's own
-models live in its folder, such as `tier_chain/config.py`, and extend these.
+models live in its folder, such as `single_tier_chain/config.py`, and extend these.
 """
 
 from syn_grid.config.models.scenario.common_models import (

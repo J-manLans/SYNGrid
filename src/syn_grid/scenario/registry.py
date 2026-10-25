@@ -3,9 +3,10 @@ Scenario selection.
 
 This module is the whole of "which scenario is this". The global config names one, its entry here
 says which config class validates its config file and which builder composes its pieces, and nothing
-downstream re-derives identity from the config. The config classes and the builders live in their family's
-folder, such as ``families/goal/tier_chain/config.py`` and ``families/goal/tier_chain/builders.py``. Registering a
-new scenario means writing its builder there and adding an entry to ``SCENARIOS`` here.
+downstream re-derives identity from the config. The config classes and the builders live in their
+family's folder, such as ``families/goal/single_tier_chain/config.py`` and
+``families/goal/single_tier_chain/builders.py``. Registering a new scenario means writing its
+builder there and adding an entry to ``SCENARIOS`` here.
 
 Names that are configured identically share a config class. A name gets its own when it needs a
 field the family lacks, and that subclass lives beside the family it departs from.
@@ -18,13 +19,13 @@ from typing import Generic, TypeVar
 
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.config.models.scenario.common_models import ScenarioConf
-from syn_grid.scenario.families.goal.tier_chain.builders import (
-    build_tier_chain_delay,
-    build_tier_chain_scaling_dense,
-    build_tier_chain_scaling_sparse,
-    build_tier_chain_spatial,
+from syn_grid.scenario.families.goal.single_tier_chain.builders import (
+    build_single_tier_chain_delay,
+    build_single_tier_chain_scaling_dense,
+    build_single_tier_chain_scaling_sparse,
+    build_single_tier_chain_spatial,
 )
-from syn_grid.scenario.families.goal.tier_chain.config import (
+from syn_grid.scenario.families.goal.single_tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
 )
@@ -60,16 +61,16 @@ class ScenarioEntry(Generic[C]):
 
 SCENARIOS: dict[ScenarioName, ScenarioEntry] = {
     ScenarioName.GOAL_TIER_CHAIN_SPATIAL: ScenarioEntry(
-        TierScenarioConf, build_tier_chain_spatial
+        TierScenarioConf, build_single_tier_chain_spatial
     ),
     ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_SPARSE: ScenarioEntry(
-        TierScenarioConf, build_tier_chain_scaling_sparse
+        TierScenarioConf, build_single_tier_chain_scaling_sparse
     ),
     ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_DENSE: ScenarioEntry(
-        TierScenarioConf, build_tier_chain_scaling_dense
+        TierScenarioConf, build_single_tier_chain_scaling_dense
     ),
     ScenarioName.GOAL_TIER_CHAIN_DELAY: ScenarioEntry(
-        TierDelayScenarioConf, build_tier_chain_delay
+        TierDelayScenarioConf, build_single_tier_chain_delay
     ),
 }
 

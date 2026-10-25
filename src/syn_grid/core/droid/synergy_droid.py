@@ -2,8 +2,8 @@ from typing import Final
 
 from syn_grid.core.droid.digestion.digester import OrbDigester
 from syn_grid.core.droid.digestion.engine import D, DigestionEngine
-from syn_grid.core.orbs.base_orb import BaseOrb
 from syn_grid.core.droid.droid_action import DroidAction
+from syn_grid.core.orbs.base_orb import BaseOrb
 
 
 class SynergyDroid:

@@ -2,9 +2,9 @@ from typing import Final
 
 from numpy.random import Generator
 
+from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.core.droid.synergy_droid import SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.droid.droid_action import DroidAction
 
 
 class GridWorld:

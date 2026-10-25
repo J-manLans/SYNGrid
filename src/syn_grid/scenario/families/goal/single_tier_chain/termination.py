@@ -1,7 +1,7 @@
 """
-When a tier chain episode ends.
+When a single tier chain episode ends.
 
-This is the tier-chain implementation of ``TerminationRules``.
+This is the single tier chain implementation of ``TerminationRules``.
 """
 
 from __future__ import annotations
@@ -24,8 +24,8 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class TierChainTermination:
-    """Ends a tier chain episode, and states what the ending costs.
+class SingleTierChainTermination:
+    """Ends a single tier chain episode, and states what the ending costs.
 
     An episode ends when the droid is out of energy, when the chain is broken,
     when the chain is completed, or when the steps run out.

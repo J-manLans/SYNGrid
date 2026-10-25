@@ -1,8 +1,7 @@
 """
-The tier chain family's builders.
+The single tier chain family's builders.
 
-One builder per registered tier-chain scenario, and the helpers that compose
-what they share.
+One builder per registered single tier chain scenario, and the helpers that compose what they share.
 """
 
 from __future__ import annotations
@@ -29,32 +28,34 @@ from syn_grid.scenario.blocks.populations.tier_chain_population import (
 from syn_grid.scenario.blocks.readers import energy, score, steps_left
 from syn_grid.scenario.blocks.recipes.tier_digester_recipe import TierDigesterRecipe
 from syn_grid.scenario.blocks.recipes.world_recipe import WorldRecipe
-from syn_grid.scenario.families.goal.tier_chain.config import (
+from syn_grid.scenario.families.goal.single_tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
 )
-from syn_grid.scenario.families.goal.tier_chain.termination import TierChainTermination
+from syn_grid.scenario.families.goal.single_tier_chain.termination import (
+    SingleTierChainTermination,
+)
 from syn_grid.scenario.scenario import Scenario
 
 if TYPE_CHECKING:
     from syn_grid.core.grid_world import GridWorld
 
 
-# ===================== #
-#  Tier Chain Scenario  #
-# ===================== #
+# ========================== #
+# Single Tier Chain Scenario #
+# ========================== #
 
 
-def _tier_chain_scenario(
+def _single_tier_chain_scenario(
     scenario_name: str,
     scenario_tag: str,
     scenario_conf: TierScenarioConf,
     tier_bundle: OrbBundle,
 ) -> Scenario:
     """
-    Goal/Tier Chain: collect every tier in order before the episode steps are used up.
+    Goal/Single Tier Chain: collect every tier in order before the episode steps are used up.
 
-    The shared helper for the tier-chain family. A builder decides what differs between its
+    The shared helper for the single tier chain family. A builder decides what differs between its
     scenario and the others (the tier bundle, which carries the orbs and the scoring mode, and the
     delay) and passes it in; this composes everything the family has in common:
 
@@ -109,7 +110,7 @@ def _tier_chain_scenario(
         global_features=(),
     )
 
-    termination = TierChainTermination(
+    termination = SingleTierChainTermination(
         timeout_penalty=world_conf.goal_conf.timeout_penalty,
     )
 
@@ -210,8 +211,8 @@ def _negative_bundle(negative_conf: NegOrbConf, life_span: int) -> OrbBundle:
     """
     The negative orb and its digester, for a config that has a negative block.
 
-    A tier chain holds one negative orb. It spawns, despawns at the end of `life_span` and
-    returns elsewhere after its cool-down.
+    A single tier chain scenario holds one negative orb. It spawns, despawns at the end of
+    `life_span` and returns elsewhere after its cool-down.
     """
 
     return OrbBundle(
@@ -229,12 +230,12 @@ def _negative_bundle(negative_conf: NegOrbConf, life_span: int) -> OrbBundle:
 # ============ #
 
 
-def build_tier_chain_spatial(
+def build_single_tier_chain_spatial(
     scenario_name: str, scenario_conf: TierScenarioConf
 ) -> Scenario:
     """
-    Tier Chain, Spatial: the complete tier chain is laid out across the grid, but the droid only
-    sees a 3x3 window around itself.
+    Single Tier Chain, Spatial: the complete tier chain is laid out across the grid, but the droid
+    only sees a 3x3 window around itself.
     Difficulty axis: the grid size.
     Scoring: max-tier. Only the completed chain pays, and it pays what its orbs are worth together.
 
@@ -256,14 +257,14 @@ def build_tier_chain_spatial(
     # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
     tier_bundle = _tier_bundle(world_conf.tier_orb_conf, MaxTierDigester)
 
-    return _tier_chain_scenario(scenario_name, scenario_tag, scenario_conf, tier_bundle)
+    return _single_tier_chain_scenario(scenario_name, scenario_tag, scenario_conf, tier_bundle)
 
 
-def build_tier_chain_scaling_sparse(
+def build_single_tier_chain_scaling_sparse(
     scenario_name: str, scenario_conf: TierScenarioConf
 ) -> Scenario:
     """
-    Tier Chain, Scaling Sparse.
+    Single Tier Chain, Scaling Sparse.
 
     Axis and tag: the chain length and the grid size.
     Scoring: max-tier.
@@ -272,11 +273,11 @@ def build_tier_chain_scaling_sparse(
     raise NotImplementedError("scaling sparse is phase 8")
 
 
-def build_tier_chain_scaling_dense(
+def build_single_tier_chain_scaling_dense(
     scenario_name: str, scenario_conf: TierScenarioConf
 ) -> Scenario:
     """
-    Tier Chain, Scaling Dense.
+    Single Tier Chain, Scaling Dense.
 
     Axis and tag: the chain length and the grid size.
     Scoring: threshold.
@@ -285,11 +286,11 @@ def build_tier_chain_scaling_dense(
     raise NotImplementedError("scaling dense is phase 8")
 
 
-def build_tier_chain_delay(
+def build_single_tier_chain_delay(
     scenario_name: str, scenario_conf: TierDelayScenarioConf
 ) -> Scenario:
     """
-    Tier Chain, Delay: consuming an orb puts the whole field on cooldown.
+    Single Tier Chain, Delay: consuming an orb puts the whole field on cooldown.
 
     Axis and tag: the delay.
     Scoring: max-tier.
