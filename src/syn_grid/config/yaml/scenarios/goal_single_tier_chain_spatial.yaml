@@ -17,7 +17,7 @@ world_conf:
 
   droid_conf:
     max_energy: 50 # what the droid starts with and the most it can hold; the episode ends at 0
-    step_penalty: 0.0 # TODO: run ablations on this bastard, think for a single chain scenario it's redundant
+    step_penalty: -0.001
     boundary_penalty: -1.0
 
   goal_conf:

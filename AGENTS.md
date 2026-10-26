@@ -267,6 +267,10 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   `TierOrbConf` and not rounded. Scaling dense has no config classes of its own.
 - Legacy and `reproduction_package/` are references, not targets.
 - Reward normalisation stays off in training (`norm_reward=False`).
+- Spatial and scaling sparse keep `step_penalty: -0.001`, and sparse keeps
+  `chain_break_penalty: -0.1`, after the ablations of 2026-10-26 and 27.
+  Spatial did not learn without the step penalty. A penalty's size says
+  little, since PPO normalises the advantages in each minibatch.
 - A tier chain holds one negative orb. `NegOrbConf` is `reward` and `cool_down`;
   a weight is only for a family whose field is sampled.
 - An orb carries its own cool-down and lifespan, each a number or `None`. A

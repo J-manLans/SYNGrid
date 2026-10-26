@@ -365,20 +365,25 @@ tells a right orb from a wrong one.
 1. **Spatial, `step_penalty: 0`.** Tests whether the step penalty does anything. Over 100 steps it sums to at most
    -0.1, against a completed chain worth about 9, and the discount already rewards a short episode. Expected: no
    difference, and the scenario keeps one value fewer.
-   **Result:** started by the owner on 2026-10-26; no result yet. Its baseline is the RPPO run on 5x5, seed 3.
+   **Result, 2026-10-27, 5x5:** it did not learn. The mean reward hovered around 1.2, against a ceiling of about
+   9.02, where the baseline with the step penalty, the RPPO run on 5x5, seed 3, reached about 8.5. Kept.
 2. **Scaling sparse, `step_penalty: 0`.** The same question, against a completed chain worth about 6 to 13.5. Run at
    one `max_tier` that learns, such as 4 or 5, so that a difference can show.
    **Result, 2026-10-26, tier 4:** it reached its maximum reward faster than with the step penalty. Without the
    penalty the ceiling is about 0.015 higher on episodes of about 15 steps, which is too little to explain it, so
-   reaching the maximum sooner is a fair measure. The owner read the run and leans towards dropping the penalty.
-   How many seeds were run was not recorded.
+   reaching the maximum sooner is a fair measure. Kept anyway on 2026-10-27, after the spatial result: `max_tier`
+   is a run's choice, and the longer chains are where a completion is rare, which is where spatial failed without
+   it. How many seeds were run was not recorded.
 3. **Scaling sparse, `chain_break_penalty: 0`.** Tests whether termination alone is enough when the droid sees every
    orb. A break ends the episode and gives up the completion, which is the larger cost; the thesis's -0.1 may add
    nothing. Run at the same `max_tier` as the one above.
    **Result, 2026-10-26, tier 4:** slightly worse than with -0.1. Both runs had `step_penalty: 0`, so the break
    penalty was the only difference. A free break makes ending the episode early cheaper, which should hurt more as
-   the chain grows, so tier 6 is not expected to turn it around and was not run. Leaning: keep -0.1. How many seeds
+   the chain grows, so tier 6 is not expected to turn it around and was not run. Kept at -0.1. How many seeds
    were run was not recorded.
+
+The reasoning behind what was kept is in "The ablations kept the step penalty, and sparse's chain break penalty" in
+`design-decisions.md`.
 
 Spatial's `chain_break_penalty` is not ablated. It was tuned in the thesis era: with the view limited, eating an
 unknown orb is how the droid explores, and a break that costs little next to the timeout keeps that cheap. A larger

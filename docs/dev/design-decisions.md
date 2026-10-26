@@ -1338,8 +1338,8 @@ the droid sees the whole grid does not test what the scenario is named for.
 with the `vector_fog_of_war` perception, and the penalties and orb rewards the ablations kept. These are fixed in its
 builder. The tier and the perception are what make it spatial. The penalties and rewards are what motivate the droid,
 and how much their exact size matters differs from value to value, which is what the ablations find out. The grid size
-is its only dial, so its small model holds the grid size and nothing else. The other locked scenarios follow the same rule with their own axis: the chain length and the grid for
-scaling sparse, and the delay for delay.
+is its only dial, so its small model holds the grid size and nothing else. The other locked scenarios follow the
+same rule with their own axis: the chain length and the grid for scaling sparse, and the delay for delay.
 
 Tier 3 is the reference point and not a limit. It is the value the runs used, chosen with hardware and time in mind.
 Someone who wants spatial at tier 4 does not turn a knob on spatial. They make a scenario of their own: a new builder in
@@ -1370,10 +1370,64 @@ tunable does not have to be drawn in the YAML.
 **Status:** settled on 2026-10-27 as the rule, and not applied. Open:
 
 - `max_steps`. It may have to grow with the grid, since a fixed budget makes a bigger grid harder in a second way
-  beside the larger area to search. It would then be derived from the axis and not fixed. Not decided. `max_energy`
-  was not discussed.
+  beside the larger area to search. It would then be derived from the axis and not fixed. Not decided.
 - The full config has to stay reachable from outside the builder, which is an open point in the entry above. It is the
   one hook the GUI fork needs.
+
+`max_energy` is settled: it is a rule, fixed in the builder with the penalties, and not a size. With a step penalty of
+-0.001 the energy is mostly spent on boundary hits, so it works as a cap on doing pointless things and not as a budget
+for the episode. Settled by the owner on 2026-10-26.
+
+---
+
+## The ablations kept the step penalty, and sparse's chain break penalty (2026-10-27)
+
+**Decision:** Spatial and scaling sparse keep `step_penalty: -0.001`, and scaling sparse keeps
+`chain_break_penalty: -0.1`. Both are locked with the scenarios' other rules. They are the values the thesis ran with,
+and the ablations in the roadmap's phase 6 did not find a simpler value that holds.
+
+**Where:** the two scenario YAMLs today, and each scenario's builder once it is locked. The runs are listed under
+"Ablations before the lock" in `scenario-rebuild-roadmap.md`.
+
+**What the runs showed:**
+
+- Spatial on 5x5 with no step penalty did not learn. Its mean reward hovered around 1.2, against a ceiling of about
+  9.02, where the run with the penalty reached about 8.5.
+- Scaling sparse at tier 4 with no step penalty reached its maximum reward faster.
+- Scaling sparse at tier 4 with no chain break penalty did slightly worse than with -0.1.
+
+**Why the step penalty matters although it is small:** Over 100 steps it sums to at most -0.1, against a completed
+chain worth about 6 to 13.5, so its size suggests it does nothing. But PPO normalises the advantages in every
+minibatch, so what the learner sees is how the rewards in a batch differ and not how large they are. Early in
+training almost every step pays exactly 0. In such a batch the step penalty is nearly the only thing that tells a
+short episode from a long, aimless one, and the normalisation scales that difference up. The discount also rewards a
+short episode, but only once there are completions to reach sooner. Where completions are frequent from the start,
+the discount is enough and the penalty only adds noise, which fits sparse at tier 4 learning faster without it. Where
+they are rare, the penalty is the signal that carries the agent until the first completions come in, which fits
+spatial failing without it, since under a limited view random play seldom finishes the chain. This explanation fits
+both results and has not been tested on its own.
+
+**Why sparse keeps it although tier 4 learned faster without it:** `max_tier` is on sparse's axis, so a run chooses
+it and the locked rules must hold at every tier, not only at the one that was tried. The longer the chain, the rarer
+a completion in early training, which is the case where spatial failed without the penalty. The thesis ran -0.001 at
+tiers 4 to 7, so the penalty is the value with evidence over the whole range. Keeping it costs some speed at short
+chains, while dropping it risks the long ones.
+
+**Why sparse keeps its chain break penalty:** A break ends the episode, so without a penalty a break is a free way
+out, while the timeout costs -1. Before the agent has seen completions, ending the episode on any orb is then cheaper
+than walking towards the timeout. The run did slightly worse at tier 4, and this should hurt more as the chain
+grows, so tier 6 was not run.
+
+**Alternatives considered:**
+
+- No step penalty in sparse, on the tier 4 result. Rejected for the reasons above: one tier cannot speak for the
+  range a run may choose.
+- No step penalty in any goal scenario, since the discount already pays for speed. Rejected by the spatial run.
+- A sparse run at tier 6 with no step penalty before deciding. Not run: keeping the penalty is the safe choice
+  whatever it shows, so it would only be worth running to drop the penalty up to tier 6.
+
+**Status:** settled on 2026-10-27, and applied in the two YAMLs. How many seeds the sparse runs used was not
+recorded. Spatial's `chain_break_penalty` was not ablated; why is in the roadmap.
 
 ---
 
