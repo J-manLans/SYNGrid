@@ -1,7 +1,7 @@
 # 07 — Runtime flow
 
 Startup, as `app.main()` is written, for the current YAMLs
-(`goal_tier_chain_spatial`, RPPO, training):
+(`goal_single_tier_chain_spatial`, RPPO, training):
 
 ```text
 app.main()

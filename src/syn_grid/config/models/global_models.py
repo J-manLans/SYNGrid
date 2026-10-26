@@ -9,10 +9,10 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class ScenarioName(str, Enum):
-    GOAL_TIER_CHAIN_SPATIAL = "goal_tier_chain_spatial"
-    GOAL_TIER_CHAIN_TIER_SCALING_SPARSE = "goal_tier_chain_tier_scaling_sparse"
-    GOAL_TIER_CHAIN_TIER_SCALING_DENSE = "goal_tier_chain_tier_scaling_dense"
-    GOAL_TIER_CHAIN_DELAY = "goal_tier_chain_delay"
+    GOAL_SINGLE_TIER_CHAIN_SPATIAL = "goal_single_tier_chain_spatial"
+    GOAL_SINGLE_TIER_CHAIN_SCALING_SPARSE = "goal_single_tier_chain_scaling_sparse"
+    GOAL_SINGLE_TIER_CHAIN_SCALING_DENSE = "goal_single_tier_chain_scaling_dense"
+    GOAL_SINGLE_TIER_CHAIN_DELAY = "goal_single_tier_chain_delay"
 
 
 # ======================= #

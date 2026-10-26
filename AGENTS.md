@@ -78,14 +78,6 @@ without a negative orb, and a PPO run with a negative orb and the full view
 window work of the same day moved input out of the renderer, which is step 3
 of phase 8a done early.
 
-**Reminder for the agent: the scenario names are still `goal_tier_chain_*`.**
-The family was renamed `single_tier_chain` and the scenario names were
-forgotten. The owner wants them renamed soon, before phase 6 builds the other
-scenarios. When the owner starts a session on phase 6, a builder or a YAML,
-say so first and ask for the new names. The rename touches `ScenarioName`, the
-YAML files, `registry.py`, `global_models.py` and `global_config.yaml`, and
-moves the output folder.
-
 **No file in the working strain is final.** A file can be a stub, half-moved or
 about to change shape, and its docstrings describe what it is meant to be, not
 how far it has come. What is a stub, what is empty and what is still legacy is
@@ -292,12 +284,11 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
 - The family is named `single_tier_chain`: its folder, the
   `build_single_tier_chain_*` builders, `_single_tier_chain_scenario` and
   `SingleTierChainTermination`. The mechanic keeps `tier_chain`
-  (`digesters/tier_chain/`, `TierChainPopulation`). The scenario names,
-  `GOAL_TIER_CHAIN_*` and `goal_tier_chain_*.yaml`, are to be renamed soon,
-  before phase 6 builds the other scenarios; the new names are not chosen.
-  The scenario name is also the output folder, so the rename moves where
-  saved models are found. Family renamed 2026-10-25; scenario names left over
-  and brought forward 2026-10-26.
+  (`digesters/tier_chain/`, `TierChainPopulation`). The scenarios
+  followed on 2026-10-26: `GOAL_SINGLE_TIER_CHAIN_*` and
+  `goal_single_tier_chain_*.yaml`. The scenario name is also the output
+  folder, so runs from before then are found under `goal_tier_chain_*`.
+  Family renamed 2026-10-25.
 - A tier bundle's `make_digester` is a `TierDigesterRecipe`: a frozen dataclass
   of the scoring mode's class, `max_tier` and `chain_break_penalty`, in
   `scenario/blocks/recipes/`. It compares by value, which a `partial` does not. The

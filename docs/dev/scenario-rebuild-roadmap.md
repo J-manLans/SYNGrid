@@ -4,9 +4,9 @@ The order to rebuild the scenario layer in, written 2026-10-10. Each phase says 
 touches, what has to be decided first and how to tell it is done. The reasons behind the decisions are in
 `design-decisions.md`; this file is only the order of work.
 
-The route is a vertical slice: get `goal_tier_chain_spatial` running end to end on the new structure, check it against
-legacy as a reference, and only then widen to the other scenarios. Until phase 5 nothing runs, so each phase before it has its own
-small check.
+The route is a vertical slice: get `goal_single_tier_chain_spatial` running end to end on the new structure, then build,
+verify and lock the rest of its family one scenario at a time, before the observation pass and the renderer change
+what they all share. Until phase 5 nothing runs, so each phase before it has its own small check.
 
 ---
 
@@ -49,11 +49,11 @@ Do this first, or a later mismatch can't be told apart from a problem that was a
 and not a target: the rebuild's rewards differ from it on purpose, so the curves are what gets compared.
 
 - Confirm the legacy strain learns spatial, with several seeds.
-- Record its behaviour with the replay scripts in `scripts/`: one seed, a fixed action sequence, the reward and the
-  observation per step. Use a `starting_score` high enough that episodes reach the timeout.
+- Only if phase 6 needs it: record its behaviour with the replay scripts in `scripts/`: one seed, a fixed action
+  sequence, the reward and the observation per step. Use a `starting_score` high enough that episodes reach the
+  timeout. Phase 6 compares against it only when the curves part ways.
 
-**Done when:** there are legacy training curves to hold the rebuild's against in phase 6, and a recorded
-step-by-step trace whose observations can be diffed.
+**Done when:** there are legacy training curves to hold the rebuild's against in phase 6.
 
 **State on 2026-10-13:** partly done. The owner reports that a legacy spatial run learned. The git-ignored `output/`
 folder holds one run from 2026-10-08: spatial 5x5, RPPO, `vector_fog_of_war`, seed 3. More seeds are a matter of
@@ -194,7 +194,7 @@ digesters' names follow the digestion metaphor: `undigested()`, `chain_worth` an
 **State on 2026-10-19: phase 3 is done.** Steps 5, 7 and 8 were checked and are done, as the table says. Step 6 was
 written in five small commits: the world asks its orbs instead of keeping two lists, `orbs_on_field()` replaces the
 three getters, the droid's `perform_action` is `take_step`, `reset` requires an rng, and the delay methods and the
-identity remap carry TODOs. Left over from it: the environment's `render` calls the old getters (phase 9), the
+identity remap carry TODOs. Left over from it: the environment's `render` called the old getters (fixed in phase 5, step 5), the
 delay methods move into the delay scenario (phase 6), and the identity remap stays until phase 7.
 
 **State on 2026-10-18.** Steps 1 to 4 are done, together with the part of step 9 that hands the negative orb its
@@ -312,10 +312,10 @@ the env closes the window" in `design-decisions.md`.
 era, and then locked. It runs after phase 5 and before the observation pass. Legacy and the thesis runs are
 references and not targets, and they are as they were, so their numbers are not something to match.
 
-**Do first:** rename the scenarios, the `GOAL_TIER_CHAIN_*` enum members and the `goal_tier_chain_*.yaml` files, so
-spatial's lock and the new builders and YAMLs start with the right names. The names are not chosen yet. The scenario
-name is also the runner's output folder, so saved models and configs are found under the old name only, and the
-rename also reaches the thesis.
+**Done first, on 2026-10-26:** the scenarios were renamed, so spatial's lock and the new builders and YAMLs start
+with the right names. The enum members are `GOAL_SINGLE_TIER_CHAIN_*` and the files `goal_single_tier_chain_*.yaml`.
+The scenario name is also the runner's output folder, so saved models and configs from before then are found under
+`goal_tier_chain_*`, and the rename also reaches the thesis.
 
 It goes in four parts, in this order:
 
@@ -351,7 +351,6 @@ how fast the curves climb, not of the reward level. What is left is more seeds.
 ### The rest of the family
 
 Moved here from the old phase 8, so that the scenarios are built in the phase that checks them. One at a time.
-
 
 1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
 2. **Negative orb.** One orb in a tier chain. Its digester, population and bundle are written, and the family helper
@@ -523,8 +522,9 @@ theme file, and the observation and the reward are unchanged.
   such as branch coverage, and mutation testing to show tests that pass whatever the code does. Which libraries is
   open.
 - Delete `legacy/` and the `USE_LEGACY` switch once the comparison is no longer needed.
+- Bring `AGENTS.md` and `docs/architecture/` in line with what was built.
 - A naming pass, once everything is wired and legacy is gone, so every part is named in the same pass. The scenario
-  names are not part of it; they are renamed soon, before phase 6 builds the other scenarios. The family's names were
+  names are not part of it; they were renamed on 2026-10-26, before phase 6 builds the other scenarios. The family's names were
   done on 2026-10-25, and the mechanic's names (`digesters/tier_chain/`, `TierChainPopulation`) describe the orbs
   and stay. No other name is listed for the pass yet.
   See: "The family is named single tier chain" in `design-decisions.md`.

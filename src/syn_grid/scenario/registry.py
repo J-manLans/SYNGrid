@@ -59,16 +59,16 @@ class ScenarioEntry(Generic[C]):
 
 
 SCENARIOS: dict[ScenarioName, ScenarioEntry] = {
-    ScenarioName.GOAL_TIER_CHAIN_SPATIAL: ScenarioEntry(
+    ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL: ScenarioEntry(
         TierScenarioConf, build_single_tier_chain_spatial
     ),
-    ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_SPARSE: ScenarioEntry(
+    ScenarioName.GOAL_SINGLE_TIER_CHAIN_SCALING_SPARSE: ScenarioEntry(
         TierScenarioConf, build_single_tier_chain_scaling_sparse
     ),
-    ScenarioName.GOAL_TIER_CHAIN_TIER_SCALING_DENSE: ScenarioEntry(
+    ScenarioName.GOAL_SINGLE_TIER_CHAIN_SCALING_DENSE: ScenarioEntry(
         TierScenarioConf, build_single_tier_chain_scaling_dense
     ),
-    ScenarioName.GOAL_TIER_CHAIN_DELAY: ScenarioEntry(
+    ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY: ScenarioEntry(
         TierDelayScenarioConf, build_single_tier_chain_delay
     ),
 }

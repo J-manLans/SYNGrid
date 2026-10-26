@@ -1,4 +1,4 @@
-# SYNGrid scenario config: goal_tier_chain_spatial
+# SYNGrid scenario config: goal_single_tier_chain_spatial
 #
 # The tunables of this scenario: episode length, geometry, the droid, the goal,
 # the chain, and the perception.

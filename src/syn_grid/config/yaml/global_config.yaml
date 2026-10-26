@@ -6,5 +6,5 @@
 snapshot:
   enabled: false
   id:
-scenario: goal_tier_chain_spatial
-human_control: true
+scenario: goal_single_tier_chain_spatial
+human_control: false

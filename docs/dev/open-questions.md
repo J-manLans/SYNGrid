@@ -179,12 +179,6 @@ The logger reads `scenario.metrics`.
 
 ## Not tied to a phase
 
-- **What the single tier chain scenarios are called.** The family's own names became `single_tier_chain` on
-  2026-10-25. The scenario names are still `goal_tier_chain_*`: the `ScenarioName` members and the YAML files. A
-  rename moves the output folder, since the scenario name is the runner's save folder, so saved models are found
-  under the old name only. To be done soon, before phase 6 builds the other scenarios, and not left to the naming
-  pass at the end; the new names are not chosen. Raised on 2026-10-18, brought forward on 2026-10-26.
-  See: the roadmap's phase 6; "The family is named single tier chain" in `design-decisions.md`.
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox scenario. It is written as a reservation
   inside an entry marked settled. The sandbox is not on the roadmap.
   See: "A new scoring mode is a new scenario" in `design-decisions.md`.

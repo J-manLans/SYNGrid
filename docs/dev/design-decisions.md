@@ -501,7 +501,7 @@ each scenario declares the field".
 
 **Where:** `config/models/scenario/common_models.py`, `config/models/scenario/orb_models.py`, `scenario/families/goal/config.py`,
 `scenario/families/goal/single_tier_chain/config.py`,
-`scenario/registry.py`, `config/yaml/goal_tier_chain_spatial.yaml`
+`scenario/registry.py`, `config/yaml/goal_single_tier_chain_spatial.yaml`
 
 **Alternatives considered:**
 
@@ -956,10 +956,11 @@ take values and do not know what family they are in.
 `scenario/families/goal/single_tier_chain/`, the builders `build_single_tier_chain_*`, the helper
 `_single_tier_chain_scenario` and `SingleTierChainTermination`. The mechanic's names stay `tier_chain`, since they
 describe the orbs and not the family: `digesters/tier_chain/`, `TierChainPopulation` and the HUD label `current tier
-chain`. The scenario names are unchanged: the `GOAL_TIER_CHAIN_*` members of `ScenarioName` and
-`goal_tier_chain_*.yaml`.
+chain`. The scenario names follow the family: the `GOAL_SINGLE_TIER_CHAIN_*` members of `ScenarioName` and
+`goal_single_tier_chain_*.yaml`.
 
-**Where:** `scenario/families/goal/single_tier_chain/`; `scenario/registry.py`.
+**Where:** `scenario/families/goal/single_tier_chain/`; `scenario/registry.py`; `config/models/global_models.py`;
+`config/yaml/goal_single_tier_chain_spatial.yaml`.
 
 **Alternatives considered:**
 
@@ -973,10 +974,11 @@ their YAMLs to the family, so a rename then would cost four times what it costs 
 **Why this one:** The guarantee and the mechanic together name the family, and each half can vary on its own: a
 `multi_tier_chain` or a `single_color_chain` reads at once as what differs.
 
-**Status:** done for the family's own names. The scenario names were left to the naming pass in phase 10, because the
-scenario name is also the output folder (`scenario_name` is the runner's save folder), so renaming it moves where
-saved models are found. Brought forward on 2026-10-26: they are renamed soon, before phase 6 builds the other
-scenarios, for the same reason the family was.
+**Status:** done. The family's own names on 2026-10-25. The scenario names were first left to the naming pass in
+phase 10, because the scenario name is also the output folder (`scenario_name` is the runner's save folder), so
+renaming it moves where saved models are found. They were brought forward and renamed on 2026-10-26, before phase 6
+builds the other scenarios, for the same reason the family was. Runs from before then are found under
+`goal_tier_chain_*`.
 
 ---
 
@@ -1157,7 +1159,7 @@ together, which is close to the fixed 10 that legacy paid for a completed chain.
 
 **Where:** `TierOrbConf` in `config/models/scenario/orb_models.py`; `TierOrb` in
 `core/orbs/synergy/chain/tier_orb.py`; `scenario/families/goal/single_tier_chain/config.py`; `scenario/registry.py`;
-`config/yaml/goal_tier_chain_spatial.yaml`.
+`config/yaml/goal_single_tier_chain_spatial.yaml`.
 
 **Alternatives considered:**
 
