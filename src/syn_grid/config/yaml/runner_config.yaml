@@ -6,11 +6,11 @@
 common_conf:
   alg: RPPO
   agent_steps: '8001536'
-  seed: 7
+  seed: 3
   training: true
   # Optional. Joined onto the scenario's tag in the run id; set it when you
   # change something outside the scenario's own axis.
-  tag: spatial_control_runs
+  tag: step_penalty_ablation
 
 train_conf:
   continue_training: false

@@ -317,7 +317,7 @@ with the right names. The enum members are `GOAL_SINGLE_TIER_CHAIN_*` and the fi
 The scenario name is also the runner's output folder, so saved models and configs from before then are found under
 `goal_tier_chain_*`, and the rename also reaches the thesis.
 
-It goes in four parts, in this order:
+It goes in five parts, in this order:
 
 1. **Rebuild** all the scenarios. Spatial is built. The others are listed under "The rest of the family" below.
 2. **Verify** each one against the thesis era. Train several seeds on the rebuild and compare the shape of the curves
@@ -325,10 +325,12 @@ It goes in four parts, in this order:
    TensorBoard, so this step does not wait for the logger in phase 9. Only if the curves part ways: replay the
    phase 0 action sequence through the rebuild and diff the observation per step, to find where. Read the size of a
    difference before calling it behavioural.
-3. **Lock** each scenario as soon as its own verification is done, so spatial is locked once its remaining seeds
-   have confirmed it. A lock moves the scenario's fixed values from the YAML into its builder; see
-   `codebase-ideas.md`.
-4. **Record a trace** of each locked scenario with the replay probe: one seed, a fixed action sequence, and every
+3. **Ablate** the values that are in doubt, while the YAML still sets every value. A lock freezes the values, so an
+   ablation after it would mean unlocking again. The ablations are listed under "Ablations before the lock" below.
+4. **Lock** each scenario as soon as its own verification and ablations are done, so spatial is locked once its
+   remaining seeds have confirmed it. A lock moves the scenario's fixed values from the YAML into its builder, and
+   the values it fixes are the ones the ablations kept; see `codebase-ideas.md`.
+5. **Record a trace** of each locked scenario with the replay probe: one seed, a fixed action sequence, and every
    observation, reward and termination flag per step. It is the baseline that phase 7 is diffed against. The probe
    in `scripts/` imports the legacy strain today, so the first lock ports it to take a `Scenario`.
 
@@ -348,13 +350,47 @@ penalty of 0.001 a step), with episodes of about 15 steps. The owner reads it as
 reached. Legacy's ceiling is not the same number, so a comparison is of each side's share of its own ceiling and of
 how fast the curves climb, not of the reward level. What is left is more seeds.
 
+### Ablations before the lock
+
+Each ablation changes one value in a scenario's YAML and trains it over several seeds beside the scenario as it is.
+One seed per variant shows nothing when the seeds differ as much as the variants do. A variant that learns as well
+as the original keeps the simpler value; one that learns worse keeps the original. What is kept is what the lock
+fixes.
+
+Why a penalty matters depends on whether a chain break ends the episode. In spatial, sparse and dense it does, so the
+break penalty is weighed against `timeout_penalty` and the real cost of a wrong orb is the completion given up. In
+delay it does not, and under max-tier scoring the break penalty is the only signal at the moment of a consume that
+tells a right orb from a wrong one.
+
+1. **Spatial, `step_penalty: 0`.** Tests whether the step penalty does anything. Over 100 steps it sums to at most
+   -0.1, against a completed chain worth about 9, and the discount already rewards a short episode. Expected: no
+   difference, and the scenario keeps one value fewer.
+   **Result:** started by the owner on 2026-10-26; no result yet. Its baseline is the RPPO run on 5x5, seed 3.
+2. **Scaling sparse, `step_penalty: 0`.** The same question, against a completed chain worth about 6 to 13.5. Run at
+   one `max_tier` that learns, such as 4 or 5, so that a difference can show.
+   **Result, 2026-10-26, tier 4:** it reached its maximum reward faster than with the step penalty. Without the
+   penalty the ceiling is about 0.015 higher on episodes of about 15 steps, which is too little to explain it, so
+   reaching the maximum sooner is a fair measure. The owner read the run and leans towards dropping the penalty.
+   How many seeds were run was not recorded.
+3. **Scaling sparse, `chain_break_penalty: 0`.** Tests whether termination alone is enough when the droid sees every
+   orb. A break ends the episode and gives up the completion, which is the larger cost; the thesis's -0.1 may add
+   nothing. Run at the same `max_tier` as the one above.
+   **Result, 2026-10-26, tier 4:** slightly worse than with -0.1. Both runs had `step_penalty: 0`, so the break
+   penalty was the only difference. A free break makes ending the episode early cheaper, which should hurt more as
+   the chain grows, so tier 6 is not expected to turn it around and was not run. Leaning: keep -0.1. How many seeds
+   were run was not recorded.
+
+Spatial's `chain_break_penalty` is not ablated. It was tuned in the thesis era: with the view limited, eating an
+unknown orb is how the droid explores, and a break that costs little next to the timeout keeps that cheap. A larger
+penalty taught the droid to avoid orbs and run out the clock.
+
 ### The rest of the family
 
 Moved here from the old phase 8, so that the scenarios are built in the phase that checks them. One at a time.
 
 1. **Scaling sparse.** Max-tier, like spatial. Built on 2026-10-26: a builder that is spatial's with its own tag
-   (`4t_5x5`), and one YAML with the thesis sparse values, which differed across the thesis runs only in `max_tier` and
-   the grid. The reward is the exception: the thesis paid a fixed 10 on completion and its `base_reward` and
+   (`tierN_RxC`, as in `tier4_5x5`), and one YAML with the thesis sparse values, which differed across the thesis runs
+   only in `max_tier` and the grid. The reward is the exception: the thesis paid a fixed 10 on completion and its `base_reward` and
    `growth_factor` did nothing, so the YAML sets `base_reward: 1.0` and `growth_factor: 0.5`, which gives a completed
    chain about 6.1 at tier 4 up to 13.5 at tier 7, around the thesis's 10. It builds through the real loader and passes
    Gymnasium's `check_env`. A scripted player that finishes the tier 4 chain gets 6.14 against a ceiling of about 6.15.

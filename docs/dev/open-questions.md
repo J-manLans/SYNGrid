@@ -100,7 +100,8 @@ See: "A locked scenario loads a small model, and its builder makes the full conf
 - **Whether a locked axis has a range,** such as an upper bound on the grid.
 - **What the small model holds besides the axis, and what it is called.** For spatial it holds the grid size, since
   its perception is fixed. The negative orb would be a yes or no, since its `reward` and `cool_down` are fixed
-  values.
+  values. On 2026-10-26 the owner leaned towards keeping `max_tier`, the grid size and `max_steps` tunable for spatial,
+  as values that can be argued to stay, while the perception is fixed. Not decided.
 
 ## Phase 7: The observation pass
 

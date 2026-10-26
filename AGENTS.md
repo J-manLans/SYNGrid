@@ -320,8 +320,10 @@ Settled since the rebuild started, each with an entry in `design-decisions.md`:
   as legacy; matching its numbers is not required (changed 2026-10-25).
   Spatial is locked once its remaining seeds have run.
 - A locked scenario offers the perceptions that make sense for it. Spatial's
-  perception is fixed in its builder, as `vector_fog_of_war`, and a run cannot
-  change it (since 2026-10-25).
+  perception is to be fixed in its builder, as `vector_fog_of_war`, when it is
+  locked, so that a run cannot change it (decided 2026-10-25). Until then the
+  builder reads it from the YAML, as scaling sparse does with
+  `vector_markovian`.
 - The algorithm in the runner config is an `Algorithm` enum, and the `RUNNER`
   table is keyed by it, as `ScenarioName` and `SCENARIOS` are.
 - The policy's name comes from the algorithm: the resolver picks it from the
