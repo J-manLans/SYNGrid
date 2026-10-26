@@ -207,3 +207,37 @@ scenario's own. Open when it is built:
 - What a cash-out counts as. It is not a break or a completion, so it likely needs a counter of its own.
 - What "stochastic" means: a reward drawn per orb, or kinds whose values are hidden. That decides whether the agent
   can learn to read the risk at all.
+
+---
+
+## A GUI forks a locked scenario instead of editing it (2026-10-27)
+
+**Idea:** In the GUI a locked scenario opens read-only, with its axis editable as in "A GUI on top of the registry".
+To change anything else the user unlocks it. Unlocking makes a deep copy of the full config, the user names the copy,
+and every edit goes to the copy. A run of it is its own scenario, saved apart from the one it started from. The
+original is never edited, so spatial at tier 4 is a fork with a name of its own and not a changed spatial.
+
+**Where it came from:** Talking through where to put the limit on what is tunable, by voice on the evening of
+2026-10-26, as the first two scenarios were about to be locked. Fixing `max_tier` at 3 in spatial's builder felt
+constricting, since someone else may want a longer chain on the same setup. The GUI answers that.
+
+**Why it might matter:**
+
+- A YAML has no locked state to unlock from. The file is both the reference and the thing that is edited, so a change
+  to `max_tier` silently changes what spatial means. A GUI can hold the reference read-only and hand out copies.
+- Tunable then becomes a property of the mode and not of the scenario: locked for runs that can be compared, unlocked
+  for exploring. Until the GUI exists the code is the restriction, and later the restriction is a choice made by
+  pressing unlock.
+- It takes the pressure off deciding what the YAML should expose. A scenario can be locked strictly now, since a
+  different tier costs one short builder function until a fork can do it.
+
+What it asks for:
+
+- The full config a locked builder makes has to be reachable from outside the builder, so the GUI can show the fixed
+  values and copy them. It is the same hook "A GUI on top of the registry" asks for, and cheap to keep in mind now.
+- A fork needs a name, and probably a note of the scenario it started from, so that a result is never filed as
+  spatial.
+
+Open when it is built: whether a fork runs through the same builder or through a more general path that takes any
+values. A fork can change values but not the scoring mode, since a new scoring mode is a scenario of its own, so it
+has to say which registered scenario's builder composes it.

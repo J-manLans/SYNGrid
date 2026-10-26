@@ -1332,6 +1332,51 @@ the droid sees the whole grid does not test what the scenario is named for.
 
 ---
 
+## A locked scenario is what was run, and changing it makes a different scenario (2026-10-27)
+
+**Decision:** A scenario's name promises one test, so a locked scenario is locked to what was run. Spatial is tier 3,
+with the `vector_fog_of_war` perception, and the penalties and orb rewards the ablations kept. These are fixed in its
+builder. The tier and the perception are what make it spatial. The penalties and rewards are what motivate the droid,
+and how much their exact size matters differs from value to value, which is what the ablations find out. The grid size
+is its only dial, so its small model holds the grid size and nothing else. The other locked scenarios follow the same rule with their own axis: the chain length and the grid for
+scaling sparse, and the delay for delay.
+
+Tier 3 is the reference point and not a limit. It is the value the runs used, chosen with hardware and time in mind.
+Someone who wants spatial at tier 4 does not turn a knob on spatial. They make a scenario of their own: a new builder in
+`families/goal/single_tier_chain/builders.py` and an entry in the registry. The family helper composes the rest, so a
+builder is mostly a choice of tier bundle and a tag. Fixing a value in a builder does not stop anyone from editing
+the code. It settles what the name means.
+
+**Where:** not applied. Spatial is locked once its ablations and remaining seeds are done. It will touch spatial's
+builder (the `TODO(lock)` in `builders.py`), the small model in the family's `config.py`, the spatial YAML and spatial's
+entry in `registry.py`, as in the entry above.
+
+**Alternatives considered:**
+
+- Keep `max_tier` tunable in the YAML, with the tag recording it, as scaling's tag already does (`tier4_5x5`). Not
+  taken: "spatial" would stop naming one test and become a family, and two runs under the name could describe
+  different worlds. It is the same reason scoring mode is kept out of config.
+- Leave every value in the YAML and rely on the name. Rejected because the file is both the reference and the thing
+  being edited, so changing `max_tier` silently changes what spatial means.
+- The leaning from 2026-10-26, that `max_tier`, the grid size and `max_steps` all stay tunable for spatial. Replaced for
+  `max_tier` by this entry. `max_steps` is still open, see below.
+
+**Why this one:** A benchmark is only useful if two people who say "I ran spatial" mean the same test. Being strict
+costs little now, since a different tier is one short builder function. The restriction is also only as hard as the
+YAML makes it. A GUI can open the locked scenario read-only and hand out named copies, which a YAML file cannot
+enforce; see "A GUI forks a locked scenario instead of editing it" in `codebase-ideas.md`. So the limit on what is
+tunable does not have to be drawn in the YAML.
+
+**Status:** settled on 2026-10-27 as the rule, and not applied. Open:
+
+- `max_steps`. It may have to grow with the grid, since a fixed budget makes a bigger grid harder in a second way
+  beside the larger area to search. It would then be derived from the axis and not fixed. Not decided. `max_energy`
+  was not discussed.
+- The full config has to stay reachable from outside the builder, which is an open point in the entry above. It is the
+  one hook the GUI fork needs.
+
+---
+
 ## The algorithm in the runner config is an enum (2026-10-13)
 
 **Decision:** `alg` in `runner_config.yaml` is read as an `Algorithm` enum with one member per registered runner:
