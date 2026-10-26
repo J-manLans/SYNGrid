@@ -266,13 +266,32 @@ def build_single_tier_chain_scaling_sparse(
     scenario_name: str, scenario_conf: TierScenarioConf
 ) -> Scenario:
     """
-    Single Tier Chain, Scaling Sparse.
+    Single Tier Chain, Scaling Sparse: the complete tier chain is laid out across the grid and the
+    droid sees all of it.
+    Difficulty axis: the chain length and the grid size.
+    Scoring: max-tier. Only the completed chain pays, and it pays what its orbs are worth together.
 
-    Axis and tag: the chain length and the grid size.
-    Scoring: max-tier.
+    This scenario tests how the task scales with the length of the chain. Nothing is hidden, so
+    the droid never has to remember where an orb was. What grows is the order it has to learn: the
+    longer the chain, the longer it goes without being paid, and the more steps a wrong turn costs.
+    The thesis ran it at tiers 4 to 7, on a 5x5 grid and, for tier 7, a 6x6 one.
     """
 
-    raise NotImplementedError("scaling sparse is phase 6")
+    # NOTE(duplication): this body is spatial's, apart from the tag. Left as a copy until delay
+    # and dense are built and it is clear what the builders share.
+    world_conf = scenario_conf.world_conf
+    grid_conf = world_conf.grid_conf
+    scenario_tag = f"{world_conf.tier_orb_conf.max_tier}t_{grid_conf.grid_rows}x{grid_conf.grid_cols}"
+
+    # TODO(lock): fix this scenario's penalties, orb rewards, max_steps, max_energy and perception
+    # (vector_markovian) here, and read only the chain length and the grid size from the config.
+
+    # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
+    tier_bundle = _tier_bundle(world_conf.tier_orb_conf, MaxTierDigester)
+
+    return _single_tier_chain_scenario(
+        scenario_name, scenario_tag, scenario_conf, tier_bundle
+    )
 
 
 def build_single_tier_chain_scaling_dense(

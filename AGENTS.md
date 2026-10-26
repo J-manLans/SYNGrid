@@ -45,7 +45,7 @@ one makes the spatial scenario's tier orbs, and the negative one is in the
 bundle a config with a `neg_orb_conf` block gets. Its termination and its
 world readers are written. `build_world` has its body, and on 2026-10-16
 calling it on the spatial scenario returned a `GridWorld`; the world's `reset`
-does not run yet. The other three builders raise.
+does not run yet. Two builders raise.
 `core/droid/digestion/digester.py` holds the digester protocol, and the
 routing key `OrbKind` is in `core/orbs/orb_meta.py`. `engine.py` is the new
 router, built from digesters. The tier digester's base and its three scoring

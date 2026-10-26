@@ -35,7 +35,9 @@ syn_grid/
 │   │   └── runner_models.py
 │   ├── yaml/
 │   │   ├── global_config.yaml
-│   │   ├── goal_single_tier_chain_spatial.yaml
+│   │   ├── scenarios/
+│   │   │   ├── goal_single_tier_chain_scaling_sparse.yaml
+│   │   │   └── goal_single_tier_chain_spatial.yaml
 │   │   └── runner_config.yaml
 │   └── config_manager.py
 │

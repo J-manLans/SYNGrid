@@ -501,7 +501,7 @@ each scenario declares the field".
 
 **Where:** `config/models/scenario/common_models.py`, `config/models/scenario/orb_models.py`, `scenario/families/goal/config.py`,
 `scenario/families/goal/single_tier_chain/config.py`,
-`scenario/registry.py`, `config/yaml/goal_single_tier_chain_spatial.yaml`
+`scenario/registry.py`, `config/yaml/scenarios/goal_single_tier_chain_spatial.yaml`
 
 **Alternatives considered:**
 
@@ -960,7 +960,7 @@ chain`. The scenario names follow the family: the `GOAL_SINGLE_TIER_CHAIN_*` mem
 `goal_single_tier_chain_*.yaml`.
 
 **Where:** `scenario/families/goal/single_tier_chain/`; `scenario/registry.py`; `config/models/global_models.py`;
-`config/yaml/goal_single_tier_chain_spatial.yaml`.
+`config/yaml/scenarios/goal_single_tier_chain_spatial.yaml`.
 
 **Alternatives considered:**
 
@@ -1159,7 +1159,7 @@ together, which is close to the fixed 10 that legacy paid for a completed chain.
 
 **Where:** `TierOrbConf` in `config/models/scenario/orb_models.py`; `TierOrb` in
 `core/orbs/synergy/chain/tier_orb.py`; `scenario/families/goal/single_tier_chain/config.py`; `scenario/registry.py`;
-`config/yaml/goal_single_tier_chain_spatial.yaml`.
+`config/yaml/scenarios/goal_single_tier_chain_spatial.yaml`.
 
 **Alternatives considered:**
 

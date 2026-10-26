@@ -10,8 +10,10 @@ config/
 │   └── runner_models.py
 ├── yaml/
 │   ├── global_config.yaml
-│   ├── goal_single_tier_chain_spatial.yaml
-│   └── runner_config.yaml
+│   ├── runner_config.yaml
+│   └── scenarios/
+│       ├── goal_single_tier_chain_scaling_sparse.yaml
+│       └── goal_single_tier_chain_spatial.yaml
 └── config_manager.py
 
 scenario/
@@ -48,11 +50,12 @@ TierScenarioConf ──── TierDelayScenarioConf
       └── tier_orb_conf ── TierDelayOrbConf      (delay)
 ```
 
-Configuration is three YAML files in `config/yaml/`, each validated by a
-pydantic model through `ConfigManager`. `global_config.yaml` names the scenario
-and sets `human_control` and `snapshot`; `runner_config.yaml` holds the
-algorithm, seed and train/eval settings; the third file is named after the
-scenario and holds its world and observation tunables. The scenario name picks
+Configuration is three YAML files, each validated by a pydantic model through
+`ConfigManager`. `global_config.yaml` and `runner_config.yaml` are in
+`config/yaml/`. `global_config.yaml` names the scenario and sets
+`human_control` and `snapshot`; `runner_config.yaml` holds the algorithm, seed
+and train/eval settings. The third file is named after the scenario, lives in
+`config/yaml/scenarios/` and holds its world and observation tunables. The scenario name picks
 both that file and, through its entry in `SCENARIOS` in `scenario/registry.py`,
 the model it is validated against. The same entry names the scenario's builder.
 

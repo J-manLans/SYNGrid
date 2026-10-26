@@ -20,7 +20,7 @@ what they all share. Until phase 5 nothing runs, so each phase before it has its
 | `blocks/populations/tier_chain_population.py` | written: one tier orb per tier, with its reward and the cool-down it is handed. Its count is `max_tier` |
 | `blocks/populations/neg_population.py` | written: one negative orb, used by the negative bundle. Its count is 1. It hands the orb a lifespan, which the builder states |
 | `families/goal/single_tier_chain/termination.py` | written: the four endings, what the chain is owed, and the timeout penalty. It reads `energy` and `get_digester(...)` from the droid |
-| `families/goal/single_tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; the other three builders raise `NotImplementedError` |
+| `families/goal/single_tier_chain/builders.py` | the spatial builder returns a `Scenario` whose tier bundle makes max-tier digesters, with a negative bundle and one more orb in its counts when the config has a `neg_orb_conf` block; scaling sparse is built beside it (2026-10-26); the other two builders raise `NotImplementedError` |
 | `blocks/recipes/world_recipe.py` | written: `WorldRecipe`, what a scenario holds as `build_world`, shared by every family. Its body builds the droid and the world, and returns a `GridWorld` for the spatial scenario since 2026-10-16 |
 | `blocks/recipes/tier_digester_recipe.py` | written: `TierDigesterRecipe`, what a tier bundle holds to make its digester |
 | Tier-chain config | in line with the digesters since 2026-10-11: no `completion_reward`, the reward ladder on the shared `TierOrbConf`, no dense classes |
@@ -352,7 +352,13 @@ how fast the curves climb, not of the reward level. What is left is more seeds.
 
 Moved here from the old phase 8, so that the scenarios are built in the phase that checks them. One at a time.
 
-1. **Scaling sparse.** Max-tier, like spatial. Mostly a builder and a YAML.
+1. **Scaling sparse.** Max-tier, like spatial. Built on 2026-10-26: a builder that is spatial's with its own tag
+   (`4t_5x5`), and one YAML with the thesis sparse values, which differed across the thesis runs only in `max_tier` and
+   the grid. The reward is the exception: the thesis paid a fixed 10 on completion and its `base_reward` and
+   `growth_factor` did nothing, so the YAML sets `base_reward: 1.0` and `growth_factor: 0.5`, which gives a completed
+   chain about 6.1 at tier 4 up to 13.5 at tier 7, around the thesis's 10. It builds through the real loader and passes
+   Gymnasium's `check_env`. A scripted player that finishes the tier 4 chain gets 6.14 against a ceiling of about 6.15.
+   Not trained yet.
 2. **Negative orb.** One orb in a tier chain. Its digester, population and bundle are written, and the family helper
    counts it in the field size, the observation slots and the sort limit and names a `negatives_eaten` metric, whose
    reader is written. Its lifespan is `_reachable_life_span` since 2026-10-18. On 2026-10-25 the owner played it by

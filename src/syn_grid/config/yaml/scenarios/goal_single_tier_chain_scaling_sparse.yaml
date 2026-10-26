@@ -1,0 +1,40 @@
+# SYNGrid scenario config: goal_single_tier_chain_scaling_sparse
+#
+# The tunables of this scenario: episode length, geometry, the droid, the goal,
+# the chain, and the perception. The values are the thesis sparse runs' (tiers
+# 4 to 7), which differed only in max_tier and the grid: tiers 4 to 6 ran on
+# 5x5 and tier 7 on 6x6.
+#
+# TODO(lock): once the seeds have confirmed it, keep only max_tier and the grid
+# size here, and fix every other value in the builder, the perception
+# (vector_markovian) included.
+world_conf:
+  max_steps: 100
+
+  grid_conf:
+    grid_rows: 5
+    grid_cols: 5
+
+  droid_conf:
+    max_energy: 50 # what the droid starts with and the most it can hold; the episode ends at 0
+    step_penalty: -0.001
+    boundary_penalty: -1.0
+
+  goal_conf:
+    timeout_penalty: -1.0
+
+  tier_orb_conf:
+    max_tier: 4
+    base_reward: 1.0 # a tier is worth base_reward * tier ** growth_factor
+    growth_factor: 0.5 # with these two, a completed chain pays about 6 at tier 4 and 13.5 at tier 7
+    chain_break_penalty: -0.1
+
+  # A negative orb is optional for this scenario: one orb that spawns, despawns
+  # and returns elsewhere. Uncomment and fill in the values to activate it.
+  # neg_orb_conf:
+  #   reward: -3
+  #   cool_down: 10
+
+obs_conf:
+  observation_handler_conf:
+    perception: vector_markovian

@@ -51,7 +51,8 @@ def load_experiment_configs(
 
     global_conf = config_manager.load_config("global_config.yaml", GlobalConf)
     scenario_conf = config_manager.load_config(
-        f"{global_conf.scenario.value}.yaml", SCENARIOS[global_conf.scenario].conf_class
+        f"scenarios/{global_conf.scenario.value}.yaml",
+        SCENARIOS[global_conf.scenario].conf_class,
     )
     runner_conf = config_manager.load_config("runner_config.yaml", RunnerConf)
 
@@ -79,7 +80,8 @@ def dispatch(
 
     if global_conf.snapshot.enabled:
         config_manager.save_snapshot(
-            f"{global_conf.scenario.value}.yaml", runner.get_unique_model_id()
+            f"scenarios/{global_conf.scenario.value}.yaml",
+            runner.get_unique_model_id(),
         )
         print("Config snapshot saved. Exiting.")
         return
