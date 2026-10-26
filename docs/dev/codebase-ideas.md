@@ -241,3 +241,49 @@ What it asks for:
 Open when it is built: whether a fork runs through the same builder or through a more general path that takes any
 values. A fork can change values but not the scoring mode, since a new scoring mode is a scenario of its own, so it
 has to say which registered scenario's builder composes it.
+
+---
+
+## Effect orbs get their magic from the engine (2026-10-27)
+
+**Idea:** When effect orbs are built, the combining happens in the digestion engine and nowhere else. Digesters keep
+not knowing about each other. The engine already sees all of them, so it is the one place that can let one kind's orb
+change what another kind's orb pays. This is a lean, not a decision. Effect orbs are not built, and the roadmap lists
+them under "Not on this roadmap".
+
+**Where it came from:** Joel remembers deciding this in an earlier talk. No record of that talk was found in
+`docs/dev/`, `docs/architecture/` or `scratch_pad.md`. Only two pointers exist: the "Revisit when" bullets under
+"Digesters do not talk to each other" in `design-decisions.md`, and the roadmap line on what effect orbs need from the
+engine. This entry puts the idea in one place. Talked through again by voice and text on 2026-10-27.
+
+**How it could work.** The engine's step becomes a short pipeline with a fixed order:
+
+1. **Tick.** Once per step, the engine calls an optional `tick()` on every digester that has one. This is how a timed
+   effect counts down or wears off.
+2. **Route.** The consumed orb goes to the digester of its kind, as today, and that digester returns a reward.
+3. **Modify.** The engine hands the reward to each digester that has the optional modifier capability, in a fixed
+   order, and each returns the adjusted reward. A "double the next tier payout" orb is an effect digester that holds
+   the doubling and applies it here. The tier digester never hears of it.
+4. **Reach the world.** An effect that has to touch the field (clear it, freeze it, move an orb) is handed a narrow,
+   one-way view of the world, to read from and to ask through. It does not hold the world.
+
+The capabilities are small optional protocols next to `OrbDigester`, such as `Tickable` and `RewardModifier`. The
+engine checks which a digester has when it is built. A digester with none of them is the digester of today, so
+nothing already written changes. This is the list in the roadmap: a tick, a stage before routing, a way to change
+what another kind's orb pays, a way to reach the world.
+
+**Why it fits the rule.** A digester can still be read and tried alone. The only thing that knows about combinations
+is the engine, and it knows them as stages in a fixed order, not as digesters calling each other. A step's reward can
+be explained from one place by reading the pipeline top to bottom.
+
+**Two things to settle first:**
+
+- **Payouts that skip the pipeline.** `undigested()` is settled by the droid when the episode ends. If a modifier is
+  meant to scale a held chain payout too, that payout has to pass through the modify stage as well. Today it does
+  not.
+- **Order matters.** Two modifiers do not commute: doubling and then subtracting is not subtracting and then
+  doubling. The order has to be written down, by scenario or by a fixed rule, and not left to how the list was built.
+
+Open when it is built: whether modify runs before routing (so an effect can change which digester gets the orb) or
+only after (so it can only change the reward); where the order of modifiers is stated; and what the narrow view of
+the world exposes.
