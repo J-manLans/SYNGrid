@@ -63,6 +63,9 @@ A commit message says what changed, why, and what was run to check it, or that n
 notes the docs used to carry belong here, in the commit that made them true. The owner leaves commit messages mostly
 to the agent, so they carry the record.
 
+**Never commit code before the owner says so.** This is a hard rule: the owner reviews changes before they are
+committed. The exception is documentation, which the agent may commit when it is done.
+
 ## How to work with the owner
 
 - **Design together, the agent writes, the owner reviews.** A design is talked through first and the owner decides.
