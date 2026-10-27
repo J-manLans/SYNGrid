@@ -25,8 +25,10 @@ CI runs these on every push and pull request. Run them first:
 pytest
 ruff check src/syn_grid tests
 ruff format --check src/syn_grid tests
-python3 -m syn_grid.check_env
 ```
+
+If you touched the environment, the world or a scenario, also run `python3 -m syn_grid.check_env`, the Gymnasium
+contract check.
 
 `./scripts/tidy.sh` fixes what ruff can fix and formats everything.
 
