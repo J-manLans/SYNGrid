@@ -57,6 +57,27 @@ as decided.
 
 Each file in `docs/dev/` opens with what it is for and what stays out of it. Read that before adding to it.
 
+## The docs sweep
+
+A pass over the docs that ties them back together at the end of a session. When the owner signals that the session is
+ending, say once, "want a docs sweep before we stop?", and drop it if they decline. The owner can also ask for one at
+any time.
+
+A sweep is four checks:
+
+1. The roadmap and `open-questions.md` against what was done: remove finished steps and answered questions, and update
+   the has-it-run cells.
+2. Decisions from the session that are missing from `design-decisions.md`.
+3. New terms that belong in `glossary.md`.
+4. Anything that landed in the wrong file, by the table above.
+
+Say what changed, and flag borderline calls instead of guessing. Whether something is a decision or still open, and
+whether it is an idea or a problem, is the owner's to say.
+
+If the owner says to go ahead and leaves, do only the mechanical parts: removing finished items, moving things to the
+right file, adding glossary terms. Leave a borderline call as it is and list it in the commit message, so it waits for
+the owner. Then commit the docs.
+
 ## Commits
 
 A commit message says what changed, why, and what was run to check it, or that nothing was run. The dated progress
