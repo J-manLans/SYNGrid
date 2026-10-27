@@ -32,18 +32,26 @@ orbs are on the grid, how the droid observes it, and what the goal is. The scena
 or a scenario never means touching the world or the droid.
 
 The question under it all is how an agent learns that something is worth holding on to before it knows why. The tier
-chain was the first measurable form of that question, built for the thesis. Effect orbs are where it grows.
+chain was the first measurable form of that question, built for the thesis. Effect orbs are where it grows. What an
+effect orb is, beyond an orb that changes what other orbs are worth, is not known. It is found by trying them, together.
 
 Orbs and observation are free parts. The goal is not, yet. Today it is decided by the scenario's family (tier chain has
 its own termination, a continuous family would have another). Whether the goal becomes a part of its own, or stays a
 property of the family, is open. A tier-chain goal needs tier orbs, so the coupling may be real and not an accident.
 
+If goals do become a part, they are likely to be one-dimensional: eat this orb, survive so many steps, reach a score.
+A scenario's character then comes from its orbs and how they are arranged, not from its goal. Picture one nullify orb,
+and a wall of deadly orbs around a goal orb. The goal is only "eat the goal orb". What makes it hard is the deadly
+orbs, the nullify orb that disarms them, and the wall, and the wall is a layout that nothing can describe today. This
+is a line of thought, not a decision.
+
 ### The feel
 
 - **Retro-futuristic, punk-edged, playful.** The GUI is a control panel you feel you are touching. It should not look
-  like a standard research tool, and the graphics will be customised to match.
+  like a standard research tool, and the graphics will be customised to match. The arcade is the outside and the
+  research tool is underneath, and nothing on the outside is decoration the tool does not use.
 - **An unlabeled HUD, as a flavour.** The stats don't say what they track. You watch them and work it out, the way an
-  agent works out what matters from its rewards. A readable mode can spell it out. This is a fun extra, not a
+  agent works out what matters from its rewards. A readable mode can spell it out. It is optional, not a
   requirement.
 - **A high score tracker.** For the fun of it, and because it turns the thesis's single human baseline into a spread
   across players and runs.
@@ -113,8 +121,11 @@ like. Those stay in `design-decisions.md` and the roadmap.
 ### What it is not
 
 It is not a place for fun ideas that do nothing for the measuring. It does not promise to cover every kind of RL
-benchmark. Do not steer toward it or toward ARC-AGI-style tasks unprompted. The long bet, that isolated orb types could train structural priors for something like an active inference
-agent, is a possible future, written down in the thesis's future-work file. It is not part of this vision.
+benchmark. It plays in the same ballpark as benchmarks such as MiniGrid and MiniHack, but it is its own thing: it does
+not try to cover what they cover, match them or look like them. Do not steer it toward them unprompted.
+
+The long bet, that isolated orb types could train structural priors for something like an active inference agent, is a
+possible future, written down in the thesis's future-work file. It is not part of this vision.
 
 ### Where it stands (2026-10-27)
 
