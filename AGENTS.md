@@ -24,6 +24,8 @@ The pushed branch can be behind the local working tree. Read local files.
 
 Where to look, in this order:
 
+- `docs/vision.md` is where the project is heading and what it should feel like. Read it first. It settles
+  direction, such as whether an idea earns its place, and does not settle design details.
 - `docs/dev/scenario-rebuild-roadmap.md` is the order of work and has a table
   of what is written, empty or still legacy.
 - `docs/dev/design-decisions.md` is what was chosen, what was turned down and

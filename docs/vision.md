@@ -97,10 +97,23 @@ Every addition has to be clear, focused on one thing, and tested before it count
 mechanic is a near-duplicate, and doesn't go in. Combine existing parts first. New things are new self-contained parts,
 not edits to old ones.
 
+### Questions to ask of any new idea
+
+These settle most small calls without asking the owner to explain the vision again.
+
+1. Does it serve the benchmark's job? If it is only fun, it does not go in.
+2. Is it clear and focused on one thing?
+3. Can a small agent learn it at the easy end of its dial?
+4. Does it keep the parts combinable? A new piece is a new self-contained part, not an edit to an old one.
+5. Can it be tested, by a test, by playing it, and by a small agent run?
+
+The vision settles direction. It does not say whether a stage runs before or after routing, or what a builder looks
+like. Those stay in `design-decisions.md` and the roadmap.
+
 ### What it is not
 
 It is not a place for fun ideas that do nothing for the measuring. It does not promise to cover every kind of RL
-benchmark. The long bet, that isolated orb types could train structural priors for something like an active inference
+benchmark. Do not steer toward it or toward ARC-AGI-style tasks unprompted. The long bet, that isolated orb types could train structural priors for something like an active inference
 agent, is a possible future, written down in the thesis's future-work file. It is not part of this vision.
 
 ### Where it stands (2026-10-27)
