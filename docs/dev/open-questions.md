@@ -30,15 +30,18 @@ long argument goes in `codebase-ideas.md` or is settled.
   same cells. How the scenario hears of a consume:
   - The world is handed callbacks per moment through `WorldRecipe`. The world then holds scenario code, but it is the
     only way if something must happen mid-step.
-  - The scenario acts after the world's step, as termination does, and asks the world what was eaten. Leaned towards
-    on 2026-10-13, if nothing in a delay step depends on the field emptying before the step ends, which was not
-    traced in legacy.
+  - The scenario acts after the world's step, as termination does. Leaned towards on 2026-10-13, if nothing in a
+    delay step depends on the field emptying before the step ends, which was not traced in legacy. Taken further on
+    2026-10-28: the world returns a frozen step result that carries what was eaten, the scenario gets a stage that is
+    handed that result, and the freeze is carried by the orb. A lean, not a decision. See "Delay's mechanic is a
+    stage after the world's step" in `codebase-ideas.md`.
 
   Raised on 2026-10-13. The two parked methods in `GridWorld` (`# TODO(delay)`) move into whichever is chosen.
   See: "The world runs the orb field, and a scenario states only its size" and "A scenario mechanic lives in its
   strategy when the world's public API is enough" in `design-decisions.md`.
 - **The negative orb under delay.** It is meant to disappear and return with the field. Open: whether eating the
-  negative orb itself empties the field.
+  negative orb itself empties the field. If the step result carries the eaten orb's kind, the delay stage can decide
+  it either way.
 - **`reward_multiplier`.** Legacy threshold scoring scaled and rounded each orb's reward with it. Not carried over and
   not decided. If it returns, it is a setting of the orb's reward and not of the mode.
 - **How a builder adds what only its scenario shows,** such as delay's countdown on the HUD. Either the builder's

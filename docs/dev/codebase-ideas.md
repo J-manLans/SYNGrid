@@ -245,3 +245,63 @@ be explained from one place by reading the pipeline top to bottom.
 Open when it is built: whether modify runs before routing (so an effect can change which digester gets the orb) or
 only after (so it can only change the reward); where the order of modifiers is stated; and what the narrow view of
 the world exposes.
+
+---
+
+## Delay's mechanic is a stage after the world's step (2026-10-28)
+
+**Idea:** Delay is the first scenario that has to act on the world after something happened in it. It does this
+without the world holding scenario code, a hook or a flag. This is a lean, not a decision. Nothing of it is written.
+
+1. **The world returns a result.** `perform_droid_action` returns a frozen result instead of a float: the reward, and
+   `consumed`, which is the eaten orb's meta or `None`. Only one orb can be eaten per step, since orbs do not share a
+   cell with the droid. It lives in `core/` beside `grid_world.py`. The world calls nothing and holds nothing for it.
+2. **The scenario gets a stage.** One new frozen field on `Scenario`, shaped like termination: an interface file in
+   `scenario/blocks/` with one method, `after_step(world, result)`, that returns nothing and acts on the world through
+   its public methods. A shared do-nothing implementation is the default, so a scenario with nothing to say states
+   nothing. A family's own strategy sits in its folder. The strategy compares by value, so it is a frozen object or a
+   module-level function and not a lambda. Neither the field nor the result type has a name yet.
+3. **The environment's step** becomes: the world acts, the stage runs, termination decides, the observation is read.
+   Termination does not read the field today, so the order of the stage and termination does not matter yet. If a
+   termination ever reads the field, the order has to be written down. The stage runs before the observation, so the
+   agent and a human player see the emptied field on the step the orb was eaten.
+4. **Delay's strategy** says: if a tier orb was eaten, freeze every orb on the field for `delay` steps. The freeze is
+   carried by the orb, as its cool-down and lifespan are, and the orb counts it down itself. A frozen orb is not
+   active, so it leaves the observation and the render, and it is not ready, so the world's refill leaves it alone and
+   it returns in the same cell. The two parked methods in `GridWorld` go.
+
+**Where it came from:** Talking through where delay's mechanic lives, by voice and in text, on 2026-10-27 and 28.
+Most of the shape is the owner's. The world holds no reference to a scenario and holds only values, so the natural
+place is the environment's step. The world's step returns a bundle, and it returns the eaten orb and not a yes or no.
+The stage takes that result and not a single argument.
+
+**Why it might matter:**
+
+- The world stays free of scenario code. A new fact the world knows becomes a field on the result, and the stage's
+  signature does not change. Facts are the safer kind of growth: they add no moment in the step where outside code
+  runs.
+- Hiding is not deactivating. The world brings an inactive orb back in a random cell after its cool-down, and delay
+  needs the same cells. A hidden orb that used the ordinary cool-down would be refilled in the wrong cell on the step
+  its timer completes, because the field is empty and has room. The freeze on the orb avoids that without the world
+  learning what delay is. This was read from the code and not run, and depends on how `Timer` completes.
+- It leaves the negative orb under delay open, but easy either way: the stage sees the kind.
+
+**Turned down in the talk:**
+
+- A flag on the world, "orb eaten this step", cleared every step: cheap, but a stale flag if a clear is missed, and it
+  is state to keep in step.
+- Callables handed to the world through `WorldRecipe`: the world then needs a moment in its step to call them, a piece
+  of delay built into every world, and each scenario with a new need adds another moment.
+- The world holding a reference to the scenario: the coupling the principles warn against.
+
+**Not the home of effect orbs.** An effect that belongs to an orb kind lives in its digester, through the engine (see
+"Effect orbs get their magic from the engine"). This stage is for a scenario reacting to the world. Both holding
+effects would give two homes for one thing.
+
+**Unchecked:**
+
+- Whether anything in a delay step depends on the field emptying before the step ends. Not traced in legacy. If
+  something does, acting after the step is not enough and the world needs a moment inside its step.
+- The refill collision and the freeze, as above.
+- Every other caller of `perform_droid_action` (scripts, tests) has to take the result.
+- The stage is shaped from one scenario. A second with a different need may bend it.
