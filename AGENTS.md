@@ -60,7 +60,8 @@ Each file in `docs/dev/` opens with what it is for and what stays out of it. Rea
 ## Commits
 
 A commit message says what changed, why, and what was run to check it, or that nothing was run. The dated progress
-notes the docs used to carry belong here, in the commit that made them true.
+notes the docs used to carry belong here, in the commit that made them true. The owner leaves commit messages mostly
+to the agent, so they carry the record.
 
 ## How to work with the owner
 
