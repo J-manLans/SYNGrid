@@ -4,12 +4,12 @@ Changes in the rebuild that could move what the agent sees or what it is paid, a
 This is the list to read when the legacy comparison (phase 6) shows a difference, or when a rebuilt scenario learns
 worse than legacy did.
 
-It is not a list of bugs. Most entries are decisions that were made on purpose, and an entry is here because it is easy
-to forget. `design-decisions.md` says why a decision was made, and `regressions.md` holds behaviour that broke. An
-entry here says what could change in the data the learner gets, and what to check.
+It is not a list of bugs. Most entries are decisions made on purpose, here because they are easy to forget.
+`design-decisions.md` says why; an entry here says what could change in the data the learner gets, and what to check.
 
 Add an entry when a change touches the reward, the observation, the layout of orbs or how often something appears.
-Leave out a change that only moves code.
+Leave out a change that only moves code. An entry leaves once it is checked against legacy, and the file goes when
+legacy is deleted.
 
 ---
 

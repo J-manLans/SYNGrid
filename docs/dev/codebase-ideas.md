@@ -1,7 +1,9 @@
 # Ideas About the Codebase
 
-Things noticed while rebuilding that aren't problems to solve now, just
-worth revisiting later. Low bar for entry: half-formed is fine.
+Ideas worth returning to that are not problems to solve now. Half-formed is fine.
+
+Decisions stay out: once an idea is decided, it moves to `design-decisions.md` and leaves here, or keeps only what is
+still an idea.
 
 ---
 
@@ -10,49 +12,6 @@ worth revisiting later. Low bar for entry: half-formed is fine.
 **Idea:**
 **Where it came from:**
 **Why it might matter:**
-
----
-
-## A locked scenario keeps only its axis in the YAML (2026-10-10)
-
-**Idea:** Once a scenario is declared done, its values move out of the YAML and are fixed in its builder, next to the
-scoring mode the builder already chooses. The YAML and the config models keep only what sits on the scenario's
-difficulty axis (grid size for spatial, chain length and grid for scaling, the delay for delay) and the perception.
-Penalties, rewards, `max_steps` and `max_energy` are no longer fields of that scenario's config, so a YAML cannot set
-them. The continuous sandbox scenario stays fully tunable, for every parameter that matters and
-can't break something.
-
-Varying a locked scenario means changing its axis value, not registering a new scenario per variation, so there is
-no `spatial_6x6` beside `spatial_5x5`.
-
-**Where it came from:** Reshaping the config models on 2026-10-10. Dense got defaults on its own classes so its YAML
-could leave values out. Those dense classes were removed on 2026-10-11, since every scenario now sets its own
-penalties.
-
-**Why it might matter:** The scenario name is a run's identity. While every value is in the YAML, two runs with the
-same name can describe different worlds, which is the reason scoring mode is already kept out of config. A short YAML
-also shows at a glance what is meant to be varied.
-
-Decided by the owner on 2026-10-11: the fixed values go in the builder, not in the config models and not in the
-YAML. A fixed value is then no longer a field, so it cannot be overridden and a forgotten YAML line cannot load a
-value nobody chose. The config models describe only what can be tuned.
-
-Turned down: fixed values as defaults on the scenario's config models. A default can still be overridden, which
-brings back two runs with the same name describing different worlds.
-
-Not yet. A scenario is locked once it has been rebuilt and its runs over several seeds learn in the same general
-direction as legacy, because until then the values aren't settled and comparing with legacy is easier with every
-value in view. Until then every scenario states all of its values in its YAML. Spatial is the first, once its
-remaining seeds have run.
-
-**Settled on 2026-10-12:** how the config models are shaped for a locked scenario. The models stay as the full
-description of a world, a locked scenario gets a small model holding only what a run may choose, and its builder makes
-the full config from its fixed values. This is the third of the three sketches that came up on 2026-10-11. The
-decision, the two sketches that were turned down and what is still open are in `design-decisions.md` under "A locked
-scenario loads a small model, and its builder makes the full config".
-
-The optional negative orb is still to settle. Its `reward` and `cool_down` are tuning values, so a locked YAML would
-only say whether the orb is present.
 
 ---
 
@@ -251,10 +210,9 @@ not knowing about each other. The engine already sees all of them, so it is the 
 change what another kind's orb pays. This is a lean, not a decision. Effect orbs are not built, and the roadmap lists
 them under "Not on this roadmap".
 
-**Where it came from:** Joel remembers deciding this in an earlier talk. No record of that talk was found in
-`docs/dev/`, `docs/architecture/` or `scratch_pad.md`. Only two pointers exist: the "Revisit when" bullets under
-"Digesters do not talk to each other" in `design-decisions.md`, and the roadmap line on what effect orbs need from the
-engine. This entry puts the idea in one place. Talked through again by voice and text on 2026-10-27.
+**Where it came from:** The owner remembers deciding this in an earlier talk, of which no record was found. It was
+talked through again on 2026-10-27. It answers the "Revisit if" of "Digesters do not talk to each other" in
+`design-decisions.md`, and the roadmap's list of what effect orbs need from the engine.
 
 **How it could work.** The engine's step becomes a short pipeline with a fixed order:
 

@@ -1,7 +1,8 @@
 # Glossary
 
-What the words used in the rebuild mean, in the code and in the other files in this folder. A term is defined once
-here; the reasons behind it are in `design-decisions.md`.
+What the words mean, in the code and in the other files in this folder. A term is defined once here, and a new term
+is added when it is coined. Reasons stay out (`design-decisions.md`), and so does the state of the code (the
+roadmap's table).
 
 Terms are grouped by area. The last section lists the words that are used in two senses or are not settled.
 

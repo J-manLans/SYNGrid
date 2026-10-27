@@ -1,188 +1,117 @@
 # Open Questions
 
-Design questions that have come up during the rebuild and have no answer yet, grouped by the roadmap phase that
-needs the answer. `design-decisions.md` records what was chosen; this file is the list of what has not been.
+What is not decided yet, grouped by the roadmap phase that needs the answer.
 
-When a question is answered, the answer becomes an entry in `design-decisions.md` and the question is removed from
-here. A question that is only half answered stays, with what is left of it.
+An answered question leaves: the answer becomes an entry in `design-decisions.md` and the question is removed. A
+question that is half answered stays with what is left of it. Keep each entry to what is known and the options; a
+long argument goes in `codebase-ideas.md` or is settled.
 
 ---
 
 ## Entry template
 
-- **The question.** What is known, and what the options are if any have come up. Raised on (date).
+- **The question.** What is known, and the options if any have come up. Raised on (date).
   See: where it is discussed.
 
 ---
 
-## Phase 1: Digestion
+## Phase 6: Rebuild, verify and lock the scenarios
 
-- **Properties or plain attributes for what readers take from a digester.** They are plain public attributes now, and
-  the owner may return to properties.
-  See: "The tier digester is a template with one subclass per scoring mode" in `design-decisions.md`.
-
-## Phase 3: Core takes pieces, not config
-
-- **Whether the world is handed its orbs or the populations that make them.** `WorldRecipe` is written to join the
-  orbs of every bundle and hand the world a list. The reference did the other thing: `GridWorld` took one
-  `orb_population` and called `create()` in its constructor, because it had to call `BaseOrb.set_life_span` first,
-  a class attribute shared by every world in the process. If the lifespan becomes a value each orb is handed, that
-  reason is gone and a list is the simpler choice. If it does not, the world has to act before the orbs exist, and it
-  would take the bundles' populations and call each. There is no single population any more, since each bundle has
-  its own. Raised on 2026-10-12. Since 2026-10-18 the lifespan is a value each orb is handed, so a list is enough;
-  the question is closed at step 6 of phase 3.
-  See: "An orb carries its own cool-down and lifespan" and "A tier bundle makes its digester from a frozen recipe"
-  in `design-decisions.md`; `src/syn_grid/core/grid_world.py` on `refactor-of-scenario-refactor`.
-
-## Phase 6: Build, verify and lock the scenarios
-
-- **Where delay's mechanic lives, and how a scenario triggers it.** Delay tests long-term credit assignment by
-  stretching the time between the moments the droid can act on an orb. When the droid eats an orb, every other orb
-  disappears from the observation for `delay` steps, so the droid sees an empty field, and then they return in the
-  same cells. The eaten orb is gone. It has to be the field that empties: with the orbs left in sight and the droid
-  unable to eat, the agent would first have to learn that it cannot eat yet, which is a second problem on top of the
-  one the scenario measures. Nothing for it is written, and the scenario has no hook to plug into. Homes that have
-  come up:
-  - In the delay scenario's own code, and not on the world. The owner's starting point, and what an entry from
-    2026-10-11 says. The reference had the two mechanics as world methods, `deactivate_all_orbs(delay)` and
-    `reactivate_all_orbs()`. Only delay uses them, so they would move out of the world's API and be written beside
-    the scenario, as loops over the orbs on the field that call the orbs' own methods. The world then offers only
-    what they read, the orbs on the field, and a way for the scenario to be told an orb was eaten and a step is
-    done.
+- **Where delay's mechanic lives, and how a scenario triggers it.** When the droid eats an orb, every other orb
+  disappears from the observation for `delay` steps and returns in the same cells. It has to be the field that
+  empties: with orbs in sight and the droid unable to eat, the agent would first have to learn it cannot eat yet.
+  Homes that have come up:
+  - In the delay scenario's own code, as loops over the orbs on the field that call the orbs' own methods. The
+    owner's starting point. The world offers only what they read and a way to hear that an orb was eaten.
   - A number on the world, 0 in every scenario but delay.
-  - A freeze each orb carries, as it carries a cool-down and a lifespan, with something triggering it for all of
-    them. It fits with the first: the scenario's loop would call it, and an orb that counts its own freeze down
-    needs no call after the step.
+  - A freeze each orb carries, as it carries a cool-down and a lifespan, triggered for all of them.
 
-  Whatever is chosen, a hidden orb is not the same as an inactive one. The world brings an inactive orb that is
-  ready back in a random cell, and delay needs the same cells. A rule that reacts to an orb being eaten also needs
-  to be told, which means a way for a scenario to hear of it. Two ways have come up:
-  - The world is handed callbacks and calls them: a tuple of callables per moment, passed through `WorldRecipe`,
-    empty for a scenario with nothing to say. The world then holds scenario code. It is the only way if something
-    has to happen in the middle of the world's step.
-  - The scenario acts after the world's step, as termination does. The environment calls the scenario's rule, which
-    asks the world what was eaten. The world is handed nothing and only has to say what was eaten on the last step.
-    The observation is built after the step, so orbs hidden then are already gone from what the agent sees. Leaned
-    towards on 2026-10-13, on the condition that nothing in a delay step depends on the field emptying before the
-    step is over. That was not traced in legacy.
+  A hidden orb is not an inactive one: the world brings an inactive orb back in a random cell, and delay needs the
+  same cells. How the scenario hears of a consume:
+  - The world is handed callbacks per moment through `WorldRecipe`. The world then holds scenario code, but it is the
+    only way if something must happen mid-step.
+  - The scenario acts after the world's step, as termination does, and asks the world what was eaten. Leaned towards
+    on 2026-10-13, if nothing in a delay step depends on the field emptying before the step ends, which was not
+    traced in legacy.
 
-  Raised on 2026-10-13.
+  Raised on 2026-10-13. The two parked methods in `GridWorld` (`# TODO(delay)`) move into whichever is chosen.
   See: "The world runs the orb field, and a scenario states only its size" and "A scenario mechanic lives in its
   strategy when the world's public API is enough" in `design-decisions.md`.
-- **The negative orb under delay.** It is meant to disappear and return with the field, which it does if hiding acts
-  on every orb on the field. Still open: whether eating the negative orb itself empties the field.
-  See: "A weight belongs to a sampled field, and a tier chain holds one negative orb" in `design-decisions.md`.
-- **`reward_multiplier`.** Legacy threshold scoring applied it to each orb's reward. It was not carried over and not
-  discussed to a decision.
-
-- **How a builder adds what only its scenario shows.** Raised on 2026-10-21 for delay's countdown on the HUD. The
-  family's own elements are listed in `_single_tier_chain_scenario`. Passing a builder's extras in as a parameter, as the
-  tier bundle is, keeps the helper the one place a scenario is composed. The other option is a `replace` on the
-  finished `Scenario`. Delay also has its own termination, so this is settled together with the helper's other
-  parameters.
+- **The negative orb under delay.** It is meant to disappear and return with the field. Open: whether eating the
+  negative orb itself empties the field.
+- **`reward_multiplier`.** Legacy threshold scoring scaled and rounded each orb's reward with it. Not carried over and
+  not decided. If it returns, it is a setting of the orb's reward and not of the mode.
+- **How a builder adds what only its scenario shows,** such as delay's countdown on the HUD. Either the builder's
+  extras are a parameter of `_single_tier_chain_scenario`, as the tier bundle is, or a `replace` on the finished
+  `Scenario`. Settled with the helper's other parameters, since delay also has its own termination. Raised on
+  2026-10-21.
 
 ### Locking a scenario
 
-All of these are to settle with the first scenario that is locked, which is spatial once its remaining seeds have
-run.
+To settle with the first scenario that is locked, which is spatial.
 See: "A locked scenario loads a small model, and its builder makes the full config" in `design-decisions.md`.
 
 - **The common type of a config class.** `ScenarioConf` is named by the `TypeVar` bound in `registry.py`,
   `ScenarioEntry.build`, `build_scenario` and the return type of `load_experiment_configs`. A small model is not a
   `ScenarioConf`.
-- **How the full config is reached from outside the builder.** The world part is on the scenario since 2026-10-12,
-  as `scenario.build_world.world_conf`. The observation part is not kept anywhere, and nothing uses either yet.
-  `ConfigManager.save_snapshot` copies the YAML file, so a locked scenario's snapshot would hold only what the run
-  chose. A GUI that shows the fixed values read-only needs the same thing.
+- **How the full config is reached from outside the builder.** The world part is `scenario.build_world.world_conf`;
+  the observation part is kept nowhere. `ConfigManager.save_snapshot` copies the YAML, so a locked scenario's snapshot
+  would hold only what the run chose. A GUI that shows or forks the fixed values needs the same hook.
 - **Where a family's shared fixed values are written,** so that four builders do not each state them.
-- **Where a rule that spans fields is checked.** A check on the full model is raised in the builder and names a block
-  and not a field.
+- **Where a rule that spans fields is checked.** A check on the full model is raised in the builder and names a block,
+  not a field the user can see.
 - **Whether a locked axis has a range,** such as an upper bound on the grid.
-- **What the small model holds besides the axis, and what it is called.** Answered for spatial on 2026-10-27: the grid
-  size and nothing else, with `max_tier` fixed at 3 and the perception fixed. Left open: whether `max_steps` is
-  derived from the grid or fixed, whether the negative orb is a yes or no (its `reward` and `cool_down` are fixed
-  values), and what the model is called. `max_energy` is a rule and fixed in the builder.
-  See: "A locked scenario is what was run, and changing it makes a different scenario" in `design-decisions.md`.
+- **What spatial's small model holds besides the grid size.** Whether `max_steps` grows with the grid or is fixed,
+  whether the negative orb is a yes or no, and what the model is called.
 
 ## Phase 7: The observation pass
 
-- **Which global features an observation carries.** The two kept perceptions carry none, after the owner's
-  ablation. The question is open for the perceptions rewritten in phase 7.
-  See: the roadmap's phase 7; "The kept perceptions observe only what earned its place" and "The HUD and the
-  observation share readers and keep their own lists" in `design-decisions.md`.
-- **Whether chain progress is observed where tier orbs return.** In the thesis scenarios one chain lies on the board,
-  so the orbs still there tell the agent how far it got: tier 1 gone and tier 2 on the field means tier 2 is next.
-  That is why dropping chain progress cost nothing. Where tier orbs spawn and despawn, as in a continuous scenario,
-  the field no longer says where the agent is in the chain, and the progress has to come from somewhere.
-  It is a different kind of value from an orb's timer. A timer is about the world, and an agent can learn it by
-  watching. Chain progress is the agent's own history. An LSTM can keep a count in its hidden state, though it has to
-  learn to, and probably slowly. A stateless agent cannot carry anything between steps, so without it the next tier
-  is a guess from the field when several tiers are present. It would do badly, not nothing. Leaving it out would
-  then stop measuring credit assignment and make the task close to unsolvable for one architecture.
-  It also matters at truncation. A truncated episode is not settled, so what a running chain holds is paid only
-  through the value SB3 bootstraps from the last observation, and that value can count the chain only if the agent
-  sees it or remembers it. See "A truncated episode settles nothing" in `design-decisions.md`.
-  It goes in `ObservationRules.global_features`, decided per scenario, in phase 7 or when a continuous family is
-  built. Raised on 2026-10-23.
-  See: the roadmap's phase 7; "An orb's timer is not observed" and "The kept perceptions observe only what earned
-  its place" in `design-decisions.md`.
-- **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.**
-  See: the roadmap's phase 7; "Two orb categories, and an orb meta that stores only kind and tier" in
-  `design-decisions.md`.
-- **What the observation shows for an orb that never expires,** if a rewritten perception brings the timer back.
-  The default is no timer. A tier orb has no lifespan, so its timer's `remaining` is `None` while it is on the field.
-  Neither perception in `src` writes the timer; legacy's composite perceptions did, and a rewritten one would need a
-  number. A 0, a -1 or a separate flag are the options. Raised on 2026-10-18.
-  See: the roadmap's phase 7; "An orb's timer is not observed" and "An orb carries its own cool-down and lifespan"
-  in `design-decisions.md`.
+- **Which global features an observation carries.** The two kept perceptions carry none. Open for the rewritten ones.
+  See: "The kept perceptions observe only what earned its place" in `design-decisions.md`.
+- **Whether chain progress is observed where tier orbs return.** In a single chain the orbs left on the field show
+  how far the agent got, so dropping chain progress cost nothing. Where tier orbs return, the field no longer says
+  it. Chain progress is the agent's own history, not a fact of the world: an LSTM can learn to keep a count, a
+  stateless agent cannot, so leaving it out would make the task close to unsolvable for one architecture instead of
+  measuring credit assignment. It also matters at truncation, where what a running chain holds is paid only through
+  the bootstrapped value. It would go in `ObservationRules.global_features`, per scenario. Raised on 2026-10-23.
+  See: "A truncated episode settles nothing" and "An orb's timer is not observed" in `design-decisions.md`.
+- **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.** The
+  world writes the dense id back onto the meta, so the meta cannot be frozen until the id lives elsewhere. Negative
+  has to keep sorting before the tiers, or existing observations change.
+- **What the observation shows for an orb that never expires,** if a rewritten perception brings the timer back. A
+  tier orb's timer reads `None` on the field. A 0, a -1 or a separate flag. Raised on 2026-10-18.
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
-  into what the droid sees and how it is encoded, the two halves may belong to different sides.
-  See: "Scenario configs live with the scenario, as blocks in the world" in `design-decisions.md`; "A perception is
-  two things" in `codebase-ideas.md`.
-- **How "the perceptions that make sense for a scenario" is written.** Either each locked scenario lists the
-  perceptions it allows, or a perception is split into two settings and the scenario fixes how much the droid sees.
-  Spatial is out of it, since its perception is fixed since 2026-10-25.
-  See: "A locked scenario offers the perceptions that make sense for it" in `design-decisions.md`.
-- **Whether the pixel observation gets a limited view, and which kind.** `GridPixel` is a docstring with no code in
-  `legacy/`, and is not in `src`. A
-  crop of the window loses the droid's position; the full grid with the rest blacked out keeps it.
+  into what the droid sees and how it is encoded, the halves may belong to different sides.
   See: "A perception is two things" in `codebase-ideas.md`.
+- **How "the perceptions that make sense for a scenario" is written** for the locked scenarios other than spatial.
+  Either each lists the perceptions it allows, or a perception is split in two and the scenario fixes how much the
+  droid sees.
+- **Whether the pixel observation gets a limited view, and which kind.** A crop of the window loses the droid's
+  position; the full grid with the rest blacked out keeps it.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
-  See: "Two orb categories, and an orb meta that stores only kind and tier" in `design-decisions.md`.
 
 ## Phase 8b: The modular HUD
 
-- **What the renderer is handed about the HUD.** Raised on 2026-10-22. The renderer is handed `scenario.hud` when it
-  is built, keeps each bar's maximum by label and picks energy, steps left and the chain by label. The idea is a
-  frozen `HudSpec` (a label, a kind and a maximum that is `None` for a stat) in `hud.py`, made from the HUD tuple
-  without the readers, so the renderer never holds a reader. Each frame the environment would pass only the numbers,
-  in the order of the specs, and the HUD's height could be fixed when the renderer is built. Open: whether it lands
-  before 8b, what a spec carries beyond the three fields (a block type or a size for the modular HUD), and what the
-  renderer does with a spec it has no place to draw.
-  See: "The renderer takes plain values, and the HUD is the scenario's list" in `design-decisions.md`.
-- **Where a bar sits.** A stack grows in one direction, so a bar across it either lives in a cap at a fixed size or
-  stretches with the stack. Or a row piece per element kind, a stat row and a bar row, of one width and with the
-  same connector edges, so a bar is a row like any other. Raised on 2026-10-23.
-  See: the roadmap's phase 8b.
-- **What the window does when the HUD and the grid differ in height.** The roadmap leans towards the taller of the
-  two setting it.
-  See: the roadmap's phase 8b.
+- **What the renderer is handed about the HUD.** The idea is a frozen `HudSpec` (a label, a kind and a maximum that
+  is `None` for a stat) made from the HUD tuple without the readers, so the renderer never holds a reader, and the
+  environment passes only the numbers each frame. Open: whether it lands before 8b, what a spec carries beyond the
+  three fields, and what the renderer does with a spec it has no place for. Raised on 2026-10-22.
+- **Where a bar sits.** A stack grows one way, so a bar across it lives in a fixed cap or stretches with the stack. Or
+  a row piece per element kind, a stat row and a bar row, of one width with the same connector edges. Raised on
+  2026-10-23.
+- **What the window does when the HUD and the grid differ in height.** The lean is that the taller sets it.
 
 ## Phase 9: Logging
 
-- **What the plot helper's base class looks like.** Raised on 2026-10-26. The `plot/` package is meant to be a generic
-  helper that a user subclasses for the plots their scenario needs, with the thesis scenarios' plots as ready-made
-  subclasses. Open: what the base class owns (reading the CSV, smoothing, saving the figure) and what a subclass
-  states (which columns and how to draw them), whether it takes its paths as arguments, and where the thesis plots
-  live.
-  See: the roadmap's phase 9.
-
-The logger reads `scenario.metrics`.
+- **What the plot helper's base class looks like:** what it owns (reading the CSV, smoothing, saving) and what a
+  subclass states (columns and how to draw them), whether it takes its paths as arguments, and where the thesis plots
+  live. Raised on 2026-10-26.
 
 ## Not tied to a phase
 
-- **Whether a `ScoringMode` enum survives** as a router for the sandbox scenario. It is written as a reservation
-  inside an entry marked settled. The sandbox is not on the roadmap.
-  See: "A new scoring mode is a new scenario" in `design-decisions.md`.
-- **What a GUI needs from the models.** A GUI is where the project is heading, and nothing is written for it.
-  See: "A GUI on top of the registry" in `codebase-ideas.md`.
+- **Properties or plain attributes for what readers take from a digester.** Plain public attributes now; the owner
+  may return to properties.
+- **Whether a `ScoringMode` enum survives** as a router for the sandbox. The sandbox is not on the roadmap.
+- **Whether `on_termination` guards against a second call.** It runs once per episode; a second call would pay the
+  owed sum twice, and nothing stops it.
+- **What a GUI needs from the models.** See "A GUI on top of the registry" in `codebase-ideas.md`.
