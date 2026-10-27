@@ -1411,8 +1411,7 @@ for the episode. Settled by the owner on 2026-10-26.
 `chain_break_penalty: -0.1`. Both are locked with the scenarios' other rules. They are the values the thesis ran with,
 and the ablations in the roadmap's phase 6 did not find a simpler value that holds.
 
-**Where:** the two scenario YAMLs today, and each scenario's builder once it is locked. The runs are listed under
-"Ablations before the lock" in `scenario-rebuild-roadmap.md`.
+**Where:** the two scenario YAMLs today, and each scenario's builder once it is locked.
 
 **What the runs showed:**
 
@@ -1452,7 +1451,9 @@ grows, so tier 6 was not run.
   whatever it shows, so it would only be worth running to drop the penalty up to tier 6.
 
 **Status:** settled on 2026-10-27, and applied in the two YAMLs. How many seeds the sparse runs used was not
-recorded. Spatial's `chain_break_penalty` was not ablated; why is in the roadmap.
+recorded. Spatial's `chain_break_penalty` was not ablated. It was tuned in the thesis era: with the view limited,
+eating an unknown orb is how the droid explores, and a break that costs little next to the timeout keeps that cheap. A
+larger penalty taught the droid to avoid orbs and run out the clock.
 
 ---
 
