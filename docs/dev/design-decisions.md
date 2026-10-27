@@ -21,6 +21,31 @@ Each entry says when it would be worth reopening.
 
 ---
 
+## Principles
+
+The rules most decisions below follow.
+
+- **Everything scenario-specific is a field of `Scenario`.** The test for a field is "does the Gymnasium side need
+  it?"; what only the world needs stays inside `build_world`.
+- **A `Scenario` holds nothing that changes during an episode.** Training builds 16 envs from one `Scenario` in one
+  process. State belongs in what `build_world()` returns; rules reach it through the `world` they are handed.
+- **A conditional that exists "because scenario X works differently" does not belong in the component that holds
+  it.**
+- **A mechanic only one scenario uses lives in that scenario's strategy** when it can be written against the world's
+  public API and the orbs' own methods. It becomes a world method only when it must touch the world's private
+  bookkeeping.
+- **One supplied piece per consumer,** each a static description plus a reader that is handed the world: `hud`,
+  `metrics`, and the observation's global features in `ObservationRules`. The HUD and the observation are free to
+  diverge.
+- **Readers are module-level functions, not lambdas or nested functions,** so two scenarios built from the same
+  config compare equal.
+- **Termination is an interface file plus one file per strategy,** so each strategy imports only what its scenario
+  needs.
+- **One orb kind is one brick:** an `OrbBundle` in the scenario layer, carrying the population and a way to make the
+  digester, and a `*_orb_conf` block in the world config.
+
+---
+
 ## Digestion lives in the droid, with a folder of digesters (2026-10-09)
 
 **Decision:** Digestion is the droid's own organ. The package holds three things:
