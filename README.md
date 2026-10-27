@@ -5,6 +5,7 @@
 > SYNGrid lets you systematically vary benchmark dimensions — such as temporal delay, dependency depth, observability, and reward density — through configuration rather than creating new environments. While designed around temporal credit assignment, the framework is intended to support controlled experiments within a single configurable grid.
 >
 > **Status:** Research prototype. Evaluated across three scenarios in a [bachelor's thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794).
+> The scenario layer is being rebuilt so that scenarios are composed from parts. The spatial and scaling sparse scenarios run on the rebuilt code. Delay and scaling dense are not rebuilt yet. The thesis runs are kept in [`reproduction_package/`](./reproduction_package/).
 
 ---
 
@@ -88,7 +89,7 @@ pip install -e .[dev]
 python3 -m syn_grid
 ```
 
-This will train or evaluate an agent (or start a human play-testing session) based on settings in `config/config.yaml`.
+This will train or evaluate an agent (or start a human play-testing session) based on the settings in [`src/syn_grid/config/yaml/`](/src/syn_grid/config/yaml/): `global_config.yaml` picks the scenario and whether a human plays it, `runner_config.yaml` sets the agent, and the scenario's own file in `scenarios/` sets its values.
 
 For detailed setup and reproduction instructions, see [`reproduction_package/info.md`](./reproduction_package/info.md).
 
@@ -100,16 +101,14 @@ SYNGrid experiments are defined through configuration rather than code. Changing
 **Example:**
 
 ```yaml
-world:
-  grid_world_conf:
-    delay_mode: true
-    delay: 30
-    max_tier: 3
+world_conf:
+  tier_orb_conf:
+    max_tier: 5
 ```
 
-> Changing only `delay` increases the temporal gap between consuming orbs while leaving the rest of the environment unchanged.
+> Changing only `max_tier` lengthens the dependency chain while leaving the rest of the environment unchanged.
 
-See [`config/config.yaml`](/src/syn_grid/config/configs.yaml) for all available options.
+See the files in [`src/syn_grid/config/yaml/scenarios/`](/src/syn_grid/config/yaml/scenarios/) for all available options.
 
 ---
 
