@@ -619,7 +619,8 @@ already expected).
 
 ## The negative orb has a switch beside its values (2026-10-29)
 
-**Decision:** `NegOrbConf` holds `enabled` beside `reward` and `cool_down`. A locked scenario's small model offers only
+**Decision:** `NegOrbConf` holds `enabled` beside `reward` and `cool_down`, and `neg_orb_conf` is mandatory on the
+tier world: an orb that is off is `enabled: false`, never a missing block. A locked scenario's small model offers only
 the switch, at the same path, `neg_orb_conf.enabled`, and the values come from its base config. A fork can change all
 three.
 
@@ -628,7 +629,8 @@ base config with no special case. A GUI shows a toggle whose fields keep their v
 
 **Rejected:** a `negative_orb` yes or no in the small model with no counterpart in the full model (the merge needs a
 case of its own to turn it into a block); the standard orb's values as defaults on `NegOrbConf` (a default can be
-overridden; they belong in the base config).
+overridden; they belong in the base config); the block kept optional beside the switch (a missing block and a
+disabled one would mean the same).
 
 ## Every scenario in the single tier chain family is a single chain (2026-10-18)
 
@@ -673,9 +675,11 @@ as the full model and handed to the builder. A YAML that states a fixed value is
 knows whether a scenario is locked. A scenario that is not locked, the sandbox and a fork load the full model.
 
 A scenario's entry holds its full model, its builder, the perceptions with its visibility, and an optional lock: the
-small model and the base config. The entry does the merge, and checks the perception on every config it builds, so a
-fork is held to its parent's visibility too. The small model never leaves the entry, so everything after it takes a
-`ScenarioConf`. `ConfigManager` reads YAML and knows nothing of locks; a lock is a scenario idea.
+small model and the base config. A small model is named after its scenario, as `SpatialScenarioConf`; scaling sparse and
+dense are configured alike and share `ScalingScenarioConf`. The entry does the merge, and checks the perception on every
+config it builds, so a fork is held to its parent's visibility too. The small model never leaves the entry, so
+everything after it takes a `ScenarioConf`. `ConfigManager` reads YAML and knows nothing of locks; a lock is a scenario
+idea.
 
 A scenario is locked once runs over several seeds learn in the same general direction as legacy.
 
@@ -702,19 +706,24 @@ copies into a fork. The fixed values pass the same validation as any YAML's.
 ## A locked scenario is what was run, and changing it makes a different scenario (2026-10-29)
 
 **Decision:** A scenario's name promises one test, so a locked scenario is locked to what was run. Spatial is tier 3,
-seen through the fog-of-war window, with the penalties and orb rewards the ablations kept, fixed in its base config.
-The grid size is its only dial on the world. The other locked scenarios follow with their own axis: the chain length
-and grid for scaling sparse, the delay for delay. `max_energy` is a rule fixed with the penalties, not a size: with a
-step penalty of -0.001 energy is mostly spent on boundary hits, so it caps pointless moves.
+seen through the fog-of-war window, with the penalties and orb rewards the ablations kept, fixed in its base config. The
+grid size is its dial on the world. The other locked scenarios follow with their own axis: the chain length and grid for
+scaling sparse and dense, the delay for delay. Beside the axis, every locked scenario lets a run choose `max_steps`, so
+a larger grid can be given the steps it needs, and the scenario tag records it as `_steps100`. `max_energy` is a rule
+fixed with the penalties, not a size: with a step penalty of -0.001 energy is mostly spent on boundary hits, so it caps
+pointless moves.
 
 Tier 3 is a reference point, not a limit. Spatial at tier 4 is a fork of spatial.
 
 **Why:** A benchmark is useful only if two people who say "I ran spatial" mean the same test. The limit need not be
-drawn in the YAML: a fork changes what it likes under a name of its own.
+drawn in the YAML: a fork changes what it likes under a name of its own. `max_steps` does not change what is tested,
+only how long the droid has, and the tag keeps two runs that differ in it apart.
 
 **Rejected:** `max_tier` tunable with the tag recording it ("spatial" would name a family, not a test); every value
 left in the YAML (the file is both the reference and the thing edited); a builder and a registry entry for each
-variant (a change of values needs no code).
+variant (a change of values needs no code); `max_steps` fixed at 100 (a large grid cannot be searched in it);
+`max_steps` worked out from the grid (the thesis sparse runs had 100 steps on both 5x5 and 6x6, which no per-cell rule
+gives, and the full model would hold a rule where it holds a number).
 
 ## A fork is a full config with a name and a parent (2026-10-29)
 

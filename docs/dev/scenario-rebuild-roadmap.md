@@ -6,7 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** run spatial's remaining seeds, then lock it (phase 6).
+**Next:** run spatial's remaining seeds (phase 6).
 
 ---
 
@@ -17,13 +17,14 @@ one to be read correctly.
 
 | Part | State | Has it run |
 |---|---|---|
-| Spatial: builder, YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb |
-| Scaling sparse: builder, YAML | written | learned: tier 4, in the ablations |
-| Scaling dense: builder | stub, raises `NotImplementedError` | — |
+| Spatial: builder, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; the locked path run by a script, step for step the same as before |
+| Scaling sparse: builder, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
+| Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; not trained |
+| The lock: registry entries, small models, merge, perception check | written | run, by a script; not trained |
 | Delay: builder, termination, its mechanic | stub, raises `NotImplementedError` | — |
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
-| Threshold digester | written | run, by a script through the real droid and termination; not through the environment |
+| Threshold digester | written | run, by a script through the environment |
 | Negative orb: digester, population, bundle | written | learned; `negatives_eaten` was never read over a run |
 | `SingleTierChainTermination` | written | learned |
 | Droid, engine, `GridWorld`, orbs, timer | written | learned |
@@ -56,8 +57,8 @@ In this order, per scenario:
    replay a fixed action sequence through both strains and diff the observation per step, to find where.
 3. **Ablate** the values in doubt, while the YAML still sets every value. A variant that learns as well keeps the
    simpler value. Run several seeds per variant.
-4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its axis. See
-   "A locked scenario is a base config and a small model in front of its builder" in `design-decisions.md`.
+4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its choices.
+   See "A locked scenario is a base config and a small model in front of its builder" in `design-decisions.md`.
 5. **Record a trace** with the replay probe: one seed, a fixed action sequence, and every observation, reward and
    termination flag per step. Phase 7 is diffed against it. The probe imports the legacy strain, so the first lock
    ports it to take a `Scenario`.
@@ -73,14 +74,14 @@ episodes shorten, and each is locked.
 ### What is left, scenario by scenario
 
 1. **Spatial.** Run the remaining seeds. The ceiling on 5x5 is about 9.02 (tiers 1 to 3 worth `1 + 2^1.5 + 3^1.5`,
-   less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps. Then lock it, with its
-   visibility fixed as the fog-of-war window, and record its trace.
-2. **Scaling sparse.** Verify over several seeds at more than one `max_tier`, then lock.
+   less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps. Its values are in its
+   base config, so a value the seeds change is changed there. Then record its trace.
+2. **Scaling sparse.** Verify over several seeds at more than one `max_tier`.
 3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
 4. **Delay.** Its builder, its own termination, and the field going empty for `delay` steps after a consume, the
    negative orb with it. Where that mechanic lives is open; see `open-questions.md`. The two parked delay methods in
    `GridWorld` move into it or go.
-5. **Dense.** Its builder, on the threshold digester.
+5. **Dense.** Verify over several seeds, at tier 6 on 5x5 and tier 7 on 6x6, against the ceilings 141.13 and 207.49.
 
 ---
 

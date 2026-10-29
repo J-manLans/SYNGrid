@@ -62,13 +62,9 @@ a name and a parent" in `design-decisions.md`.
 - **Where a rule that spans fields is checked.** A check on the full model is raised in the builder and names a block,
   not a field the user can see.
 - **Whether a locked axis has a range,** such as an upper bound on the grid.
-- **What spatial's small model holds besides the grid size.** Whether `max_steps` grows with the grid or is fixed,
-  and what the model is called.
 - **Where the user folder for forks is, and how the code finds it.** `user_scenarios/` at the repo root, or
   `output/user_scenarios/`, which keeps one ignored folder but is lost when `output/` is cleared, although forks are
   read by later runs and not produced by them. Either way it is found the way `output/` is. Raised on 2026-10-29.
-- **Whether `neg_orb_conf` stays optional in the full model** now that it has a switch. A missing block and a
-  disabled one would mean the same. Raised on 2026-10-29.
 
 ## Phase 7: The observation pass
 

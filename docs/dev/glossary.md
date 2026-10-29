@@ -32,10 +32,10 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Delay:** eating an orb makes every other orb vanish from the observation for `delay` steps, after which they
   return in the same cells. It tests long-term credit assignment. Its axis is the delay.
 - **Axis:** the one thing that varies between runs of a scenario and makes it harder or easier.
-- **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5`.
-- **Locked:** a scenario whose values other than its axis are fixed in its base config and cannot be set from a run's
-  YAML. A scenario is locked once runs over several seeds learn in the same general direction as legacy. None is
-  locked.
+- **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5_steps100`.
+- **Locked:** a scenario whose values other than a run's choices (its axis, `max_steps`, the perception and the
+  negative orb's switch) are fixed in its base config and cannot be set from a run's YAML. A scenario is locked once
+  runs over several seeds learn in the same general direction as legacy.
 - **Full model:** a config model that describes a whole world, such as `TierScenarioConf`.
 - **Small model:** a locked scenario's own config model, holding only what a run may choose.
 - **Base config:** a locked scenario's full config as it was run, a read-only YAML in the package. A run's choices are
@@ -46,7 +46,10 @@ Terms are grouped by area. The last section lists the words that are used in two
 ## Building a scenario
 
 - **Registry:** `SCENARIOS` in `scenario/registry.py`. It gives a scenario name its entry.
-- **Entry:** a scenario's config class and its builder.
+- **Entry:** what a scenario name stands for in the registry: its full model, its builder, the perceptions it allows,
+  and its lock if it has one.
+- **Lock:** a locked scenario's small model and base config, held by its entry. The entry merges a run's choices onto
+  the base config.
 - **Builder:** the function that turns a scenario's full config into a `Scenario`. One per registered scenario.
 - **Helper:** the function a family's builders share, which composes what the family has in common.
 - **Block:** see the last section; the word has two senses.
