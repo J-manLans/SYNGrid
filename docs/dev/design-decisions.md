@@ -671,8 +671,8 @@ be checked against the one the old YAML loaded.
 ## A locked scenario is what was run, and changing it makes a different scenario (2026-10-27)
 
 **Decision:** A scenario's name promises one test, so a locked scenario is locked to what was run. Spatial is tier 3,
-with `vector_fog_of_war`, and the penalties and orb rewards the ablations kept, fixed in its builder. The grid size is
-its only dial. The other locked scenarios follow with their own axis: the chain length and grid for scaling sparse,
+seen through the fog-of-war window, with the penalties and orb rewards the ablations kept, fixed in its builder. The
+grid size is its only dial on the world. The other locked scenarios follow with their own axis: the chain length and grid for scaling sparse,
 the delay for delay. `max_energy` is a rule fixed in the builder with the penalties, not a size: with a step penalty
 of -0.001 energy is mostly spent on boundary hits, so it caps pointless moves.
 
@@ -685,18 +685,21 @@ scenario instead of editing it" in `codebase-ideas.md`).
 **Rejected:** `max_tier` tunable with the tag recording it ("spatial" would name a family, not a test); every value
 left in the YAML (the file is both the reference and the thing edited).
 
-## A locked scenario offers the perceptions that make sense for it (2026-10-25)
+## A locked scenario fixes the visibility, and a run chooses the encoding (2026-10-29)
 
-**Decision:** The perception stays a run's choice in a locked scenario, among those that fit what it tests. Spatial
-is the exception: its perception is fixed as `vector_fog_of_war` in its builder, since it tests memory under a limited
-view and its runs should all see the world the same way.
+**Decision:** A locked scenario fixes how much the droid sees, and a run may pick any perception with that
+visibility, whatever its encoding. The scaling scenarios take any fully observable perception: vector, composite or
+pixel. Spatial takes any partially observable perception with the same hindrance as `vector_fog_of_war`, the window
+around the droid.
 
-**Why:** What a scenario tests decides how much the droid may see, and nothing else about the observation. Encoding
+**Why:** What a scenario tests decides how much the droid may see, and nothing else about the observation. Two
+spatial runs with different encodings face the same task; a spatial run that sees the whole grid does not. Encoding
 is a real choice for a run: a composite observation with its own extractor may suit a model better, at a cost in
 speed.
 
-**Rejected:** the perception fixed for every locked scenario (it takes away a real choice); any perception for any
-scenario (a spatial run that sees the whole grid does not test spatial).
+**Rejected:** one perception fixed per locked scenario, `vector_fog_of_war` for spatial included (it takes away a
+real choice and ties the test to one encoding); any perception for any scenario (a spatial run that sees the whole
+grid does not test spatial).
 
 ---
 

@@ -99,8 +99,9 @@ brick".
 ## A perception is two things: what the droid sees and how it is encoded (2026-10-12)
 
 **Idea:** Split the perception into two settings. One is the visibility: the whole world, or a window around the
-droid. The other is the encoding: a flat vector, a composite of named parts, a grid of cells, or pixels. A scenario
-fixes the visibility when its test depends on it, and the encoding stays a choice.
+droid. The other is the encoding: a flat vector, a composite of named parts, a grid of cells, or pixels. That a
+locked scenario fixes the visibility and a run chooses the encoding is decided (see "A locked scenario fixes the
+visibility, and a run chooses the encoding" in `design-decisions.md`); making them two settings is the idea.
 
 **Where it came from:** Deciding which perceptions a locked scenario offers, on 2026-10-12. The fog of war in
 `vector_fog_of_war.py` is one filter, which keeps the orbs within one cell of the droid, and nothing ties it to the

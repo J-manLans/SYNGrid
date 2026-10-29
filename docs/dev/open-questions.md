@@ -86,9 +86,6 @@ See: "A locked scenario loads a small model, and its builder makes the full conf
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
   into what the droid sees and how it is encoded, the halves may belong to different sides.
   See: "A perception is two things" in `codebase-ideas.md`.
-- **How "the perceptions that make sense for a scenario" is written** for the locked scenarios other than spatial.
-  Either each lists the perceptions it allows, or a perception is split in two and the scenario fixes how much the
-  droid sees.
 - **Whether the pixel observation gets a limited view, and which kind.** A crop of the window loses the droid's
   position; the full grid with the rest blacked out keeps it.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.

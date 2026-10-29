@@ -74,7 +74,7 @@ episodes shorten, and each is locked.
 
 1. **Spatial.** Run the remaining seeds. The ceiling on 5x5 is about 9.02 (tiers 1 to 3 worth `1 + 2^1.5 + 3^1.5`,
    less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps. Then lock it, with its
-   perception fixed as `vector_fog_of_war`, and record its trace.
+   visibility fixed as the fog-of-war window, and record its trace.
 2. **Scaling sparse.** Verify over several seeds at more than one `max_tier`, then lock.
 3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
 4. **Delay.** Its builder, its own termination, and the field going empty for `delay` steps after a consume, the
