@@ -56,8 +56,8 @@ In this order, per scenario:
    replay a fixed action sequence through both strains and diff the observation per step, to find where.
 3. **Ablate** the values in doubt, while the YAML still sets every value. A variant that learns as well keeps the
    simpler value. Run several seeds per variant.
-4. **Lock** it: its fixed values move from the YAML into its builder. See "A locked scenario loads a small model" in
-   `design-decisions.md`.
+4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its axis. See
+   "A locked scenario is a base config and a small model in front of its builder" in `design-decisions.md`.
 5. **Record a trace** with the replay probe: one seed, a fixed action sequence, and every observation, reward and
    termination flag per step. Phase 7 is diffed against it. The probe imports the legacy strain, so the first lock
    ports it to take a `Scenario`.

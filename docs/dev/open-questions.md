@@ -52,20 +52,26 @@ long argument goes in `codebase-ideas.md` or is settled.
 ### Locking a scenario
 
 To settle with the first scenario that is locked, which is spatial.
-See: "A locked scenario loads a small model, and its builder makes the full config" in `design-decisions.md`.
+See: "A locked scenario is a base config and a small model in front of its builder" and "A fork is a full config with
+a name and a parent" in `design-decisions.md`.
 
 - **The common type of a config class.** `ScenarioConf` is named by the `TypeVar` bound in `registry.py`,
   `ScenarioEntry.build`, `build_scenario` and the return type of `load_experiment_configs`. A small model is not a
   `ScenarioConf`.
-- **How the full config is reached from outside the builder.** The world part is `scenario.build_world.world_conf`;
-  the observation part is kept nowhere. `ConfigManager.save_snapshot` copies the YAML, so a locked scenario's snapshot
-  would hold only what the run chose. A GUI that shows or forks the fixed values needs the same hook.
+- **What a locked run's snapshot holds.** `ConfigManager.save_snapshot` copies the run's YAML, which for a locked
+  scenario is only what the run chose. Either the merged full config, or the choices beside the name of the base
+  config they were merged onto.
 - **Where a family's shared fixed values are written,** so that four builders do not each state them.
 - **Where a rule that spans fields is checked.** A check on the full model is raised in the builder and names a block,
   not a field the user can see.
 - **Whether a locked axis has a range,** such as an upper bound on the grid.
 - **What spatial's small model holds besides the grid size.** Whether `max_steps` grows with the grid or is fixed,
-  whether the negative orb is a yes or no, and what the model is called.
+  and what the model is called.
+- **Where the user folder for forks is, and how the code finds it.** `user_scenarios/` at the repo root, or
+  `output/user_scenarios/`, which keeps one ignored folder but is lost when `output/` is cleared, although forks are
+  read by later runs and not produced by them. Either way it is found the way `output/` is. Raised on 2026-10-29.
+- **Whether `neg_orb_conf` stays optional in the full model** now that it has a switch. A missing block and a
+  disabled one would mean the same. Raised on 2026-10-29.
 
 ## Phase 7: The observation pass
 

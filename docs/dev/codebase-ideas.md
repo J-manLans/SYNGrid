@@ -47,11 +47,8 @@ What already fits:
 
 What it asks for:
 
-- The full config a locked builder makes has to be reachable without building a `Scenario`, for the read-only panel.
-  The snapshot needs the same.
 - An error has to name a field the user can see. See the open points in the design decision.
 - A range on a locked axis would serve the form, the validation and the preview at once.
-- The small models have no defaults, so a form needs starting values from somewhere. The YAML could keep that role.
 - The explanations of the fields are in class docstrings. A form would want them per field.
 - The renderer's settings have no place in the new models yet, and a preview needs them.
 
@@ -170,37 +167,22 @@ scenario's own. Open when it is built:
 
 ---
 
-## A GUI forks a locked scenario instead of editing it (2026-10-27)
+## A GUI forks a locked scenario instead of editing it (2026-10-29)
 
-**Idea:** In the GUI a locked scenario opens read-only, with its axis editable as in "A GUI on top of the registry".
-To change anything else the user unlocks it. Unlocking makes a deep copy of the full config, the user names the copy,
-and every edit goes to the copy. A run of it is its own scenario, saved apart from the one it started from. The
-original is never edited, so spatial at tier 4 is a fork with a name of its own and not a changed spatial.
+**Idea:** The owner's picture of forking in the GUI. What a fork is, and where it is saved, is decided (see "A fork
+is a full config with a name and a parent" in `design-decisions.md`); this is how the screen could go.
 
-**Where it came from:** Talking through where to put the limit on what is tunable, by voice on the evening of
-2026-10-26, as the first two scenarios were about to be locked. Fixing `max_tier` at 3 in spatial's builder felt
-constricting, since someone else may want a longer chain on the same setup. The GUI answers that.
+- Picking spatial shows its axis as editable: the grid size, the negative orb's switch, and the perception as a
+  dropdown of the perceptions with its visibility. The rest of the base config is grayed out, or hidden.
+- An unlock button makes every value editable, or visible. The perception stays a dropdown with the same list, and
+  the negative orb becomes its switch with its two values under it.
+- Cancel throws the edits away, and nothing is written. Save asks for a name and writes the fork.
 
-**Why it might matter:**
+**Where it came from:** Talking through where to put the limit on what is tunable, by voice on 2026-10-26, and the
+owner picturing the screen on 2026-10-29.
 
-- A YAML has no locked state to unlock from. The file is both the reference and the thing that is edited, so a change
-  to `max_tier` silently changes what spatial means. A GUI can hold the reference read-only and hand out copies.
-- Tunable then becomes a property of the mode and not of the scenario: locked for runs that can be compared, unlocked
-  for exploring. Until the GUI exists the code is the restriction, and later the restriction is a choice made by
-  pressing unlock.
-- It takes the pressure off deciding what the YAML should expose. A scenario can be locked strictly now, since a
-  different tier costs one short builder function until a fork can do it.
-
-What it asks for:
-
-- The full config a locked builder makes has to be reachable from outside the builder, so the GUI can show the fixed
-  values and copy them. It is the same hook "A GUI on top of the registry" asks for, and cheap to keep in mind now.
-- A fork needs a name, and probably a note of the scenario it started from, so that a result is never filed as
-  spatial.
-
-Open when it is built: whether a fork runs through the same builder or through a more general path that takes any
-values. A fork can change values but not the scoring mode, since a new scoring mode is a scenario of its own, so it
-has to say which registered scenario's builder composes it.
+**Why it might matter:** Tunable becomes a property of the mode and not of the scenario: locked for runs that can be
+compared, unlocked for exploring. Until the GUI exists, a fork is a YAML written by hand.
 
 ---
 

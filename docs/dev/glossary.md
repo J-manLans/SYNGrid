@@ -33,16 +33,21 @@ Terms are grouped by area. The last section lists the words that are used in two
   return in the same cells. It tests long-term credit assignment. Its axis is the delay.
 - **Axis:** the one thing that varies between runs of a scenario and makes it harder or easier.
 - **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5`.
-- **Locked:** a scenario whose values other than its axis are fixed in its builder and cannot be set from a YAML. A
-  scenario is locked once runs over several seeds learn in the same general direction as legacy. None is locked.
+- **Locked:** a scenario whose values other than its axis are fixed in its base config and cannot be set from a run's
+  YAML. A scenario is locked once runs over several seeds learn in the same general direction as legacy. None is
+  locked.
 - **Full model:** a config model that describes a whole world, such as `TierScenarioConf`.
 - **Small model:** a locked scenario's own config model, holding only what a run may choose.
+- **Base config:** a locked scenario's full config as it was run, a read-only YAML in the package. A run's choices are
+  merged onto it.
+- **Fork:** a copy of a locked scenario's base config with any value changed, saved under a name of its own with the
+  scenario it came from, its parent. It is built by its parent's builder.
 
 ## Building a scenario
 
 - **Registry:** `SCENARIOS` in `scenario/registry.py`. It gives a scenario name its entry.
 - **Entry:** a scenario's config class and its builder.
-- **Builder:** the function that turns a scenario's config into a `Scenario`. One per registered scenario.
+- **Builder:** the function that turns a scenario's full config into a `Scenario`. One per registered scenario.
 - **Helper:** the function a family's builders share, which composes what the family has in common.
 - **Block:** see the last section; the word has two senses.
 - **Rules:** a frozen description of one part of a scenario's behaviour: `ObservationRules`,

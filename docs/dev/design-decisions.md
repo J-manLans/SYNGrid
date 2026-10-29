@@ -30,7 +30,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Orbs and the world:** two categories; cool-down and lifespan; weights and counts; the orb field; the step clock;
   mechanics in strategies; episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
-  locked scenarios
+  locked scenarios; forks; the negative orb's switch
 - **Observation:** the kept perceptions; no timer; shared readers
 - **Runners and rendering:** the algorithm enum; the policy name; human play; the renderer; window input
 
@@ -476,7 +476,8 @@ value per orb, not a class attribute shared by every env in the process.
 - **Sampled:** orbs are drawn from a pool, and each kind's `weight` sets the mix.
 
 `weight` belongs to a kind's block only in a sampled family, through a weighted version of the block. `NegOrbConf` is
-`reward` and `cool_down`. A tier chain with a negative block holds exactly one negative orb; the count is not config.
+`enabled`, `reward` and `cool_down`. A tier chain with an enabled negative block holds exactly one negative orb; the
+count is not config.
 
 Every population states how many orbs it makes, through `count`. A fixed field sums its bundles' counts for the field
 size, the observation slots and the sort limit. In a sampled field the field size comes from the config, the counts
@@ -607,7 +608,7 @@ blocks beside `world_conf` (the world acts on them); a `mode: goal` field (the n
 
 **Decision:** `orb_models.py` holds the class that describes an orb kind wherever it appears. A family adds what
 describes its use of the kind, as a subclass. A scenario's world model declares the field, optional or mandatory. The
-base `WorldConf` declares no orb fields. A base class holds only fields certain to be shared: `reward` and
+base `WorldConf` declares no orb fields. A base class holds only fields certain to be shared: `enabled`, `reward` and
 `cool_down` for the negative orb; `max_tier`, the reward ladder and `chain_break_penalty` for the tier orb.
 
 **Why:** What an orb is gets written once, and each scenario states its relationship to it in one line.
@@ -615,6 +616,19 @@ base `WorldConf` declares no orb fields. A base class holds only fields certain 
 **Rejected:** `neg_orb_conf` on the base `WorldConf` (every scenario would accept it, and none could make it
 mandatory); a class per scenario (they drift); a class kept in its first family until a second needs it (a second is
 already expected).
+
+## The negative orb has a switch beside its values (2026-10-29)
+
+**Decision:** `NegOrbConf` holds `enabled` beside `reward` and `cool_down`. A locked scenario's small model offers only
+the switch, at the same path, `neg_orb_conf.enabled`, and the values come from its base config. A fork can change all
+three.
+
+**Why:** The small model and the full model then name the orb by one path, so a locked run's choices merge onto the
+base config with no special case. A GUI shows a toggle whose fields keep their values while it is off.
+
+**Rejected:** a `negative_orb` yes or no in the small model with no counterpart in the full model (the merge needs a
+case of its own to turn it into a block); the standard orb's values as defaults on `NegOrbConf` (a default can be
+overridden; they belong in the base config).
 
 ## Every scenario in the single tier chain family is a single chain (2026-10-18)
 
@@ -645,45 +659,79 @@ The scenario name is also the runner's output folder, so runs from before the re
 **Rejected:** `tier_chain` (the mechanic's name too); `single_chain` (it leaves out which chain); waiting for the naming
 pass (phase 6 adds three builders to the family).
 
-## A locked scenario loads a small model, and its builder makes the full config (2026-10-12)
+## A locked scenario is a base config and a small model in front of its builder (2026-10-29)
 
-**Decision:** The layered models stay the full description of a world. A locked scenario gets one small model of its
-own, frozen, strict and `extra="forbid"`, holding only what a run may choose. Its `SCENARIOS` entry names the small
-model, so a YAML that states a fixed value is rejected. Its builder makes the full config from the scenario's fixed
-values and the run's choices, and hands it to the family helper. Nothing below the builder knows whether a scenario
-is locked. A scenario that is not locked, and the sandbox, load the full model.
+**Decision:** A builder takes its scenario's full config. A locked scenario is three things:
+
+- **Its builder:** what no value changes, such as the scoring mode, the termination and the HUD.
+- **Its base config:** the full config that was run, as a read-only YAML in the package.
+- **Its small model:** frozen, strict and `extra="forbid"`, holding only what a run may choose, under the full
+  model's field names and nesting.
+
+A locked run's YAML is validated against the small model and merged onto the base config, and the result is validated
+as the full model and handed to the builder. A YAML that states a fixed value is rejected. Nothing below the registry
+knows whether a scenario is locked. A scenario that is not locked, the sandbox and a fork load the full model.
 
 A scenario is locked once runs over several seeds learn in the same general direction as legacy.
 
-**Why:** A locked scenario's fixed values pass the same validation as a YAML's. The entry's config class says what a
-run may set, which is also what a GUI needs to draw a form. Frozen models compare equal, so the builder's config can
-be checked against the one the old YAML loaded.
+**Why:** The values that make a scenario are data, so they live in a file that a person and a GUI can read, with
+comments, and one merge serves every locked scenario. A builder that takes the full config serves a locked run and a
+fork alike. The small model is what a GUI draws the form from, and the base config is what it shows read-only and
+copies into a fork. The fixed values pass the same validation as any YAML's.
 
 **Rejected:**
 
+- The full config made by a function per scenario from constants: the values are data written as code, the
+  functions repeat each other, and the fixed values cannot be read without a run's choices.
+- The builder taking the small model: a fork would have no builder that accepts it.
+- The base config as a Python object in the family: a YAML is easier for a person and a GUI to read.
+- JSON for the configs: it loses the comments, and a GUI goes through the models whatever the file format.
 - Fixed values as defaults on the models: a default can be overridden, so two runs of one name could differ.
 - A narrow class and a tunable subclass per block: no single narrow class suits every scenario.
 - Thinning the base models: the helper and `WorldRecipe` would read from two sources.
-- Loose constants passed around the builder: they skip validation.
 - One full model for all, with a GUI choosing fields: the per-scenario list would live in the wrong layer, and the
   YAML could still set anything.
 
-## A locked scenario is what was run, and changing it makes a different scenario (2026-10-27)
+## A locked scenario is what was run, and changing it makes a different scenario (2026-10-29)
 
 **Decision:** A scenario's name promises one test, so a locked scenario is locked to what was run. Spatial is tier 3,
-seen through the fog-of-war window, with the penalties and orb rewards the ablations kept, fixed in its builder. The
-grid size is its only dial on the world. The other locked scenarios follow with their own axis: the chain length and grid for scaling sparse,
-the delay for delay. `max_energy` is a rule fixed in the builder with the penalties, not a size: with a step penalty
-of -0.001 energy is mostly spent on boundary hits, so it caps pointless moves.
+seen through the fog-of-war window, with the penalties and orb rewards the ablations kept, fixed in its base config.
+The grid size is its only dial on the world. The other locked scenarios follow with their own axis: the chain length
+and grid for scaling sparse, the delay for delay. `max_energy` is a rule fixed with the penalties, not a size: with a
+step penalty of -0.001 energy is mostly spent on boundary hits, so it caps pointless moves.
 
-Tier 3 is a reference point, not a limit. Spatial at tier 4 is a new scenario: a short builder and a registry entry.
+Tier 3 is a reference point, not a limit. Spatial at tier 4 is a fork of spatial.
 
 **Why:** A benchmark is useful only if two people who say "I ran spatial" mean the same test. The limit need not be
-drawn in the YAML: a GUI can open a locked scenario read-only and hand out named copies (see "A GUI forks a locked
-scenario instead of editing it" in `codebase-ideas.md`).
+drawn in the YAML: a fork changes what it likes under a name of its own.
 
 **Rejected:** `max_tier` tunable with the tag recording it ("spatial" would name a family, not a test); every value
-left in the YAML (the file is both the reference and the thing edited).
+left in the YAML (the file is both the reference and the thing edited); a builder and a registry entry for each
+variant (a change of values needs no code).
+
+## A fork is a full config with a name and a parent (2026-10-29)
+
+**Decision:** Changing a locked scenario beyond its axis makes a fork: its base config copied, any value edited, and
+saved with a name of its own and the scenario it came from. A fork is built by its parent's builder, so it keeps the
+parent's scoring mode, termination and HUD, and its perception is held to the parent's visibility. Its runs are filed
+under its own name.
+
+A fork is data. Saving one writes a YAML into a user folder outside `src/`, gitignored by default, and the registry
+reads that folder beside its own entries. A fork whose parent is not registered is an error that names the file.
+Changing a mechanic, such as the scoring mode, the termination or an orb kind, makes a new scenario, in code.
+
+**Why:** A fork lets someone push a model past a scenario without changing what the scenario's name means. Values are
+data and mechanics are code, so a user makes a fork without touching the package. A fork of spatial that saw the
+whole grid would no longer test memory, and that world is scaling sparse already. A fork is small and quick to
+recreate, so ignoring it by default costs little, and a user who wants it in git removes one line.
+
+**Rejected:**
+
+- A fork choosing any perception: it would no longer test what its parent tests.
+- A general builder that takes any values: the scoring mode would become config (see "A new scoring mode is a new
+  scenario").
+- Forks under `src/syn_grid/config/yaml/`: they would read as part of the benchmark, and an installed package is no
+  place to write.
 
 ## A locked scenario fixes the visibility, and a run chooses the encoding (2026-10-29)
 
