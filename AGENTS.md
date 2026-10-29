@@ -85,7 +85,8 @@ notes the docs used to carry belong here, in the commit that made them true. The
 to the agent, so they carry the record.
 
 **Never commit code before the owner says so.** This is a hard rule: the owner reviews changes before they are
-committed. The exception is documentation, which the agent may commit when it is done.
+committed. The exception is documentation, which the agent may commit when it is done. When a coding job also
+updates the docs, stage and commit the doc files on their own and leave every code file uncommitted for review.
 
 ## How to work with the owner
 
