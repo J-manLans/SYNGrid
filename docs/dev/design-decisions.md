@@ -672,6 +672,11 @@ A locked run's YAML is validated against the small model and merged onto the bas
 as the full model and handed to the builder. A YAML that states a fixed value is rejected. Nothing below the registry
 knows whether a scenario is locked. A scenario that is not locked, the sandbox and a fork load the full model.
 
+A scenario's entry holds its full model, its builder, the perceptions with its visibility, and an optional lock: the
+small model and the base config. The entry does the merge, and checks the perception on every config it builds, so a
+fork is held to its parent's visibility too. The small model never leaves the entry, so everything after it takes a
+`ScenarioConf`. `ConfigManager` reads YAML and knows nothing of locks; a lock is a scenario idea.
+
 A scenario is locked once runs over several seeds learn in the same general direction as legacy.
 
 **Why:** The values that make a scenario are data, so they live in a file that a person and a GUI can read, with
@@ -684,6 +689,8 @@ copies into a fork. The fixed values pass the same validation as any YAML's.
 - The full config made by a function per scenario from constants: the values are data written as code, the
   functions repeat each other, and the fixed values cannot be read without a run's choices.
 - The builder taking the small model: a fork would have no builder that accepts it.
+- The merge in `ConfigManager`: it would have to know what a lock is.
+- The perceptions on the lock: a fork, which has no lock, would see the whole grid.
 - The base config as a Python object in the family: a YAML is easier for a person and a GUI to read.
 - JSON for the configs: it loses the comments, and a GUI goes through the models whatever the file format.
 - Fixed values as defaults on the models: a default can be overridden, so two runs of one name could differ.

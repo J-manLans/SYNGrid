@@ -55,9 +55,6 @@ To settle with the first scenario that is locked, which is spatial.
 See: "A locked scenario is a base config and a small model in front of its builder" and "A fork is a full config with
 a name and a parent" in `design-decisions.md`.
 
-- **The common type of a config class.** `ScenarioConf` is named by the `TypeVar` bound in `registry.py`,
-  `ScenarioEntry.build`, `build_scenario` and the return type of `load_experiment_configs`. A small model is not a
-  `ScenarioConf`.
 - **What a locked run's snapshot holds.** `ConfigManager.save_snapshot` copies the run's YAML, which for a locked
   scenario is only what the run chose. Either the merged full config, or the choices beside the name of the base
   config they were merged onto.
