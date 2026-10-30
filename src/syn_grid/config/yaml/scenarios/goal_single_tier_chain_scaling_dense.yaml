@@ -1,0 +1,24 @@
+# SYNGrid scenario config: goal_single_tier_chain_scaling_dense
+#
+# Scaling dense is locked: the droid sees the whole grid, with its penalties and rewards
+# fixed in its base config (scenario/families/goal/single_tier_chain/base_configs/
+# scaling_dense.yaml). A run chooses what is below, and any other key is rejected. The
+# perception must be one that sees the whole grid: vector_markovian.
+#
+# The thesis dense runs were tier 6 on 5x5 and tier 7 on 6x6, both with 100 steps.
+world_conf:
+  max_steps: 100
+
+  grid_conf:
+    grid_rows: 5
+    grid_cols: 5
+
+  tier_orb_conf:
+    max_tier: 6
+
+  neg_orb_conf:
+    enabled: false
+
+obs_conf:
+  observation_handler_conf:
+    perception: vector_markovian

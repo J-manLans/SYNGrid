@@ -1,0 +1,35 @@
+# Base config: goal_single_tier_chain_scaling_dense
+#
+# Scaling dense as it was run: the thesis dense runs' values (tier 6 on 5x5, tier 7 on
+# 6x6). The world is scaling sparse's, with no step penalty and a steeper reward ladder.
+# A run's YAML chooses the grid, max_steps, max_tier, the negative orb's switch and the
+# perception, and they are merged onto this. Nothing else here is set by a run.
+world_conf:
+  max_steps: 100
+
+  grid_conf:
+    grid_rows: 5
+    grid_cols: 5
+
+  droid_conf:
+    max_energy: 50 # what the droid starts with and the most it can hold; the episode ends at 0
+    step_penalty: 0.0
+    boundary_penalty: -1.0
+
+  goal_conf:
+    timeout_penalty: -1.0
+
+  tier_orb_conf:
+    max_tier: 6
+    base_reward: 2.5 # a tier is worth base_reward * tier ** growth_factor
+    growth_factor: 1.685 # with these two, a completed chain pays about 141.13 at tier 6 and 207.49 at tier 7
+    chain_break_penalty: -0.1
+
+  neg_orb_conf:
+    enabled: false
+    reward: -3.0
+    cool_down: 10
+
+obs_conf:
+  observation_handler_conf:
+    perception: vector_markovian
