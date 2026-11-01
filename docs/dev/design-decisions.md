@@ -591,8 +591,7 @@ observation. Each layer adds a block to the world:
 ScenarioConf                    world_conf, obs_conf
   WorldConf                       max_steps, grid_conf, droid_conf
     GoalWorldConf                 + goal_conf       (timeout_penalty)
-      TierWorldConf               + tier_orb_conf, neg_orb_conf (optional)
-        TierDelayWorldConf          tier_orb_conf + delay
+      TierWorldConf               + tier_orb_conf, neg_orb_conf
 ```
 
 Each world model has a scenario model that narrows `world_conf` to it. Each orb kind has its own `*_orb_conf` block,
