@@ -35,7 +35,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5_steps100`.
 - **Locked:** a scenario whose values other than its tunables (its axis, `max_steps`, the perception and the
   negative orb's switch) are fixed in its base config and cannot be set from a run's YAML. A scenario is locked once
-  runs over several seeds learn in the same general direction as legacy.
+  runs learn in the same general direction as legacy.
 - **Full model:** a config model that describes a whole world, such as `TierScenarioConf`.
 - **Tunables:** what a run of a locked scenario may set, held in the scenario's own config model. Older commit
   messages call this the small model, or a run's choices.
