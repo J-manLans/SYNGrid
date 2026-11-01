@@ -355,6 +355,18 @@ deliberate.
 
 **Revisit if:** a continuous scenario's return grows from many chains, or a chain's total goes well beyond a few tens.
 
+## Sparse and dense are compared with only the scoring mode changed (2026-11-01)
+
+**Decision:** Before phase 6 closes, dense is trained with sparse's `base_reward`, `growth_factor` and `step_penalty`
+over several seeds. If that fails, sparse is trained with dense's three values. The thesis values stay dense's
+reference. The owner's hope is that dense learns on sparse's values.
+
+**Why:** Dense asks whether the silence stops learning, but it also pays about 13 times sparse's completed chain at
+tier 6 and has no step penalty, so a difference between the two does not say which caused it. With the three values
+swapped, the scoring mode is the only difference.
+
+**Rejected:** swapping the ladder and leaving the step penalty (a second difference would remain).
+
 ## The ablations kept the step penalty, and sparse's chain break penalty (2026-10-27)
 
 **Decision:** Spatial and scaling sparse keep `step_penalty: -0.001`, and scaling sparse keeps
