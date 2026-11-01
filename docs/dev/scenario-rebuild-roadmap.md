@@ -6,8 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** play the locked scenarios in human mode while following the code, and train a model on the locked path. Then
-run spatial's remaining seeds (phase 6).
+**Next:** train a model on the locked path. Then run spatial's remaining seeds (phase 6).
 
 ---
 
@@ -20,13 +19,13 @@ run spatial's remaining seeds (phase 6).
 |---|---|---|
 | Spatial: builder, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; the locked path run by a script, step for step the same as before |
 | Scaling sparse: builder, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
-| Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; not trained |
-| The lock: registry entries, tunables, merge, perception check | written | run, by a script; not trained |
+| Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; not trained |
+| The lock: registry entries, tunables, merge, perception check | written | run, by a script; played in human mode; not trained |
 | Delay: builder, termination, its mechanic | stub, raises `NotImplementedError` | — |
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
 | Threshold digester | written | run, by a script through the environment |
-| Negative orb: digester, population, bundle | written | learned; `negatives_eaten` was never read over a run |
+| Negative orb: digester, population, bundle | written | learned; played in human mode in spatial, sparse and dense; `negatives_eaten` was never read over a run |
 | `SingleTierChainTermination` | written | learned |
 | Droid, engine, `GridWorld`, orbs, timer | written | learned |
 | `GridWorld._deactivate_all_orbs`, `_reactivate_all_orbs` | parked under `# TODO(delay)`, read a config that is gone | — |
