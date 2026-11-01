@@ -39,6 +39,10 @@ long argument goes in `codebase-ideas.md` or is settled.
   Raised on 2026-10-13. The two parked methods in `GridWorld` (`# TODO(delay)`) move into whichever is chosen.
   See: "The world runs the orb field, and a scenario states only its size" and "A scenario mechanic lives in its
   strategy when the world's public API is enough" in `design-decisions.md`.
+- **Where delay's number goes in the config.** It is a rule of the field rather than of the tier orbs, since the
+  negative orb freezes too, so it may not belong in `tier_orb_conf`. A lean: on the delay world model, beside
+  `tier_orb_conf`, whichever home the mechanic gets. The delay models were removed until this is settled, leaving an
+  empty `TierDelayScenarioConf`. Raised on 2026-11-01.
 - **The negative orb under delay.** It is meant to disappear and return with the field. Open: whether eating the
   negative orb itself empties the field. If the step result carries the eaten orb's kind, the delay stage can decide
   it either way.

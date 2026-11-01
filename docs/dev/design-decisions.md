@@ -686,7 +686,8 @@ as the full model and handed to the builder. A YAML that states a fixed value is
 knows whether a scenario is locked. A scenario that is not locked, the sandbox and a fork load the full model.
 
 A scenario's entry holds its full model, its builder, the perceptions with its visibility, and an optional lock: the
-tunables and the base config, as `Lock.scenario_tunables` and `Lock.base_config`. A tunables model is named after its scenario, as `SpatialScenarioConf`; scaling sparse and
+tunables and the base config, as `Lock.scenario_tunables` and `Lock.base_config_path`. A tunables model is named after
+its scenario, as `SpatialScenarioConf`; scaling sparse and
 dense are configured alike and share `ScalingScenarioConf`. The entry does the merge, and checks the perception on every
 config it builds, so a fork is held to its parent's visibility too. The tunables model never leaves the entry, so
 everything after it takes a `ScenarioConf`. `ConfigManager` reads YAML and knows nothing of locks; a lock is a scenario
