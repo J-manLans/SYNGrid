@@ -50,9 +50,10 @@ def load_experiment_configs(
     """
 
     global_conf = config_manager.load_config("global_config.yaml", GlobalConf)
-    scenario_conf = config_manager.load_config(
-        config_manager.scenario_config_path(global_conf.scenario),
-        SCENARIOS[global_conf.scenario].conf_class,
+    scenario_conf = SCENARIOS[global_conf.scenario].full_conf(
+        config_manager.load_raw(
+            config_manager.scenario_config_path(global_conf.scenario)
+        )
     )
     runner_conf = config_manager.load_config("runner_config.yaml", RunnerConf)
 

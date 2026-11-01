@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import yaml
 from pydantic import BaseModel
@@ -47,12 +47,23 @@ class ConfigManager:
             An instance of `model_class` populated with the YAML data.
         """
 
+        return model_class(**self.load_raw(relative_path))
+
+    def load_raw(self, relative_path: str) -> dict[str, Any]:
+        """
+        Load a YAML file as the dict it holds, for a caller that validates it itself.
+
+        Args:
+            relative_path: Path of the YAML file, relative to `config/yaml/`.
+
+        Returns:
+            The parsed YAML.
+        """
+
         yaml_path = self._create_yaml_path(relative_path)
 
         with yaml_path.open("r") as f:
-            raw = yaml.safe_load(f)
-
-        return model_class(**raw)
+            return yaml.safe_load(f)
 
     def save_snapshot(self, relative_path: str, save_conf_id: str) -> None:
         """

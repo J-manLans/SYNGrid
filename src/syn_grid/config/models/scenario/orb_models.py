@@ -17,12 +17,17 @@ from syn_grid.config.models.scenario.common_models import PenaltyCheckedConf
 
 
 class NegOrbConf(BaseModel, frozen=True, extra="forbid", strict=True):
-    """A negative orb: what eating it costs, and how long it stays away.
+    """A negative orb: whether the world holds one, what eating it costs, and
+    how long it stays away.
+
+    `enabled` is the switch. A disabled block keeps its values, so turning the
+    orb on brings back the same orb.
 
     `cool_down` is the number of steps the orb is off the field after it is
     eaten or despawns, before it can appear again.
     """
 
+    enabled: bool
     reward: float = Field(le=0)
     cool_down: int = Field(ge=0)
 

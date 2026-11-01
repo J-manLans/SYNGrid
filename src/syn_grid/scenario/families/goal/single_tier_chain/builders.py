@@ -14,6 +14,9 @@ from syn_grid.core.droid.digestion.digesters.neg_digester import NegDigester
 from syn_grid.core.droid.digestion.digesters.tier_chain.max_tier_digester import (
     MaxTierDigester,
 )
+from syn_grid.core.droid.digestion.digesters.tier_chain.threshold_digester import (
+    ThresholdDigester,
+)
 from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
 )
@@ -59,15 +62,16 @@ def _single_tier_chain_scenario(
     scenario and the others (the tier bundle, which carries the orbs and the scoring mode, and the
     delay) and passes it in; this composes everything the family has in common:
 
-    - orb bundles: the tier bundle, plus `_negative_bundle` when the config has a negative block.
-    - scenario tag: the builder's tag, plus `_Neg` when the config has a negative block.
+    - orb bundles: the tier bundle, plus `_negative_bundle` when the negative orb is enabled.
+    - scenario tag: the builder's tag, then the episode's steps as `_steps100`, then `_Neg` when
+      the negative orb is enabled.
     - orb field: it holds every orb the bundles make.
     - observation: the slot count and the sort limit are the number of orbs the bundles make.
       The tier bound is `max_tier`.
     - termination: out of energy, a broken chain, a finished chain, or the clock.
     - hud: energy, score, steps left and the current chain length.
-    - metrics: chains broken, progressed and completed, plus negatives eaten when the config has
-      a negative block.
+    - metrics: chains broken, progressed and completed, plus negatives eaten when the negative
+      orb is enabled.
     - build_world: a `WorldRecipe` holding this scenario's world config, bundles and field
       size.
     """
@@ -89,8 +93,9 @@ def _single_tier_chain_scenario(
     )
 
     orb_bundles = (tier_bundle,)
+    scenario_tag += f"_steps{world_conf.max_steps}"
 
-    if world_conf.neg_orb_conf is not None:
+    if world_conf.neg_orb_conf.enabled:
         scenario_tag += "_Neg"
         metrics += (Metric("negatives_eaten", _negatives_eaten),)
         grid_conf = world_conf.grid_conf
@@ -209,7 +214,7 @@ def _tier_bundle(
 
 def _negative_bundle(negative_conf: NegOrbConf, life_span: int) -> OrbBundle:
     """
-    The negative orb and its digester, for a config that has a negative block.
+    The negative orb and its digester, for a config whose negative orb is enabled.
 
     A single tier chain scenario holds one negative orb. It spawns, despawns at the end of
     `life_span` and returns elsewhere after its cool-down.
@@ -251,9 +256,6 @@ def build_single_tier_chain_spatial(
     grid_conf = world_conf.grid_conf
     scenario_tag = f"{grid_conf.grid_rows}x{grid_conf.grid_cols}"
 
-    # TODO(lock): fix this scenario's penalties, orb rewards, max_steps, max_energy and perception
-    # (vector_fog_of_war) here, and read only the grid size from the config.
-
     # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
     tier_bundle = _tier_bundle(world_conf.tier_orb_conf, MaxTierDigester)
 
@@ -277,14 +279,11 @@ def build_single_tier_chain_scaling_sparse(
     costs.
     """
 
-    # NOTE(duplication): this body is spatial's, apart from the tag. Left as a copy until delay
-    # and dense are built and it is clear what the builders share.
+    # NOTE(duplication): this body is spatial's apart from the tag, and dense's apart from the
+    # digester. Left as a copy until delay is built and it is clear what the builders share.
     world_conf = scenario_conf.world_conf
     grid_conf = world_conf.grid_conf
     scenario_tag = f"tier{world_conf.tier_orb_conf.max_tier}_{grid_conf.grid_rows}x{grid_conf.grid_cols}"
-
-    # TODO(lock): fix this scenario's penalties, orb rewards, max_steps, max_energy and perception
-    # (vector_markovian) here, and read only the chain length and the grid size from the config.
 
     # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
     tier_bundle = _tier_bundle(world_conf.tier_orb_conf, MaxTierDigester)
@@ -298,13 +297,29 @@ def build_single_tier_chain_scaling_dense(
     scenario_name: str, scenario_conf: TierScenarioConf
 ) -> Scenario:
     """
-    Single Tier Chain, Scaling Dense.
+    Single Tier Chain, Scaling Dense: the complete tier chain is laid out across the grid and the
+    droid sees all of it.
+    Difficulty axis: the chain length and the grid size.
+    Scoring: threshold. A growing chain pays nothing. When it completes, or breaks, it pays what
+    the orbs eaten so far are worth together, and a break also costs the chain break penalty.
 
-    Axis and tag: the chain length and the grid size.
-    Scoring: threshold.
+    This scenario asks whether it is the silence that stops learning. The world is scaling
+    sparse's, but a chain that breaks halfway still pays for the part it got right, so the droid
+    is told when it is on the right track. It has no step penalty and a steeper reward ladder, as
+    the thesis dense runs had.
     """
 
-    raise NotImplementedError("scaling dense is phase 6")
+    world_conf = scenario_conf.world_conf
+    grid_conf = world_conf.grid_conf
+    scenario_tag = f"tier{world_conf.tier_orb_conf.max_tier}_{grid_conf.grid_rows}x{grid_conf.grid_cols}"
+
+    # Threshold scoring: the digester holds the chain's worth while it grows and pays it when the
+    # chain ends.
+    tier_bundle = _tier_bundle(world_conf.tier_orb_conf, ThresholdDigester)
+
+    return _single_tier_chain_scenario(
+        scenario_name, scenario_tag, scenario_conf, tier_bundle
+    )
 
 
 def build_single_tier_chain_delay(
