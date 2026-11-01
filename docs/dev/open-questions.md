@@ -48,6 +48,9 @@ long argument goes in `codebase-ideas.md` or is settled.
   extras are a parameter of `_single_tier_chain_scenario`, as the tier bundle is, or a `replace` on the finished
   `Scenario`. Settled with the helper's other parameters, since delay also has its own termination. Raised on
   2026-10-21.
+- **What `builders.py` should look like.** To look at when the phase ends, once delay is built. The builders are nearly
+  copies: spatial, sparse and dense differ only in the tag and the digester. Raised on 2026-11-01.
+  See: `# NOTE(duplication)` in `families/goal/single_tier_chain/builders.py`.
 
 ### Locking a scenario
 

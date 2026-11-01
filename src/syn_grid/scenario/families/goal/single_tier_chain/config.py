@@ -80,12 +80,15 @@ class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", stric
 
 # === Globals === #
 
+
 class NegOrbSwitchConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """The negative orb's switch. Its values are the base config's."""
 
     enabled: bool
 
+
 # === Spatial Scenario === #
+
 
 class SpatialWorldConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """The tunables of spatial's world: the grid, the steps it is given, and
@@ -102,7 +105,9 @@ class SpatialScenarioConf(BaseModel, frozen=True, extra="forbid", strict=True):
     world_conf: SpatialWorldConf
     obs_conf: ObsConf
 
+
 # === Scaling Scenario === #
+
 
 class ScalingTierOrbConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """The tunables of a scaling scenario's tier orbs: the length of the chain."""
