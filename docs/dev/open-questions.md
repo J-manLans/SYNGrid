@@ -64,7 +64,10 @@ a name and a parent" in `design-decisions.md`.
 
 - **What a locked run's snapshot holds.** `ConfigManager.save_snapshot` copies the run's YAML, which for a locked
   scenario is only the tunables. Either the merged full config, or the tunables beside the name of the base
-  config they were merged onto.
+  config they were merged onto. Not to settle now, and not to raise again before the GUI: the snapshot is a quick file
+  copy, and the owner expects the GUI scenario builder to need something completely different. Until then, a base
+  config edit is committed before training on it, so a run's values can be looked up in git by its date. Noted on
+  2026-11-01.
 - **Where a family's shared fixed values are written,** so that four builders do not each state them.
 - **Where a rule that spans fields is checked.** A check on the full model is raised in the builder and names a block,
   not a field the user can see.
