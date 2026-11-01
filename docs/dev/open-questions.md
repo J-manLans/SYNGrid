@@ -55,6 +55,12 @@ long argument goes in `codebase-ideas.md` or is settled.
 - **What `builders.py` should look like.** To look at when the phase ends, once delay is built. The builders are nearly
   copies: spatial, sparse and dense differ only in the tag and the digester. Raised on 2026-11-01.
   See: `# NOTE(duplication)` in `families/goal/single_tier_chain/builders.py`.
+- **Whether a layout that walls off the chain is part of the task or a flaw of the spawn.** Orbs are placed at random
+  with no check that a chain can be completed, and an orb the droid is not ready for works as a wall, since stepping
+  on it breaks the chain. The owner played 10 episodes at tier 7 on 5x5, and 4 could not be solved because the next
+  orb was walled off. That is a small sample, and 6x6 has not been measured. It also bears on what a run's ceiling
+  means in the phase's "done when", since a completed chain's pay is not reachable on every layout. Whether legacy
+  placed orbs the same way was not checked. Raised on 2026-11-02.
 
 ### Locking a scenario
 

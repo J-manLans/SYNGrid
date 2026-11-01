@@ -6,7 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** train a model on the locked path. Then run spatial's remaining seeds (phase 6).
+**Next:** train dense on sparse's reward values at tier 7 on 6x6. Then run spatial's remaining seeds (phase 6).
 
 ---
 
@@ -19,8 +19,8 @@ one to be read correctly.
 |---|---|---|
 | Spatial: builder, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; the locked path run by a script, step for step the same as before |
 | Scaling sparse: builder, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
-| Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; not trained |
-| The lock: registry entries, tunables, merge, perception check | written | run, by a script; played in human mode; not trained |
+| Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; learned: PPO, one seed, on sparse's reward values at tier 7 on 5x5; not trained on the thesis values |
+| The lock: registry entries, tunables, merge, perception check | written | run, by a script; played in human mode; learned: dense, through its tunables and base config |
 | Delay: builder, termination, its mechanic | stub, raises `NotImplementedError` | — |
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
@@ -85,6 +85,11 @@ episodes shorten, and each is locked.
 6. **Swap the reward values, before this phase closes.** Train dense with sparse's ladder and step penalty over several
    seeds. If that fails, train sparse with dense's ladder and step penalty. Document the results here before the phase
    is closed. See "Sparse and dense are compared with only the scoring mode changed" in `design-decisions.md`.
+
+   So far: dense learns on sparse's values at tier 7 on 5x5, which is not a thesis pairing (PPO, seed 3, logged to
+   5.84M of 8M steps). Mean reward climbed from -0.43 to about 9.5 over the last 50 logged points, with a peak of
+   10.79, and episodes grew from about 6 steps to about 34. A completed chain pays about 13.48 on these values, but
+   some layouts cannot pay it; see `open-questions.md`. Left: tier 7 on 6x6.
 
 ---
 
