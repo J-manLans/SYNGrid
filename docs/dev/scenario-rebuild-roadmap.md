@@ -6,7 +6,8 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** run spatial's remaining seeds (phase 6).
+**Next:** play the locked scenarios in human mode while following the code, and train a model on the locked path. Then
+run spatial's remaining seeds (phase 6).
 
 ---
 
