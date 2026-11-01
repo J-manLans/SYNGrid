@@ -20,7 +20,7 @@ one to be read correctly.
 | Spatial: builder, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; the locked path run by a script, step for step the same as before |
 | Scaling sparse: builder, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
 | Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; not trained |
-| The lock: registry entries, small models, merge, perception check | written | run, by a script; not trained |
+| The lock: registry entries, tunables, merge, perception check | written | run, by a script; not trained |
 | Delay: builder, termination, its mechanic | stub, raises `NotImplementedError` | — |
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
@@ -57,8 +57,8 @@ In this order, per scenario:
    replay a fixed action sequence through both strains and diff the observation per step, to find where.
 3. **Ablate** the values in doubt, while the YAML still sets every value. A variant that learns as well keeps the
    simpler value. Run several seeds per variant.
-4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its choices.
-   See "A locked scenario is a base config and a small model in front of its builder" in `design-decisions.md`.
+4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its tunables.
+   See "A locked scenario is a base config and its tunables in front of its builder" in `design-decisions.md`.
 5. **Record a trace** with the replay probe: one seed, a fixed action sequence, and every observation, reward and
    termination flag per step. Phase 7 is diffed against it. The probe imports the legacy strain, so the first lock
    ports it to take a `Scenario`.

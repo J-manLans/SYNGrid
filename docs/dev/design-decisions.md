@@ -371,7 +371,7 @@ the only thing that tells a short episode from an aimless one. Where completions
 discount is enough, which fits sparse at tier 4; where they are rare, the penalty carries the agent to its first
 completions, which fits spatial. This explanation fits both results and is not tested on its own.
 
-**Why sparse keeps it although tier 4 was faster without:** `max_tier` is a run's choice, and the locked rules must
+**Why sparse keeps it although tier 4 was faster without:** `max_tier` is a tunable, and the locked rules must
 hold at every tier. Long chains make early completions rare, which is where spatial failed. The thesis ran -0.001 at
 tiers 4 to 7.
 
@@ -620,14 +620,14 @@ already expected).
 ## The negative orb has a switch beside its values (2026-10-29)
 
 **Decision:** `NegOrbConf` holds `enabled` beside `reward` and `cool_down`, and `neg_orb_conf` is mandatory on the
-tier world: an orb that is off is `enabled: false`, never a missing block. A locked scenario's small model offers only
+tier world: an orb that is off is `enabled: false`, never a missing block. A locked scenario's tunables offer only
 the switch, at the same path, `neg_orb_conf.enabled`, and the values come from its base config. A fork can change all
 three.
 
-**Why:** The small model and the full model then name the orb by one path, so a locked run's choices merge onto the
+**Why:** The tunables and the full model then name the orb by one path, so a locked run's tunables merge onto the
 base config with no special case. A GUI shows a toggle whose fields keep their values while it is off.
 
-**Rejected:** a `negative_orb` yes or no in the small model with no counterpart in the full model (the merge needs a
+**Rejected:** a `negative_orb` yes or no in the tunables with no counterpart in the full model (the merge needs a
 case of its own to turn it into a block); the standard orb's values as defaults on `NegOrbConf` (a default can be
 overridden; they belong in the base config); the block kept optional beside the switch (a missing block and a
 disabled one would mean the same).
@@ -661,23 +661,23 @@ The scenario name is also the runner's output folder, so runs from before the re
 **Rejected:** `tier_chain` (the mechanic's name too); `single_chain` (it leaves out which chain); waiting for the naming
 pass (phase 6 adds three builders to the family).
 
-## A locked scenario is a base config and a small model in front of its builder (2026-10-29)
+## A locked scenario is a base config and its tunables in front of its builder (2026-10-29)
 
 **Decision:** A builder takes its scenario's full config. A locked scenario is three things:
 
 - **Its builder:** what no value changes, such as the scoring mode, the termination and the HUD.
 - **Its base config:** the full config that was run, as a read-only YAML in the package.
-- **Its small model:** frozen, strict and `extra="forbid"`, holding only what a run may choose, under the full
+- **Its tunables:** a model, frozen, strict and `extra="forbid"`, holding only what a run may set, under the full
   model's field names and nesting.
 
-A locked run's YAML is validated against the small model and merged onto the base config, and the result is validated
+A locked run's YAML is validated against its tunables and merged onto the base config, and the result is validated
 as the full model and handed to the builder. A YAML that states a fixed value is rejected. Nothing below the registry
 knows whether a scenario is locked. A scenario that is not locked, the sandbox and a fork load the full model.
 
 A scenario's entry holds its full model, its builder, the perceptions with its visibility, and an optional lock: the
-small model and the base config. A small model is named after its scenario, as `SpatialScenarioConf`; scaling sparse and
+tunables and the base config, as `Lock.scenario_tunables` and `Lock.base_config`. A tunables model is named after its scenario, as `SpatialScenarioConf`; scaling sparse and
 dense are configured alike and share `ScalingScenarioConf`. The entry does the merge, and checks the perception on every
-config it builds, so a fork is held to its parent's visibility too. The small model never leaves the entry, so
+config it builds, so a fork is held to its parent's visibility too. The tunables model never leaves the entry, so
 everything after it takes a `ScenarioConf`. `ConfigManager` reads YAML and knows nothing of locks; a lock is a scenario
 idea.
 
@@ -685,14 +685,16 @@ A scenario is locked once runs over several seeds learn in the same general dire
 
 **Why:** The values that make a scenario are data, so they live in a file that a person and a GUI can read, with
 comments, and one merge serves every locked scenario. A builder that takes the full config serves a locked run and a
-fork alike. The small model is what a GUI draws the form from, and the base config is what it shows read-only and
+fork alike. The tunables model is what a GUI draws the form from, and the base config is what it shows read-only and
 copies into a fork. The fixed values pass the same validation as any YAML's.
 
 **Rejected:**
 
 - The full config made by a function per scenario from constants: the values are data written as code, the
-  functions repeat each other, and the fixed values cannot be read without a run's choices.
-- The builder taking the small model: a fork would have no builder that accepts it.
+  functions repeat each other, and the fixed values cannot be read without a run's tunables.
+- The builder taking the tunables model: a fork would have no builder that accepts it.
+- "Small model" and "a run's choices" as the words, with `choices_class` on the lock: three names for one
+  thing, and none says what it is for.
 - The merge in `ConfigManager`: it would have to know what a lock is.
 - The perceptions on the lock: a fork, which has no lock, would see the whole grid.
 - The base config as a Python object in the family: a YAML is easier for a person and a GUI to read.
@@ -708,7 +710,7 @@ copies into a fork. The fixed values pass the same validation as any YAML's.
 **Decision:** A scenario's name promises one test, so a locked scenario is locked to what was run. Spatial is tier 3,
 seen through the fog-of-war window, with the penalties and orb rewards the ablations kept, fixed in its base config. The
 grid size is its dial on the world. The other locked scenarios follow with their own axis: the chain length and grid for
-scaling sparse and dense, the delay for delay. Beside the axis, every locked scenario lets a run choose `max_steps`, so
+scaling sparse and dense, the delay for delay. Beside the axis, `max_steps` is a tunable of every locked scenario, so
 a larger grid can be given the steps it needs, and the scenario tag records it as `_steps100`. `max_energy` is a rule
 fixed with the penalties, not a size: with a step penalty of -0.001 energy is mostly spent on boundary hits, so it caps
 pointless moves.
@@ -749,7 +751,7 @@ recreate, so ignoring it by default costs little, and a user who wants it in git
 - Forks under `src/syn_grid/config/yaml/`: they would read as part of the benchmark, and an installed package is no
   place to write.
 
-## A locked scenario fixes the visibility, and a run chooses the encoding (2026-10-29)
+## A locked scenario fixes the visibility, and the encoding is a tunable (2026-10-29)
 
 **Decision:** A locked scenario fixes how much the droid sees, and a run may pick any perception with that
 visibility, whatever its encoding. The scaling scenarios take any fully observable perception: vector, composite or

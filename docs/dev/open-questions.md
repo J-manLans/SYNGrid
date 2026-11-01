@@ -52,11 +52,11 @@ long argument goes in `codebase-ideas.md` or is settled.
 ### Locking a scenario
 
 To settle with the first scenario that is locked, which is spatial.
-See: "A locked scenario is a base config and a small model in front of its builder" and "A fork is a full config with
+See: "A locked scenario is a base config and its tunables in front of its builder" and "A fork is a full config with
 a name and a parent" in `design-decisions.md`.
 
 - **What a locked run's snapshot holds.** `ConfigManager.save_snapshot` copies the run's YAML, which for a locked
-  scenario is only what the run chose. Either the merged full config, or the choices beside the name of the base
+  scenario is only the tunables. Either the merged full config, or the tunables beside the name of the base
   config they were merged onto.
 - **Where a family's shared fixed values are written,** so that four builders do not each state them.
 - **Where a rule that spans fields is checked.** A check on the full model is raised in the builder and names a block,

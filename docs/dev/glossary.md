@@ -33,13 +33,14 @@ Terms are grouped by area. The last section lists the words that are used in two
   return in the same cells. It tests long-term credit assignment. Its axis is the delay.
 - **Axis:** the one thing that varies between runs of a scenario and makes it harder or easier.
 - **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5_steps100`.
-- **Locked:** a scenario whose values other than a run's choices (its axis, `max_steps`, the perception and the
+- **Locked:** a scenario whose values other than its tunables (its axis, `max_steps`, the perception and the
   negative orb's switch) are fixed in its base config and cannot be set from a run's YAML. A scenario is locked once
   runs over several seeds learn in the same general direction as legacy.
 - **Full model:** a config model that describes a whole world, such as `TierScenarioConf`.
-- **Small model:** a locked scenario's own config model, holding only what a run may choose.
-- **Base config:** a locked scenario's full config as it was run, a read-only YAML in the package. A run's choices are
-  merged onto it.
+- **Tunables:** what a run of a locked scenario may set, held in the scenario's own config model. Older commit
+  messages call this the small model, or a run's choices.
+- **Base config:** a locked scenario's full config as it was run, a read-only YAML in the package. A run's tunables
+  are merged onto it.
 - **Fork:** a copy of a locked scenario's base config with any value changed, saved under a name of its own with the
   scenario it came from, its parent. It is built by its parent's builder.
 
@@ -48,7 +49,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Registry:** `SCENARIOS` in `scenario/registry.py`. It gives a scenario name its entry.
 - **Entry:** what a scenario name stands for in the registry: its full model, its builder, the perceptions it allows,
   and its lock if it has one.
-- **Lock:** a locked scenario's small model and base config, held by its entry. The entry merges a run's choices onto
+- **Lock:** a locked scenario's tunables and base config, held by its entry. The entry merges a run's tunables onto
   the base config.
 - **Builder:** the function that turns a scenario's full config into a `Scenario`. One per registered scenario.
 - **Helper:** the function a family's builders share, which composes what the family has in common.
@@ -189,7 +190,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Block.** It means a `*_conf` model nested in a world config, such as `tier_orb_conf`. It also names the folder
   `scenario/blocks/`, which holds the pieces a `Scenario` is made of: the interfaces, the rule classes, and the
   populations and recipes every family shares. The two are different things.
-- **Axis model.** A name used for the small model. The small model also holds the perception, so the name is
+- **Axis model.** A name used for the tunables model. It also holds the perception, so the name is
   expected to change.
 - **Perception.** One config value that fixes both the visibility and the encoding. Whether it is split into two
   settings is in `open-questions.md`.
