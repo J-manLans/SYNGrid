@@ -48,6 +48,10 @@ long argument goes in `codebase-ideas.md` or is settled.
   extras are a parameter of `_single_tier_chain_scenario`, as the tier bundle is, or a `replace` on the finished
   `Scenario`. Settled with the helper's other parameters, since delay also has its own termination. Raised on
   2026-10-21.
+- **Whether the step penalty moves with the ladder in the swap.** Sparse has -0.001 and dense has 0, so swapping only
+  the ladder leaves a second difference beside the scoring mode. Either the penalty moves too, so scoring is the only
+  change, or it stays and is compared on its own afterwards. Raised on 2026-11-01.
+  See: "Swap the reward ladders" in `scenario-rebuild-roadmap.md`.
 
 ### Locking a scenario
 

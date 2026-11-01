@@ -82,6 +82,10 @@ episodes shorten, and each is locked.
    negative orb with it. Where that mechanic lives is open; see `open-questions.md`. The two parked delay methods in
    `GridWorld` move into it or go.
 5. **Dense.** Verify over several seeds, at tier 6 on 5x5 and tier 7 on 6x6, against the ceilings 141.13 and 207.49.
+6. **Swap the reward ladders, before this phase closes.** Dense says it asks whether the silence stops learning, but
+   its ladder also pays about 13 times sparse's at tier 6, so a difference between them does not yet say which one did
+   it. Train dense with sparse's ladder over several seeds. If that fails, train sparse with dense's ladder. Document
+   the results here before the phase is closed.
 
 ---
 
