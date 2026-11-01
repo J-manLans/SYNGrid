@@ -133,8 +133,7 @@ legacy's learning curves and not its rewards step for step.
 - The legacy config names its images as `assets/sprites/...` while the folder is `assets_legacy/`, so legacy
   rendering stops with a `FileNotFoundError`.
 - The legacy run id has its own scheme. Give legacy runs their own tag or output folder.
-- The config schemas differ, so a comparison means something only if both configs describe the same world. Compare
-  several seeds per side.
+- The config schemas differ, so a comparison means something only if both configs describe the same world.
 
 ## Reading the reference
 

@@ -357,8 +357,8 @@ deliberate.
 
 ## Sparse and dense are compared with only the scoring mode changed (2026-11-01)
 
-**Decision:** Before phase 6 closes, dense is trained with sparse's `base_reward`, `growth_factor` and `step_penalty`
-over several seeds. If that fails, sparse is trained with dense's three values. The thesis values stay dense's
+**Decision:** Before phase 6 closes, dense is trained with sparse's `base_reward`, `growth_factor` and `step_penalty`.
+If that fails, sparse is trained with dense's three values. The thesis values stay dense's
 reference. The owner's hope is that dense learns on sparse's values.
 
 **Why:** Dense asks whether the silence stops learning, but it also pays about 13 times sparse's completed chain at
@@ -400,8 +400,11 @@ spatial); a tier 6 run before deciding (keeping the penalty is safe whatever it 
 ## Legacy is a reference, not a target (2026-10-25)
 
 **Decision:** The legacy strain and `reproduction_package/` are references. The rebuild is held to learning in the
-same general direction as legacy over several seeds, by comparing curves, not to legacy's rewards or numbers. They
-are also where to look up what a behaviour used to be.
+same general direction as legacy, by comparing curves, not to legacy's rewards or numbers. They are also where to
+look up what a behaviour used to be.
+
+One run per setup is enough to judge a curve. The owner has run this code enough to know its stability on sight, and
+these scenarios are stable. Running several seeds is an argument for a more chaotic benchmark.
 
 These differ from legacy on purpose:
 
@@ -693,7 +696,7 @@ config it builds, so a fork is held to its parent's visibility too. The tunables
 everything after it takes a `ScenarioConf`. `ConfigManager` reads YAML and knows nothing of locks; a lock is a scenario
 idea.
 
-A scenario is locked once runs over several seeds learn in the same general direction as legacy.
+A scenario is locked once its runs learn in the same general direction as legacy.
 
 **Why:** The values that make a scenario are data, so they live in a file that a person and a GUI can read, with
 comments, and one merge serves every locked scenario. A builder that takes the full config serves a locked run and a

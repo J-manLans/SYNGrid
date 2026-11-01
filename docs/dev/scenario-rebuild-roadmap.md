@@ -6,7 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** train dense on sparse's reward values at tier 7 on 6x6. Then run spatial's remaining seeds (phase 6).
+**Next:** train dense on sparse's reward values at tier 7 on 6x6. Then record spatial's trace (phase 6).
 
 ---
 
@@ -52,11 +52,11 @@ era, and locked. Legacy and the thesis runs are references and not targets.
 In this order, per scenario:
 
 1. **Rebuild** it.
-2. **Verify** it. Train several seeds and compare the shape of the curves with legacy's, or with the thesis runs in
+2. **Verify** it. Train it and compare the shape of the curves with legacy's, or with the thesis runs in
    `reproduction_package/` where legacy has none. The curves come from TensorBoard. Only if the curves part ways:
    replay a fixed action sequence through both strains and diff the observation per step, to find where.
 3. **Ablate** the values in doubt, while the YAML still sets every value. A variant that learns as well keeps the
-   simpler value. Run several seeds per variant.
+   simpler value.
 4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its tunables.
    See "A locked scenario is a base config and its tunables in front of its builder" in `design-decisions.md`.
 5. **Record a trace** with the replay probe: one seed, a fixed action sequence, and every observation, reward and
@@ -68,22 +68,20 @@ not a target", and what could move the observation or reward is in `landscape-ch
 pays what its orbs are worth, where legacy paid a fixed 10, so compare each side's share of its own ceiling and how
 fast the curves climb, not the reward level.
 
-**Done when:** every scenario is rebuilt, its runs over several seeds climb towards their own ceiling while the
+**Done when:** every scenario is rebuilt, its runs climb towards their own ceiling while the
 episodes shorten, and each is locked.
 
 ### What is left, scenario by scenario
 
-1. **Spatial.** Run the remaining seeds. The ceiling on 5x5 is about 9.02 (tiers 1 to 3 worth `1 + 2^1.5 + 3^1.5`,
-   less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps. Its values are in its
-   base config, so a value the seeds change is changed there. Then record its trace.
-2. **Scaling sparse.** Verify over several seeds at more than one `max_tier`.
+1. **Spatial.** The ceiling on 5x5 is about 9.02 (tiers 1 to 3 worth `1 + 2^1.5 + 3^1.5`,
+   less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps. Record its trace.
+2. **Scaling sparse.** Verify at more than one `max_tier`.
 3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
 4. **Delay.** Its builder, its own termination, and the field going empty for `delay` steps after a consume, the
    negative orb with it. Where that mechanic lives is open; see `open-questions.md`. The two parked delay methods in
    `GridWorld` move into it or go.
-5. **Dense.** Verify over several seeds, at tier 6 on 5x5 and tier 7 on 6x6, against the ceilings 141.13 and 207.49.
-6. **Swap the reward values, before this phase closes.** Train dense with sparse's ladder and step penalty over several
-   seeds. If that fails, train sparse with dense's ladder and step penalty. Document the results here before the phase
+5. **Dense.** Verify at tier 6 on 5x5 and tier 7 on 6x6, against the ceilings 141.13 and 207.49.
+6. **Swap the reward values, before this phase closes.** Train dense with sparse's ladder and step penalty. If that fails, train sparse with dense's ladder and step penalty. Document the results here before the phase
    is closed. See "Sparse and dense are compared with only the scoring mode changed" in `design-decisions.md`.
 
    So far: dense learns on sparse's values at tier 7 on 5x5, which is not a thesis pairing (PPO, seed 3, logged to
@@ -116,7 +114,7 @@ The two perceptions in the `Perception` enum brought in line with the new rules.
 
 **One change at a time.** Each of the three is its own commit, and the replay probe is run after each against the
 phase 6 trace. A difference is explained or reverted before the next change starts. The reward must not change.
-Check whether anything scales the observation by its upper bound. When 7a is done, train spatial on a seed or two.
+Check whether anything scales the observation by its upper bound. When 7a is done, train spatial.
 
 **Done when:** the observation trace differs from the phase 6 trace only where a change was meant to, the reward
 trace is identical, and spatial still learns.
