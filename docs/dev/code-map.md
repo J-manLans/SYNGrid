@@ -43,7 +43,6 @@ syn_grid/
 │   │   │   │   └── neg_digester.py
 │   │   │   ├── digester.py
 │   │   │   └── engine.py
-│   │   ├── droid_action.py
 │   │   └── synergy_droid.py
 │   ├── orbs/
 │   │   ├── direct/
@@ -105,7 +104,8 @@ syn_grid/
 │   │   ├── observation.py
 │   │   ├── orb_bundle.py
 │   │   ├── readers.py
-│   │   └── termination.py
+│   │   ├── termination.py
+│   │   └── watcher.py
 │   ├── families/
 │   │   ├── continuous/
 │   │   └── goal/
@@ -116,7 +116,8 @@ syn_grid/
 │   │       │   │   └── spatial.yaml
 │   │       │   ├── builders.py
 │   │       │   ├── config.py
-│   │       │   └── termination.py
+│   │       │   ├── termination.py
+│   │       │   └── watcher.py
 │   │       └── config.py
 │   ├── registry.py
 │   └── scenario.py
@@ -137,8 +138,8 @@ Outside it: `scripts/replay/` (probe, diff, sweep), `scripts/run_app.sh`, `scrip
   `DigestionEngine` routes an eaten orb to the one digester of its kind. An orb is a `BaseOrb` with a meta (kind and
   tier) and a timer.
 - **`scenario/`** composes a world from parts and knows no Gymnasium. A `Scenario` is a frozen recipe: observation
-  rules, termination rules, HUD, metrics and `build_world`. `blocks/` holds the shared parts, `families/` the builders
-  and configs per family, and `registry.py` maps a `ScenarioName` to its entry.
+  rules, termination rules, HUD, metrics, `build_world` and `make_watcher`. `blocks/` holds the shared parts,
+  `families/` the builders and configs per family, and `registry.py` maps a `ScenarioName` to its entry.
 - **`gymnasium/`** adapts a `Scenario` to the Gymnasium API: `SYNGridEnv`, the perceptions, the CSV logger.
 - **`runners/`** drive an environment: SB3 agents for training and eval, and human play.
 - **`rendering/`** draws plain values it is handed. **`config/`** holds the Pydantic models and the run YAMLs.
@@ -171,8 +172,8 @@ per bundle (`make_digester`, for tier orbs a `TierDigesterRecipe`), a `SynergyDr
 `ObservationHandler`, which picks the perception class from `PERCEPTIONS` by the scenario's `Perception`.
 
 **`reset`:** `GridWorld.reset(np_random)` restarts the clock, resets the droid (centre cell, full energy, score 0,
-every digester's episode state) and every orb, then spawns up to `max_active_orbs`. The perception is reset and
-writes the first observation.
+every digester's episode state) and every orb, then spawns up to `max_active_orbs`. The watcher is reset. The
+perception is reset and writes the first observation.
 
 **`step(action)`:**
 
@@ -180,13 +181,18 @@ writes the first observation.
    cost; every orb's timer ticks; an orb under the droid is eaten through `droid.consume_orb` → `engine.digest` → the
    digester of its kind, else an expired orb despawns; one ready orb spawns if the field has room. It returns the
    cost plus what digestion paid, already applied to energy and score.
-2. `scenario.termination.evaluate(world)` returns an `EpisodeOutcome`. For the family it is
-   `families/goal/single_tier_chain/termination.py`: out of energy, a chain broken or completed, or out of steps,
-   with the timeout penalty only when the clock alone ended it.
-3. If terminated, `droid.on_termination(ending_reward)` adds what the digesters gathered and did not pay, plus the
+   It returns a `StepResult`: that reward, and the eaten orb's meta or `None`.
+2. The scenario's watcher, made once per environment by `scenario.make_watcher`, is handed the world and the result
+   in `react`. `NoWatcher` does nothing; delay's `DelayWatcher` (the family's `watcher.py`) freezes and releases
+   orbs.
+3. `scenario.termination.evaluate(world)` returns an `EpisodeOutcome`. For the family it is
+   `families/goal/single_tier_chain/termination.py`: `_droid_ended_task` (out of energy, a chain broken or
+   completed) or the clock, with the timeout penalty only when the clock alone ended it. `DelayTermination`
+   overrides the end states.
+4. If terminated, `droid.on_termination(ending_reward)` adds what the digesters gathered and did not pay, plus the
    ending reward, to the score and to this step's reward.
-4. At the end of an episode the scenario's metrics go into `info` under `SYN_STATS_KEY`.
-5. Render if a mode is set, then the perception writes the observation.
+5. At the end of an episode the scenario's metrics go into `info` under `SYN_STATS_KEY`.
+6. Render if a mode is set, then the perception writes the observation.
 
 **Who reads what:** termination, the HUD readers and the metrics all read the world. What a digester counts is
 reached with `world.droid.get_digester(TierDigester)`, which finds the registered subclass. The readers every scenario
@@ -205,9 +211,13 @@ can use are in `scenario/blocks/readers.py`; the family's own are at the bottom 
   `gymnasium/observation_space/perceptions/` (how it is encoded), `core/orbs/orb_meta.py` (the identity). The
   perceptions not yet rebuilt are listed in a TODO in `observation_handler.py`; their copies are in `legacy/`.
 - **Extractors for SB3:** `runners/agent_runners/utils/extractors.py`.
-- **Step and boundary cost, energy:** `core/droid/synergy_droid.py`. **Spawning, lifespans, the clock:**
+- **Step and boundary cost, energy, `DroidAction`:** `core/droid/synergy_droid.py`. **Spawning, lifespans, the clock:**
   `core/grid_world.py` and `core/utils/timer.py`.
-- **When an episode ends:** `scenario/blocks/termination.py` (the interface), the family's `termination.py`.
+- **When an episode ends:** `scenario/blocks/termination.py` (the interface), the family's `termination.py`, which
+  also holds `DelayTermination`.
+- **Delay's freeze:** the family's `watcher.py` (`DelayWatcher` and its recipe), on `Watcher` in
+  `scenario/blocks/watcher.py`, reading `StepResult` and `is_cell_free` from `core/grid_world.py`. Its delay is
+  `delay_conf` on `TierDelayScenarioConf`.
 - **A scenario's values:** the run YAML in `config/yaml/scenarios/` holds the tunables; the locked rest is in
   `base_configs/`. The models are `config/models/scenario/` (shared vocabulary and orb kinds),
   `scenario/families/goal/config.py` (every goal scenario) and the family's `config.py` (full models and tunables).

@@ -10,7 +10,7 @@ common_conf:
   training: true
   # Optional. Joined onto the scenario's tag in the run id; set it when you
   # change something outside the scenario's own axis.
-  tag:
+  tag: thesis_settings
 
 train_conf:
   continue_training: false
@@ -18,7 +18,7 @@ train_conf:
   tensorboard_output: true
   model_output: true
   n_envs: 16
-  timesteps: 100000
+  timesteps: 8000000
   iterations: 1
   render_mode: null
   record_video: false

@@ -28,7 +28,8 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Reward and endings:** energy and score; truncation; who pays what; the reward ladder; normalisation; dense's
   values; the ablations; legacy as a reference
 - **Orbs and the world:** two categories; cool-down and lifespan; weights and counts; the orb field; the step clock;
-  mechanics in strategies; the step result and the stage; episode state in `reset`
+  mechanics in strategies; the step result and the watcher; delay's termination; delay's values; episode state in
+  `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
   locked scenarios; forks; the negative orb's switch
 - **Observation:** the kept perceptions; no timer; shared readers
@@ -416,6 +417,8 @@ These differ from legacy on purpose:
 
 - A max-tier chain pays what its orbs are worth, not a fixed 10.
 - Scaling dense has sparse's ladder and step penalty, not the thesis dense values.
+- In delay, eating a tier orb freezes only the tier orbs, and every frozen orb waits the same delay before it can
+  return.
 - A negative orb does not break a chain.
 - Step-wise has no completion bonus, uses `chain_break_penalty`, and charges it for a tier 1 out of order.
 - A threshold break pays the penalty plus everything gathered, not the last tier's reward.
@@ -528,8 +531,8 @@ pool.
 
 A scenario states only `max_active_orbs`, on its `WorldRecipe`. There is no rules class for the field and no hook in
 the world for a scenario to react to an orb being eaten. An effect that belongs to an orb kind goes in its digester;
-an effect that belongs to a scenario is a strategy, as termination is, run after the world's step (see "The world's
-step returns a result").
+an effect that belongs to a scenario is a strategy, as termination is, or a watcher run after the world's step (see
+"The world's step returns a result, and a scenario's watcher reacts to it").
 
 **Why:** Nothing is written for a scenario that does not exist. What delay needs is decided with delay in view.
 
@@ -570,52 +573,94 @@ a recipe the world carries out (the world must understand every recipe).
 **Revisit if:** scenarios start widening the world's public API one mechanic at a time, which is the same growth by
 another route.
 
-## The world's step returns a result, and a scenario reacts to it in a stage after the step (2026-11-04)
+## The world's step returns a result, and a scenario's watcher reacts to it (2026-11-05)
 
-**Decision:** Delay's mechanic, and any scenario that has to act on the world after something happened in it, works
-in three parts:
+**Decision:** A scenario that has to act on the world after something happened in it does so through a watcher:
 
-1. **The world's step returns a frozen result** instead of a float: the reward, and the eaten orb's meta or `None`.
-   One orb at most is eaten per step, since orbs do not share a cell with the droid. The type lives in `core/` beside
-   `grid_world.py`. The world calls nothing and holds nothing for it.
-2. **The scenario has a stage,** a frozen field on `Scenario` shaped like termination: an interface in
-   `scenario/blocks/` with one method that takes the world and the result, returns nothing and acts through the
-   world's public methods and the orbs' own. A shared do-nothing stage is the default, so a scenario with nothing to
-   react to states nothing. A family's own stage sits in its folder, and compares by value: a frozen object or a
-   module-level function, not a lambda.
-3. **The environment's step** runs the world, then the stage, then termination, then the observation. The stage runs
-   before the observation, so the agent and a human player see its effect on the step it happened.
+1. **The world's step returns a `StepResult`,** frozen, in `grid_world.py`: the reward, and `consumed`, the eaten
+   orb's meta or `None`. One orb at most is eaten per step, since no two orbs share a cell. The world calls nothing
+   and holds nothing for a scenario.
+2. **A `Watcher`** (`scenario/blocks/watcher.py`) has `reset()` and `react(world, result)`. It acts through the
+   world's public methods and the orbs' own, and holds episode state. `Scenario.make_watcher` makes one per
+   environment and defaults to `NoWatcher`, which never acts, so a scenario or family that does not use it states
+   nothing. A family's own watcher and its recipe sit in the family's `watcher.py`.
+3. **The environment** makes the watcher, resets it with the episode, and calls `react` after the world's step and
+   before termination and the observation, so both see what it did.
 
-For delay, the stage freezes every orb on the field for `delay` steps. The freeze is carried by the orb, as its
-cool-down and lifespan are, and the orb counts it down. A frozen orb is not active, so it leaves the observation and
-the render, and it is not ready, so the world's refill leaves it alone and it returns in the same cell. Every orb
-waits exactly `delay` steps. The two parked methods in `GridWorld` go. The names of the result type and the stage are
-chosen when they are written.
+Delay's `DelayWatcher` is asleep until an orb is eaten. It then freezes the other orbs of that kind on the field
+with `de_spawn`, which keeps their cells, counts `delay_conf.steps` steps, and releases each with `spawn` once its
+cell is free by the world's own `is_cell_free`. An orb whose cell is taken waits for it to clear. Eating a tier orb
+freezes only tier orbs. The negative orb runs as in any other scenario, and eating it freezes nothing, since it is
+the only one of its kind. The delay is a top-level `delay_conf` block on delay's config, beside `world_conf` and
+`obs_conf`, since it belongs to the watcher and not to the world.
 
-**Why:** It is the field that empties, not the droid that is stopped from eating: with orbs in sight and no way to
-eat them, the agent would first have to learn that it cannot eat yet. The world stays free of scenario code: it holds
-only values and no reference to a scenario. The environment
-already hands the world to the scenario's termination after the step, and the stage is the same pattern once more.
-What the world knows grows as fields on the result, which adds no moment in the step where outside code runs, and
-the stage's signature does not change. Both are open to more than delay: a later scenario or entity can read the
-result and react in a stage of its own. Nothing in legacy's delay depended on the field emptying inside the step;
-freezing mid-loop only made orbs after the eaten one in `ALL_ORBS` order tick once more on that step.
+**Why:** Everything about delay is in delay's folder. The world gains a return value that says what happened and one
+general public method, `is_cell_free`, and no setting for any scenario; otherwise each scenario would add a little to
+the world and a do-nothing value to every other. A watcher holds state, which a frozen `Scenario` shared by every
+environment cannot, so the scenario holds a recipe, as it does for the world. Being told by the result lets the
+watcher sleep: noticing on its own would mean scanning the field every step, and counting orbs mixes an eaten orb
+with an expired one or a refill. It is the field that empties, not the droid that is stopped from eating: with orbs
+in sight and no way to eat them, the agent would first have to learn that it cannot eat yet. Freezing after the step
+gives every orb the same wait; legacy froze mid-loop, so orbs after the eaten one ticked once more.
+
+The negative orb is not frozen because an agent that has learned to avoid it treats it as noise, so the chain's
+silence holds, and an optional orb that makes a scenario harder gets no rules of its own in delay. Its own cycle runs
+on its own clock, so it tells nothing about the gap.
 
 **Rejected:**
 
-- A flag on the world, "orb eaten this step", cleared every step: a stale flag if a clear is missed, and state to
-  keep in step.
-- Callables handed to the world through `WorldRecipe`: a moment for delay built into every world, and another for
-  each new need.
-- The world holding a reference to its scenario: the coupling the principles warn against.
-- A delay number on the world, 0 in every other scenario: a piece of delay in every world.
-- Hiding an orb with its ordinary cool-down: the world refills an inactive orb that is ready in a random cell, and
-  delay needs the same cell.
-- The stage as the home of effect orbs: an effect of an orb kind lives in its digester (see "Effect orbs get their
-  magic from the engine" in `codebase-ideas.md`). Two homes for one thing.
+- A stage on the frozen `Scenario`: it cannot hold the countdown.
+- The world owning the delay, as a setting beside `max_steps`: a piece of delay in every world, and the start of
+  each scenario widening the world.
+- The environment holding the countdown: delay code in the generic adapter, and its state split from the world's.
+- A freeze timer on each orb: the same fact stored once per orb, and still something that sees the field has to set
+  it.
+- A digester holding the delay: a digester sees one orb and knows nothing of the field.
+- The watcher noticing an eaten orb by counting the field: never asleep, and wrong when an orb expires or returns on
+  the same step.
+- Freezing every orb on any eat, the negative orb with them: the negative orb has a cool-down, so frozen the same
+  way it would be refilled elsewhere mid-silence, and eating it would add a second gap to delay.
+- The negative orb freezing with the field and returning with it (decided 2026-10-11 and reversed here).
+- The world's free-cell check counting frozen orbs: the watcher waits for a free cell instead, and the world stays
+  as it was.
+- The watcher as the home of effect orbs, for now: an effect that belongs to an orb kind stays with the kind (see
+  the effect-orb ideas in `codebase-ideas.md`).
 
-**Revisit if:** a scenario needs to act inside the world's step, before it ends; or termination starts reading the
-field, which makes the order of the stage and termination matter.
+**Revisit if:** a scenario needs to act inside the world's step, before it ends; termination starts reading the
+field, which makes the order of the watcher and termination matter; or a watcher needs to freeze an orb that has a
+cool-down.
+
+## Delay starts on legacy's ending, and the ablations walk it to the family's (2026-11-05)
+
+**Decision:** Delay has its own `DelayTermination`, a subclass of `SingleTierChainTermination`, written as legacy's
+final delay ending: a broken chain does not end the episode, and eating every tier orb without completing the chain
+ends it at half the timeout penalty. The base class has two overridable methods, `_droid_ended_task` (energy, a
+break, a completion) and `_task_ending_reward` (0 in the base); the clock and its penalty stay in `evaluate`, out of a
+subclass's reach. The ablations remove one override at a time. If the family's ending does as well, delay uses
+`SingleTierChainTermination` and the subclass goes. "Every tier orb eaten" is read from the tier digester's counts,
+not the field, since a frozen tier orb is off the field just as an eaten one is.
+
+**Why:** Legacy kept the break open on 2026-05-28, when the break penalty was 0, so ending on a break would have been
+a free way out. The penalty became -1.0 two days later and the rule was never revisited, and the "last orb eaten"
+ending was added after the thesis runs. Starting from legacy's version and moving towards the family's makes each
+difference a measured step. A template fits within one family, as the tier digester's scoring modes do.
+
+**Rejected:** delay reusing the family's termination from the start (the legacy choices would never be measured);
+the clock in the overridable method (a subclass could forget the deadline, and the penalty rule needs it apart);
+one method returning the ending's reason as an enum (more machinery for one penalty rule).
+
+## Delay's values close the way out (2026-11-05)
+
+**Decision:** Delay's step penalty is 0 and its `chain_break_penalty` is -1.0, as in the thesis delay runs, with the
+timeout at -1.0. It is fully observable: its registry entry allows `vector_markovian`, and the composite and pixel
+perceptions join when they are rebuilt. Its ladder is spatial's (base 1.0, growth 1.5), on tier 3 and 5x5.
+
+**Why:** If waiting costs something and ending is cheap, an agent learns to end. A free silence and a break as costly
+as the timeout leave no cheaper way to lose, whichever termination the ablations keep. The silence is what delay
+hides; a window on top would mix spatial's memory test into delay's.
+
+**Rejected:** spatial's step penalty and break penalty (the silence would cost steps and a break would be the cheap
+exit); any perception (a window would test spatial too).
 
 ## Episode state is first set in `reset` (2026-10-16)
 

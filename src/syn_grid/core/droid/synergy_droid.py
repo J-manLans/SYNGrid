@@ -1,9 +1,18 @@
+from enum import Enum
 from typing import Final
 
 from syn_grid.core.droid.digestion.digester import OrbDigester
 from syn_grid.core.droid.digestion.engine import D, DigestionEngine
-from syn_grid.core.droid.droid_action import DroidAction
 from syn_grid.core.orbs.base_orb import BaseOrb
+
+
+class DroidAction(Enum):
+    """Actions the droid is capable of performing i.e. go in the four cardinal directions"""
+
+    LEFT = 0
+    DOWN = 1
+    RIGHT = 2
+    UP = 3
 
 
 class SynergyDroid:

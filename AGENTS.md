@@ -134,9 +134,10 @@ amended as the session goes, unless the owner says otherwise.
   be" or "here and not there". A docstring must still read correctly when the rebuild is done.
 - **Work still to do goes in a `# TODO` or `# NOTE` comment,** which the owner can search for. Put a tag in brackets
   when several belong together, as in `# TODO(delay):`.
-- **Every code change ships with its tests,** reviewed together with the code. Do not migrate or rewrite old tests
-  unless asked: the suite is rebuilt from scratch, see the roadmap. A test must fail when its behaviour is broken:
-  reintroduce the defect and confirm it goes red.
+- **Every code change ships with its tests,** reviewed together with the code. Code an upcoming ablation may change
+  gets its tests after the ablation. Do not migrate or rewrite old tests unless asked: the suite is rebuilt from
+  scratch, see the roadmap. A test must fail when its behaviour is broken: reintroduce the defect and confirm it goes
+  red. Where tests go and how they are grouped is in `docs/code_style.md`.
 
 ## The two strains
 

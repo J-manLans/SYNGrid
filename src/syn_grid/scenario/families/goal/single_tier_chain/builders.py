@@ -31,12 +31,18 @@ from syn_grid.scenario.blocks.populations.tier_chain_population import (
 from syn_grid.scenario.blocks.readers import energy, score, steps_left
 from syn_grid.scenario.blocks.recipes.tier_digester_recipe import TierDigesterRecipe
 from syn_grid.scenario.blocks.recipes.world_recipe import WorldRecipe
+from syn_grid.scenario.blocks.termination import TerminationRules
+from syn_grid.scenario.blocks.watcher import NoWatcher, Watcher
 from syn_grid.scenario.families.goal.single_tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
 )
 from syn_grid.scenario.families.goal.single_tier_chain.termination import (
+    DelayTermination,
     SingleTierChainTermination,
+)
+from syn_grid.scenario.families.goal.single_tier_chain.watcher import (
+    DelayWatcherRecipe,
 )
 from syn_grid.scenario.scenario import Scenario
 
@@ -54,13 +60,16 @@ def _single_tier_chain_scenario(
     scenario_tag: str,
     scenario_conf: TierScenarioConf,
     tier_bundle: OrbBundle,
+    termination: TerminationRules | None = None,
+    make_watcher: Callable[[], Watcher] = NoWatcher,
 ) -> Scenario:
     """
     Goal/Single Tier Chain: collect every tier in order before the episode steps are used up.
 
     The shared helper for the single tier chain family. A builder decides what differs between its
-    scenario and the others (the tier bundle, which carries the orbs and the scoring mode, and the
-    delay) and passes it in; this composes everything the family has in common:
+    scenario and the others (the tier bundle, which carries the orbs and the scoring mode, and for
+    delay its own termination and watcher) and passes it in; this composes everything the family
+    has in common:
 
     - orb bundles: the tier bundle, plus `_negative_bundle` when the negative orb is enabled.
     - scenario tag: the builder's tag, then the episode's steps as `_steps100`, then `_Neg` when
@@ -68,7 +77,9 @@ def _single_tier_chain_scenario(
     - orb field: it holds every orb the bundles make.
     - observation: the slot count and the sort limit are the number of orbs the bundles make.
       The tier bound is `max_tier`.
-    - termination: out of energy, a broken chain, a finished chain, or the clock.
+    - termination: the builder's, or else out of energy, a broken chain, a finished chain, or the
+      clock.
+    - watcher: the builder's, or else one that never acts.
     - hud: energy, score, steps left and the current chain length.
     - metrics: chains broken, progressed and completed, plus negatives eaten when the negative
       orb is enabled.
@@ -115,9 +126,10 @@ def _single_tier_chain_scenario(
         global_features=(),
     )
 
-    termination = SingleTierChainTermination(
-        timeout_penalty=world_conf.goal_conf.timeout_penalty,
-    )
+    if termination is None:
+        termination = SingleTierChainTermination(
+            timeout_penalty=world_conf.goal_conf.timeout_penalty,
+        )
 
     return Scenario(
         scenario_name=scenario_name,
@@ -127,6 +139,7 @@ def _single_tier_chain_scenario(
         observation=observation,
         termination=termination,
         build_world=WorldRecipe(world_conf, orb_bundles, max_active_orbs=orb_count),
+        make_watcher=make_watcher,
     )
 
 
@@ -326,10 +339,34 @@ def build_single_tier_chain_delay(
     scenario_name: str, scenario_conf: TierDelayScenarioConf
 ) -> Scenario:
     """
-    Single Tier Chain, Delay: consuming an orb puts the whole field on cooldown.
+    Single Tier Chain, Delay: the complete tier chain is laid out across the grid and the droid
+    sees all of it, but eating a tier orb freezes the other tier orbs for the delay.
+    Difficulty axis: the delay.
+    Scoring: max-tier. Only the completed chain pays, and it pays what its orbs are worth together.
 
-    Axis and tag: the delay.
-    Scoring: max-tier.
+    This scenario tests whether an agent can bridge a gap it cannot see the end of. After each
+    correct orb the rest of the chain is gone from view for the delay, and returns in the same
+    cells. Nothing in the observation counts the gap down, so the droid has to carry what it knew
+    across it. The negative orb, when enabled, is not frozen.
     """
 
-    raise NotImplementedError("delay is phase 6")
+    world_conf = scenario_conf.world_conf
+    delay = scenario_conf.delay_conf.steps
+    scenario_tag = f"delay{delay}"
+
+    # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
+    tier_bundle = _tier_bundle(world_conf.tier_orb_conf, MaxTierDigester)
+
+    termination = DelayTermination(
+        timeout_penalty=world_conf.goal_conf.timeout_penalty,
+        max_tier=world_conf.tier_orb_conf.max_tier,
+    )
+
+    return _single_tier_chain_scenario(
+        scenario_name,
+        scenario_tag,
+        scenario_conf,
+        tier_bundle,
+        termination=termination,
+        make_watcher=DelayWatcherRecipe(delay),
+    )

@@ -1,10 +1,25 @@
+from dataclasses import dataclass
 from typing import Final
 
 from numpy.random import Generator
 
-from syn_grid.core.droid.droid_action import DroidAction
-from syn_grid.core.droid.synergy_droid import SynergyDroid
+from syn_grid.core.droid.synergy_droid import DroidAction, SynergyDroid
 from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.orb_meta import OrbMeta
+
+
+@dataclass(frozen=True)
+class StepResult:
+    """What happened in one tick of the world.
+
+    Attributes:
+        reward: the step's cost plus what the eaten orb paid, already taken in by the droid.
+        consumed: the meta of the orb the droid ate this step, or None. The droid eats at most one
+            orb a step, since no two orbs share a cell.
+    """
+
+    reward: float
+    consumed: OrbMeta | None
 
 
 class GridWorld:
@@ -78,18 +93,20 @@ class GridWorld:
 
     # === Logic === #
 
-    def perform_droid_action(self, agent_action: DroidAction) -> float:
+    def perform_droid_action(self, agent_action: DroidAction) -> StepResult:
         """
         Run one tick of the world, set off by one droid action.
 
         The droid takes its step, every orb's timer ticks, the droid eats the orb it stands on, an orb whose lifespan
         ran out leaves the field, and one ready orb returns if the field has room. The droid is checked first, so it
-        wins an orb on the last tick of its life. Returns the step's cost plus what the eaten orb paid.
+        wins an orb on the last tick of its life. Returns the step's cost plus what the eaten orb paid, and the eaten
+        orb's meta.
         """
 
         self._steps_left -= 1
 
         reward = 0.0
+        consumed: OrbMeta | None = None
         step_penalty = self.droid.take_step(agent_action)
 
         for orb in self.ALL_ORBS:
@@ -98,6 +115,7 @@ class GridWorld:
             # The contact check comes first, so the droid wins an orb on its last tick of life
             if orb.is_active and self.droid.position == orb.position:
                 reward = self.droid.consume_orb(orb)
+                consumed = orb.META
             elif orb.has_expired():
                 orb.de_spawn()
 
@@ -105,7 +123,7 @@ class GridWorld:
         if len(self.orbs_on_field()) < self._max_active_orbs:
             self._spawn_random_orb_if_ready()
 
-        return step_penalty + reward
+        return StepResult(step_penalty + reward, consumed)
 
     # === Getters === #
 
@@ -124,6 +142,21 @@ class GridWorld:
         """The orbs that are on the field now, which are the ones that can be seen and eaten."""
 
         return [o for o in self.ALL_ORBS if o.is_active]
+
+    def is_cell_free(self, position: list[int]) -> bool:
+        """Whether a cell is free of the droid and of every orb on the field, so an orb can be
+        placed in it."""
+
+        # Check against droid
+        if position == self.droid.position:
+            return False
+
+        # Check against the orbs on the field
+        for orb in self.orbs_on_field():
+            if position == orb.position:
+                return False
+
+        return True
 
     # ================= #
     #      Helpers      #
@@ -184,20 +217,6 @@ class GridWorld:
                 int(self._rng.integers(0, self._cols)),
             ]
 
-            if self._empty_spawn_cell(position):
+            if self.is_cell_free(position):
                 orb.spawn(position)
                 break
-
-    def _empty_spawn_cell(self, position: list[int]) -> bool:
-        """Whether a cell is free of the droid and of every orb on the field."""
-
-        # Check against droid
-        if position == self.droid.position:
-            return False
-
-        # Check against the orbs on the field
-        for orb in self.orbs_on_field():
-            if position == orb.position:
-                return False
-
-        return True

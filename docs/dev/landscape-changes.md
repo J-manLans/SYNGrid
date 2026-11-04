@@ -118,14 +118,35 @@ getters. It would matter if the observation pass reads this list.
 
 ### Delay freezes the field after the step
 
-**Change:** Delay freezes the orbs on the field after the world's step, not in the middle of its loop over the orbs.
+**Change:** Delay's watcher freezes the orbs after the world's step, not in the middle of its loop over the orbs.
 **Touches:** how often something appears, observation
 **Before:** Legacy froze the field when the orb was eaten, partway through the loop, so the orbs after it in
 `ALL_ORBS` order ticked once more on that step and returned a step earlier than the ones before it.
-**Now:** Every frozen orb waits exactly `delay` steps.
-**Expected size:** One step on a gap of 30 or more, for some orbs. Small; read from legacy's code, not run.
-**Status:** on purpose, not built.
+**Now:** Every frozen orb waits at least `delay_conf.steps` steps, the same for each.
+**Expected size:** One step on a gap of 30 or more, for some orbs. Small; read from legacy's code.
+**Status:** on purpose.
 **Check:** Phase 6, when delay is trained against the thesis delay runs.
+
+### A frozen orb waits for its cell
+
+**Change:** A frozen orb returns only when its cell is free of the droid and of orbs on the field.
+**Touches:** how often something appears, observation
+**Before:** Legacy brought every frozen orb back when its timer ran out, wherever the droid stood.
+**Now:** An orb whose cell is taken stays frozen until the cell clears. Over 300 random-action episodes at a delay of
+30, silences lasted 30 to 33 steps.
+**Expected size:** A step or two on some silences, more often for a droid that waits on a frozen orb's cell.
+**Status:** on purpose.
+**Check:** Phase 6, with delay's training.
+
+### Delay freezes only the eaten orb's kind
+
+**Change:** Eating a tier orb freezes only the other tier orbs; the negative orb is never frozen.
+**Touches:** observation, how often something appears
+**Before:** Legacy froze every orb on the field on any eat. The thesis delay runs had the negative orb off, so this
+was never trained.
+**Now:** With the negative orb on, it stays on its own cycle during a silence.
+**Expected size:** None for the thesis setups, which had it off.
+**Status:** on purpose.
 
 ---
 

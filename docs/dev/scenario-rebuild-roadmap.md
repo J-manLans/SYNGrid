@@ -6,7 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** delay (phase 6).
+**Next:** delay's termination ablations (phase 6).
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. When
 phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does not start until that is finished.
@@ -24,14 +24,15 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 | Scaling sparse: builder, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
 | Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; learned: PPO, one seed, on sparse's reward values at tier 7 on 5x5 and on 6x6, and on the thesis values at tier 7 on 6x6 |
 | The lock: registry entries, tunables, merge, perception check | written | run, by a script; played in human mode; learned: dense, through its tunables and base config |
-| Delay: builder, termination, its mechanic | stub, raises `NotImplementedError` | — |
+| Delay: builder, run YAML, `DelayWatcher`, `DelayTermination` | written, not locked | run: through the probe (200 episodes), `check_env`, and 300 random-action episodes (silences of 30 to 33 steps, no orb back in another cell); trained on the thesis-era termination at a delay of 30, and behaves like the thesis delay-30 run |
+| `StepResult`, `Watcher`, `NoWatcher` | written | run, for every scenario through the environment; the three locked traces unchanged |
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
 | Threshold digester | written | run, by a script through the environment |
 | Negative orb: digester, population, bundle | written | learned; played in human mode in spatial, sparse and dense; `negatives_eaten` was never read over a run |
-| `SingleTierChainTermination` | written | learned |
+| `SingleTierChainTermination` | written; its end states are overridable | learned before the refactor; the three locked traces unchanged after it |
 | Droid, engine, `GridWorld`, orbs, timer | written | learned |
-| `GridWorld._deactivate_all_orbs`, `_reactivate_all_orbs` | parked under `# TODO(delay)`, read a config that is gone | — |
+| `GridWorld._deactivate_all_orbs`, `_reactivate_all_orbs` | parked under `# TODO(delay)`, read a config that is gone; nothing will use them, since `DelayWatcher` does the freeze | — |
 | Environment | written | learned; `check_env` passes |
 | `vector_markovian`, `vector_fog_of_war` | written | learned |
 | The other five perceptions | legacy, in `legacy/` | — |
@@ -43,7 +44,7 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; phase 6 traces recorded for spatial, scaling sparse and scaling dense |
-| Tests | empty: `tests/` holds only its `__init__.py`, and CI is red until the first test lands (pytest exits 5 when it collects nothing) | — |
+| Tests | `tests/unit/` and `tests/integration/`: the step result, `is_cell_free`, `NoWatcher` and the watcher's place in the environment's step | run: 14 pass |
 
 ---
 
@@ -79,9 +80,9 @@ episodes shorten, and each is locked.
    less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps.
 2. **Scaling sparse.** Verify at more than one `max_tier`.
 3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
-4. **Delay.** Its builder, its own termination, and the field going empty for `delay` steps after a consume, the
-   negative orb with it, through the world's step result and a stage after the step (see "The world's step returns a
-   result" in `design-decisions.md`). The two parked delay methods in `GridWorld` go.
+4. **Delay.** Ablate `DelayTermination` one override at a time towards the family's termination (see "Delay starts
+   on legacy's ending" in `design-decisions.md`), write delay's tests, and lock it. The two parked delay methods in
+   `GridWorld` go.
 
 ---
 
@@ -92,6 +93,13 @@ episodes shorten, and each is locked.
 Tests written along the way in phase 6 are the start of it. When phase 6 is done, go over what exists, fill the gaps
 and tidy the rest. The owner wants tooling that shows untested paths, such as branch coverage, and mutation testing.
 Which libraries is open.
+
+- **`tests/regression/`** pins each locked scenario's replay `stream_digest`, so a drift that today only the manual
+  probe catches fails in CI. Open first: how a test plays the tape, since the probe is a script in `scripts/replay/`
+  and not importable (move the loop into the package, run the script as a subprocess, or something else). Delay's
+  digest joins when delay is locked. Build it sooner if a locked scenario is touched before then.
+- **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
+  `check_env`, as one parametrized test.
 
 **Done when:** the suite passes, covers the rebuilt strain's paths, and each test fails when the behaviour it checks is
 broken. Phase 7 starts after this.

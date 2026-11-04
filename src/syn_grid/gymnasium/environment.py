@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from syn_grid.core.droid.droid_action import DroidAction
+from syn_grid.core.droid.synergy_droid import DroidAction
 from syn_grid.gymnasium.observation_space.observation_handler import (
     ObservationHandler,
 )
@@ -41,6 +41,7 @@ class SYNGridEnv(gym.Env):
         self.world = scenario.build_world()
         self._hud = scenario.hud
         self._termination = scenario.termination
+        self._watcher = scenario.make_watcher()
         self._metrics = scenario.metrics
 
         if self.render_mode in self.metadata["render_modes"]:
@@ -74,6 +75,7 @@ class SYNGridEnv(gym.Env):
 
         # Reset the environment.
         self.world.reset(self.np_random)
+        self._watcher.reset()
         self._observation_handler.reset()
 
         if self.render_mode == "human":
@@ -88,7 +90,11 @@ class SYNGridEnv(gym.Env):
         info: dict[str, Any] = {}
 
         # Perform action and adjust variables affected by it
-        reward = self.world.perform_droid_action(DroidAction(action))
+        result = self.world.perform_droid_action(DroidAction(action))
+        reward = result.reward
+
+        # The watcher acts before termination and the observation, so both see what it did
+        self._watcher.react(self.world, result)
         outcome = self._termination.evaluate(self.world)
 
         # A truncation is not settled: the learner bootstraps what the droid holds from the last

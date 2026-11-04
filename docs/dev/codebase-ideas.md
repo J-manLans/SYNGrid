@@ -245,3 +245,26 @@ be explained from one place by reading the pipeline top to bottom.
 Open when it is built: whether modify runs before routing (so an effect can change which digester gets the orb) or
 only after (so it can only change the reward); where the order of modifiers is stated; and what the narrow view of
 the world exposes.
+
+**Field effects through a watcher (2026-11-05).** Step 4 above, an effect that touches the field, may fit a watcher
+better than a view of the world handed through the engine: the engine lives inside the droid, which holds no world,
+while a watcher is handed the world and the eaten orb's kind every step. A reward effect could also be paid by a
+watcher the way termination pays its ending, through the droid and added to the step's reward, but a held payout
+(`undigested()`) never reaches the step result, and two homes for reward effects would need one chosen. The owner's
+direction: an orb kind's effects stay contained to the kind, with explicit channels where something has to
+communicate. A kind could carry its own watcher in its bundle (see "A bundle that carries everything its orb kind
+brings"), so its field effect travels with it and the scenario never has to know. See "The world's step returns a
+result, and a scenario's watcher reacts to it" in `design-decisions.md`.
+
+---
+
+## Delay's orbs freeze in place (2026-11-05)
+
+**Idea:** The frozen tier orbs stay on the field with a frozen skin instead of leaving it. They cannot be eaten and
+the droid cannot walk onto them, and they thaw when the delay is over.
+
+**Where it came from:** The owner, while talking through where delay's mechanic lives.
+
+**Why it might matter:** It looks better, and a frozen orb that blocks its cell makes the release-when-free rule
+unnecessary. But it changes the test: delay empties the field so the agent does not first have to learn that it
+cannot eat what it sees. The droid's move would also have to check cells, where today it knows only the grid's edges.

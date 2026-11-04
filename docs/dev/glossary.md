@@ -29,8 +29,9 @@ Terms are grouped by area. The last section lists the words that are used in two
   size.
 - **Scaling sparse, scaling dense:** the same world with max-tier scoring (sparse) and threshold scoring (dense).
   Their axis is the chain length and the grid size.
-- **Delay:** eating an orb makes every other orb vanish from the observation for `delay` steps, after which they
-  return in the same cells. It tests long-term credit assignment. Its axis is the delay.
+- **Delay:** eating a tier orb freezes the other tier orbs for `delay_conf.steps` steps, after which they return in
+  the same cells. The negative orb is not frozen. It tests whether an agent can bridge a gap it cannot see the end
+  of. Its axis is the delay.
 - **Axis:** the one thing that varies between runs of a scenario and makes it harder or easier.
 - **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5_steps100`.
 - **Locked:** a scenario whose values other than its tunables (its axis, `max_steps`, the perception and the
@@ -58,6 +59,13 @@ Terms are grouped by area. The last section lists the words that are used in two
   `TerminationRules`.
 - **Strategy:** a family's own implementation of an interface from `scenario/blocks/`, kept in the family's folder,
   such as `SingleTierChainTermination`.
+- **Step result:** what one tick of the world reports, `StepResult`: the reward, and the meta of the orb eaten that
+  step or `None`. `GridWorld.perform_droid_action` returns it.
+- **Watcher:** what a scenario does after the world's step. It is handed the world and the step result in `react`,
+  holds episode state, and is made once per environment by the scenario's `make_watcher`. `NoWatcher`, which never
+  acts, is the default; delay's is `DelayWatcher`.
+- **Freeze, frozen:** a delay watcher taking an orb off the field while keeping its cell, so it returns there. A
+  frozen orb is not on the field, so it is neither seen nor eaten.
 - **Population:** what makes one orb kind's orbs for a world. It decides which orbs exist, once per world. Putting
   them on the field is spawning, which the world does. The populations are shared, in `scenario/blocks/populations/`.
 - **Count:** how many orbs a population makes, known before any world exists. In a fixed field the counts of the
@@ -65,10 +73,11 @@ Terms are grouped by area. The last section lists the words that are used in two
   them. In a sampled field they add up to the pool, and the field size is a config value.
 - **Bundle:** an `OrbBundle`: one orb kind's population and a way to make its digester.
 - **Recipe:** a frozen object a scenario holds that makes something with episode state when it is called, once per
-  world. It holds the values the thing is made from and compares by value. There are two. A tier bundle holds a
+  world. It holds the values the thing is made from and compares by value. A tier bundle holds a
   `TierDigesterRecipe`, which makes a tier digester from the scoring mode's class and the two values every mode
   takes. A scenario holds a `WorldRecipe` as `build_world`, which makes a world from the world config, the bundles
-  and the field's size. Recipes are in `scenario/blocks/recipes/`.
+  and the field's size. The shared recipes are in `scenario/blocks/recipes/`; a recipe for one scenario's strategy
+  sits with it, as `DelayWatcherRecipe` does in delay's `watcher.py`.
 - **Brick:** one orb kind as a unit: its bundle in the scenario layer and its `*_orb_conf` block in the config.
 - **Reader:** a module-level function that is handed the world and returns a number. The HUD, the metrics and the
   observation's global features are each a description plus a reader, and one reader can serve all three. The

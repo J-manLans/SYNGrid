@@ -57,6 +57,21 @@ class TierWorldConf(GoalWorldConf, frozen=True, extra="forbid", strict=True):
         return self
 
 
+# ======================= #
+#   Delay Configuration   #
+# ======================= #
+
+
+class DelayConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    """The delay: how many steps the other tier orbs stay frozen after a tier orb is eaten.
+
+    It belongs to the delay scenario's watcher, not to the world or the tier orbs, so it is a
+    block of its own beside `world_conf` and `obs_conf`.
+    """
+
+    steps: int = Field(gt=0)
+
+
 # ============================= #
 #    Top-Level Configuration   #
 # ============================= #
@@ -66,10 +81,10 @@ class TierScenarioConf(GoalScenarioConf, frozen=True, extra="forbid", strict=Tru
     world_conf: TierWorldConf
 
 
-# TODO(delay): add the delay, once it is settled where its mechanic lives. It is a rule of the
-# field rather than of the tier orbs, so it may not belong in `tier_orb_conf`.
 class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
-    """The config of the delay scenario."""
+    """The config of the delay scenario: a single tier chain, and its delay."""
+
+    delay_conf: DelayConf
 
 
 # ============================== #

@@ -17,19 +17,11 @@ long argument goes in `codebase-ideas.md` or is settled.
 
 ## Phase 6: Rebuild, verify and lock the scenarios
 
-- **Where delay's number goes in the config.** It is a rule of the field rather than of the tier orbs, since the
-  negative orb freezes too, so it may not belong in `tier_orb_conf`. A lean: on the delay world model, beside
-  `tier_orb_conf`, where the delay stage reads it. The delay models were removed until this is settled, leaving an
-  empty `TierDelayScenarioConf`. Raised on 2026-11-01.
-- **The negative orb under delay.** It is meant to disappear and return with the field. Open: whether eating the
-  negative orb itself empties the field. If the step result carries the eaten orb's kind, the delay stage can decide
-  it either way.
 - **`reward_multiplier`.** Legacy threshold scoring scaled and rounded each orb's reward with it. Not carried over and
   not decided. If it returns, it is a setting of the orb's reward and not of the mode.
-- **How a builder adds what only its scenario shows,** such as delay's countdown on the HUD. Either the builder's
-  extras are a parameter of `_single_tier_chain_scenario`, as the tier bundle is, or a `replace` on the finished
-  `Scenario`. Settled with the helper's other parameters, since delay also has its own termination. Raised on
-  2026-10-21.
+- **How a builder adds what only its scenario shows,** such as delay's countdown on the HUD. Delay's termination and
+  watcher reach the helper as optional parameters of `_single_tier_chain_scenario`; the HUD is left for when the HUD
+  gets its other elements. Raised on 2026-10-21.
 - **What `builders.py` should look like.** To look at when the phase ends, once delay is built. The builders are nearly
   copies: spatial, sparse and dense differ only in the tag and the digester. Raised on 2026-11-01.
   See: `# NOTE(duplication)` in `families/goal/single_tier_chain/builders.py`.

@@ -27,6 +27,7 @@ from syn_grid.scenario.blocks.hud import HudElement
 from syn_grid.scenario.blocks.metrics import Metric
 from syn_grid.scenario.blocks.observation import ObservationRules
 from syn_grid.scenario.blocks.termination import TerminationRules
+from syn_grid.scenario.blocks.watcher import NoWatcher, Watcher
 
 if TYPE_CHECKING:
     from syn_grid.core.grid_world import GridWorld
@@ -49,6 +50,9 @@ class Scenario:
         metrics: what this scenario reports at the end of an episode.
         build_world: returns a new world, with its own droid, orbs and
             digestion, on every call.
+        make_watcher: returns a new watcher, which reacts to each step of
+            the world, on every call. A scenario that states none gets one
+            that never acts.
     """
 
     scenario_name: str
@@ -58,3 +62,4 @@ class Scenario:
     hud: tuple[HudElement, ...]
     metrics: tuple[Metric, ...]
     build_world: Callable[[], GridWorld]
+    make_watcher: Callable[[], Watcher] = NoWatcher

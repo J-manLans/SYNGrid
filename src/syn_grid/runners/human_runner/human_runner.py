@@ -2,7 +2,7 @@ from typing import Any, Final, cast
 
 import pygame
 
-from syn_grid.core.droid.droid_action import DroidAction
+from syn_grid.core.droid.synergy_droid import DroidAction
 from syn_grid.gymnasium.environment import SYNGridEnv
 from syn_grid.gymnasium.utils.env_factory import make
 from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY

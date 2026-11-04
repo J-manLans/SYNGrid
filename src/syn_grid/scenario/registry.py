@@ -149,8 +149,7 @@ SCENARIOS: dict[ScenarioName, ScenarioEntry] = {
     ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY: ScenarioEntry(
         TierDelayScenarioConf,
         build_single_tier_chain_delay,
-        # TODO(delay): delay's visibility is not decided, so it allows every perception.
-        perceptions=tuple(Perception),
+        perceptions=(Perception.VECTOR_MARKOVIAN,),
     ),
 }
 

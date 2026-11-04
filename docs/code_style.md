@@ -131,6 +131,23 @@ For the helpers section, provide subheadings indicating what section the helpers
 # === Global === #
 ```
 
+
+## 6. Tests
+- **Unit tests** in `tests/unit/` mirror `src/syn_grid/`, one test file per source file: the tests for
+  `core/grid_world.py` are in `tests/unit/core/test_grid_world.py`. A unit test asks whether one file keeps its
+  promise, and may use real collaborators to do it.
+- **Integration tests** in `tests/integration/` check that parts across packages hand off to each other, such as the
+  environment's step through the world, the watcher and termination.
+- Inside a file, one class per method or behaviour under test, named `Test<Thing>`, with a one-line docstring.
+  Fixtures and helpers stay at module level, so every class in the file can use them.
+
+```python
+class TestPerformDroidAction:
+    """What one tick of the world reports: the orb eaten, and the reward."""
+
+    def test_eating_nothing_reports_none(self, world: GridWorld): ...
+```
+
 ---
 
 Following these conventions will help maintain readability, consistency, and ensure the codebase remains clean and understandable for all contributors.
