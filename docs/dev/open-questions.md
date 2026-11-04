@@ -17,31 +17,9 @@ long argument goes in `codebase-ideas.md` or is settled.
 
 ## Phase 6: Rebuild, verify and lock the scenarios
 
-- **Where delay's mechanic lives, and how a scenario triggers it.** When the droid eats an orb, every other orb
-  disappears from the observation for `delay` steps and returns in the same cells. It has to be the field that
-  empties: with orbs in sight and the droid unable to eat, the agent would first have to learn it cannot eat yet.
-  Homes that have come up:
-  - In the delay scenario's own code, as loops over the orbs on the field that call the orbs' own methods. The
-    owner's starting point. The world offers only what they read and a way to hear that an orb was eaten.
-  - A number on the world, 0 in every scenario but delay.
-  - A freeze each orb carries, as it carries a cool-down and a lifespan, triggered for all of them.
-
-  A hidden orb is not an inactive one: the world brings an inactive orb back in a random cell, and delay needs the
-  same cells. How the scenario hears of a consume:
-  - The world is handed callbacks per moment through `WorldRecipe`. The world then holds scenario code, but it is the
-    only way if something must happen mid-step.
-  - The scenario acts after the world's step, as termination does. Leaned towards on 2026-10-13, if nothing in a
-    delay step depends on the field emptying before the step ends, which was not traced in legacy. Taken further on
-    2026-10-28: the world returns a frozen step result that carries what was eaten, the scenario gets a stage that is
-    handed that result, and the freeze is carried by the orb. A lean, not a decision. See "Delay's mechanic is a
-    stage after the world's step" in `codebase-ideas.md`.
-
-  Raised on 2026-10-13. The two parked methods in `GridWorld` (`# TODO(delay)`) move into whichever is chosen.
-  See: "The world runs the orb field, and a scenario states only its size" and "A scenario mechanic lives in its
-  strategy when the world's public API is enough" in `design-decisions.md`.
 - **Where delay's number goes in the config.** It is a rule of the field rather than of the tier orbs, since the
   negative orb freezes too, so it may not belong in `tier_orb_conf`. A lean: on the delay world model, beside
-  `tier_orb_conf`, whichever home the mechanic gets. The delay models were removed until this is settled, leaving an
+  `tier_orb_conf`, where the delay stage reads it. The delay models were removed until this is settled, leaving an
   empty `TierDelayScenarioConf`. Raised on 2026-11-01.
 - **The negative orb under delay.** It is meant to disappear and return with the field. Open: whether eating the
   negative orb itself empties the field. If the step result carries the eaten orb's kind, the delay stage can decide
@@ -126,3 +104,7 @@ a name and a parent" in `design-decisions.md`.
 - **How `reproduction_package/` connects to the thesis.** It records the thesis runs and stays in the repo until
   this is decided. Raised on 2026-11-04.
 - **What a GUI needs from the models.** See "A GUI on top of the registry" in `codebase-ideas.md`.
+- **How a run points at the checkpoint it loads, and where a continued run records its parent.** Waits for the GUI,
+  which picks a checkpoint from a list. Until then a checkpoint is found by the run id, and a curriculum stage renames
+  its parent's files by hand. See "A run that continues another gets its own id" in `design-decisions.md` and
+  "Picking a checkpoint" under "A GUI on top of the registry" in `codebase-ideas.md`. Raised on 2026-11-04.

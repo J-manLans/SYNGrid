@@ -6,7 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** train dense on sparse's reward values at tier 7 on 6x6 (phase 6).
+**Next:** delay (phase 6).
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. When
 phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does not start until that is finished.
@@ -22,7 +22,7 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 |---|---|---|
 | Spatial: builder, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; the locked path run by a script, step for step the same as before |
 | Scaling sparse: builder, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
-| Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; learned: PPO, one seed, on sparse's reward values at tier 7 on 5x5; not trained on the thesis values |
+| Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; learned: PPO, one seed, on sparse's reward values at tier 7 on 5x5 and on 6x6, and on the thesis values at tier 7 on 6x6 |
 | The lock: registry entries, tunables, merge, perception check | written | run, by a script; played in human mode; learned: dense, through its tunables and base config |
 | Delay: builder, termination, its mechanic | stub, raises `NotImplementedError` | — |
 | Max-tier digester | written | learned |
@@ -42,7 +42,7 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 | CSV logger | written | run, through the environment; never on a real training run |
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
-| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; phase 6 traces recorded for spatial and scaling sparse |
+| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; phase 6 traces recorded for spatial, scaling sparse and scaling dense |
 | Tests | empty: `tests/` holds only its `__init__.py`, and CI is red until the first test lands (pytest exits 5 when it collects nothing) | — |
 
 ---
@@ -80,16 +80,8 @@ episodes shorten, and each is locked.
 2. **Scaling sparse.** Verify at more than one `max_tier`.
 3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
 4. **Delay.** Its builder, its own termination, and the field going empty for `delay` steps after a consume, the
-   negative orb with it. Where that mechanic lives is open; see `open-questions.md`. The two parked delay methods in
-   `GridWorld` move into it or go.
-5. **Dense.** Verify at tier 6 on 5x5 and tier 7 on 6x6, against the ceilings 141.13 and 207.49.
-6. **Swap the reward values, before this phase closes.** Train dense with sparse's ladder and step penalty. If that fails, train sparse with dense's ladder and step penalty. Document the results here before the phase
-   is closed. See "Sparse and dense are compared with only the scoring mode changed" in `design-decisions.md`.
-
-   So far: dense learns on sparse's values at tier 7 on 5x5, which is not a thesis pairing (PPO, seed 3, logged to
-   5.84M of 8M steps). Mean reward climbed from -0.43 to about 9.5 over the last 50 logged points, with a peak of
-   10.79, and episodes grew from about 6 steps to about 34. A completed chain pays about 13.48 on these values, but
-   some layouts cannot pay it; see `open-questions.md`. Left: tier 7 on 6x6.
+   negative orb with it, through the world's step result and a stage after the step (see "The world's step returns a
+   result" in `design-decisions.md`). The two parked delay methods in `GridWorld` go.
 
 ---
 

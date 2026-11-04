@@ -25,14 +25,15 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Principles**
 - **Digestion:** digestion in the droid; digesters do not talk; the tier digester; scoring modes; a new mode is a new
   scenario; recipes
-- **Reward and endings:** energy and score; truncation; who pays what; the reward ladder; normalisation; the
-  ablations; legacy as a reference
+- **Reward and endings:** energy and score; truncation; who pays what; the reward ladder; normalisation; dense's
+  values; the ablations; legacy as a reference
 - **Orbs and the world:** two categories; cool-down and lifespan; weights and counts; the orb field; the step clock;
-  mechanics in strategies; episode state in `reset`
+  mechanics in strategies; the step result and the stage; episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
   locked scenarios; forks; the negative orb's switch
 - **Observation:** the kept perceptions; no timer; shared readers
-- **Runners and rendering:** the algorithm enum; the policy name; human play; the renderer; window input
+- **Runners and rendering:** the algorithm enum; the policy name; human play; the renderer; window input; continued
+  runs
 
 ---
 
@@ -355,17 +356,22 @@ deliberate.
 
 **Revisit if:** a continuous scenario's return grows from many chains, or a chain's total goes well beyond a few tens.
 
-## Sparse and dense are compared with only the scoring mode changed (2026-11-01)
+## Dense locks with sparse's reward values, so only the scoring mode differs (2026-11-04)
 
-**Decision:** Before phase 6 closes, dense is trained with sparse's `base_reward`, `growth_factor` and `step_penalty`.
-If that fails, sparse is trained with dense's three values. The thesis values stay dense's
-reference. The owner's hope is that dense learns on sparse's values.
+**Decision:** Scaling dense has sparse's `base_reward` (1.0), `growth_factor` (0.5) and `step_penalty` (-0.001). The
+thesis values (2.5, 1.685 and 0.0) are used only to verify dense against the thesis runs, and are not what dense is
+locked with.
 
-**Why:** Dense asks whether the silence stops learning, but it also pays about 13 times sparse's completed chain at
-tier 6 and has no step penalty, so a difference between the two does not say which caused it. With the three values
-swapped, the scoring mode is the only difference.
+**Why:** Dense asks whether the silence stops learning. With the thesis values it also paid about 13 times sparse's
+completed chain at tier 6 and had no step penalty, so a difference between the two did not say which caused it. With
+the same three values, the scoring mode is the only difference, and "the chain's length was not the problem, the
+silence was" is a claim the two scenarios can back. Dense learned on these values at tier 7 on 5x5 and on 6x6.
 
-**Rejected:** swapping the ladder and leaving the step penalty (a second difference would remain).
+**Rejected:**
+
+- The thesis values as dense's (two differences besides the scoring mode).
+- Swapping the ladder and leaving the step penalty (a second difference would remain).
+- Training sparse on dense's values instead (only needed if dense had failed on sparse's).
 
 ## The ablations kept the step penalty, and sparse's chain break penalty (2026-10-27)
 
@@ -409,6 +415,7 @@ these scenarios are stable. Running several seeds is an argument for a more chao
 These differ from legacy on purpose:
 
 - A max-tier chain pays what its orbs are worth, not a fixed 10.
+- Scaling dense has sparse's ladder and step penalty, not the thesis dense values.
 - A negative orb does not break a chain.
 - Step-wise has no completion bonus, uses `chain_break_penalty`, and charges it for a tier 1 out of order.
 - A threshold break pays the penalty plus everything gathered, not the last tier's reward.
@@ -519,9 +526,10 @@ pool.
   an orb on its last tick.
 - After a step, if there is room and an inactive orb is ready, one comes back in a random free cell.
 
-A scenario states only `max_active_orbs`, on its `WorldRecipe`. There is no rules class for the field and no hook,
-and no hook for a scenario to react to an orb being eaten. An effect that belongs to an orb kind goes in its digester;
-an effect that belongs to a scenario is a strategy, as termination is.
+A scenario states only `max_active_orbs`, on its `WorldRecipe`. There is no rules class for the field and no hook in
+the world for a scenario to react to an orb being eaten. An effect that belongs to an orb kind goes in its digester;
+an effect that belongs to a scenario is a strategy, as termination is, run after the world's step (see "The world's
+step returns a result").
 
 **Why:** Nothing is written for a scenario that does not exist. What delay needs is decided with delay in view.
 
@@ -561,6 +569,53 @@ a recipe the world carries out (the world must understand every recipe).
 
 **Revisit if:** scenarios start widening the world's public API one mechanic at a time, which is the same growth by
 another route.
+
+## The world's step returns a result, and a scenario reacts to it in a stage after the step (2026-11-04)
+
+**Decision:** Delay's mechanic, and any scenario that has to act on the world after something happened in it, works
+in three parts:
+
+1. **The world's step returns a frozen result** instead of a float: the reward, and the eaten orb's meta or `None`.
+   One orb at most is eaten per step, since orbs do not share a cell with the droid. The type lives in `core/` beside
+   `grid_world.py`. The world calls nothing and holds nothing for it.
+2. **The scenario has a stage,** a frozen field on `Scenario` shaped like termination: an interface in
+   `scenario/blocks/` with one method that takes the world and the result, returns nothing and acts through the
+   world's public methods and the orbs' own. A shared do-nothing stage is the default, so a scenario with nothing to
+   react to states nothing. A family's own stage sits in its folder, and compares by value: a frozen object or a
+   module-level function, not a lambda.
+3. **The environment's step** runs the world, then the stage, then termination, then the observation. The stage runs
+   before the observation, so the agent and a human player see its effect on the step it happened.
+
+For delay, the stage freezes every orb on the field for `delay` steps. The freeze is carried by the orb, as its
+cool-down and lifespan are, and the orb counts it down. A frozen orb is not active, so it leaves the observation and
+the render, and it is not ready, so the world's refill leaves it alone and it returns in the same cell. Every orb
+waits exactly `delay` steps. The two parked methods in `GridWorld` go. The names of the result type and the stage are
+chosen when they are written.
+
+**Why:** It is the field that empties, not the droid that is stopped from eating: with orbs in sight and no way to
+eat them, the agent would first have to learn that it cannot eat yet. The world stays free of scenario code: it holds
+only values and no reference to a scenario. The environment
+already hands the world to the scenario's termination after the step, and the stage is the same pattern once more.
+What the world knows grows as fields on the result, which adds no moment in the step where outside code runs, and
+the stage's signature does not change. Both are open to more than delay: a later scenario or entity can read the
+result and react in a stage of its own. Nothing in legacy's delay depended on the field emptying inside the step;
+freezing mid-loop only made orbs after the eaten one in `ALL_ORBS` order tick once more on that step.
+
+**Rejected:**
+
+- A flag on the world, "orb eaten this step", cleared every step: a stale flag if a clear is missed, and state to
+  keep in step.
+- Callables handed to the world through `WorldRecipe`: a moment for delay built into every world, and another for
+  each new need.
+- The world holding a reference to its scenario: the coupling the principles warn against.
+- A delay number on the world, 0 in every other scenario: a piece of delay in every world.
+- Hiding an orb with its ordinary cool-down: the world refills an inactive orb that is ready in a random cell, and
+  delay needs the same cell.
+- The stage as the home of effect orbs: an effect of an orb kind lives in its digester (see "Effect orbs get their
+  magic from the engine" in `codebase-ideas.md`). Two homes for one thing.
+
+**Revisit if:** a scenario needs to act inside the world's step, before it ends; or termination starts reading the
+field, which makes the order of the stage and termination matter.
 
 ## Episode state is first set in `reset` (2026-10-16)
 
@@ -913,3 +968,15 @@ already offer, so the window closes the same way however a run ends.
 summary between eval episodes (the `VecEnv` resets first, and the CSV is eval's summary); `pygame.quit()` in each quit
 path (a crash left pygame running); `sys.exit()` (it skipped SB3's `on_training_end` and the last flush); the human
 runner reading `scenario.hud` itself (two places to read the HUD); polling for keys (a busy CPU core).
+
+## A run that continues another gets its own id, and records its parent (2026-11-04)
+
+**Decision:** A run that starts from another run's checkpoint, as a curriculum stage does, is a run of its own. It
+gets its own id from its own scenario and runner config, and it records which checkpoint it came from.
+
+**Why:** A curriculum moves to a new grid, and the id carries the grid, so a stage cannot share its parent's id.
+Today a checkpoint is found by the current run's id, so continuing on a new grid means renaming the parent's files
+by hand and typing its step count into `agent_steps`. A model that went through 5x5 and 6x6 first would also carry
+the same name as one trained from scratch on 7x7, and only a tag remembered by hand told them apart.
+
+**Rejected:** extending the parent's id and folder (the id would name the first stage's grid, not the one trained on).

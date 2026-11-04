@@ -5,9 +5,9 @@
 
 common_conf:
   alg: PPO
-  agent_steps: '8001536'
+  agent_steps: '200704'
   seed: 3
-  training: false
+  training: true
   # Optional. Joined onto the scenario's tag in the run id; set it when you
   # change something outside the scenario's own axis.
   tag:
@@ -18,7 +18,7 @@ train_conf:
   tensorboard_output: true
   model_output: true
   n_envs: 16
-  timesteps: 8000000
+  timesteps: 100000
   iterations: 1
   render_mode: null
   record_video: false

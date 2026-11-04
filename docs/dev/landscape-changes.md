@@ -116,6 +116,17 @@ getters. It would matter if the observation pass reads this list.
 **Expected size:** None for runs that left the option off. A scenario that wants it gives its tier orbs a lifespan.
 **Status:** on purpose.
 
+### Delay freezes the field after the step
+
+**Change:** Delay freezes the orbs on the field after the world's step, not in the middle of its loop over the orbs.
+**Touches:** how often something appears, observation
+**Before:** Legacy froze the field when the orb was eaten, partway through the loop, so the orbs after it in
+`ALL_ORBS` order ticked once more on that step and returned a step earlier than the ones before it.
+**Now:** Every frozen orb waits exactly `delay` steps.
+**Expected size:** One step on a gap of 30 or more, for some orbs. Small; read from legacy's code, not run.
+**Status:** on purpose, not built.
+**Check:** Phase 6, when delay is trained against the thesis delay runs.
+
 ---
 
 ## The observation
