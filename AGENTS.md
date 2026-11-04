@@ -32,6 +32,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | `docs/dev/open-questions.md` | What is not decided yet, by the phase that needs it |
 | `docs/dev/codebase-ideas.md` | Ideas worth returning to that are not problems now |
 | `docs/dev/glossary.md` | What the words mean. Use its terms |
+| `docs/dev/code-map.md` | Where the rebuilt code lives, and the path a run and a step take through it. Read it before reading code |
 | `docs/dev/landscape-changes.md` | Changes that could move what the agent sees or is paid, to check against legacy |
 | `docs/dev/archive/` | Finished work kept on purpose |
 | `docs/code_style.md` | How code is written |
@@ -51,11 +52,16 @@ as decided. Read `docs/code_style.md` before writing code.
 | Code is first run, or first learns | the has-it-run cell in the roadmap's table |
 | A change touches reward, observation, layout or how often something appears | `landscape-changes.md` |
 | A word is coined | `glossary.md` |
+| A file or folder is added, moved or renamed, or a run's or a step's path changes | `code-map.md`, in the same change |
 | An idea that is not a problem now | `codebase-ideas.md` |
 | Finished work worth keeping | `docs/dev/archive/`, on purpose |
 | What was done, and what was run | the commit message |
 
 Each file in `docs/dev/` opens with what it is for and what stays out of it. Read that before adding to it.
+
+A fact is written in the file that owns it, by the table above, and another file that needs it points there instead
+of repeating it. The traps below are the exception: each stays a short warning here, and the owning file holds the
+detail.
 
 ## The docs sweep
 
@@ -89,11 +95,14 @@ notes the docs used to carry belong here, in the commit that made them true. The
 to the agent, so they carry the record.
 
 **Never commit code before the owner says so.** This is a hard rule: the owner reviews changes before they are
-committed. The exception is documentation, which the agent may commit when it is done. When a coding job also
-updates the docs, stage and commit the doc files on their own and leave every code file uncommitted for review.
+committed. The exception is documentation, which the agent may commit when it is done. Comments and docstrings
+the owner asks for count as documentation, even inside a code file. Code is anything that does something, in a `.py`
+file, YAML or any other file, and it waits for review. When a coding job also updates the docs, stage and commit the
+doc files on their own and leave every code file uncommitted for review. A file that mixes the two waits whole.
 
 Amend the agent's own last commit when the change finishes or corrects it and it has not been pushed; otherwise
-make a new commit. When in doubt, ask the owner in one line whether to amend.
+make a new commit. When in doubt, ask the owner in one line whether to amend. A docs-only session is one commit,
+amended as the session goes, unless the owner says otherwise.
 
 ## How to work with the owner
 
@@ -112,8 +121,9 @@ make a new commit. When in doubt, ask the owner in one line whether to amend.
   the limitation. When the owner says something feels off, argue for their hunch before defending the proposal. Do
   not present fluent reasoning as experience to defer to.
 - **Audit and discuss before writing.** Say what exists, what is missing and what you would create, then wait.
-- **Pull first.** Before the first edit of a session, say once "pull first, then we start", and wait for the owner
-  to confirm.
+- **Pull first.** Before the first edit of a session on the owner's local machine, say once "pull first, then we
+  start", and wait for the owner to confirm. An agent in a cloud or web session starts from a fresh clone and does
+  not ask.
 - **Agree on where a new file or folder goes before creating it.** Show the tree it gives and say what sort of thing
   lives at that level. The owner reads the structure to picture the design. This covers renames and moves.
 - **Make the work reviewable.** After writing, list each file touched and what changed in it, say what was run and
@@ -196,6 +206,9 @@ Each of these cost a wrong conclusion in this repo.
   over inference from a name or a comment.
 - The replay probe (`scripts/replay/probe.py`) records a locked scenario as a run sees it, with no overrides.
   Comparisons are exact, so read the size of a difference before calling it behavioural.
+- **A change meant to leave behaviour alone is probed before and after,** for each scenario whose code it touches,
+  and compared with `scripts/replay/diff.py`. Say whether the traces matched and what the probe does not reach:
+  rendering, logging, the runners, and any branch the tape's random walk does not hit.
 
 ## Traps
 
@@ -203,12 +216,10 @@ Each of these cost a wrong conclusion in this repo.
   `np_random`.
 - **Every perception returns the same buffer each step,** so `obs_t is obs_{t+1}`. Anything that keeps two
   observations must copy.
-- **Tests import the legacy strain.**
 - **`runners/agent_runners/utils/extractors.py` is imported by nothing** and reads observation keys from before the
-  rebuild.
-- **`reproduction_package/` is committed and large.** Do not add to it. It records what the thesis runs did.
-- **`plot/` is a thesis scratch module** with hardcoded paths evaluated at import, and needs the `extra`
-  dependencies.
+  rebuild. It stays on purpose: phase 7b works from it, not from scratch.
+- **`reproduction_package/` is committed and large.** Do not add to it. It records what the thesis runs did, and it
+  stays until the owner decides how it connects to the thesis.
 - **A pygame window and a model load crash together on the owner's machine.** Opening a window loads Mesa's LLVM on
   the AMD iGPU, and Triton's own LLVM then segfaults when SB3 loads a model. It hits eval with a renderer and training
   with one. Start through `scripts/run_app.sh` or the `launch.json` entry, which put the window on the NVIDIA card, or

@@ -6,27 +6,10 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** clear out `plot/` and `tests/` (below). Then train dense on sparse's reward values at tier 7 on 6x6, and
-record spatial's trace (phase 6).
+**Next:** train dense on sparse's reward values at tier 7 on 6x6 (phase 6).
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. When
 phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does not start until that is finished.
-
----
-
-## Now: clear out `plot/` and `tests/`
-
-Both are thesis-era and neither says anything about the rebuild. The plot module is specific to the thesis runs and is
-rewritten from scratch in phase 9, much smaller. The tests import the legacy strain, so a green or red run tells
-nothing about the rebuilt code.
-
-1. Delete `src/syn_grid/plot/`, the `extra` dependencies only it needs, and `tests/`.
-2. Make CI, `pytest.ini`, `scripts/tidy.sh` and `CONTRIBUTING.md` agree with it. CI must not fail on an empty suite
-   (pytest exits with code 5 when it collects nothing).
-3. Remove what the docs say about them: the `plot/` and Tests rows in the table below, the two matching traps in
-   `AGENTS.md`, the plot helper's entry in `open-questions.md` (phase 9), and the test line in phase 10.
-
-Nothing else imports `plot/`, and nothing of the legacy comparison needs the old tests. Check both before deleting.
 
 ---
 
@@ -57,11 +40,10 @@ Nothing else imports `plot/`, and nothing of the legacy comparison needs the old
 | PPO and RPPO runners | written | learned |
 | FrameStackPPO runner | written | written |
 | CSV logger | written | run, through the environment; never on a real training run |
-| `plot/` | legacy: reads `LogKey` members that are gone | — |
-| `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing | — |
+| `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
-| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit |
-| Tests | legacy: import the legacy strain | — |
+| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; phase 6 traces recorded for spatial and scaling sparse |
+| Tests | empty: `tests/` holds only its `__init__.py`, and CI is red until the first test lands (pytest exits 5 when it collects nothing) | — |
 
 ---
 
@@ -94,7 +76,7 @@ episodes shorten, and each is locked.
 ### What is left, scenario by scenario
 
 1. **Spatial.** The ceiling on 5x5 is about 9.02 (tiers 1 to 3 worth `1 + 2^1.5 + 3^1.5`,
-   less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps. Record its trace.
+   less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps.
 2. **Scaling sparse.** Verify at more than one `max_tier`.
 3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
 4. **Delay.** Its builder, its own termination, and the field going empty for `delay` steps after a consume, the
@@ -154,7 +136,9 @@ trace is identical, and spatial still learns.
 
 ### 7b: New perceptions, one at a time
 
-Rewritten from their copies in `legacy/` against the new rules, each added alone and checked before the next.
+Rewritten from their copies in `legacy/` against the new rules, each added alone and checked before the next. The
+extractors start from `extractors.py`, which the owner has read, and are reworked from there rather than written from
+scratch.
 
 **Settle first:** how an extractor is chosen. The policy name comes from the perception and the algorithm in
 `policy_resolver.py`, and the extractor would be a second thing the perception implies.

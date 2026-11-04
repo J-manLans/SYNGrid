@@ -116,12 +116,6 @@ a name and a parent" in `design-decisions.md`.
   2026-10-23.
 - **What the window does when the HUD and the grid differ in height.** The lean is that the taller sets it.
 
-## Phase 9: Logging
-
-- **What the plot helper's base class looks like:** what it owns (reading the CSV, smoothing, saving) and what a
-  subclass states (columns and how to draw them), whether it takes its paths as arguments, and where the thesis plots
-  live. Raised on 2026-10-26.
-
 ## Not tied to a phase
 
 - **Properties or plain attributes for what readers take from a digester.** Plain public attributes now; the owner
@@ -129,4 +123,6 @@ a name and a parent" in `design-decisions.md`.
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox. The sandbox is not on the roadmap.
 - **Whether `on_termination` guards against a second call.** It runs once per episode; a second call would pay the
   owed sum twice, and nothing stops it.
+- **How `reproduction_package/` connects to the thesis.** It records the thesis runs and stays in the repo until
+  this is decided. Raised on 2026-11-04.
 - **What a GUI needs from the models.** See "A GUI on top of the registry" in `codebase-ideas.md`.
