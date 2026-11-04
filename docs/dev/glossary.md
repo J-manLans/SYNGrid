@@ -182,6 +182,11 @@ Terms are grouped by area. The last section lists the words that are used in two
   started from. It was kept in a `reference/` folder, removed on 2026-10-23.
 - **Reproduction package:** `reproduction_package/`, the configs and results of the thesis runs.
 - **Phase:** a step of `scenario-rebuild-roadmap.md`.
+- **Replay probe:** `scripts/replay/probe.py`. It plays the tape through a scenario and records what comes back.
+  `diff.py` compares two recordings, and `sweep.sh` runs the probe at each commit in a range.
+- **Tape:** the fixed, seeded action sequence the replay probe plays, read by one cursor across episodes.
+- **Trace:** one recording of the replay probe: every observation, reward, end flag and episode length. A trace is
+  named by the commit it was recorded at.
 
 ---
 

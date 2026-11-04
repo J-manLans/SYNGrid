@@ -10,11 +10,11 @@ world_conf:
   max_steps: 100
 
   grid_conf:
-    grid_rows: 5
-    grid_cols: 5
+    grid_rows: 6
+    grid_cols: 6
 
   tier_orb_conf:
-    max_tier: 6
+    max_tier: 7
 
   neg_orb_conf:
     enabled: false

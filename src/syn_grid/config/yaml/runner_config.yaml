@@ -4,13 +4,13 @@
 # file.
 
 common_conf:
-  alg: RPPO
+  alg: PPO
   agent_steps: '8001536'
   seed: 3
-  training: true
+  training: false
   # Optional. Joined onto the scenario's tag in the run id; set it when you
   # change something outside the scenario's own axis.
-  tag: step_penalty_ablation
+  tag:
 
 train_conf:
   continue_training: false

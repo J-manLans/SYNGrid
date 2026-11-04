@@ -40,7 +40,8 @@ one to be read correctly.
 | `plot/` | legacy: reads `LogKey` members that are gone | — |
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing | — |
 | `scenario/families/continuous/` | empty package | — |
-| Tests, `scripts/replay_probe.py` | legacy: import the legacy strain | — |
+| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit |
+| Tests | legacy: import the legacy strain | — |
 
 ---
 
@@ -60,8 +61,7 @@ In this order, per scenario:
 4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its tunables.
    See "A locked scenario is a base config and its tunables in front of its builder" in `design-decisions.md`.
 5. **Record a trace** with the replay probe: one seed, a fixed action sequence, and every observation, reward and
-   termination flag per step. Phase 7 is diffed against it. The probe imports the legacy strain, so the first lock
-   ports it to take a `Scenario`.
+   termination flag per step. Phase 7 is diffed against it.
 
 **Compare with care:** anything that changed on purpose is in `design-decisions.md` under "Legacy is a reference,
 not a target", and what could move the observation or reward is in `landscape-changes.md`. A completed max-tier chain

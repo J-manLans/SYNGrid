@@ -78,6 +78,10 @@ If the owner says to go ahead and leaves, do only the mechanical parts: removing
 right file, adding glossary terms. Leave a borderline call as it is and list it in the commit message, so it waits for
 the owner. Then commit the docs.
 
+A sweep has no subject of its own: it finishes the session's work. So it is almost always amended into the session's
+last commit, under the rule in "Commits", with its borderline calls added to that commit's message. It is a commit
+of its own only when that commit is pushed or is the owner's.
+
 ## Commits
 
 A commit message says what changed, why, and what was run to check it, or that nothing was run. The dated progress
@@ -88,6 +92,9 @@ to the agent, so they carry the record.
 committed. The exception is documentation, which the agent may commit when it is done. When a coding job also
 updates the docs, stage and commit the doc files on their own and leave every code file uncommitted for review.
 
+Amend the agent's own last commit when the change finishes or corrects it and it has not been pushed; otherwise
+make a new commit. When in doubt, ask the owner in one line whether to amend.
+
 ## How to work with the owner
 
 - **Design together, the agent writes, the owner reviews.** A design is talked through first and the owner decides.
@@ -96,8 +103,9 @@ updates the docs, stage and commit the doc files on their own and leave every co
   choice is genuinely open. Clear enough means the owner has stated a preference, even loosely, not that one can be
   guessed.
 - **Spitball before verdicts.** In a design talk, open with what the code does and one question, and reason step by
-  step together. Do not come back with a numbered list of calls. Give an opinion when asked and label it a lean. A
-  restated option is not a decision: something is decided when the owner says so.
+  step together. Do not come back with a numbered list of calls, unless the owner asks for a recommendation. Give an
+  opinion when asked and label it a lean. A restated option is not a decision: something is decided when the owner
+  says so.
 - **Confirm before refining.** When the owner's summary is right, say yes plainly first. Add a detail only when it
   changes the picture.
 - **Flag workarounds, argue for hunches.** Say when a proposal patches a limitation, and name the option of removing
@@ -185,8 +193,8 @@ Each of these cost a wrong conclusion in this repo.
 - **Written is not run.** Check the has-it-run column in the roadmap before saying something works.
 - For where a behaviour came from or when it changed, prefer `git log -S`, a replay probe or loading the artifact
   over inference from a name or a comment.
-- The replay harness runs the legacy strain. Pin `starting_score` high, or episodes end early and skip the timeout
-  branch. Comparisons are exact, so read the size of a difference before calling it behavioural.
+- The replay probe (`scripts/replay/probe.py`) records a locked scenario as a run sees it, with no overrides.
+  Comparisons are exact, so read the size of a difference before calling it behavioural.
 
 ## Traps
 
@@ -194,7 +202,7 @@ Each of these cost a wrong conclusion in this repo.
   `np_random`.
 - **Every perception returns the same buffer each step,** so `obs_t is obs_{t+1}`. Anything that keeps two
   observations must copy.
-- **Tests and `scripts/replay_probe.py` import the legacy strain.**
+- **Tests import the legacy strain.**
 - **`runners/agent_runners/utils/extractors.py` is imported by nothing** and reads observation keys from before the
   rebuild.
 - **`reproduction_package/` is committed and large.** Do not add to it. It records what the thesis runs did.
