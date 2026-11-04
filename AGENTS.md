@@ -38,7 +38,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | `CONTRIBUTING.md`, `README.md` | For people outside: how to contribute, what SYNGrid is |
 
 Read `design-decisions.md` and `open-questions.md` before giving a design opinion, and do not treat an open question
-as decided.
+as decided. Read `docs/code_style.md` before writing code.
 
 ## Where things go
 

@@ -131,13 +131,6 @@ For the helpers section, provide subheadings indicating what section the helpers
 # === Global === #
 ```
 
-## 6. Scripts
-
-- A script is condensed: its code and comments are cut to what a reader needs. Its docstring says what it is, its
-  usage and one example.
-- Scripts that work together share a folder under `scripts/`, such as `scripts/replay/`. A script that stands alone
-  stays loose in `scripts/`.
-
 ---
 
 Following these conventions will help maintain readability, consistency, and ensure the codebase remains clean and understandable for all contributors.
