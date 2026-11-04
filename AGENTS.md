@@ -124,8 +124,9 @@ make a new commit. When in doubt, ask the owner in one line whether to amend.
   be" or "here and not there". A docstring must still read correctly when the rebuild is done.
 - **Work still to do goes in a `# TODO` or `# NOTE` comment,** which the owner can search for. Put a tag in brackets
   when several belong together, as in `# TODO(delay):`.
-- **Do not add, migrate or rewrite tests unless asked.** The owner curates the suite. A test that is asked for must
-  fail when its behaviour is broken: reintroduce the defect and confirm it goes red.
+- **Every code change ships with its tests,** reviewed together with the code. Do not migrate or rewrite old tests
+  unless asked: the suite is rebuilt from scratch, see the roadmap. A test must fail when its behaviour is broken:
+  reintroduce the defect and confirm it goes red.
 
 ## The two strains
 

@@ -6,7 +6,27 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** train dense on sparse's reward values at tier 7 on 6x6. Then record spatial's trace (phase 6).
+**Next:** clear out `plot/` and `tests/` (below). Then train dense on sparse's reward values at tier 7 on 6x6, and
+record spatial's trace (phase 6).
+
+**Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. When
+phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does not start until that is finished.
+
+---
+
+## Now: clear out `plot/` and `tests/`
+
+Both are thesis-era and neither says anything about the rebuild. The plot module is specific to the thesis runs and is
+rewritten from scratch in phase 9, much smaller. The tests import the legacy strain, so a green or red run tells
+nothing about the rebuilt code.
+
+1. Delete `src/syn_grid/plot/`, the `extra` dependencies only it needs, and `tests/`.
+2. Make CI, `pytest.ini`, `scripts/tidy.sh` and `CONTRIBUTING.md` agree with it. CI must not fail on an empty suite
+   (pytest exits with code 5 when it collects nothing).
+3. Remove what the docs say about them: the `plot/` and Tests rows in the table below, the two matching traps in
+   `AGENTS.md`, the plot helper's entry in `open-questions.md` (phase 9), and the test line in phase 10.
+
+Nothing else imports `plot/`, and nothing of the legacy comparison needs the old tests. Check both before deleting.
 
 ---
 
@@ -88,6 +108,19 @@ episodes shorten, and each is locked.
    5.84M of 8M steps). Mean reward climbed from -0.43 to about 9.5 over the last 50 logged points, with a peak of
    10.79, and episodes grew from about 6 steps to about 34. A completed chain pays about 13.48 on these values, but
    some layouts cannot pay it; see `open-questions.md`. Left: tier 7 on 6x6.
+
+---
+
+## Phase 6b: Rebuild the test suite
+
+**Produces:** a test suite written from scratch against the rebuilt strain, tight and complete, not large.
+
+Tests written along the way in phase 6 are the start of it. When phase 6 is done, go over what exists, fill the gaps
+and tidy the rest. The owner wants tooling that shows untested paths, such as branch coverage, and mutation testing.
+Which libraries is open.
+
+**Done when:** the suite passes, covers the rebuilt strain's paths, and each test fails when the behaviour it checks is
+broken. Phase 7 starts after this.
 
 ---
 
@@ -181,25 +214,21 @@ theme file, and the observation and the reward are unchanged.
 ## Phase 9: Logging
 
 1. Check the CSVs of a real training run and a real evaluation run.
-2. The `plot/` package becomes a generic helper: it reads a run's CSV (the episode columns `r`, `l`, `t` plus the
-   scenario's metrics), and a user subclasses it for the plots their scenario needs. The thesis plots ship as
-   ready-made subclasses. Its hardcoded paths and the `LogKey` members that are gone are fixed with it. What the base
-   class looks like is open.
+2. Write a small plot helper from scratch that reads a run's CSV (the episode columns `r`, `l`, `t` plus the
+   scenario's metrics) and draws what a scenario needs.
 
-**Done when:** a plot is made from the CSV of a real run, through a subclass.
+**Done when:** a plot is made from the CSV of a real run.
 
 ---
 
 ## Phase 10: Close out
 
-- Tests: the suite is rebuilt from scratch against the new structure, tight and complete, not large. The owner wants
-  tooling that shows untested paths, such as branch coverage, and mutation testing. Which libraries is open.
 - Delete `legacy/`, the `USE_LEGACY` switch and `landscape-changes.md` once the comparison is no longer needed.
 - Write `docs/architecture/` fresh, for people.
 - A naming pass once everything is wired and legacy is gone. The scenario and family names are done, and the
   mechanic's names (`digesters/tier_chain/`, `TierChainPopulation`) stay.
 
-**Done when:** the new test suite passes, and `legacy/` and the `USE_LEGACY` switch are gone and nothing imports
+**Done when:** the test suite still passes, and `legacy/` and the `USE_LEGACY` switch are gone and nothing imports
 them.
 
 ---
