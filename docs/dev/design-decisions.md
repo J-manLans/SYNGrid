@@ -33,7 +33,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
   locked scenarios; one entry per scenario; forks; the negative orb's switch
 - **Observation:** the kept perceptions; no timer; shared readers
-- **Runners and rendering:** the algorithm enum; the policy name; human play; the renderer; window input; continued
+- **Runners and rendering:** the algorithm enum; SB3 specs; the policy name; human play; the renderer; window input; continued
   runs
 
 ---
@@ -1104,6 +1104,23 @@ cloning it and installing it editable, so a user's extension is an edit to their
   imported without being edited, which SYNGrid is not.
 
 **Revisit if:** SYNGrid is published as a library that users install and import without editing its source.
+
+## An SB3 algorithm is a spec in the runner table (2026-11-06)
+
+**Decision:** SYNGrid's SB3 algorithms share one runner, `BaseSB3Runner`. Each is an `SB3Spec` in `RUNNER`: the SB3
+class, the device, what it adds to the shared hyperparameters, and an optional frame stack. Calling a spec with a
+runner bundle makes its runner, so `RUNNER` holds a spec for an SB3 algorithm and a class for a user's own runner
+alike. The eval loop hands every model the recurrent state and the episode starts, which a policy that is not
+recurrent ignores.
+
+**Why:** The runner classes per algorithm were near copies that differed in those four values. SB3's `predict`
+takes the state and the episode starts for every algorithm, so the eval strategies per algorithm solved nothing.
+
+**Rejected:**
+
+- A runner subclass per SB3 algorithm: a file of copies for four values.
+- An execution strategy per algorithm: `predict` already takes the state for all of them.
+- Merging `BaseAgentRunner` into the SB3 runner: it is the extension point for users' runners.
 
 ## The policy's name comes from the algorithm (2026-10-13)
 

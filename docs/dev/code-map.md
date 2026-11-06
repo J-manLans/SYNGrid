@@ -77,12 +77,8 @@ syn_grid/
 │   │   ├── sb3/
 │   │   │   ├── artifact_manager.py
 │   │   │   ├── base_sb3_runner.py
-│   │   │   ├── execution_strategy.py
-│   │   │   ├── frame_stack_ppo.py
-│   │   │   ├── lstm_ppo.py
 │   │   │   ├── policy_resolver.py
-│   │   │   ├── run_controls_callback.py
-│   │   │   └── stateless_ppo.py
+│   │   │   └── run_controls_callback.py
 │   │   ├── utils/
 │   │   │   └── extractors.py
 │   │   ├── base_agent_runner.py
@@ -163,11 +159,12 @@ Outside it: `scripts/replay/` (probe, diff, sweep), `scripts/run_app.sh`, `scrip
    family's catalogue, `scenarios.py`. Its `_compose` assembles the orb bundles, the observation rules, the
    termination, the HUD, the metrics, the watcher and a `WorldRecipe`. The entries differ in their scoring mode, tag
    function and watcher.
-4. `human_control` sends it to `HumanRunner`. Otherwise `runner_registry.build_runner` picks the SB3 runner for the
-   algorithm, and `app.dispatch` snapshots the config, trains or evaluates.
+4. `human_control` sends it to `HumanRunner`. Otherwise `runner_registry.build_runner` calls the algorithm's entry
+   in `RUNNER`, an `SB3Spec` that makes `BaseSB3Runner`, and `app.dispatch` snapshots the config, trains or
+   evaluates.
 5. The runner makes environments with `env_factory.make(scenario, render_mode)`. `base_sb3_runner._make_env` wraps
-   each in `RecordEpisodeStatistics`, the CSV logger and video as configured, then `DummyVecEnv` and `VecNormalize`.
-   `policy_resolver` maps the perception name's prefix to the SB3 policy.
+   each in `RecordEpisodeStatistics`, the CSV logger and video as configured, then `DummyVecEnv` and `VecNormalize`,
+   and `VecFrameStack` if the spec stacks frames. `policy_resolver` maps the perception name's prefix to the SB3 policy.
 
 ## One environment
 
@@ -230,6 +227,8 @@ can use are in `scenario/blocks/readers.py`; the family's own are in `builders.p
   (`config/models/global_models.py`), and a run YAML. A new family adds its catalogue to `SCENARIOS` in `registry.py`.
 - **The HUD and the window:** `scenario/blocks/hud.py` (what is shown), `rendering/pygame_renderer.py` (drawing),
   the runners (window input).
-- **Training, eval, saving:** `runners/agent_runners/sb3/base_sb3_runner.py`, `artifact_manager.py`,
-  `execution_strategy.py`; one subclass per algorithm.
+- **Training, eval, saving:** `runners/agent_runners/sb3/base_sb3_runner.py` (`SB3Spec` and the one SB3 runner) and
+  `artifact_manager.py`. Each SB3 algorithm is an `SB3Spec` in `RUNNER` (`runner_registry.py`).
+- **A runner of your own:** a `BaseAgentRunner` subclass, a member in `Algorithm` (`config/models/runner_models.py`)
+  and an entry in `RUNNER`.
 - **CSV output:** `gymnasium/utils/episode_logging/`.
