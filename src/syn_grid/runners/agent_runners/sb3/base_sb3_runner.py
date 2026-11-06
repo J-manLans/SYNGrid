@@ -1,35 +1,66 @@
-from typing import Any, Final, Generic, TypeVar
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from typing import Any, Final
 
+import numpy as np
 from gymnasium import Env
 from stable_baselines3.common.base_class import BaseAlgorithm
-from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, VecNormalize
+from stable_baselines3.common.vec_env import (
+    DummyVecEnv,
+    VecEnv,
+    VecFrameStack,
+    VecNormalize,
+)
 
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.sb3.artifact_manager import ArtifactManager
-from syn_grid.runners.agent_runners.sb3.execution_strategy import (
-    ExecutionStrategy,
-)
 from syn_grid.runners.agent_runners.sb3.policy_resolver import resolve_policy
 from syn_grid.runners.agent_runners.sb3.run_controls_callback import (
     RunControlsCallback,
 )
 from syn_grid.utils.paths_util import get_project_path
 
-A = TypeVar("A", bound=BaseAlgorithm)
+# ================= #
+#       Spec        #
+# ================= #
 
 
-class BaseSB3Runner(BaseAgentRunner, Generic[A]):
+@dataclass(frozen=True)
+class SB3Spec:
+    """One SB3 algorithm as SYNGrid runs it. Calling it with a runner bundle makes its runner.
+
+    Attributes:
+        algorithm: the SB3 algorithm class, such as `PPO` or `RecurrentPPO`.
+        device: where the model runs. SB3 leaves it out of a saved model, so it has to be stated
+            to continue a run or evaluate one.
+        hyper_parameters: what this algorithm adds to the shared hyperparameters, such as its
+            `policy_kwargs`.
+        frame_stack: how many observations are stacked into one, for short-term memory without
+            a recurrent policy. None stacks nothing.
     """
-    Shared orchestration for every SB3-backed agent runner.
 
-    train() and eval() are template methods: the flow lives here once.
-    Concrete agents (StatelessPPO, FrameStackPPO, LstmPPO, ...) configure
-    this class with their algorithm, hyperparameters, and an execution
-    strategy for eval-time action selection, then only override `_build_env`
-    if they need extra env wrapping on top of the shared normalized-vec-env
-    pipeline (see FrameStackPPO). No agent should ever reach into another
-    agent's internals -- everything an agent needs, it supplies here.
+    algorithm: type[BaseAlgorithm]
+    device: str
+    hyper_parameters: Mapping[str, Any] = field(default_factory=dict)
+    frame_stack: int | None = None
+
+    def __call__(self, runner_bundle: RunnerBundle) -> "BaseSB3Runner":
+        return BaseSB3Runner(runner_bundle, self)
+
+
+# ================= #
+#      Runner       #
+# ================= #
+
+
+class BaseSB3Runner(BaseAgentRunner):
+    """
+    Trains and evaluates any SB3 algorithm, as its `SB3Spec` describes it.
+
+    Every algorithm shares the flow: a vectorized env, normalized and stacked if the spec asks,
+    a model made or loaded, and an eval loop that carries a recurrent policy's state between
+    steps. A policy that is not recurrent is handed the same state and ignores it.
     """
 
     # ================= #
@@ -45,28 +76,21 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
         "n_epochs": 4,
     }
 
-    def __init__(
-        self,
-        runner_bundle: RunnerBundle,
-        hyper_parameters: dict[str, Any],
-        algorithm: type[A],
-        execution_strategy: ExecutionStrategy,
-    ):
-        if not hyper_parameters.get("device"):
-            raise ValueError(
-                "You must specify 'device' in the agent's hyper parameters. It is the "
-                "only hyperparameter SB3 excludes from the artifact, so it cannot be "
-                "recovered when continuing from a checkpoint or when evaluating."
-            )
-
+    def __init__(self, runner_bundle: RunnerBundle, spec: SB3Spec):
         super().__init__(runner_bundle)
-        self._execution_strategy = execution_strategy
+        self._spec = spec
+        print(f"Initializing {spec.algorithm.__name__}...")
 
-        policy = resolve_policy(self.scenario.observation.perception, algorithm)
-        hyper_parameters = {"policy": policy, **hyper_parameters}
+        policy = resolve_policy(self.scenario.observation.perception, spec.algorithm)
+        hyper_parameters = {
+            "policy": policy,
+            **self._SHARED_HYPER_PARAMETERS,
+            "device": spec.device,
+            **spec.hyper_parameters,
+        }
 
-        self._artifact_manager: ArtifactManager[A] = ArtifactManager(
-            algorithm=algorithm,
+        self._artifact_manager = ArtifactManager(
+            algorithm=spec.algorithm,
             hyper_parameters=hyper_parameters,
             model_dir=self._model_dir,
             vec_norm_stats_dir=self._init_vec_norm_stats_dir(),
@@ -94,16 +118,17 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
     # ================= #
 
     def _build_env(self, render_mode: str | None, sub_dir: str) -> VecEnv:
-        """
-        Build the vectorized env this agent trains/evaluates on.
+        """The vectorized env a run trains or evaluates on: normalized, then stacked if the
+        spec asks for it."""
 
-        Default pipeline: a DummyVecEnv wrapped with VecNormalize, shared by
-        every current agent. Override and call `super()._build_env(...)`
-        first to layer additional wrappers on top (see FrameStackPPO).
-        """
+        env: VecEnv = self._resolve_normalized_env(
+            self._make_dummy_vec_env(render_mode, sub_dir)
+        )
 
-        env = self._make_dummy_vec_env(render_mode, sub_dir)
-        return self._resolve_normalized_env(env)
+        if self._spec.frame_stack is not None:
+            env = VecFrameStack(env, self._spec.frame_stack)
+
+        return env
 
     # ================= #
     #      Helpers      #
@@ -163,10 +188,9 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
         record_episode_stats = self._runner_conf.training or csv_output
 
         if record_episode_stats:
-            env = self._wrap_record_episode_statistics(env)
-
-        if csv_output:
-            env = self._wrap_episode_csv_logger(env, sub_dir, env_idx)
+            env = self._wrap_episode_stats(
+                env, csv_sub_dir=sub_dir if csv_output else None, env_idx=env_idx
+            )
 
         if env_idx == 0:
             env = self._maybe_wrap_video(env)
@@ -190,7 +214,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
 
     # === Model === #
 
-    def _resolve_training_model(self, env: Env | VecEnv) -> A:
+    def _resolve_training_model(self, env: Env | VecEnv) -> BaseAlgorithm:
         if self._is_fresh_training_run:
             # If enabled, start TensorBoard with: tensorboard --logdir results/logs/<env_name>
             tensorboard_log = (
@@ -207,7 +231,7 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
 
     # === Train === #
 
-    def _train_model(self, model: A, env: VecEnv):
+    def _train_model(self, model: BaseAlgorithm, env: VecEnv):
         """Train the model for the configured number of iterations and save progress."""
 
         debugging_callback = (
@@ -239,13 +263,13 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
             env.close()
             self._play_training_stopped_sound()
 
-    def _maybe_save_model(self, model: A, env: VecEnv) -> None:
+    def _maybe_save_model(self, model: BaseAlgorithm, env: VecEnv) -> None:
         if self._train_conf.model_output:
             self._artifact_manager.save_model(model, env, self.get_unique_model_id())
 
     # === Eval === #
 
-    def _eval_model(self, env: VecEnv, model: A):
+    def _eval_model(self, env: VecEnv, model: BaseAlgorithm):
         obs = env.reset()
         try:
             num_episodes = self._eval_conf.num_eval_episodes
@@ -259,16 +283,24 @@ class BaseSB3Runner(BaseAgentRunner, Generic[A]):
                 if renderer is not None:
                     renderer.set_title(f"SYNGrid · episode {episode}/{num_episodes}")
 
-                self._execution_strategy.reset(env.num_envs)
+                # A recurrent policy's state, and which envs start an episode, carried between steps
+                state = None
+                episode_start = np.ones((env.num_envs,), dtype=bool)
+
                 while True:
                     if renderer is not None:
                         player_quit = self._handle_run_controls(renderer)
                         if player_quit:
                             return
 
-                    action = self._execution_strategy.predict(model, obs)
+                    action, state = model.predict(
+                        obs,  # type: ignore[arg-type]
+                        state=state,
+                        episode_start=episode_start,
+                        deterministic=True,
+                    )
                     obs, _, dones, _ = env.step(action)
-                    self._execution_strategy.on_step(dones)
+                    episode_start = dones
 
                     if dones[0]:
                         break

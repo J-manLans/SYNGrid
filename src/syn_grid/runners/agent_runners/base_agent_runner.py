@@ -16,6 +16,27 @@ from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
 
 class BaseAgentRunner(ABC):
+    """
+    What every agent runner shares, and the base for a runner of your own.
+
+    A runner implements `train` and `eval`. It is made from a `RunnerBundle`, which holds the
+    scenario and the runner config, and registered with a member in `Algorithm`
+    (`config/models/runner_models.py`) and an entry in `RUNNER` (`runner_registry.py`).
+
+    It gets, ready to use:
+
+    - output folders for models and logs, named after the scenario.
+    - the run's id, from the perception, the seed, the scenario's tag, the config's tag and the
+      algorithm, through `get_unique_model_id`.
+    - the scenario's env, from `_make_raw_env`, and the wrappers SYNGrid's runs use: episode
+      statistics with the CSV episode logger on top if asked (`_wrap_episode_stats`), and video
+      recording as the config asks (`_maybe_wrap_video`).
+    - the run controls of a run with a human renderer: Space pauses, Escape or closing the window
+      quits.
+    - finding the latest saved file of the configured steps and id, and a sound when training
+      stops.
+    """
+
     # ================= #
     #       Init        #
     # ================= #
@@ -93,34 +114,32 @@ class BaseAgentRunner(ABC):
 
     # === Wrappers === #
 
-    # --- Logger ---#
-
-    def _wrap_record_episode_statistics(self, env: Env) -> Env:
+    def _wrap_episode_stats(
+        self, env: Env, csv_sub_dir: str | None = None, env_idx: int = 0
+    ) -> Env:
         """
-        Wrap the environment with Gymnasium's episode statistics wrapper. It records episode reward, length, and elapsed time.
-        """
+        Record each episode's reward, length and time, and log them to CSV if asked.
 
-        return RecordEpisodeStatistics(env)
-
-    def _wrap_episode_csv_logger(self, env: Env, sub_dir: str, env_idx: int = 0) -> Env:
-        """
-        Log standard and SYNGrid episode statistics to CSV.
-
-        Expects the environment to provide episode statistics through
-        ``RecordEpisodeStatistics``.
+        The statistics are Gymnasium's `RecordEpisodeStatistics`, which SB3's training logs read
+        too. The CSV logger reads them, so it always goes on top of them, with the scenario's
+        metrics beside them.
 
         Args:
             env: Environment to wrap.
-            sub_dir: Sub-directory (under the run's log dir) to write the CSV into.
-            env_idx: Index of this environment among parallel environments, if
-                running more than one. Appended to the filename so each parallel
-                environment writes to its own file instead of colliding on one.
-                Defaults to 0, which is all a single-environment runner needs.
+            csv_sub_dir: Sub-directory, under the run's log dir, to write the CSV into. None
+                writes no CSV.
+            env_idx: Index of this environment among parallel environments. Appended to the CSV
+                file's name, so each environment writes its own file.
         """
+
+        env = RecordEpisodeStatistics(env)
+
+        if csv_sub_dir is None:
+            return env
 
         return CSVEpisodeLogger(
             env,
-            self._log_dir / sub_dir,
+            self._log_dir / csv_sub_dir,
             self.get_unique_model_id(),
             tuple(metric.name for metric in self.scenario.metrics),
             env_idx,

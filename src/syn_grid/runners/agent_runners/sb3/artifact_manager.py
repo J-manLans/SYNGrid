@@ -12,26 +12,21 @@ each half once asked.
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Generic, TypeVar
+from typing import Any
 
 from gymnasium import Env
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.vec_env import VecEnv, VecNormalize, unwrap_vec_normalize
 
-# TODO: there was some python version that simplified this pattern, was it 12 ,13 or 14? because I
-# think I want it, I don't like locking at this, look into it when the time for upgrading version
-# comes.
-A = TypeVar("A", bound=BaseAlgorithm)
 
-
-class ArtifactManager(Generic[A]):
+class ArtifactManager:
     # ================= #
     #       Init        #
     # ================= #
 
     def __init__(
         self,
-        algorithm: type[A],
+        algorithm: type[BaseAlgorithm],
         hyper_parameters: dict[str, Any],
         model_dir: Path,
         vec_norm_stats_dir: Path,
@@ -67,7 +62,7 @@ class ArtifactManager(Generic[A]):
 
     def create_model(
         self, env: Env | VecEnv, tensorboard_log: str | None, seed: int
-    ) -> A:
+    ) -> BaseAlgorithm:
         return self._algorithm(
             env=env,
             verbose=1,
@@ -76,7 +71,7 @@ class ArtifactManager(Generic[A]):
             **self._hyper_parameters,
         )
 
-    def load_model(self, env: Env | VecEnv, seed: int | None) -> A:
+    def load_model(self, env: Env | VecEnv, seed: int | None) -> BaseAlgorithm:
         model_path = self._find_latest_saved_path(self._model_dir)
         model = self._algorithm.load(
             path=model_path, env=env, device=self._hyper_parameters["device"]
@@ -89,7 +84,7 @@ class ArtifactManager(Generic[A]):
             )
         return model
 
-    def save_model(self, model: A, env, unique_model_id: str) -> None:
+    def save_model(self, model: BaseAlgorithm, env, unique_model_id: str) -> None:
         checkpoint = f"{model.num_timesteps}_{unique_model_id}.zip"
         model_path = self._model_dir / checkpoint
         model.save(model_path)
