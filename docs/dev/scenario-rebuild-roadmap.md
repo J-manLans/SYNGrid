@@ -20,8 +20,8 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 
 | Part | State | Has it run |
 |---|---|---|
-| Spatial: entry, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; the locked path run by a script, step for step the same as before |
-| Scaling sparse: entry, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
+| Spatial: entry, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; RPPO on seed 3 reached about 8.5 of a ceiling of about 9.02, with episodes of about 15 steps; the locked path run by a script, step for step the same as before |
+| Scaling sparse: entry, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; checked by the owner at more than one `max_tier`; the locked path run by a script, step for step the same as before |
 | Scaling dense: entry, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; learned: PPO, one seed, on sparse's reward values at tier 7 on 5x5 and on 6x6, and on the thesis values at tier 7 on 6x6 |
 | The lock: entries, tunables, merge, perception check | written; entries moved into each family's catalogue, the four traces unchanged | run, by a script; played in human mode; learned: dense, through its tunables and base config |
 | Delay: entry, base config, run YAML, `DelayWatcher`, `max_steps` from the delay | written; locked, with the delay, the negative orb's switch and the perception as its tunables | run: through the probe (200 episodes, and 50 with `max_steps` from the delay), `check_env`, and 300 random-action episodes (silences of 30 to 33 steps, no orb back in another cell); trained on the thesis-era termination at a delay of 30, and behaves like the thesis delay-30 run; learned: PPO, seed 3, a break ending the episode, 50 spare steps: at a break penalty of −0.1 at delays of 30, 70, 130, 260 and 390, and at −0.5 at 130, 260 and 390; the family's termination in place of `DelayTermination` matched it step for step in the probe |
@@ -29,7 +29,7 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
 | Threshold digester | written | run, by a script through the environment |
-| Negative orb: digester, population, bundle | written | learned; played in human mode in spatial, sparse and dense; `negatives_eaten` was never read over a run |
+| Negative orb: digester, population, bundle | written | learned; played in human mode in spatial, sparse and dense; `negatives_eaten` read by the owner at the end of a human run, and correct |
 | `SingleTierChainTermination` | written; every scenario in the family uses it | learned before the refactor; the three locked traces unchanged after it |
 | Droid, engine, `GridWorld`, orbs, timer | written | learned |
 | Environment | written | learned; `check_env` passes |
@@ -75,11 +75,7 @@ episodes shorten, and each is locked.
 
 ### What is left, scenario by scenario
 
-1. **Spatial.** The ceiling on 5x5 is about 9.02 (tiers 1 to 3 worth `1 + 2^1.5 + 3^1.5`,
-   less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps.
-2. **Scaling sparse.** Verify at more than one `max_tier`.
-3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
-4. **Delay.** Write delay's tests, and record its locked trace.
+1. **Delay.** Write delay's tests, and record its locked trace.
 
 ---
 
