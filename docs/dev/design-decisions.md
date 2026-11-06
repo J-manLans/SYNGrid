@@ -31,7 +31,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
   mechanics in strategies; the step result and the watcher; delay's ending; delay's values; delay's episode length; delay's frozen orbs;
   episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
-  locked scenarios; forks; the negative orb's switch
+  locked scenarios; one entry per scenario; forks; the negative orb's switch
 - **Observation:** the kept perceptions; no timer; shared readers
 - **Runners and rendering:** the algorithm enum; the policy name; human play; the renderer; window input; continued
   runs
@@ -96,7 +96,7 @@ each is configured, but does not own their code. The droid never imports a concr
 - One scenario method that returns every digester: adding an optional orb kind would then mean editing it as well as
   adding the bundle.
 - `get` returning `None`, an unrouted orb paying 0, or a second digester replacing the first: each can only come from
-  a builder wired wrong, and each would go unnoticed. A metric reading 0 because its digester is missing looks like
+  a scenario wired wrong, and each would go unnoticed. A metric reading 0 because its digester is missing looks like
   one reading 0 because nothing was eaten.
 
 ## Digesters do not talk to each other (2026-10-12)
@@ -125,7 +125,7 @@ learning curve can be read.
 
 **Revisit if:** an orb has to change what another kind pays (see "Effect orbs get their magic from the engine" in
 `codebase-ideas.md`), something has to react to what happened and not only to what it paid, or a scenario wants an
-existing kind to break chains, in which case the builder hands the tier digester the set of breaking kinds.
+existing kind to break chains, in which case the scenario's entry hands the tier digester the set of breaking kinds.
 
 ## The tier digester is a template with one subclass per scoring mode (2026-10-15)
 
@@ -139,14 +139,14 @@ subclass what that pays, counts it and moves the chain:
 A mode writes `_score_progress`, `_score_break` and `_score_completion`, each handed the orb and called before the
 chain moves, and `undigested`, what the chain has gathered and not paid. The base holds what readers take:
 `chain_tier`, `chain_worth`, and the counters `chains_progressed`, `chains_broken` and `chains_completed`, as plain
-public attributes. The base takes `max_tier`; each mode takes what it pays with. The builder picks the subclass.
+public attributes. The base takes `max_tier`; each mode takes what it pays with. The scenario's entry picks the subclass.
 
 **Why:** Adding a mode is adding a class, not editing one that works. A scenario loads only its mode, and each mode
 can be tried alone.
 
 **Rejected:**
 
-- One digester with a `ScoringMode` enum and a branch per mode (the reference): the builder already decides the mode,
+- One digester with a `ScoringMode` enum and a branch per mode (the reference): the scenario's entry already decides the mode,
   so the enum states it twice, and it is a conditional in the wrong component.
 - The orb carrying its own scoring (the old engine): orbs are the same in every mode.
 - `max_tier` read off the orb (legacy): `TierOrb` does not store it.
@@ -193,8 +193,8 @@ reward, then reward normalisation).
 
 ## A new scoring mode is a new scenario (2026-10-11)
 
-**Decision:** Scoring mode is not config. A different mode is a new registered scenario with its own builder, reusing
-the family helper. The continuous sandbox is the exception.
+**Decision:** Scoring mode is not config. A different mode is a new registered scenario, an entry of its own in the family's
+catalogue. The continuous sandbox is the exception.
 
 **Why:** The scenario name is the run's identity: run ids, result folders and comparisons hang on it. A mode in config
 would let two runs of one name pay differently.
@@ -207,8 +207,8 @@ the digesters.
 ## A tier bundle makes its digester from a frozen recipe (2026-10-14)
 
 **Decision:** A tier bundle's `make_digester` is a `TierDigesterRecipe`, a frozen dataclass of `scoring_mode` (the
-tier digester class), `max_tier` and `chain_break_penalty`. Calling it returns a new digester. A builder states its
-mode by naming the class, through `_tier_bundle`. A digester whose constructor takes no values, as `NegDigester`, is
+tier digester class), `max_tier` and `chain_break_penalty`. Calling it returns a new digester. A scenario's entry states its
+mode by naming the class as `scoring`, which reaches `_tier_bundle`. A digester whose constructor takes no values, as `NegDigester`, is
 its own `make_digester`; there is no recipe base class.
 
 `scenario/blocks/recipes/` holds every recipe: a frozen object a scenario holds that makes something with episode
@@ -230,7 +230,7 @@ variable to Pyright and does not satisfy the protocol's instance variable.
 
 - A `functools.partial`: two partials never compare equal.
 - A module-level function per mode: it has nowhere to get `max_tier` and the penalty.
-- The recipe in the family's builders, or in `core/`: it holds nothing of the family, and core is handed digesters.
+- The recipe in the family's `builders.py`, or in `core/`: it holds nothing of the family, and core is handed digesters.
 - Recipes handed down a layer at a time (the world given a droid maker, the droid given digester recipes): nothing is
   gained, and it puts makers in core's constructors.
 - Inheriting from the digester protocol: Pyright refuses to assign a `Final` the parent declares, and a subclass that
@@ -509,7 +509,7 @@ count is not config.
 
 Every population states how many orbs it makes, through `count`. A fixed field sums its bundles' counts for the field
 size, the observation slots and the sort limit. In a sampled field the field size comes from the config, the counts
-are the pool, and the family's builder apportions the pool.
+are the pool, and the family's entry type apportions the pool.
 
 **Why:** Each block holds only what its family reads. A weight means something only relative to other weights in one
 pool.
@@ -520,7 +520,7 @@ pool.
 - `weight` as a continuous-only idea: a goal scenario can have a sampled field.
 - One pool block listing every weight: a kind's block should stay self-contained.
 - A configurable number of negative orbs in a tier chain: one is enough.
-- A tally kept by hand in the helper: a forgotten `+= 1` leaves the observation a slot short with no error.
+- A tally kept by hand in the family's entry type: a forgotten `+= 1` leaves the observation a slot short with no error.
 - `len(population.create())`: it makes orbs only to count them.
 
 ## The world runs the orb field, and a scenario states only its size (2026-10-13)
@@ -637,7 +637,7 @@ cool-down.
 
 **Decision:** Delay uses `SingleTierChainTermination`, as every scenario in the family does: a broken chain ends the
 episode at `chain_break_penalty`, and there is no ending for eating every tier orb. The termination is one
-`evaluate`, with no methods for a variant to override, and the builders' helper takes no termination.
+`evaluate`, with no methods for a variant to override, and a scenario's entry names no termination.
 
 **Why:** Delay started on legacy's final ending, a subclass that kept a broken chain open and ended at half the
 timeout penalty when every tier orb was eaten, and the ablations walked it towards the family's. Legacy kept the
@@ -787,15 +787,17 @@ episode's leftovers. The cost: a type checker sees attributes declared outside `
 
 # Scenarios and config
 
-## The scenario package is blocks, families, a registry and a scenario (2026-10-12)
+## The scenario package is blocks, families, an entry, a registry and a scenario (2026-11-06)
 
 **Decision:** `scenario/` holds:
 
 - `blocks/`: what a scenario is made of that no family owns, the interfaces and rule classes as files, and the
   shared implementations in `populations/` and `recipes/`.
 - `families/`: the scenarios. A group such as `goal/` holds what its families share; a family folder such as
-  `single_tier_chain/` holds its config models, builders and its own strategies.
-- `registry.py`, which selects a scenario by name, and `scenario.py`, the `Scenario`.
+  `single_tier_chain/` holds its config models, its entry type and how it composes (`builders.py`), its catalogue
+  of entries (`scenarios.py`) and its own strategies.
+- `entry.py`, the entry every family subclasses; `registry.py`, which collects the catalogues and selects a scenario
+  by name; and `scenario.py`, the `Scenario`.
 
 A strategy only one family uses stays with that family.
 
@@ -821,7 +823,7 @@ ScenarioConf                    world_conf, obs_conf
 ```
 
 Each world model has a scenario model that narrows `world_conf` to it. Each orb kind has its own `*_orb_conf` block,
-mirroring `OrbBundle`. `SCENARIOS` in `scenario/registry.py` gives a name its config class and builder.
+mirroring `OrbBundle`. A scenario's entry gives it its config class (see "A scenario is one entry in its family's catalogue").
 
 **Why:** The config tree and the scenario tree are one tree, so a builder and its config are found in one folder.
 
@@ -874,7 +876,7 @@ scenario whose tier orbs return is not a single chain and belongs in another fam
 ## The family is named single tier chain (2026-10-26)
 
 **Decision:** The family's names say what it guarantees: `scenario/families/goal/single_tier_chain/`,
-`build_single_tier_chain_*`, `_single_tier_chain_scenario`, `SingleTierChainTermination`, the scenario names
+`SingleTierChainEntry`, `SINGLE_TIER_CHAIN_SCENARIOS`, `SingleTierChainTermination`, the scenario names
 `GOAL_SINGLE_TIER_CHAIN_*` and `goal_single_tier_chain_*.yaml`. The mechanic's names describe the orbs and stay:
 `digesters/tier_chain/`, `TierChainPopulation`, the HUD label `current tier chain`.
 
@@ -884,22 +886,23 @@ The scenario name is also the runner's output folder, so runs from before the re
 `single_color_chain`.
 
 **Rejected:** `tier_chain` (the mechanic's name too); `single_chain` (it leaves out which chain); waiting for the naming
-pass (phase 6 adds three builders to the family).
+pass (phase 6 adds three scenarios to the family).
 
-## A locked scenario is a base config and its tunables in front of its builder (2026-10-29)
+## A locked scenario is a base config and its tunables in front of its entry (2026-11-06)
 
-**Decision:** A builder takes its scenario's full config. A locked scenario is three things:
+**Decision:** A scenario is composed from its full config. A locked scenario is three things:
 
-- **Its builder:** what no value changes, such as the scoring mode, the termination and the HUD.
+- **Its entry:** what no value changes, such as the scoring mode, the termination and the HUD.
 - **Its base config:** the full config that was run, as a read-only YAML in the package.
 - **Its tunables:** a model, frozen, strict and `extra="forbid"`, holding only what a run may set, under the full
   model's field names and nesting.
 
 A locked run's YAML is validated against its tunables and merged onto the base config, and the result is validated
-as the full model and handed to the builder. A YAML that states a fixed value is rejected. Nothing below the registry
+as the full model and composed by the entry. A YAML that states a fixed value is rejected. Nothing below the registry
 knows whether a scenario is locked. A scenario that is not locked, the sandbox and a fork load the full model.
 
-A scenario's entry holds its full model, its builder, the perceptions with its visibility, and an optional lock: the
+A scenario's entry holds its full model, the perceptions with its visibility, an optional lock and what its family
+composes it from: the
 tunables and the base config, as `Lock.scenario_tunables` and `Lock.base_config_path`. A tunables model is named after
 its scenario, as `SpatialScenarioConf`; scaling sparse and
 dense are configured alike and share `ScalingScenarioConf`. The entry does the merge, and checks the perception on every
@@ -910,7 +913,7 @@ idea.
 A scenario is locked once its runs learn in the same general direction as legacy.
 
 **Why:** The values that make a scenario are data, so they live in a file that a person and a GUI can read, with
-comments, and one merge serves every locked scenario. A builder that takes the full config serves a locked run and a
+comments, and one merge serves every locked scenario. An entry that composes from the full config serves a locked run and a
 fork alike. The tunables model is what a GUI draws the form from, and the base config is what it shows read-only and
 copies into a fork. The fixed values pass the same validation as any YAML's.
 
@@ -918,7 +921,7 @@ copies into a fork. The fixed values pass the same validation as any YAML's.
 
 - The full config made by a function per scenario from constants: the values are data written as code, the
   functions repeat each other, and the fixed values cannot be read without a run's tunables.
-- The builder taking the tunables model: a fork would have no builder that accepts it.
+- The entry composing from the tunables model: a fork would have nothing that accepts it.
 - "Small model" and "a run's choices" as the words, with `choices_class` on the lock: three names for one
   thing, and none says what it is for.
 - The merge in `ConfigManager`: it would have to know what a lock is.
@@ -927,9 +930,45 @@ copies into a fork. The fixed values pass the same validation as any YAML's.
 - JSON for the configs: it loses the comments, and a GUI goes through the models whatever the file format.
 - Fixed values as defaults on the models: a default can be overridden, so two runs of one name could differ.
 - A narrow class and a tunable subclass per block: no single narrow class suits every scenario.
-- Thinning the base models: the helper and `WorldRecipe` would read from two sources.
+- Thinning the base models: the family's entry type and `WorldRecipe` would read from two sources.
 - One full model for all, with a GUI choosing fields: the per-scenario list would live in the wrong layer, and the
   YAML could still set anything.
+
+## A scenario is one entry in its family's catalogue (2026-11-06)
+
+**Decision:** A scenario is one entry, which states the whole of it: its full config model, the perceptions with its
+visibility, its lock, and what its family composes it from. `ScenarioEntry` in `scenario/entry.py` is the base: it
+holds what every family shares, does the merge and the checks, and leaves `_compose` to the family. Each family
+subclasses it once, with the fields its scenarios differ by: `SingleTierChainEntry` takes a scoring mode, a tag
+function and an optional watcher recipe, and composes everything the family shares. A family's catalogue,
+`scenarios.py` in its folder, holds its entries, each with what the scenario tests as a comment above it. The
+registry collects the catalogues into `SCENARIOS` and looks a name up there; it knows nothing of any family.
+
+A family's `builders.py` is how the family composes: its entry type, its tag functions, its readers and its bundle
+helpers. Its catalogue is which scenarios it has. A watcher that needs a value from the config is named by a
+function of the config, as `DelayWatcherRecipe.from_conf`.
+
+**Why:** A scenario was split three ways: a builder held its tag and scoring, the registry entry its visibility and
+lock, and the base config its values. The builders were nearly copies, and the visibility sat in the registry only
+because a fork, which has no lock, must still be held to it. One entry per scenario says what a scenario is in one
+place, and the per-scenario functions go. A family's catalogue grows with the family; a registry that held every
+family's entries would import every family's internals and grow without bound. The base class lives outside the
+registry, since the catalogues build entries and the registry imports the catalogues. The catalogue is apart from the
+machinery because they change for different reasons: a scenario added or locked, against how the family composes.
+
+**Rejected:**
+
+- A builder function per scenario: the bodies repeat each other, and the scenario is split from its visibility.
+- The family's fields on a generic entry: a scoring mode means nothing to another family.
+- A generic entry holding a family record in a builder slot: two objects per scenario where one does.
+- Every family's entries in `registry.py`: the registry imports every family and grows with each scenario.
+- The entry types in `registry.py`: the catalogues and the registry would import each other.
+- The entry types in `scenario.py` or `scenario/blocks/`: `scenario.py` is the built `Scenario`, and the blocks are
+  the parts a scenario is made of, not what stands in front of one.
+- The catalogue at the bottom of `builders.py`: it mixes which scenarios exist with how they are composed.
+
+**Revisit if:** a family's scenarios differ by more than a few fields, or a second family's entry type repeats the
+first's.
 
 ## A locked scenario is what was run, and changing it makes a different scenario (2026-10-29)
 
@@ -948,7 +987,7 @@ drawn in the YAML: a fork changes what it likes under a name of its own. `max_st
 only how long the droid has, and the tag keeps two runs that differ in it apart.
 
 **Rejected:** `max_tier` tunable with the tag recording it ("spatial" would name a family, not a test); every value
-left in the YAML (the file is both the reference and the thing edited); a builder and a registry entry for each
+left in the YAML (the file is both the reference and the thing edited); an entry for each
 variant (a change of values needs no code); `max_steps` fixed at 100 (a large grid cannot be searched in it);
 `max_steps` worked out from the grid (the thesis sparse runs had 100 steps on both 5x5 and 6x6, which no per-cell rule
 gives, and the full model would hold a rule where it holds a number).
@@ -956,12 +995,12 @@ gives, and the full model would hold a rule where it holds a number).
 ## A fork is a full config with a name and a parent (2026-10-29)
 
 **Decision:** Changing a locked scenario beyond its axis makes a fork: its base config copied, any value edited, and
-saved with a name of its own and the scenario it came from. A fork is built by its parent's builder, so it keeps the
+saved with a name of its own and the scenario it came from. A fork is built by its parent's entry, so it keeps the
 parent's scoring mode, termination and HUD, and its perception is held to the parent's visibility. Its runs are filed
 under its own name.
 
 A fork is data. Saving one writes a YAML into a user folder outside `src/`, gitignored by default, and the registry
-reads that folder beside its own entries. A fork whose parent is not registered is an error that names the file.
+reads that folder beside the families' catalogues. A fork whose parent is not registered is an error that names the file.
 Changing a mechanic, such as the scoring mode, the termination or an orb kind, makes a new scenario, in code.
 
 **Why:** A fork lets someone push a model past a scenario without changing what the scenario's name means. Values are
@@ -972,7 +1011,7 @@ recreate, so ignoring it by default costs little, and a user who wants it in git
 **Rejected:**
 
 - A fork choosing any perception: it would no longer test what its parent tests.
-- A general builder that takes any values: the scoring mode would become config (see "A new scoring mode is a new
+- A general entry that takes any values: the scoring mode would become config (see "A new scoring mode is a new
   scenario").
 - Forks under `src/syn_grid/config/yaml/`: they would read as part of the benchmark, and an installed package is no
   place to write.
@@ -1001,7 +1040,7 @@ grid does not test spatial).
 
 **Decision:** `vector_markovian` and `vector_fog_of_war` observe the droid's position and one block per orb slot
 (active flag, row, column, identity), and no global values: no steps left, score, chain tier or orb timer. The single
-tier chain builders set `global_features=()`.
+tier chain family sets `global_features=()`.
 
 **Why:** The owner ablated an observation like `vector_markovian_easy` one value at a time and removed every value
 without which the agent did as well or better. A value the agent does not need costs input and gives the policy
@@ -1029,7 +1068,7 @@ stateless-versus-memory difference the benchmark measures. Chain progress is not
 **Decision:** A number the HUD shows and the observation carries is read by the same module-level reader, and each
 consumer lists it in its own tuple: a `HudBar` or `HudStat` in `hud`, a `GlobalFeature` in
 `ObservationRules.global_features`. Readers every scenario can use are in `scenario/blocks/readers.py`; a family's own
-sit beside its builder.
+sit in its `builders.py`.
 
 **Why:** The two diverge on purpose: the HUD shows energy, score, steps left and the chain, and the observation none.
 The HUD needs a label and a bound only for a bar; the observation always needs a bound and a fixed order, and score

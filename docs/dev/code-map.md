@@ -117,9 +117,11 @@ syn_grid/
 │   │       │   │   └── spatial.yaml
 │   │       │   ├── builders.py
 │   │       │   ├── config.py
+│   │       │   ├── scenarios.py
 │   │       │   ├── termination.py
 │   │       │   └── watcher.py
 │   │       └── config.py
+│   ├── entry.py
 │   ├── registry.py
 │   └── scenario.py
 ├── utils/
@@ -140,7 +142,8 @@ Outside it: `scripts/replay/` (probe, diff, sweep), `scripts/run_app.sh`, `scrip
   tier) and a timer.
 - **`scenario/`** composes a world from parts and knows no Gymnasium. A `Scenario` is a frozen recipe: observation
   rules, termination rules, HUD, metrics, `build_world` and `make_watcher`. `blocks/` holds the shared parts,
-  `families/` the builders and configs per family, and `registry.py` maps a `ScenarioName` to its entry.
+  `families/` each family's configs, entry type and catalogue of entries, `entry.py` the entry every family
+  subclasses, and `registry.py` collects the catalogues and maps a `ScenarioName` to its entry.
 - **`gymnasium/`** adapts a `Scenario` to the Gymnasium API: `SYNGridEnv`, the perceptions, the CSV logger.
 - **`runners/`** drive an environment: SB3 agents for training and eval, and human play.
 - **`rendering/`** draws plain values it is handed. **`config/`** holds the Pydantic models and the run YAMLs.
@@ -151,13 +154,15 @@ Outside it: `scripts/replay/` (probe, diff, sweep), `scripts/run_app.sh`, `scrip
 
 1. `__main__.py` picks the strain with `USE_LEGACY`, then calls `app.main`.
 2. `app.main` registers `syn_grid-v0` (`gymnasium/utils/env_factory.py`) and loads three configs through
-   `ConfigManager`: `global_config.yaml` names the scenario; the scenario's run YAML goes through its registry entry's
+   `ConfigManager`: `global_config.yaml` names the scenario; the scenario's run YAML goes through its entry's
    `full_conf`, which for a locked scenario checks it against the tunables model and merges it onto
    `families/goal/single_tier_chain/base_configs/<name>.yaml`; `runner_config.yaml` picks the algorithm.
-3. `build_scenario` (`scenario/registry.py`) checks the config class and the allowed perception, then calls the
-   builder in `families/goal/single_tier_chain/builders.py`. Every builder of the family goes through
-   `_single_tier_chain_scenario`, which assembles the orb bundles, the observation rules, the termination, the HUD,
-   the metrics and a `WorldRecipe`. The builders differ in the scoring mode they hand `_tier_bundle` and in the tag.
+3. `build_scenario` (`scenario/registry.py`) looks the name up in `SCENARIOS` and calls its entry's `build`
+   (`scenario/entry.py`), which checks the config class and the allowed perception, then calls `_compose`. Every
+   entry of the family is a `SingleTierChainEntry` (`families/goal/single_tier_chain/builders.py`), listed in the
+   family's catalogue, `scenarios.py`. Its `_compose` assembles the orb bundles, the observation rules, the
+   termination, the HUD, the metrics, the watcher and a `WorldRecipe`. The entries differ in their scoring mode, tag
+   function and watcher.
 4. `human_control` sends it to `HumanRunner`. Otherwise `runner_registry.build_runner` picks the SB3 runner for the
    algorithm, and `app.dispatch` snapshots the config, trains or evaluates.
 5. The runner makes environments with `env_factory.make(scenario, render_mode)`. `base_sb3_runner._make_env` wraps
@@ -197,17 +202,17 @@ perception is reset and writes the first observation.
 
 **Who reads what:** termination, the HUD readers and the metrics all read the world. What a digester counts is
 reached with `world.droid.get_digester(TierDigester)`, which finds the registered subclass. The readers every scenario
-can use are in `scenario/blocks/readers.py`; the family's own are at the bottom of `builders.py`.
+can use are in `scenario/blocks/readers.py`; the family's own are in `builders.py`.
 
 ## Where to look
 
 - **What a tier orb pays and when:** `core/droid/digestion/digesters/tier_chain/`. `tier_digester.py` tracks the
   chain; each scoring mode is a subclass. Spatial and sparse use `MaxTierDigester`, dense `ThresholdDigester`.
-  `StepWiseDigester` is for the continuous scenarios, which have no builder yet.
+  `StepWiseDigester` is for the continuous scenarios, which have no entry yet.
 - **The negative orb:** `core/orbs/direct/negative_orb.py`, its digester `neg_digester.py`, its population
   `scenario/blocks/populations/neg_population.py`, and `_negative_bundle` and `neg_orb_conf.enabled` in `builders.py`.
 - **A new orb kind:** its kind in `core/orbs/orb_meta.py`, its class under `core/orbs/`, a digester under
-  `core/droid/digestion/digesters/`, a population under `scenario/blocks/populations/`, and a bundle in the builder.
+  `core/droid/digestion/digesters/`, a population under `scenario/blocks/populations/`, and a bundle in the family's `builders.py`.
 - **What the agent sees:** `scenario/blocks/observation.py` (what the scenario states), the perceptions under
   `gymnasium/observation_space/perceptions/` (how it is encoded), `core/orbs/orb_meta.py` (the identity). The
   perceptions not yet rebuilt are listed in a TODO in `observation_handler.py`; their copies are in `legacy/`.
@@ -221,8 +226,8 @@ can use are in `scenario/blocks/readers.py`; the family's own are at the bottom 
 - **A scenario's values:** the run YAML in `config/yaml/scenarios/` holds the tunables; the locked rest is in
   `base_configs/`. The models are `config/models/scenario/` (shared vocabulary and orb kinds),
   `scenario/families/goal/config.py` (every goal scenario) and the family's `config.py` (full models and tunables).
-- **A new scenario:** a builder in the family's `builders.py`, an entry in `SCENARIOS` in `registry.py`, a member in
-  `ScenarioName` (`config/models/global_models.py`), and a run YAML.
+- **A new scenario:** an entry in the family's catalogue (`scenarios.py`), a member in `ScenarioName`
+  (`config/models/global_models.py`), and a run YAML. A new family adds its catalogue to `SCENARIOS` in `registry.py`.
 - **The HUD and the window:** `scenario/blocks/hud.py` (what is shown), `rendering/pygame_renderer.py` (drawing),
   the runners (window input).
 - **Training, eval, saving:** `runners/agent_runners/sb3/base_sb3_runner.py`, `artifact_manager.py`,

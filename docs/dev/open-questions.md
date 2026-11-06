@@ -19,12 +19,9 @@ long argument goes in `codebase-ideas.md` or is settled.
 
 - **`reward_multiplier`.** Legacy threshold scoring scaled and rounded each orb's reward with it. Not carried over and
   not decided. If it returns, it is a setting of the orb's reward and not of the mode.
-- **How a builder adds what only its scenario shows,** such as delay's countdown on the HUD. Delay's watcher
-  reaches the helper as an optional parameter of `_single_tier_chain_scenario`; the HUD is left for when the HUD
+- **How a scenario adds what only it shows,** such as delay's countdown on the HUD. Delay's watcher is a field of
+  its entry; the HUD is left for when the HUD
   gets its other elements. Raised on 2026-10-21.
-- **What `builders.py` should look like.** To look at when the phase ends, once delay is built. The builders are nearly
-  copies: spatial, sparse and dense differ only in the tag and the digester. Raised on 2026-11-01.
-  See: `# NOTE(duplication)` in `families/goal/single_tier_chain/builders.py`.
 - **Whether a layout that walls off the chain is part of the task or a flaw of the spawn.** Orbs are placed at random
   with no check that a chain can be completed, and an orb the droid is not ready for works as a wall, since stepping
   on it breaks the chain. The owner played 10 episodes at tier 7 on 5x5, and 4 could not be solved because the next
@@ -35,7 +32,7 @@ long argument goes in `codebase-ideas.md` or is settled.
 ### Locking a scenario
 
 To settle with the first scenario that is locked, which is spatial.
-See: "A locked scenario is a base config and its tunables in front of its builder" and "A fork is a full config with
+See: "A locked scenario is a base config and its tunables in front of its entry" and "A fork is a full config with
 a name and a parent" in `design-decisions.md`.
 
 - **What a locked run's snapshot holds.** `ConfigManager.save_snapshot` copies the run's YAML, which for a locked
@@ -45,7 +42,7 @@ a name and a parent" in `design-decisions.md`.
   config edit is committed before training on it, so a run's values can be looked up in git by its date. Noted on
   2026-11-01.
 - **Where a family's shared fixed values are written,** so that four builders do not each state them.
-- **Where a rule that spans fields is checked.** A check on the full model is raised in the builder and names a block,
+- **Where a rule that spans fields is checked.** A check on the full model is raised as the entry validates it and names a block,
   not a field the user can see.
 - **Whether a locked axis has a range,** such as an upper bound on the grid.
 - **Where the user folder for forks is, and how the code finds it.** `user_scenarios/` at the repo root, or

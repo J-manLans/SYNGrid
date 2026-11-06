@@ -14,7 +14,7 @@ Terms are grouped by area. The last section lists the words that are used in two
   the Gymnasium side needs and a way to build its world. It holds nothing that changes during an episode.
 - **Goal scenario:** a scenario with an objective to reach and a deadline to miss.
 - **Continuous scenario:** a scenario where reaching nothing ends the episode. None is written.
-- **Family:** the scenarios that share a folder, a config hierarchy and a helper. The single tier chain family is spatial,
+- **Family:** the scenarios that share a folder, a config hierarchy and an entry type. The single tier chain family is spatial,
   delay, scaling sparse and scaling dense. The families are in `scenario/families/`, grouped under `goal/` and,
   when one is written, `continuous/`.
 - **Single tier chain:** what every scenario in the family of that name is: one tier chain, all of it laid out on the
@@ -47,17 +47,19 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Base config:** a locked scenario's full config as it was run, a read-only YAML in the package. A run's tunables
   are merged onto it.
 - **Fork:** a copy of a locked scenario's base config with any value changed, saved under a name of its own with the
-  scenario it came from, its parent. It is built by its parent's builder.
+  scenario it came from, its parent. It is built by its parent's entry.
 
 ## Building a scenario
 
-- **Registry:** `SCENARIOS` in `scenario/registry.py`. It gives a scenario name its entry.
-- **Entry:** what a scenario name stands for in the registry: its full model, its builder, the perceptions it allows,
-  and its lock if it has one.
+- **Registry:** `SCENARIOS` in `scenario/registry.py`, every family's catalogue collected. It gives a scenario name its
+  entry.
+- **Entry:** what a scenario name stands for: its full model, the perceptions it allows, its lock if it has one, and
+  what its family composes it from. One object per scenario, a subclass of `ScenarioEntry` (`scenario/entry.py`).
+- **Entry type:** a family's subclass of `ScenarioEntry`, such as `SingleTierChainEntry`. It adds the fields the
+  family's scenarios differ by and composes everything they share.
+- **Catalogue:** a family's entries, in `scenarios.py` in its folder, each with what the scenario tests above it.
 - **Lock:** a locked scenario's tunables and base config, held by its entry. The entry merges a run's tunables onto
   the base config.
-- **Builder:** the function that turns a scenario's full config into a `Scenario`. One per registered scenario.
-- **Helper:** the function a family's builders share, which composes what the family has in common.
 - **Block:** see the last section; the word has two senses.
 - **Rules:** a frozen description of one part of a scenario's behaviour: `ObservationRules`,
   `TerminationRules`.
@@ -89,7 +91,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Brick:** one orb kind as a unit: its bundle in the scenario layer and its `*_orb_conf` block in the config.
 - **Reader:** a module-level function that is handed the world and returns a number. The HUD, the metrics and the
   observation's global features are each a description plus a reader, and one reader can serve all three. The
-  readers every scenario can use are in `scenario/blocks/readers.py`; a family's own sit beside its builder.
+  readers every scenario can use are in `scenario/blocks/readers.py`; a family's own sit in its `builders.py`.
 - **`build_world`:** the scenario's field that returns a new world on each call. Everything that changes during an
   episode is made there.
 

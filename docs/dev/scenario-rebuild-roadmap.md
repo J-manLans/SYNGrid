@@ -20,11 +20,11 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 
 | Part | State | Has it run |
 |---|---|---|
-| Spatial: builder, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; the locked path run by a script, step for step the same as before |
-| Scaling sparse: builder, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
-| Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; learned: PPO, one seed, on sparse's reward values at tier 7 on 5x5 and on 6x6, and on the thesis values at tier 7 on 6x6 |
-| The lock: registry entries, tunables, merge, perception check | written | run, by a script; played in human mode; learned: dense, through its tunables and base config |
-| Delay: builder, base config, run YAML, `DelayWatcher`, `max_steps` from the delay | written; locked, with the delay, the negative orb's switch and the perception as its tunables | run: through the probe (200 episodes, and 50 with `max_steps` from the delay), `check_env`, and 300 random-action episodes (silences of 30 to 33 steps, no orb back in another cell); trained on the thesis-era termination at a delay of 30, and behaves like the thesis delay-30 run; learned: PPO, seed 3, a break ending the episode, 50 spare steps: at a break penalty of −0.1 at delays of 30, 70, 130, 260 and 390, and at −0.5 at 130, 260 and 390; the family's termination in place of `DelayTermination` matched it step for step in the probe |
+| Spatial: entry, base config, run YAML | written | learned: RPPO and PPO on 5x5, with and without a negative orb, before the lock; the locked path run by a script, step for step the same as before |
+| Scaling sparse: entry, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
+| Scaling dense: entry, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; learned: PPO, one seed, on sparse's reward values at tier 7 on 5x5 and on 6x6, and on the thesis values at tier 7 on 6x6 |
+| The lock: entries, tunables, merge, perception check | written; entries moved into each family's catalogue, the four traces unchanged | run, by a script; played in human mode; learned: dense, through its tunables and base config |
+| Delay: entry, base config, run YAML, `DelayWatcher`, `max_steps` from the delay | written; locked, with the delay, the negative orb's switch and the perception as its tunables | run: through the probe (200 episodes, and 50 with `max_steps` from the delay), `check_env`, and 300 random-action episodes (silences of 30 to 33 steps, no orb back in another cell); trained on the thesis-era termination at a delay of 30, and behaves like the thesis delay-30 run; learned: PPO, seed 3, a break ending the episode, 50 spare steps: at a break penalty of −0.1 at delays of 30, 70, 130, 260 and 390, and at −0.5 at 130, 260 and 390; the family's termination in place of `DelayTermination` matched it step for step in the probe |
 | `StepResult`, `Watcher`, `NoWatcher` | written | run, for every scenario through the environment; the three locked traces unchanged |
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
@@ -61,7 +61,7 @@ In this order, per scenario:
 3. **Ablate** the values in doubt, while the YAML still sets every value. A variant that learns as well keeps the
    simpler value.
 4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its tunables.
-   See "A locked scenario is a base config and its tunables in front of its builder" in `design-decisions.md`.
+   See "A locked scenario is a base config and its tunables in front of its entry" in `design-decisions.md`.
 5. **Record a trace** with the replay probe: one seed, a fixed action sequence, and every observation, reward and
    termination flag per step. Phase 7 is diffed against it.
 

@@ -52,8 +52,8 @@ What it asks for:
 - The explanations of the fields are in class docstrings. A form would want them per field.
 - The renderer's settings have no place in the new models yet, and a preview needs them.
 
-Version 2 is the only part that goes against the current design. A scenario is a builder in code, a member of
-`ScenarioName` and an entry in the registry, and a scenario made in a GUI would have to be data that a general builder
+Version 2 is the only part that goes against the current design. A scenario is an entry in code, in its family's
+catalogue, and a member of `ScenarioName`, and a scenario made in a GUI would have to be data that a general entry
 composes from. Nothing is shaped for that now. The blocks (termination as a protocol with a file per strategy,
 `OrbBundle`) are what such a composer would choose from.
 
@@ -87,9 +87,9 @@ See "A run that continues another gets its own id, and records its parent" in `d
 
 **Idea:** An `OrbBundle` holds a population and a way to make a digester. A kind brings more than that to a scenario:
 the metrics that read its digester, a tag suffix, HUD elements and observation features. The bundle could carry some
-of these, and a family's helper would collect them from its bundles as it now sums their counts.
+of these, and a family's entry type would collect them from its bundles as it now sums their counts.
 
-**Where it came from:** Adding the negative orb to the single tier chain family. Its `if` block in `_single_tier_chain_scenario`
+**Where it came from:** Adding the negative orb to the single tier chain family. Its `if` block in `SingleTierChainEntry._compose`
 adds the bundle, extends the tag and adds the `negatives_eaten` metric: three lines that together mean "add this
 brick".
 
@@ -103,7 +103,7 @@ brick".
 - The moment to act is a second family using the same kind. Each would then repeat the lines, and they could drift.
   The first candidate is a `metrics` field on the bundle.
 - A metric's reader is the same in every family: take the kind's digester from the engine and read a counter. So the
-  readers would move out of a family's builders and live with the kind. Followed to the end, that is one module per
+  readers would move out of a family's `builders.py` and live with the kind. Followed to the end, that is one module per
   kind, which groups by kind where `scenario/blocks/populations/` and `scenario/blocks/recipes/` group by role.
 - The HUD's form and the observation's features are open, in phases 9 and 7. Putting either in the bundle decides
   them early.
