@@ -1082,17 +1082,28 @@ on the HUD).
 
 # Runners and rendering
 
-## The algorithm in the runner config is an enum (2026-10-13)
+## The algorithm in the runner config is an enum, and a user's runner is added to it (2026-11-06)
 
 **Decision:** `alg` in the runner config is an `Algorithm` enum (`PPO`, `FSPPO`, `RPPO`), and the `RUNNER` table is
 keyed by it, as `ScenarioName` and `SCENARIOS` are. A wrong name fails when the config loads. The field is
 `Annotated[Algorithm, Field(strict=False)]`, since a strict enum field rejects YAML's plain string. The run id uses
 the member's `.value`.
 
-**Why:** A typo is caught at load, and the valid names are stated where they are used.
+`BaseAgentRunner` is the extension point for other users' runners. A user adds their own runner by subclassing it,
+adding a member to `Algorithm` and an entry to `RUNNER`, in their own copy of the source.
 
-**Rejected:** `alg: str` checked in `build_runner` (a typo found only after the scenario was built); the member in an
-f-string (a `str` enum formats differently from Python 3.11, and checkpoints are found by that id).
+**Why:** A typo is caught at load, and the valid names are stated where they are used. SYNGrid is installed by
+cloning it and installing it editable, so a user's extension is an edit to their copy, as a new scenario is.
+
+**Rejected:**
+
+- `alg: str` checked in `build_runner`: a typo found only after the scenario was built.
+- The member in an f-string: a `str` enum formats differently from Python 3.11, and checkpoints are found by that
+  id.
+- A registration function with `alg` as a string checked against the registry: it serves a package that is
+  imported without being edited, which SYNGrid is not.
+
+**Revisit if:** SYNGrid is published as a library that users install and import without editing its source.
 
 ## The policy's name comes from the algorithm (2026-10-13)
 
