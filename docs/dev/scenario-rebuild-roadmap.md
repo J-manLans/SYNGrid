@@ -6,7 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** delay's termination ablations (phase 6).
+**Next:** delay's tests and locked trace (phase 6).
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. When
 phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does not start until that is finished.
@@ -79,8 +79,7 @@ episodes shorten, and each is locked.
    less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps.
 2. **Scaling sparse.** Verify at more than one `max_tier`.
 3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
-4. **Delay.** Write delay's tests, and record its locked trace. The two parked delay methods in
-   `GridWorld` go.
+4. **Delay.** Write delay's tests, and record its locked trace.
 
 ---
 
