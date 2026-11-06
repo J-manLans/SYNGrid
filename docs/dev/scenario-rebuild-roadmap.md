@@ -24,7 +24,7 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 | Scaling sparse: builder, base config, run YAML | written | learned: tier 4, in the ablations, before the lock; the locked path run by a script, step for step the same as before |
 | Scaling dense: builder, base config, run YAML | written | run, by a script through the environment: random steps, and scripted chains that pay the thesis ceilings; played in human mode; learned: PPO, one seed, on sparse's reward values at tier 7 on 5x5 and on 6x6, and on the thesis values at tier 7 on 6x6 |
 | The lock: registry entries, tunables, merge, perception check | written | run, by a script; played in human mode; learned: dense, through its tunables and base config |
-| Delay: builder, base config, run YAML, `DelayWatcher`, `max_steps` from the delay | written; has a lock whose tunables are the delay, the negative orb's switch and the perception, but not locked | run: through the probe (200 episodes, and 50 with `max_steps` from the delay), `check_env`, and 300 random-action episodes (silences of 30 to 33 steps, no orb back in another cell); trained on the thesis-era termination at a delay of 30, and behaves like the thesis delay-30 run; learned: PPO, seed 3, a break ending the episode, 50 spare steps: at a break penalty of −0.1 at delays of 30, 70, 130, 260 and 390, and at −0.5 at 130, 260 and 390; the family's termination in place of `DelayTermination` matched it step for step in the probe |
+| Delay: builder, base config, run YAML, `DelayWatcher`, `max_steps` from the delay | written; locked, with the delay, the negative orb's switch and the perception as its tunables | run: through the probe (200 episodes, and 50 with `max_steps` from the delay), `check_env`, and 300 random-action episodes (silences of 30 to 33 steps, no orb back in another cell); trained on the thesis-era termination at a delay of 30, and behaves like the thesis delay-30 run; learned: PPO, seed 3, a break ending the episode, 50 spare steps: at a break penalty of −0.1 at delays of 30, 70, 130, 260 and 390, and at −0.5 at 130, 260 and 390; the family's termination in place of `DelayTermination` matched it step for step in the probe |
 | `StepResult`, `Watcher`, `NoWatcher` | written | run, for every scenario through the environment; the three locked traces unchanged |
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
@@ -32,7 +32,6 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 | Negative orb: digester, population, bundle | written | learned; played in human mode in spatial, sparse and dense; `negatives_eaten` was never read over a run |
 | `SingleTierChainTermination` | written; every scenario in the family uses it | learned before the refactor; the three locked traces unchanged after it |
 | Droid, engine, `GridWorld`, orbs, timer | written | learned |
-| `GridWorld._deactivate_all_orbs`, `_reactivate_all_orbs` | parked under `# TODO(delay)`, read a config that is gone; nothing will use them, since `DelayWatcher` does the freeze | — |
 | Environment | written | learned; `check_env` passes |
 | `vector_markovian`, `vector_fog_of_war` | written | learned |
 | The other five perceptions | legacy, in `legacy/` | — |
@@ -80,8 +79,7 @@ episodes shorten, and each is locked.
    less the step penalty); RPPO on seed 3 reached about 8.5 with episodes of about 15 steps.
 2. **Scaling sparse.** Verify at more than one `max_tier`.
 3. **Negative orb.** Read `negatives_eaten` over a training run with CSV on.
-4. **Delay.** Settle when the frozen orbs are built, before the lock or after (see `open-questions.md`), write
-   delay's tests, and lock it. The two parked delay methods in
+4. **Delay.** Write delay's tests, and record its locked trace. The two parked delay methods in
    `GridWorld` go.
 
 ---
@@ -133,6 +131,22 @@ Check whether anything scales the observation by its upper bound. When 7a is don
 
 **Done when:** the observation trace differs from the phase 6 trace only where a change was meant to, the reward
 trace is identical, and spatial still learns.
+
+### 7a½: Delay's frozen orbs
+
+Delay's next version, as decided in "Delay's frozen orbs stay on the field, block their cell, and bite" in
+`design-decisions.md`. It comes after 7a, so the mark lands on the aligned observation and the rebuilt suite, and
+before 7b, so the new perceptions are written with the frozen state from the start. The questions are in
+`open-questions.md`, under phase 7.
+
+1. An orb state for "on the field, but not edible", and blocking as an orb property of its own.
+2. The droid's move stopped by a blocking orb, with no charge of its own; the bite's penalty on a frozen orb.
+3. `DelayWatcher` freezing orbs in their cells in place of taking them off the field, and the rule that a released
+   orb waits for its cell going.
+4. The frozen mark in the two kept perceptions, and the frozen skin in the renderer.
+
+**Done when:** the delay spread at −0.5 is run again on it and learns, and the bite's 0.1 is checked against the
+curves. The locked traces of spatial and scaling are unchanged.
 
 ### 7b: New perceptions, one at a time
 

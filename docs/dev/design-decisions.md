@@ -720,6 +720,9 @@ Since a frozen orb never leaves its cell, the rule that a released orb waits for
 
 The observation marks a frozen orb as frozen, and carries no countdown.
 
+It is built after delay is locked, between the observation pass's alignment (7a) and its new perceptions (7b), and
+comes in as delay's next version, so its spread is run again.
+
 **Why:** What the grid shows has to make sense to the agent and to a person watching (see the questions in
 `docs/vision.md`). An orb that vanishes and comes back in the same cell does not look frozen to a viewer, and to the
 agent it looks the same as an eaten orb or one that was never there. On the field, frozen is a state of its own,
@@ -752,6 +755,8 @@ wiring above is paid once, and the next mechanic gets it for free.
 
 **Rejected:**
 
+- Building it before delay is locked: the ablations ran on the field emptying, so the spread would be run again
+  before anything was locked, and the observation mark belongs after 7a.
 - The field emptying while the orbs are frozen (decided 2026-11-05 and reversed here). It does not read as frozen
   to a viewer, and an empty cell mixes a frozen orb with an eaten one. Its reason, that an agent with orbs in sight
   and no way to eat them would first have to learn that it cannot eat yet, is answered by a frozen orb being a state

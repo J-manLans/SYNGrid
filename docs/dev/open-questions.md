@@ -32,25 +32,6 @@ long argument goes in `codebase-ideas.md` or is settled.
   means in the phase's "done when", since a completed chain's pay is not reachable on every layout. Whether legacy
   placed orbs the same way was not checked. Raised on 2026-11-02.
 
-### Delay's frozen orbs
-
-See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `design-decisions.md`. Raised on
-2026-11-06.
-
-- **When it is built: before delay is locked or after.** The termination ablations ran on the field emptying. Built
-  before the lock, the locked scenario is the one with frozen orbs, and it has to be run again. Built after, it
-  changes a locked scenario, which makes it a different one.
-- **Where a penalty for moving into a blocking orb is set.** Blocking costs nothing of itself. Either a penalty is a
-  setting of a blocking orb, or a scenario adds it where it needs one, as delay adds the bite to its frozen orbs,
-  and the default is nothing. The owner leans towards the scenario adding it, which keeps the bite with the frozen
-  state and apart from blocking. The bite starts at around 0.1.
-- **How the droid's move learns that a cell is blocked.** Today the move knows only the grid's edges.
-- **How an orb holds the frozen state.** A state of its own (on the field, cooling down, frozen) in place of
-  `is_active`, or a flag beside it. Two flags allow pairs that mean nothing, such as frozen and off the field.
-  Blocking is a property apart from it either way.
-- **How the observation marks a frozen orb,** in each perception, and whether delay waits for the observation pass
-  (phase 7) to get it.
-
 ### Locking a scenario
 
 To settle with the first scenario that is locked, which is spatial.
@@ -93,6 +74,23 @@ a name and a parent" in `design-decisions.md`.
 - **Whether the pixel observation gets a limited view, and which kind.** A crop of the window loses the droid's
   position; the full grid with the rest blacked out keeps it.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
+
+### Delay's frozen orbs
+
+Built between 7a and 7b, see the roadmap.
+
+See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `design-decisions.md`. Raised on
+2026-11-06.
+
+- **Where a penalty for moving into a blocking orb is set.** Blocking costs nothing of itself. Either a penalty is a
+  setting of a blocking orb, or a scenario adds it where it needs one, as delay adds the bite to its frozen orbs,
+  and the default is nothing. The owner leans towards the scenario adding it, which keeps the bite with the frozen
+  state and apart from blocking. The bite starts at around 0.1.
+- **How the droid's move learns that a cell is blocked.** Today the move knows only the grid's edges.
+- **How an orb holds the frozen state.** A state of its own (on the field, cooling down, frozen) in place of
+  `is_active`, or a flag beside it. Two flags allow pairs that mean nothing, such as frozen and off the field.
+  Blocking is a property apart from it either way.
+- **How the observation marks a frozen orb,** in each perception.
 
 ## Phase 8b: The modular HUD
 
