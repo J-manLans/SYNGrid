@@ -11,8 +11,8 @@ state of its own, so one scenario can be handed to any number of environments
 and each builds a world nobody else touches.
 
 Everything that is specific to a scenario and needed outside the world is a
-field here. Adding a scenario is a new builder in its family's folder,
-registered in ``registry.py``, plus a new module beside the builder if it
+field here. Adding a scenario is a new entry in its family's catalogue,
+``scenarios.py`` in the family's folder, plus a new module beside it if it
 introduces a genuinely new mechanic. Nothing outside this package needs to learn
 the scenario's name.
 """

@@ -13,6 +13,9 @@ if TYPE_CHECKING:
     from syn_grid.core.grid_world import GridWorld, StepResult
     from syn_grid.core.orbs.base_orb import BaseOrb
     from syn_grid.core.orbs.orb_meta import OrbKind
+    from syn_grid.scenario.families.goal.single_tier_chain.config import (
+        TierDelayScenarioConf,
+    )
 
 
 # ################## #
@@ -111,6 +114,12 @@ class DelayWatcherRecipe:
     """
 
     delay: int
+
+    @classmethod
+    def from_conf(cls, scenario_conf: TierDelayScenarioConf) -> DelayWatcherRecipe:
+        """The recipe for a delay config, with its delay."""
+
+        return cls(scenario_conf.delay_conf.steps)
 
     def __call__(self) -> DelayWatcher:
         return DelayWatcher(self.delay)
