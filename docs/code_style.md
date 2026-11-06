@@ -133,6 +133,9 @@ For the helpers section, provide subheadings indicating what section the helpers
 
 
 ## 6. Tests
+- **As few tests as cover the behaviour.** A test earns its place only if breaking the code it guards turns it red
+  and no other test already does. No tests of the language or of a library, such as a dataclass comparing equal, and
+  no parametrizing over values that take the same path. Asserts that check one behaviour share one test.
 - **Unit tests** in `tests/unit/` mirror `src/syn_grid/`, one test file per source file: the tests for
   `core/grid_world.py` are in `tests/unit/core/test_grid_world.py`. A unit test asks whether one file keeps its
   promise, and may use real collaborators to do it.
