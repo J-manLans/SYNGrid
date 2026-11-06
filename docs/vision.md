@@ -102,8 +102,9 @@ a big catalogue is worth having. Version one stays small: the thesis scenarios, 
 of effect orbs.
 
 Every addition has to be clear, focused on one thing, and tested before it counts. An orb that doesn't add a distinct
-mechanic is a near-duplicate, and doesn't go in. Combine existing parts first. New things are new self-contained parts,
-not edits to old ones.
+mechanic is a near-duplicate, and doesn't go in. Combine existing parts first. New things are new self-contained parts.
+The core (the grid, the droid and the orbs) is not locked, but it grows only by stable, general capabilities that any
+scenario can use, never by a piece of one scenario.
 
 ### Questions to ask of any new idea
 
@@ -112,8 +113,11 @@ These settle most small calls without asking the owner to explain the vision aga
 1. Does it serve the benchmark's job? If it is only fun, it does not go in.
 2. Is it clear and focused on one thing?
 3. Can a small agent learn it at the easy end of its dial?
-4. Does it keep the parts combinable? A new piece is a new self-contained part, not an edit to an old one.
+4. Does it keep the parts combinable? A new piece is a new self-contained part. Where it needs the core to change,
+   the change is a general capability, not a piece of one scenario.
 5. Can it be tested, by a test, by playing it, and by a small agent run?
+6. Does it make sense both to the agent and to a person watching? What the grid shows should be what is happening.
+   If the two disagree, something is off.
 
 The vision settles direction. It does not say whether a stage runs before or after routing, or what a builder looks
 like. Those stay in `design-decisions.md` and the roadmap.

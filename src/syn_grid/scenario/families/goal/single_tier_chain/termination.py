@@ -63,8 +63,6 @@ class SingleTierChainTermination:
     #      Helpers      #
     # ================= #
 
-    # === Overridable === #
-
     def _droid_ended_task(self, world: GridWorld) -> bool:
         """Whether the droid ended the task this step: out of energy, or a chain broken or
         completed."""
@@ -104,15 +102,14 @@ class DelayTermination(SingleTierChainTermination):
     #      Helpers      #
     # ================= #
 
-    # === Overridable === #
-
     def _droid_ended_task(self, world: GridWorld) -> bool:
         tier_digester = world.droid.get_digester(TierDigester)
 
         return (
             world.droid.energy <= 0
+            or tier_digester.chains_broken > 0
             or tier_digester.chains_completed > 0
-            or self._every_tier_orb_eaten(tier_digester)
+            # or self._every_tier_orb_eaten(tier_digester)
         )
 
     def _task_ending_reward(self, world: GridWorld) -> float:

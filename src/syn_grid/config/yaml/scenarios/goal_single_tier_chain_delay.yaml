@@ -8,7 +8,7 @@
 # max_steps of 150, 200, 300, 550 and 850. The step penalty is 0, so waiting out a silence is
 # free, and a broken chain costs as much as the timeout, so breaking it is no way out.
 world_conf:
-  max_steps: 150
+  max_steps: 850
 
   grid_conf:
     grid_rows: 5
@@ -26,7 +26,7 @@ world_conf:
     max_tier: 3
     base_reward: 1.0 # a tier is worth base_reward * tier ** growth_factor
     growth_factor: 1.5 # with these two, the three tiers together are worth about 9.0
-    chain_break_penalty: -1.0
+    chain_break_penalty: -0.1
 
   neg_orb_conf:
     enabled: false
@@ -34,7 +34,7 @@ world_conf:
     cool_down: 10
 
 delay_conf:
-  steps: 30
+  steps: 390
 
 obs_conf:
   observation_handler_conf:

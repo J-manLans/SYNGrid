@@ -32,6 +32,27 @@ long argument goes in `codebase-ideas.md` or is settled.
   means in the phase's "done when", since a completed chain's pay is not reachable on every layout. Whether legacy
   placed orbs the same way was not checked. Raised on 2026-11-02.
 
+### Delay's frozen orbs
+
+See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `design-decisions.md`. Raised on
+2026-11-06.
+
+- **When it is built: before the termination ablations or after.** Before, the ablations measure the delay that
+  stays. After, they compare with legacy's curves, where the field emptied.
+- **Where a penalty for moving into a blocking orb is set.** Blocking costs nothing of itself. Either a penalty is a
+  setting of a blocking orb, or a scenario adds it where it needs one, as delay adds the bite to its frozen orbs,
+  and the default is nothing. The owner leans towards the scenario adding it, which keeps the bite with the frozen
+  state and apart from blocking. The bite starts at around 0.1.
+- **How the droid's move learns that a cell is blocked.** Today the move knows only the grid's edges.
+- **How an orb holds the frozen state.** A state of its own (on the field, cooling down, frozen) in place of
+  `is_active`, or a flag beside it. Two flags allow pairs that mean nothing, such as frozen and off the field.
+  Blocking is a property apart from it either way.
+- **How the observation marks a frozen orb,** in each perception, and whether delay waits for the observation pass
+  (phase 7) to get it.
+- **Whether "every tier orb eaten" reads the field.** The tier digester's counts were chosen because a frozen orb
+  was off the field. With frozen orbs on it, "no tier orb on the field" says the same without assuming one orb per
+  tier that never comes back.
+
 ### Locking a scenario
 
 To settle with the first scenario that is locked, which is spatial.

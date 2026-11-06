@@ -10,7 +10,7 @@ common_conf:
   training: true
   # Optional. Joined onto the scenario's tag in the run id; set it when you
   # change something outside the scenario's own axis.
-  tag: thesis_settings
+  tag: chain_break_terminates_orb_penalty_0.1
 
 train_conf:
   continue_training: false

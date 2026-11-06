@@ -66,6 +66,10 @@ Terms are grouped by area. The last section lists the words that are used in two
   acts, is the default; delay's is `DelayWatcher`.
 - **Freeze, frozen:** a delay watcher taking an orb off the field while keeping its cell, so it returns there. A
   frozen orb is not on the field, so it is neither seen nor eaten.
+- **Blocking:** an orb property that keeps the droid out of the orb's cell, the way the grid's edge keeps it on the
+  grid. It costs nothing of itself. Freezing an orb turns it on.
+- **Bite:** the droid moving into a frozen orb. The move is blocked, the orb stays frozen, and the bite costs a
+  penalty of its own, which belongs to the frozen state and not to blocking.
 - **Population:** what makes one orb kind's orbs for a world. It decides which orbs exist, once per world. Putting
   them on the field is spawning, which the world does. The populations are shared, in `scenario/blocks/populations/`.
 - **Count:** how many orbs a population makes, known before any world exists. In a fixed field the counts of the

@@ -28,8 +28,8 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Reward and endings:** energy and score; truncation; who pays what; the reward ladder; normalisation; dense's
   values; the ablations; legacy as a reference
 - **Orbs and the world:** two categories; cool-down and lifespan; weights and counts; the orb field; the step clock;
-  mechanics in strategies; the step result and the watcher; delay's termination; delay's values; episode state in
-  `reset`
+  mechanics in strategies; the step result and the watcher; delay's termination; delay's values; delay's frozen orbs;
+  episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
   locked scenarios; forks; the negative orb's switch
 - **Observation:** the kept perceptions; no timer; shared readers
@@ -51,6 +51,9 @@ The rules most decisions below follow.
 - **A mechanic only one scenario uses lives in that scenario's strategy** when it can be written against the world's
   public API and the orbs' own methods. It becomes a world method only when it must touch the world's private
   bookkeeping.
+- **The core grows only by general capabilities.** The world, the droid and the orbs are not locked, but what is
+  added to them is stable and usable by any scenario, and is named for what it does, not for the scenario that
+  first needs it. A core addition named for a scenario, or a branch on which scenario is running, is a workaround.
 - **One supplied piece per consumer,** each a static description plus a reader that is handed the world: `hud`,
   `metrics`, and the observation's global features in `ObservationRules`. The HUD and the observation are free to
   diverge.
@@ -599,9 +602,9 @@ general public method, `is_cell_free`, and no setting for any scenario; otherwis
 the world and a do-nothing value to every other. A watcher holds state, which a frozen `Scenario` shared by every
 environment cannot, so the scenario holds a recipe, as it does for the world. Being told by the result lets the
 watcher sleep: noticing on its own would mean scanning the field every step, and counting orbs mixes an eaten orb
-with an expired one or a refill. It is the field that empties, not the droid that is stopped from eating: with orbs
-in sight and no way to eat them, the agent would first have to learn that it cannot eat yet. Freezing after the step
-gives every orb the same wait; legacy froze mid-loop, so orbs after the eaten one ticked once more.
+with an expired one or a refill. Freezing after the step gives every orb the same wait; legacy froze mid-loop, so
+orbs after the eaten one ticked once more. Where a frozen orb is while it waits is in "Delay's frozen orbs stay on
+the field, block their cell, and bite".
 
 The negative orb is not frozen because an agent that has learned to avoid it treats it as noise, so the chain's
 silence holds, and an optional orb that makes a scenario harder gets no rules of its own in delay. Its own cycle runs
@@ -661,6 +664,67 @@ hides; a window on top would mix spatial's memory test into delay's.
 
 **Rejected:** spatial's step penalty and break penalty (the silence would cost steps and a break would be the cheap
 exit); any perception (a window would test spatial too).
+
+## Delay's frozen orbs stay on the field, block their cell, and bite (2026-11-06)
+
+**Decision:** A frozen tier orb stays on the field in its own cell, drawn with a frozen skin, and thaws there when
+the delay is over. It blocks its cell: the droid cannot move onto it. Blocking is a property of its own, which an
+orb can have without being frozen; freezing an orb turns it on, and it turns off when the delay is over. A move into
+a blocking orb is stopped as a move into the grid's edge is, but blocking costs nothing of itself: the grid's edge
+always costs the boundary penalty, and a blocking orb such as a wall costs nothing. Moving into a frozen orb is a
+bite: the droid stays where it is, the orb stays frozen, and the bite costs a penalty of its own, around 0.1, on top
+of the step penalty. The bite's price belongs to the frozen state, with its skin and its delay, not to blocking.
+Since a frozen orb never leaves its cell, the rule that a released orb waits for its cell to clear goes.
+
+The observation marks a frozen orb as frozen, and carries no countdown.
+
+**Why:** What the grid shows has to make sense to the agent and to a person watching (see the questions in
+`docs/vision.md`). An orb that vanishes and comes back in the same cell does not look frozen to a viewer, and to the
+agent it looks the same as an eaten orb or one that was never there. On the field, frozen is a state of its own,
+told apart from both. The end of the gap stays hidden: the agent sees what it is waiting for and where, not when it
+thaws. The bite is what biting a frozen apple would be: it does not go in, and it hurts a little. It is an event of
+its own, so it has a value of its own, and the step penalty stays what it is. A bite is not a wall, and blocking is
+not a bite: what a bump costs comes from what the orb is, so blocking stays one rule with no price of its own.
+
+Without the mark, a frozen orb and a thawed one in the same cell look the same, and the same move into it costs a
+bite or pays the orb. A stateless agent cannot tell the two apart, so the bite teaches it only to hang back after
+eating, and an agent with memory has to count the steps, which makes delay a memory test. With the mark, the agent
+knows that the orbs are frozen and not when they thaw, as it did when the field emptied, and also where they are.
+A countdown would show the end of the gap, which is what delay hides.
+
+What delay needs is built as general capabilities of the core, none of them about delay, so each is there for the
+next mechanic:
+
+- **An orb state for "on the field, but not edible".** Frozen is the first. An effect orb that freezes others, or a
+  hazard that disables an orb for a while, uses the same state.
+- **A cell the droid cannot enter.** The world's first obstacle. Because blocking is its own property, an orb can
+  block without being frozen, which is the first brick of a layout such as a wall around a goal orb, which nothing
+  can describe today (see `docs/vision.md`).
+- **A move into something solid.** The droid's move already stops at the grid's edge; a blocking orb extends the
+  stop into the grid, without the edge's charge. A price on top, such as the bite, comes from what the orb is.
+- **An orb's state in the observation.** Once a perception marks one state, a later state arrives on the same
+  channel.
+
+An empty cell cost nothing because it borrowed "absent" to mean "frozen". That overload carries over to nothing; the
+wiring above is paid once, and the next mechanic gets it for free.
+
+**Rejected:**
+
+- The field emptying while the orbs are frozen (decided 2026-11-05 and reversed here). It does not read as frozen
+  to a viewer, and an empty cell mixes a frozen orb with an eaten one. Its reason, that an agent with orbs in sight
+  and no way to eat them would first have to learn that it cannot eat yet, is answered by a frozen orb being a state
+  of its own that the agent can tell apart.
+- A frozen orb the droid can walk over without eating it: the move stays simple, but a droid passing through a solid
+  orb does not make sense to watch.
+- The bite costing the step penalty: delay's step penalty is 0, and a bite is not a step.
+- The bite costing the boundary penalty: a bite is not a wall.
+- Blocking costing the boundary penalty: a wall costs nothing, and the boundary penalty is the grid's edge's.
+- A frozen orb that looks like any other, learned from the bite: the same view would sometimes cost and sometimes
+  pay.
+- A countdown in the observation: it shows the end of the gap.
+- Blocking as part of the frozen state: a wall orb would then have to be frozen to block.
+
+**Revisit if:** an agent cannot learn delay with the frozen orbs in sight.
 
 ## Episode state is first set in `reset` (2026-10-16)
 

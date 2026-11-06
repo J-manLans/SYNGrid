@@ -258,13 +258,15 @@ result, and a scenario's watcher reacts to it" in `design-decisions.md`.
 
 ---
 
-## Delay's orbs freeze in place (2026-11-05)
+## Orbs that block without being frozen (2026-11-06)
 
-**Idea:** The frozen tier orbs stay on the field with a frozen skin instead of leaving it. They cannot be eaten and
-the droid cannot walk onto them, and they thaw when the delay is over.
+**Idea:** An orb kind whose orbs block their cell for good: a wall. With blocking a property of its own, a wall is an
+orb that blocks and is never eaten, and walking into it costs nothing. A layout of them can shape a scenario, such
+as the vision's wall of deadly orbs around a goal orb.
 
-**Where it came from:** The owner, while talking through where delay's mechanic lives.
+**Where it came from:** The owner and the agent, while deciding that delay's frozen orbs block their cell. See
+"Delay's frozen orbs stay on the field, block their cell, and bite" in `design-decisions.md`.
 
-**Why it might matter:** It looks better, and a frozen orb that blocks its cell makes the release-when-free rule
-unnecessary. But it changes the test: delay empties the field so the agent does not first have to learn that it
-cannot eat what it sees. The droid's move would also have to check cells, where today it knows only the grid's edges.
+**Why it might matter:** The vision says a scenario's character may come from how its orbs are arranged, and that
+nothing can describe a layout today. Blocking cells are the first piece of that. Placing walls on purpose, and not at
+random, is the larger part and is not touched.
