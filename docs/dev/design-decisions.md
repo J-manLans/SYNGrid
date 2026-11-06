@@ -28,7 +28,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Reward and endings:** energy and score; truncation; who pays what; the reward ladder; normalisation; dense's
   values; the ablations; legacy as a reference
 - **Orbs and the world:** two categories; cool-down and lifespan; weights and counts; the orb field; the step clock;
-  mechanics in strategies; the step result and the watcher; delay's termination; delay's values; delay's frozen orbs;
+  mechanics in strategies; the step result and the watcher; delay's termination; delay's values; delay's episode length; delay's frozen orbs;
   episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
   locked scenarios; forks; the negative orb's switch
@@ -664,6 +664,35 @@ hides; a window on top would mix spatial's memory test into delay's.
 
 **Rejected:** spatial's step penalty and break penalty (the silence would cost steps and a break would be the cheap
 exit); any perception (a window would test spatial too).
+
+## Delay's episode length follows from the delay and the grid (2026-11-06)
+
+**Decision:** Delay's `max_steps` is set by its config model, never by a config, and a config that states it is
+rejected. An episode gets one silence after each tier orb but the last, plus a fixed number of spare steps:
+`(max_tier - 1) * delay + 5 * (rows + cols)`, which is 50 spare steps on 5x5. The spare steps follow the grid and
+not the delay. The 5 is a constant on the model. Delay's tunables are the delay, the negative orb's switch and the perception;
+the grid is not one.
+
+**Why:** The thesis paired each delay with a `max_steps` by hand, and the spare steps came out as 90, 60, 40, 30 and
+70 for delays of 30, 70, 130, 260 and 390. A comparison across delays then also compared clocks: at the same seed, a
+delay of 390 learned faster than 260, which had the least spare time of the five. A longer delay needs no more time,
+since the droid sees a frozen orb thaw and waiting is free; what grows with the delay is the credit the first eat has
+to carry, which is what delay measures. Spare steps that grew with the delay would give a longer delay more room for
+mistakes. The walking a silence cannot cover, and how far a wrong turn takes the droid, grow with the grid's side, so
+the spare steps follow `rows + cols` rather than the area. A rule in the model cannot drift from the delay as a
+hand-set number can.
+
+**Rejected:**
+
+- The thesis pairs: they mix the clock into the delay's axis.
+- `max_steps` by hand from a formula: each run depends on the arithmetic.
+- Spare steps as a config value: a measurement constant a run could change.
+- Spare steps that grow with the delay: a longer delay would get more room for mistakes.
+- Spare steps that follow the grid's area: generous where nothing needs it, four times 5x5's on 10x10.
+- The model overwriting a stated `max_steps`: a value written in a config would be silently ignored.
+
+**Revisit if:** delay learns worse at 50 spare steps than at 70, or a grid size other than 5x5 shows the spare
+steps too tight or too loose.
 
 ## Delay's frozen orbs stay on the field, block their cell, and bite (2026-11-06)
 

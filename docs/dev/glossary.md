@@ -32,6 +32,10 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Delay:** eating a tier orb freezes the other tier orbs for `delay_conf.steps` steps, after which they return in
   the same cells. The negative orb is not frozen. It tests whether an agent can bridge a gap it cannot see the end
   of. Its axis is the delay.
+- **Silence:** the steps between eating a tier orb and the other tier orbs thawing, while nothing in the chain can
+  be eaten.
+- **Spare steps:** the steps an episode has beyond the silences its chain needs: in delay, `max_steps` minus
+  `(max_tier - 1) * delay`. They pay for the walking and the mistakes.
 - **Axis:** the one thing that varies between runs of a scenario and makes it harder or easier.
 - **Scenario tag:** where a run sits on its scenario's axis, as text for the run id, such as `5x5_steps100`.
 - **Locked:** a scenario whose values other than its tunables (its axis, `max_steps`, the perception and the

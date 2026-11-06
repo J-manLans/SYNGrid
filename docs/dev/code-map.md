@@ -111,6 +111,7 @@ syn_grid/
 │   │   └── goal/
 │   │       ├── single_tier_chain/
 │   │       │   ├── base_configs/
+│   │       │   │   ├── delay.yaml
 │   │       │   │   ├── scaling_dense.yaml
 │   │       │   │   ├── scaling_sparse.yaml
 │   │       │   │   └── spatial.yaml
@@ -217,7 +218,7 @@ can use are in `scenario/blocks/readers.py`; the family's own are at the bottom 
   also holds `DelayTermination`.
 - **Delay's freeze:** the family's `watcher.py` (`DelayWatcher` and its recipe), on `Watcher` in
   `scenario/blocks/watcher.py`, reading `StepResult` and `is_cell_free` from `core/grid_world.py`. Its delay is
-  `delay_conf` on `TierDelayScenarioConf`.
+  `delay_conf` on `TierDelayScenarioConf`, which also sets `max_steps` from it.
 - **A scenario's values:** the run YAML in `config/yaml/scenarios/` holds the tunables; the locked rest is in
   `base_configs/`. The models are `config/models/scenario/` (shared vocabulary and orb kinds),
   `scenario/families/goal/config.py` (every goal scenario) and the family's `config.py` (full models and tunables).

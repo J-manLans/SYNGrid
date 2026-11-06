@@ -148,6 +148,20 @@ was never trained.
 **Expected size:** None for the thesis setups, which had it off.
 **Status:** on purpose.
 
+### Delay's steps follow from the delay
+
+**Change:** Delay's `max_steps` is `2 * delay + 50` on tier 3 and 5x5, set by its config model.
+**Touches:** how often something appears, reward
+**Before:** The thesis delay runs had `max_steps` of 150, 200, 300, 550 and 850 for delays of 30, 70, 130, 260 and
+390: 90, 60, 40, 30 and 70 spare steps.
+**Now:** 50 spare steps at every delay: 110, 190, 310, 570 and 830.
+**Expected size:** Large where the spare steps moved most. Delay 30 loses 40 steps and 390 loses 20, so early
+timeouts come sooner; 130 gains 10 and 260 gains 20, so they should time out less early on. The ordering of the
+thesis curves across delays may change, since part of it was the clock.
+**Status:** on purpose.
+**Check:** Phase 6. Compare each delay with its thesis run knowing its spare steps changed, and compare delays with
+one another as the measurement.
+
 ---
 
 ## The observation
