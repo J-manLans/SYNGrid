@@ -31,14 +31,12 @@ from syn_grid.scenario.blocks.populations.tier_chain_population import (
 from syn_grid.scenario.blocks.readers import energy, score, steps_left
 from syn_grid.scenario.blocks.recipes.tier_digester_recipe import TierDigesterRecipe
 from syn_grid.scenario.blocks.recipes.world_recipe import WorldRecipe
-from syn_grid.scenario.blocks.termination import TerminationRules
 from syn_grid.scenario.blocks.watcher import NoWatcher, Watcher
 from syn_grid.scenario.families.goal.single_tier_chain.config import (
     TierDelayScenarioConf,
     TierScenarioConf,
 )
 from syn_grid.scenario.families.goal.single_tier_chain.termination import (
-    DelayTermination,
     SingleTierChainTermination,
 )
 from syn_grid.scenario.families.goal.single_tier_chain.watcher import (
@@ -60,7 +58,6 @@ def _single_tier_chain_scenario(
     scenario_tag: str,
     scenario_conf: TierScenarioConf,
     tier_bundle: OrbBundle,
-    termination: TerminationRules | None = None,
     make_watcher: Callable[[], Watcher] = NoWatcher,
 ) -> Scenario:
     """
@@ -126,10 +123,9 @@ def _single_tier_chain_scenario(
         global_features=(),
     )
 
-    if termination is None:
-        termination = SingleTierChainTermination(
-            timeout_penalty=world_conf.goal_conf.timeout_penalty,
-        )
+    termination = SingleTierChainTermination(
+        timeout_penalty=world_conf.goal_conf.timeout_penalty,
+    )
 
     return Scenario(
         scenario_name=scenario_name,
@@ -357,16 +353,10 @@ def build_single_tier_chain_delay(
     # Max-tier scoring: the digester pays the chain's whole worth when it is completed.
     tier_bundle = _tier_bundle(world_conf.tier_orb_conf, MaxTierDigester)
 
-    termination = DelayTermination(
-        timeout_penalty=world_conf.goal_conf.timeout_penalty,
-        max_tier=world_conf.tier_orb_conf.max_tier,
-    )
-
     return _single_tier_chain_scenario(
         scenario_name,
         scenario_tag,
         scenario_conf,
         tier_bundle,
-        termination=termination,
         make_watcher=DelayWatcherRecipe(delay),
     )

@@ -34,6 +34,7 @@ from syn_grid.scenario.families.goal.single_tier_chain.builders import (
     build_single_tier_chain_spatial,
 )
 from syn_grid.scenario.families.goal.single_tier_chain.config import (
+    DelayScenarioConf,
     ScalingScenarioConf,
     SpatialScenarioConf,
     TierDelayScenarioConf,
@@ -119,6 +120,8 @@ _SINGLE_TIER_CHAIN_BASE_CONFIGS = get_syn_grid_path(
     "scenario", "families", "goal", "single_tier_chain", "base_configs"
 )
 
+# === Scenarios === #
+
 SCENARIOS: dict[ScenarioName, ScenarioEntry] = {
     ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL: ScenarioEntry(
         TierScenarioConf,
@@ -150,6 +153,7 @@ SCENARIOS: dict[ScenarioName, ScenarioEntry] = {
         TierDelayScenarioConf,
         build_single_tier_chain_delay,
         perceptions=(Perception.VECTOR_MARKOVIAN,),
+        lock=Lock(DelayScenarioConf, _SINGLE_TIER_CHAIN_BASE_CONFIGS / "delay.yaml"),
     ),
 }
 
@@ -167,9 +171,9 @@ def build_scenario(scenario: ScenarioName, scenario_conf: ScenarioConf) -> Scena
     return entry.build(scenario.value, scenario_conf)
 
 
-# ----------- #
-#   Helpers   #
-# ----------- #
+# ============ #
+#    Helpers   #
+# ============ #
 
 
 def _merge(base: dict[str, Any], tunables: dict[str, Any]) -> dict[str, Any]:

@@ -185,21 +185,6 @@ class GridWorld:
 
         self.max_identity = next_dense - 1
 
-    # === API === #
-
-    # TODO(delay): `_deactivate_all_orbs` and `_reactivate_all_orbs` are used by no one. They move into the delay
-    # scenario when it is built (phase 6, see open-questions.md), which holds the delay. They still read
-    # `self._conf.delay`, which the world no longer has.
-    # def _deactivate_all_orbs(self) -> None:
-    #     for orb in self.orbs_on_field():
-    #         orb.reset()
-    #         orb.TIMER.set(self._conf.delay)
-
-    # def _reactivate_all_orbs(self) -> None:
-    #     for orb in self.orbs_on_field():
-    #         if orb.TIMER.is_completed():
-    #             orb.spawn(orb.position)
-
     # === Global === #
 
     def _spawn_random_orb_if_ready(self) -> None:

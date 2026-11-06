@@ -19,6 +19,8 @@ composes, `config/models/scenario/orb_models.py` for the orb kinds, and
 `scenario/families/goal/config.py` for what every goal scenario shares.
 """
 
+from typing import Any, ClassVar
+
 from pydantic import BaseModel, Field, model_validator
 
 from syn_grid.config.models.scenario.common_models import GridConf, ObsConf
@@ -82,9 +84,49 @@ class TierScenarioConf(GoalScenarioConf, frozen=True, extra="forbid", strict=Tru
 
 
 class TierDelayScenarioConf(TierScenarioConf, frozen=True, extra="forbid", strict=True):
-    """The config of the delay scenario: a single tier chain, and its delay."""
+    """The config of the delay scenario: a single tier chain, and its delay.
+
+    The model sets `world_conf.max_steps` itself, and a config that states it is rejected. An
+    episode gets the silences the chain needs, one after each tier orb but the last, plus a
+    fixed number of spare steps for the walking and the mistakes:
+
+        max_steps = (max_tier - 1) * delay_conf.steps + spare steps
+
+    The spare steps do not grow with the delay: the droid sees a frozen orb thaw and waiting is
+    free, so a longer delay needs no more time, and a delay is compared with another at the same
+    spare time. They follow the grid: 50 on 5x5, `SPARE_STEPS_PER_ROW_AND_COL` for each row and
+    each column, so 40 on 4x4 and 100 on 10x10.
+    """
+
+    SPARE_STEPS_PER_ROW_AND_COL: ClassVar[int] = 5
 
     delay_conf: DelayConf
+
+    @model_validator(mode="before")
+    @classmethod
+    def set_max_steps(cls, data: Any) -> Any:
+        # Before validation, so the world model, which requires max_steps, is built with it
+        world = data["world_conf"]
+
+        if "max_steps" in world:
+            raise ValueError(
+                "delay sets world_conf.max_steps from the delay and the grid; "
+                "remove it from the config"
+            )
+
+        try:
+            grid = world["grid_conf"]
+            rows_and_cols = grid["grid_rows"] + grid["grid_cols"]
+            silences = world["tier_orb_conf"]["max_tier"] - 1
+            max_steps = (
+                silences * data["delay_conf"]["steps"]
+                + cls.SPARE_STEPS_PER_ROW_AND_COL * rows_and_cols
+            )
+        except (KeyError, TypeError):
+            # A config of the wrong shape goes on to field validation, which says what is wrong
+            return data
+
+        return {**data, "world_conf": {**world, "max_steps": max_steps}}
 
 
 # ============================== #
@@ -144,4 +186,22 @@ class ScalingScenarioConf(BaseModel, frozen=True, extra="forbid", strict=True):
     """The tunables of scaling sparse and scaling dense: the world, and the perception."""
 
     world_conf: ScalingWorldConf
+    obs_conf: ObsConf
+
+
+# === Delay Scenario === #
+
+
+class DelayWorldConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    """The tunables of delay's world: whether the negative orb is on."""
+
+    neg_orb_conf: NegOrbSwitchConf
+
+
+class DelayScenarioConf(BaseModel, frozen=True, extra="forbid", strict=True):
+    """The tunables of delay: the delay, whether the negative orb is on, and the perception.
+    Its steps follow from the delay and the grid, see `TierDelayScenarioConf`."""
+
+    world_conf: DelayWorldConf
+    delay_conf: DelayConf
     obs_conf: ObsConf

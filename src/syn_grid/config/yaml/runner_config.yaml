@@ -5,12 +5,12 @@
 
 common_conf:
   alg: PPO
-  agent_steps: '200704'
+  agent_steps: '8001536'
   seed: 3
   training: true
   # Optional. Joined onto the scenario's tag in the run id; set it when you
   # change something outside the scenario's own axis.
-  tag: chain_break_terminates_orb_penalty_0.1
+  tag: chain_break_terminates_orb_penalty_0.5
 
 train_conf:
   continue_training: false
