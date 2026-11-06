@@ -28,7 +28,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Reward and endings:** energy and score; truncation; who pays what; the reward ladder; normalisation; dense's
   values; the ablations; legacy as a reference
 - **Orbs and the world:** two categories; cool-down and lifespan; weights and counts; the orb field; the step clock;
-  mechanics in strategies; the step result and the watcher; delay's termination; delay's values; delay's episode length; delay's frozen orbs;
+  mechanics in strategies; the step result and the watcher; delay's ending; delay's values; delay's episode length; delay's frozen orbs;
   episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
   locked scenarios; forks; the negative orb's switch
@@ -633,37 +633,50 @@ on its own clock, so it tells nothing about the gap.
 field, which makes the order of the watcher and termination matter; or a watcher needs to freeze an orb that has a
 cool-down.
 
-## Delay starts on legacy's ending, and the ablations walk it to the family's (2026-11-05)
+## Delay ends as the family does (2026-11-06)
 
-**Decision:** Delay has its own `DelayTermination`, a subclass of `SingleTierChainTermination`, written as legacy's
-final delay ending: a broken chain does not end the episode, and eating every tier orb without completing the chain
-ends it at half the timeout penalty. The base class has two overridable methods, `_droid_ended_task` (energy, a
-break, a completion) and `_task_ending_reward` (0 in the base); the clock and its penalty stay in `evaluate`, out of a
-subclass's reach. The ablations remove one override at a time. If the family's ending does as well, delay uses
-`SingleTierChainTermination` and the subclass goes. "Every tier orb eaten" is read from the tier digester's counts,
-not the field, since a frozen tier orb is off the field just as an eaten one is.
+**Decision:** Delay uses `SingleTierChainTermination`, as every scenario in the family does: a broken chain ends the
+episode at `chain_break_penalty`, and there is no ending for eating every tier orb. The termination is one
+`evaluate`, with no methods for a variant to override, and the builders' helper takes no termination.
 
-**Why:** Legacy kept the break open on 2026-05-28, when the break penalty was 0, so ending on a break would have been
-a free way out. The penalty became -1.0 two days later and the rule was never revisited, and the "last orb eaten"
-ending was added after the thesis runs. Starting from legacy's version and moving towards the family's makes each
-difference a measured step. A template fits within one family, as the tier digester's scoring modes do.
+**Why:** Delay started on legacy's final ending, a subclass that kept a broken chain open and ended at half the
+timeout penalty when every tier orb was eaten, and the ablations walked it towards the family's. Legacy kept the
+break open on 2026-05-28, when the break penalty was 0, so ending on a break would have been a free way out; the
+penalty became -1.0 two days later and the rule was never revisited, and the "last orb eaten" ending was added after
+the thesis runs. With a break ending the episode, delay learned at every delay from 30 to 390, and the half-timeout
+ending could no longer fire at tier 3, since a break comes before a third orb is eaten. The subclass then said what
+the base said. The two overridable methods were there for it alone, and nothing is written for a scenario that does
+not exist.
 
-**Rejected:** delay reusing the family's termination from the start (the legacy choices would never be measured);
-the clock in the overridable method (a subclass could forget the deadline, and the penalty rule needs it apart);
-one method returning the ending's reason as an enum (more machinery for one penalty rule).
+**Rejected:**
 
-## Delay's values close the way out (2026-11-05)
+- Legacy's open break: written when breaking cost nothing.
+- The half-timeout ending for every tier orb eaten: unreachable once a break ends the episode.
+- Keeping the template for a later variant: a variant adds the hook it needs when it exists.
 
-**Decision:** Delay's step penalty is 0 and its `chain_break_penalty` is -1.0, as in the thesis delay runs, with the
-timeout at -1.0. It is fully observable: its registry entry allows `vector_markovian`, and the composite and pixel
+**Revisit if:** a scenario in the family needs an ending of its own.
+
+## Delay's values: a free silence, and a break at half the timeout (2026-11-06)
+
+**Decision:** Delay's step penalty is 0, its `chain_break_penalty` is -0.5 and its timeout is -1.0. It is fully observable: its registry entry allows `vector_markovian`, and the composite and pixel
 perceptions join when they are rebuilt. Its ladder is spatial's (base 1.0, growth 1.5), on tier 3 and 5x5.
 
-**Why:** If waiting costs something and ending is cheap, an agent learns to end. A free silence and a break as costly
-as the timeout leave no cheaper way to lose, whichever termination the ablations keep. The silence is what delay
-hides; a window on top would mix spatial's memory test into delay's.
+**Why:** If waiting costs something and ending is cheap, an agent learns to end, so the silence is free. With a
+break ending the episode, the break penalty is most of what teaches the chain's order at a long delay: the completed
+chain's pay comes hundreds of steps after the first orb and its credit is faint, while the break's cost comes at
+once. At -0.1 the droid learned at once at every delay but stayed careless at long ones; at -0.5 it first learned to
+stop eating wrong orbs, then passed -0.1 at 260 and 390 and ended level at 130 (PPO, seed 3, 50 spare steps). The
+silence is what delay hides; a window on top would mix spatial's memory test into delay's.
 
-**Rejected:** spatial's step penalty and break penalty (the silence would cost steps and a break would be the cheap
-exit); any perception (a window would test spatial too).
+**Rejected:**
+
+- -0.1: a break that costs almost nothing teaches the order only through the pay it misses, which a long delay
+  hides.
+- Spatial's step penalty: the silence would cost steps.
+- Any perception that does not see the whole grid: a window would test spatial too.
+
+**Revisit if:** -0.5 does worse than -0.1 at 30 or 70, which have not run at -0.5; or the bite of the frozen orbs
+changes what a wrong move costs.
 
 ## Delay's episode length follows from the delay and the grid (2026-11-06)
 

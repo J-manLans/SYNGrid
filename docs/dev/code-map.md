@@ -187,9 +187,9 @@ perception is reset and writes the first observation.
    in `react`. `NoWatcher` does nothing; delay's `DelayWatcher` (the family's `watcher.py`) freezes and releases
    orbs.
 3. `scenario.termination.evaluate(world)` returns an `EpisodeOutcome`. For the family it is
-   `families/goal/single_tier_chain/termination.py`: `_droid_ended_task` (out of energy, a chain broken or
-   completed) or the clock, with the timeout penalty only when the clock alone ended it. `DelayTermination`
-   overrides the end states.
+   `families/goal/single_tier_chain/termination.py`: the droid ending the task (out of energy, a chain broken or
+   completed) or the clock, with the timeout penalty only when the clock alone ended it. Every scenario in the
+   family uses it.
 4. If terminated, `droid.on_termination(ending_reward)` adds what the digesters gathered and did not pay, plus the
    ending reward, to the score and to this step's reward.
 5. At the end of an episode the scenario's metrics go into `info` under `SYN_STATS_KEY`.
@@ -214,8 +214,7 @@ can use are in `scenario/blocks/readers.py`; the family's own are at the bottom 
 - **Extractors for SB3:** `runners/agent_runners/utils/extractors.py`.
 - **Step and boundary cost, energy, `DroidAction`:** `core/droid/synergy_droid.py`. **Spawning, lifespans, the clock:**
   `core/grid_world.py` and `core/utils/timer.py`.
-- **When an episode ends:** `scenario/blocks/termination.py` (the interface), the family's `termination.py`, which
-  also holds `DelayTermination`.
+- **When an episode ends:** `scenario/blocks/termination.py` (the interface), the family's `termination.py`.
 - **Delay's freeze:** the family's `watcher.py` (`DelayWatcher` and its recipe), on `Watcher` in
   `scenario/blocks/watcher.py`, reading `StepResult` and `is_cell_free` from `core/grid_world.py`. Its delay is
   `delay_conf` on `TierDelayScenarioConf`, which also sets `max_steps` from it.

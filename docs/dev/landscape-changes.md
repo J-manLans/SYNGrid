@@ -148,6 +148,20 @@ was never trained.
 **Expected size:** None for the thesis setups, which had it off.
 **Status:** on purpose.
 
+### Delay ends as the family does
+
+**Change:** A broken chain ends a delay episode, at `chain_break_penalty`, and eating every tier orb is no ending.
+**Touches:** reward, how often something appears
+**Before:** Legacy's final delay ending kept a broken chain open, and ended at half the timeout penalty when every
+tier orb was eaten without a completed chain. The thesis delay runs had the break open and no "every orb eaten"
+ending.
+**Now:** A wrong orb ends the episode at once, as in spatial and scaling, at a break penalty of -0.5 where the
+thesis delay runs had -1.0.
+**Expected size:** Large. A droid that breaks no longer gets to try again in the same episode, and the break penalty
+becomes the main early lesson in the chain's order (see "Delay's values" in `design-decisions.md`).
+**Status:** on purpose.
+**Check:** Phase 6, against the thesis delay curves, knowing the ending and the spare steps both changed.
+
 ### Delay's steps follow from the delay
 
 **Change:** Delay's `max_steps` is `2 * delay + 50` on tier 3 and 5x5, set by its config model.

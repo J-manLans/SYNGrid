@@ -19,8 +19,8 @@ long argument goes in `codebase-ideas.md` or is settled.
 
 - **`reward_multiplier`.** Legacy threshold scoring scaled and rounded each orb's reward with it. Not carried over and
   not decided. If it returns, it is a setting of the orb's reward and not of the mode.
-- **How a builder adds what only its scenario shows,** such as delay's countdown on the HUD. Delay's termination and
-  watcher reach the helper as optional parameters of `_single_tier_chain_scenario`; the HUD is left for when the HUD
+- **How a builder adds what only its scenario shows,** such as delay's countdown on the HUD. Delay's watcher
+  reaches the helper as an optional parameter of `_single_tier_chain_scenario`; the HUD is left for when the HUD
   gets its other elements. Raised on 2026-10-21.
 - **What `builders.py` should look like.** To look at when the phase ends, once delay is built. The builders are nearly
   copies: spatial, sparse and dense differ only in the tag and the digester. Raised on 2026-11-01.
@@ -37,8 +37,9 @@ long argument goes in `codebase-ideas.md` or is settled.
 See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `design-decisions.md`. Raised on
 2026-11-06.
 
-- **When it is built: before the termination ablations or after.** Before, the ablations measure the delay that
-  stays. After, they compare with legacy's curves, where the field emptied.
+- **When it is built: before delay is locked or after.** The termination ablations ran on the field emptying. Built
+  before the lock, the locked scenario is the one with frozen orbs, and it has to be run again. Built after, it
+  changes a locked scenario, which makes it a different one.
 - **Where a penalty for moving into a blocking orb is set.** Blocking costs nothing of itself. Either a penalty is a
   setting of a blocking orb, or a scenario adds it where it needs one, as delay adds the bite to its frozen orbs,
   and the default is nothing. The owner leans towards the scenario adding it, which keeps the bite with the frozen
@@ -49,9 +50,6 @@ See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `des
   Blocking is a property apart from it either way.
 - **How the observation marks a frozen orb,** in each perception, and whether delay waits for the observation pass
   (phase 7) to get it.
-- **Whether "every tier orb eaten" reads the field.** The tier digester's counts were chosen because a frozen orb
-  was off the field. With frozen orbs on it, "no tier orb on the field" says the same without assuming one orb per
-  tier that never comes back.
 
 ### Locking a scenario
 
