@@ -6,10 +6,10 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** rebuild the test suite (phase 6b).
+**Next:** move to Pop!_OS 24.04 and Python 3.12 (phase 6a), then rebuild the test suite (phase 6b).
 
-**Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. When
-phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does not start until that is finished.
+**Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. The
+suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 
 ---
 
@@ -37,45 +37,66 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 | The other five perceptions | legacy, in `legacy/` | — |
 | Renderer | written | run, in human mode |
 | `HumanRunner` | written | run |
-| PPO and RPPO runners | written | learned |
-| FrameStackPPO runner | written | written |
-| CSV logger | written | run, through the environment; never on a real training run |
+| SB3 runner: `BaseSB3Runner`, and an `SB3Spec` each for PPO, FSPPO and RPPO in `RUNNER` | written | learned: PPO and RPPO, before the specs; run: all three by the runner probe, 512 steps through `train()`, saved, loaded and evaluated through `eval()`, the same as before the specs |
+| `BaseAgentRunner`, the extension point for users' runners | written | run, through the SB3 runner; a user's own runner built in a test; the run controls played by hand, video recording not run since `_wrap_episode_stats` came in |
+| CSV logger | written | run, through the environment, and by the runner probe on 512 training steps on two envs; never on a full training run |
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
-| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; phase 6 traces recorded for spatial, scaling sparse, scaling dense and delay |
-| Tests | `tests/unit/` and `tests/integration/`: the step result, `is_cell_free`, `NoWatcher` and the watcher's place in the environment's step | run: 14 pass |
+| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay |
+| Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; its "before" numbers for the move to 3.12 are in the commit that adds it |
+| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behaviour: the world's step and free cells, the watchers, the environment's step, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: 31 pass |
 
 ---
 
-## Phase 6: Rebuild, verify and lock the scenarios
+## Phase 6a: Move to Pop!_OS 24.04 and Python 3.12
 
-**Produces:** every scenario of the single tier chain family rebuilt, shown to learn the way it did in the thesis
-era, and locked. Legacy and the thesis runs are references and not targets.
+**Produces:** SYNGrid on Python 3.12, from Pop!_OS 24.04's system Python, checked against what it did on 3.10. See
+"SYNGrid moves to Python 3.12" in `design-decisions.md`.
 
-In this order, per scenario:
+**Before the upgrade, on 22.04:**
 
-1. **Rebuild** it.
-2. **Verify** it. Train it and compare the shape of the curves with legacy's, or with the thesis runs in
-   `reproduction_package/` where legacy has none. The curves come from TensorBoard. Only if the curves part ways:
-   replay a fixed action sequence through both strains and diff the observation per step, to find where.
-3. **Ablate** the values in doubt, while the YAML still sets every value. A variant that learns as well keeps the
-   simpler value.
-4. **Lock** it: its fixed values move from the YAML into its base config, and the run's YAML keeps only its tunables.
-   See "A locked scenario is a base config and its tunables in front of its entry" in `design-decisions.md`.
-5. **Record a trace** with the replay probe: one seed, a fixed action sequence, and every observation, reward and
-   termination flag per step. Phase 7 is diffed against it.
+1. Review and commit `scripts/runner_probe.py`, with its "before" numbers in the commit message.
+2. Push, so nothing lives only on this machine.
+3. Back up `output/` outside the repo. It is gitignored and holds the models, the logs and the four locked traces in
+   `output/replay_diff/baseline_*`.
+4. `pip freeze > ~/syngrid-freeze-py310.txt` with the venv active: a record to compare with, not a file to install
+   from.
+5. Note the other projects whose venvs point at the system 3.10; they break with it.
+6. Check the free space with `df -h /`, and plug in the charger.
 
-**Compare with care:** anything that changed on purpose is in `design-decisions.md` under "Legacy is a reference,
-not a target", and what could move the observation or reward is in `landscape-changes.md`. A completed max-tier chain
-pays what its orbs are worth, where legacy paid a fixed 10, so compare each side's share of its own ceiling and how
-fast the curves climb, not the reward level.
+**The upgrade:**
 
-**Done when:** every scenario is rebuilt, its runs climb towards their own ceiling while the
-episodes shorten, and each is locked.
+7. `sudo apt update && sudo apt full-upgrade`, then reboot.
+8. `pop-upgrade release upgrade`, or Settings → OS Upgrade & Recovery, then Restart and Install.
 
-### What is left, scenario by scenario
+**The machine and the venv:**
 
-Nothing. Every scenario is locked, with its trace recorded.
+9. `python3 --version` says 3.12, and `nvidia-smi` shows the card and its driver.
+10. `rm -rf .venv`, `python3.12 -m venv .venv` (`sudo apt install python3.12-venv` if it complains), activate it, and
+    `pip install -e ".[dev]"`.
+11. Check the import path with the command in `AGENTS.md`, and `torch.cuda.is_available()`.
+12. Point the editor's interpreter at the new `.venv`.
+
+**The checks, with delay's run YAML at `steps: 30`:**
+
+13. `pytest`, `ruff check src/syn_grid tests` and `python -m syn_grid.check_env`.
+14. The replay probe on all four scenarios, diffed against their `baseline_*` traces. They should match exactly; a
+    difference is a change of behaviour.
+15. `scripts/runner_probe.py` against its "before" numbers. The weights and actions may move with newer torch and
+    numpy, so read how far; the CSV row counts, and the round trip finding its saved model by the run id, should hold.
+16. Human play through `scripts/run_app.sh`, to see whether the pygame and Triton crash in `AGENTS.md` still needs
+    its fix on the new GPU stack.
+17. A short training run, eval with the renderer, and a look at TensorBoard.
+
+**The repo, once the checks pass:**
+
+18. `requires-python` in `pyproject.toml` (see `open-questions.md`), `python-version` in
+    `.github/workflows/ci.yaml`, the Python version and the venv command in `CONTRIBUTING.md`, and the
+    `requires-python` line in "Running things" in `AGENTS.md`, with the crash trap if step 16 changed it.
+19. The commit message says what was run, and how far anything moved.
+
+**Done when:** the four traces match, the runner probe's differences are read and explained, and a run trains and
+renders on 3.12. Phase 6b starts after this, with `coverage`, `pytest-cov` and `mutmut` at their newest versions.
 
 ---
 
@@ -83,9 +104,10 @@ Nothing. Every scenario is locked, with its trace recorded.
 
 **Produces:** a test suite written from scratch against the rebuilt strain, tight and complete, not large.
 
-Tests written along the way in phase 6 are the start of it. When phase 6 is done, go over what exists, fill the gaps
-and tidy the rest. The owner wants tooling that shows untested paths, such as branch coverage, and mutation testing.
-Which libraries is open.
+The tests written while the scenarios were locked are the start of it. Go over what exists, fill the gaps and tidy
+the rest. The owner wants tooling that shows untested paths, such as branch coverage, and mutation testing.
+Which libraries is open. The leads are coverage.py through `pytest-cov`, with branch coverage, and mutmut;
+mutmut is tried first on one file, to check that it tests the mutated copy and not the editable install.
 
 - **`tests/regression/`** pins each locked scenario's replay `stream_digest`, so a drift that today only the manual
   probe catches fails in CI. Open first: how a test plays the tape, since the probe is a script in `scripts/replay/`
@@ -121,10 +143,10 @@ The two perceptions in the `Perception` enum brought in line with the new rules.
    distance, and that the renderer's fog overlay reads in phase 8a.
 
 **One change at a time.** Each of the three is its own commit, and the replay probe is run after each against the
-phase 6 trace. A difference is explained or reverted before the next change starts. The reward must not change.
+locked traces. A difference is explained or reverted before the next change starts. The reward must not change.
 Check whether anything scales the observation by its upper bound. When 7a is done, train spatial.
 
-**Done when:** the observation trace differs from the phase 6 trace only where a change was meant to, the reward
+**Done when:** the observation trace differs from the locked traces only where a change was meant to, the reward
 trace is identical, and spatial still learns.
 
 ### 7a½: Delay's frozen orbs
@@ -139,6 +161,9 @@ before 7b, so the new perceptions are written with the frozen state from the sta
 3. `DelayWatcher` freezing orbs in their cells in place of taking them off the field, and the rule that a released
    orb waits for its cell going.
 4. The frozen mark in the two kept perceptions, and the frozen skin in the renderer.
+5. Relock delay, as every scenario was locked: train it and compare the curves with today's delay, ablate what is in
+   doubt while its base config still changes, then lock it and record a new trace with the replay probe. Anything
+   that moves the observation or reward goes in `landscape-changes.md`.
 
 **Done when:** the delay spread at −0.5 is run again on it and learns, and the bite's 0.1 is checked against the
 curves. The locked traces of spatial and scaling are unchanged.

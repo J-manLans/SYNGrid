@@ -183,6 +183,8 @@ Terms are grouped by area. The last section lists the words that are used in two
 ## Running
 
 - **Runner:** what trains or evaluates an agent on a scenario.
+- **SB3 spec:** an `SB3Spec` in `RUNNER`: one SB3 algorithm as SYNGrid runs it, its class, device, extra
+  hyperparameters and frame stack. Calling it makes the SB3 runner.
 - **Run id:** the name of a run's outputs, made of the perception, the seed, the scenario tag, the runner's optional
   tag and the algorithm.
 - **Snapshot:** a copy of the scenario's YAML saved under the run id.
@@ -203,6 +205,9 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Phase:** a step of `scenario-rebuild-roadmap.md`.
 - **Replay probe:** `scripts/replay/probe.py`. It plays the tape through a scenario and records what comes back.
   `diff.py` compares two recordings, and `sweep.sh` runs the probe at each commit in a range.
+- **Runner probe:** `scripts/runner_probe.py`. It trains each algorithm briefly with a seed, runs its eval loop, and
+  saves and loads it through `train()` and `eval()` (the round trip), and prints digests of the weights, the eval
+  actions and the CSV rows. It is the check for the runners, which the replay probe does not reach.
 - **Tape:** the fixed, seeded action sequence the replay probe plays, read by one cursor across episodes.
 - **Trace:** one recording of the replay probe: every observation, reward, end flag and episode length. A trace is
   named by the commit it was recorded at.

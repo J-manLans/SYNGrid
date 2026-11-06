@@ -33,15 +33,15 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
   locked scenarios; one entry per scenario; forks; the negative orb's switch
 - **Observation:** the kept perceptions; no timer; shared readers
-- **Runners and rendering:** the algorithm enum; SB3 specs; the policy name; human play; the renderer; window input; continued
-  runs
+- **Runners and rendering:** the algorithm enum; SB3 specs; the policy name; human play; the renderer; window input;
+  continued runs; Python 3.12
 
 ---
 
 ## Principles
 
 The rules most decisions below follow.
-
+; Python 3.12
 - **Everything scenario-specific is a field of `Scenario`.** The test for a field is "does the Gymnasium side need
   it?"; what only the world needs stays inside `build_world`.
 - **A `Scenario` holds nothing that changes during an episode.** Training builds 16 envs from one `Scenario` in one
@@ -1203,3 +1203,27 @@ by hand and typing its step count into `agent_steps`. A model that went through 
 the same name as one trained from scratch on 7x7, and only a tag remembered by hand told them apart.
 
 **Rejected:** extending the parent's id and folder (the id would name the first stage's grid, not the one trained on).
+
+## SYNGrid moves to Python 3.12, through Pop!_OS 24.04 (2026-11-07)
+
+**Decision:** SYNGrid moves from Python 3.10 to 3.12, the system Python of Pop!_OS 24.04, which the owner's machine
+moves to. Models saved under 3.10 may not load under 3.12; that is accepted, and a run is retrained from its config
+and seed where it is needed. The move and its checks are phase 6a in the roadmap.
+
+**Why:** Nothing recorded a reason for the pin to 3.10; it was the system Python of Pop!_OS 22.04. Tools have begun to
+drop 3.10: coverage.py's newest line needs 3.11, so every dev tool would freeze at its last 3.10 release. The move
+comes between phases, before 6b picks its tools, and with four locked traces and the runner probe to check it by.
+
+**Rejected:**
+
+- uv's standalone Python: it leaves the system alone, but the owner moves the OS to 24.04 anyway.
+- The deadsnakes PPA: a system-wide third-party source for what the OS upgrade brings.
+- Python in a Docker container: Python is what SYNGrid runs inside, not a service it talks to, so the venv, the GPU,
+  the pygame window and the editor would all have to move into the container.
+- Another distribution, such as Omarchy: a reinstall, a rolling Python that would still need pinning, and NVIDIA on
+  Wayland to solve again.
+- 3.13: SB3, torch and pygame have supported 3.12 longest.
+
+**Revisit if:** a dependency SYNGrid needs does not run on 3.12, or the checks in phase 6a show a change of behaviour
+that is not explained.
+
