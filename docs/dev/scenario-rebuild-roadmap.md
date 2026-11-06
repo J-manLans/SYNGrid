@@ -6,7 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** delay's tests and locked trace (phase 6).
+**Next:** rebuild the test suite (phase 6b).
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. When
 phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does not start until that is finished.
@@ -42,7 +42,7 @@ phase 6 is done, the suite is rebuilt from scratch (phase 6b), and phase 7 does 
 | CSV logger | written | run, through the environment; never on a real training run |
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
-| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; phase 6 traces recorded for spatial, scaling sparse and scaling dense |
+| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; phase 6 traces recorded for spatial, scaling sparse, scaling dense and delay |
 | Tests | `tests/unit/` and `tests/integration/`: the step result, `is_cell_free`, `NoWatcher` and the watcher's place in the environment's step | run: 14 pass |
 
 ---
@@ -75,7 +75,7 @@ episodes shorten, and each is locked.
 
 ### What is left, scenario by scenario
 
-1. **Delay.** Write delay's tests, and record its locked trace.
+Nothing. Every scenario is locked, with its trace recorded.
 
 ---
 
@@ -89,8 +89,8 @@ Which libraries is open.
 
 - **`tests/regression/`** pins each locked scenario's replay `stream_digest`, so a drift that today only the manual
   probe catches fails in CI. Open first: how a test plays the tape, since the probe is a script in `scripts/replay/`
-  and not importable (move the loop into the package, run the script as a subprocess, or something else). Delay's
-  digest joins when delay is locked. Build it sooner if a locked scenario is touched before then.
+  and not importable (move the loop into the package, run the script as a subprocess, or something else). The four
+  digests are in `output/replay_diff/baseline_*.json` and in the commits that recorded them. Build it sooner if a locked scenario is touched before then.
 - **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
   `check_env`, as one parametrized test.
 
