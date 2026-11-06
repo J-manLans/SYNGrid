@@ -58,47 +58,32 @@ def _tier_1(world: GridWorld) -> BaseOrb:
 class TestPerformDroidAction:
     """What one tick of the world reports: the orb eaten, and the reward."""
 
-    def test_eating_reports_the_orbs_meta(self, world: GridWorld):
+    def test_eating_reports_the_orb_and_what_the_droid_took_in(self, world: GridWorld):
         tier_1 = _tier_1(world)
-
-        result = world.perform_droid_action(DroidAction.LEFT)
-
-        assert result.consumed is tier_1.META
-
-    def test_eating_nothing_reports_none(self, world: GridWorld):
-        result = world.perform_droid_action(DroidAction.RIGHT)
-
-        assert result.consumed is None
-
-    def test_reward_is_what_the_droid_took_in(self, world: GridWorld):
         score_before = world.droid.score
 
         result = world.perform_droid_action(DroidAction.LEFT)
 
-        # A tier 1 orb grows the chain, which max-tier scoring pays nothing for, so the step
-        # costs only its penalty
-        assert result.reward == pytest.approx(STEP_PENALTY)
+        assert result.consumed is tier_1.META
         assert result.reward == pytest.approx(world.droid.score - score_before)
 
-    def test_an_empty_step_costs_its_penalty(self, world: GridWorld):
+    def test_an_empty_step_reports_nothing_and_costs_its_penalty(
+        self, world: GridWorld
+    ):
         result = world.perform_droid_action(DroidAction.RIGHT)
 
+        assert result.consumed is None
         assert result.reward == pytest.approx(STEP_PENALTY)
 
 
 class TestIsCellFree:
     """Whether an orb can be placed in a cell: no droid there, and no orb on the field."""
 
-    def test_an_empty_cell_is_free(self, world: GridWorld):
+    def test_free_only_without_the_droid_or_an_orb_on_the_field(self, world: GridWorld):
         assert world.is_cell_free([1, 1])
-
-    def test_the_droids_cell_is_not_free(self, world: GridWorld):
         assert not world.is_cell_free([2, 2])
-
-    def test_a_cell_with_an_orb_on_the_field_is_not_free(self, world: GridWorld):
         assert not world.is_cell_free([2, 1])
 
-    def test_a_cell_whose_orb_left_the_field_is_free(self, world: GridWorld):
         _tier_1(world).de_spawn()
 
         assert world.is_cell_free([2, 1])

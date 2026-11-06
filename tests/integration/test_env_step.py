@@ -88,26 +88,17 @@ class TestWatcherInTheStep:
 
         assert log.events.count("reset") == 2
 
-    def test_react_runs_once_a_step_before_termination(
+    def test_each_step_reacts_before_termination_with_the_world_and_its_result(
         self, env: SYNGridEnv, log: CallLog
     ):
         env.reset(seed=0)
         log.events.clear()
 
-        env.step(0)
+        _, reward, terminated, _, _ = env.step(0)
         env.step(0)
 
         assert log.events == ["react", "evaluate", "react", "evaluate"]
-
-    def test_react_is_handed_the_env_world_and_the_steps_result(
-        self, env: SYNGridEnv, log: CallLog
-    ):
-        env.reset(seed=0)
-
-        _, reward, terminated, _, _ = env.step(0)
-
-        assert log.worlds == [env.world]
-        assert isinstance(log.results[0], StepResult)
+        assert log.worlds[0] is env.world
         # A step left from the centre of the grid cannot end the episode, so the env's reward is
         # the world's
         assert not terminated

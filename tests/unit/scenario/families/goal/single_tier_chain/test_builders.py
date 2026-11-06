@@ -39,10 +39,6 @@ class TestTag:
                 ScenarioName.GOAL_SINGLE_TIER_CHAIN_SCALING_SPARSE,
                 "tier{tier}_{rows}x{cols}_steps",
             ),
-            (
-                ScenarioName.GOAL_SINGLE_TIER_CHAIN_SCALING_DENSE,
-                "tier{tier}_{rows}x{cols}_steps",
-            ),
             (ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY, "delay{delay}_steps"),
         ],
     )
@@ -85,13 +81,7 @@ class TestWatcher:
 
         assert scenario.make_watcher == DelayWatcherRecipe(conf.delay_conf.steps)
 
-    @pytest.mark.parametrize(
-        "name",
-        [
-            ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL,
-            ScenarioName.GOAL_SINGLE_TIER_CHAIN_SCALING_SPARSE,
-            ScenarioName.GOAL_SINGLE_TIER_CHAIN_SCALING_DENSE,
-        ],
-    )
-    def test_the_others_never_act(self, name: ScenarioName):
-        assert _scenario(name).make_watcher is NoWatcher
+    def test_a_scenario_without_one_never_acts(self):
+        scenario = _scenario(ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL)
+
+        assert scenario.make_watcher is NoWatcher

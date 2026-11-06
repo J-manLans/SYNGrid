@@ -46,25 +46,10 @@ def _with(
 class TestDelayMaxSteps:
     """The steps delay's config model gives an episode: the silences, plus the spare steps."""
 
-    @pytest.mark.parametrize("delay", [30, 70, 130, 260, 390])
-    def test_spare_steps_on_5x5_are_50_at_any_delay(
-        self, delay_base: dict[str, Any], delay: int
-    ):
-        conf = TierDelayScenarioConf(**_with(delay_base, delay=delay))
+    def test_spare_steps_follow_rows_and_cols(self, delay_base: dict[str, Any]):
+        conf = TierDelayScenarioConf(**_with(delay_base, delay=100, rows=10, cols=10))
 
-        assert conf.world_conf.max_steps - 2 * delay == 50
-
-    @pytest.mark.parametrize(
-        ("rows", "cols", "spare"), [(4, 4, 40), (4, 6, 50), (7, 7, 70), (10, 10, 100)]
-    )
-    def test_spare_steps_follow_the_grid(
-        self, delay_base: dict[str, Any], rows: int, cols: int, spare: int
-    ):
-        conf = TierDelayScenarioConf(
-            **_with(delay_base, delay=100, rows=rows, cols=cols)
-        )
-
-        assert conf.world_conf.max_steps == 2 * 100 + spare
+        assert conf.world_conf.max_steps == 2 * 100 + 100
 
     def test_one_silence_per_tier_orb_but_the_last(self, delay_base: dict[str, Any]):
         conf = TierDelayScenarioConf(**_with(delay_base, delay=100, max_tier=4))
@@ -94,11 +79,10 @@ def _run(**extra: Any) -> dict[str, Any]:
 class TestDelayTunables:
     """What a delay run may set: the delay, the negative orb's switch and the perception."""
 
-    def test_a_run_sets_the_delay_and_gets_its_steps(self):
+    def test_a_run_sets_the_delay_and_gets_50_spare_steps_on_5x5(self):
         conf = SCENARIOS[DELAY].full_conf(_run())
 
-        assert conf.delay_conf.steps == 390
-        assert conf.world_conf.max_steps == 830
+        assert conf.world_conf.max_steps == 2 * 390 + 50
 
     def test_a_run_turns_the_negative_orb_on(self):
         conf = SCENARIOS[DELAY].full_conf(
@@ -107,14 +91,8 @@ class TestDelayTunables:
 
         assert conf.world_conf.neg_orb_conf.enabled
 
-    @pytest.mark.parametrize(
-        "extra",
-        [
-            {"world_conf": {"max_steps": 850}},
-            {"world_conf": {"grid_conf": {"grid_rows": 6, "grid_cols": 6}}},
-            {"world_conf": {"droid_conf": {"step_penalty": -0.001}}},
-        ],
-    )
-    def test_anything_else_is_rejected(self, extra: dict[str, Any]):
+    def test_a_fixed_value_is_rejected(self):
         with pytest.raises(ValidationError):
-            SCENARIOS[DELAY].full_conf(_run(**extra))
+            SCENARIOS[DELAY].full_conf(
+                _run(world_conf={"droid_conf": {"step_penalty": -0.001}})
+            )

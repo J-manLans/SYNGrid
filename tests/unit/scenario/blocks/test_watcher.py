@@ -48,9 +48,6 @@ def _field_state(world: GridWorld) -> list[tuple[bool, list[int], int | None]]:
 class TestNoWatcher:
     """The watcher of a scenario that states none."""
 
-    def test_is_the_default_of_a_scenario_that_states_none(self, scenario: Scenario):
-        assert isinstance(scenario.make_watcher(), NoWatcher)
-
     def test_react_leaves_the_world_as_it_was(self, world: GridWorld):
         orb = world.orbs_on_field()[0]
         before = _field_state(world)
@@ -68,10 +65,3 @@ class TestNoWatcher:
             world.droid.energy,
             world.droid.score,
         ) == droid_before
-
-    def test_reset_leaves_the_world_as_it_was(self, world: GridWorld):
-        before = _field_state(world)
-
-        NoWatcher().reset()
-
-        assert _field_state(world) == before

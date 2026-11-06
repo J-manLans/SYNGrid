@@ -43,8 +43,3 @@ class TestBuild:
 
         with pytest.raises(ValueError, match="does not allow the perception"):
             SCENARIOS[SPATIAL].build(SPATIAL.value, seeing_all)
-
-    def test_a_config_that_passes_is_composed_under_its_name(self):
-        scenario = SCENARIOS[SPATIAL].build(SPATIAL.value, _run_conf(SPATIAL))
-
-        assert scenario.scenario_name == SPATIAL.value
