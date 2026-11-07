@@ -1215,9 +1215,10 @@ the same name as one trained from scratch on 7x7, and only a tag remembered by h
 ## SYNGrid moves to Python 3.12, through Pop!_OS 24.04 (2026-11-07)
 
 **Decision:** SYNGrid moves from Python 3.10 to 3.12, the system Python of Pop!_OS 24.04, which the owner's machine
-moves to. `requires-python` is `">=3.12,<3.13"`, pinned to one minor version as 3.10 was. Models saved under 3.10
-may not load under 3.12; that is accepted, and a run is retrained from its config and seed where it is needed. On
-3.12 the four regression baselines and the runner probe's digests are the same as on 3.10.
+moves to. `requires-python` is `">=3.12,<3.13"`, pinned to one minor version as 3.10 was. A model saved under
+3.10 that does not load under 3.12 is retrained from its config and seed; the 22 in `output/` at the move all load,
+with their normalization stats. On 3.12 the four regression baselines and the runner probe's digests are the same as
+on 3.10.
 
 **Why:** Nothing recorded a reason for the pin to 3.10; it was the system Python of Pop!_OS 22.04. Tools have begun to
 drop 3.10: coverage.py's newest line needs 3.11, so every dev tool would freeze at its last 3.10 release. The move
