@@ -141,6 +141,8 @@ For the helpers section, provide subheadings indicating what section the helpers
   promise, and may use real collaborators to do it.
 - **Integration tests** in `tests/integration/` check that parts across packages hand off to each other, such as the
   environment's step through the world, the watcher and termination.
+- **Regression tests** in `tests/regression/` check that each locked scenario still plays the replay tape as its
+  baseline in `tests/regression/baselines/` recorded it. A locked scenario without a baseline fails.
 - Inside a file, one class per method or behaviour under test, named `Test<Thing>`, with a one-line docstring.
   Fixtures and helpers stay at module level, so every class in the file can use them.
 

@@ -208,8 +208,10 @@ Each of these cost a wrong conclusion in this repo.
 - **Written is not run.** Check the has-it-run column in the roadmap before saying something works.
 - For where a behaviour came from or when it changed, prefer `git log -S`, a replay probe or loading the artifact
   over inference from a name or a comment.
-- The replay probe (`scripts/replay/probe.py`) records a locked scenario as a run sees it, with no overrides.
-  Comparisons are exact, so read the size of a difference before calling it behavioural.
+- The replay probe (`scripts/replay/probe.py`) records a locked scenario from its base config, so a run's tunables do
+  not move it; `--run-yaml` records it as a run sees it. The regression test checks each locked scenario against its
+  baseline in `tests/regression/baselines/`. Comparisons are exact, so read the size of a difference before calling
+  it behavioural.
 - **A change meant to leave behaviour alone is probed before and after,** for each scenario whose code it touches,
   and compared with `scripts/replay/diff.py`. Say whether the traces matched and what the probe does not reach:
   rendering, logging, the runners, and any branch the tape's random walk does not hit.

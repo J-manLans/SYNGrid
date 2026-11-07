@@ -3,12 +3,14 @@
 # a scenario's behaviour changes. Each commit is checked out as a sparse worktree (src/syn_grid
 # only); the probe and the interpreter come from this checkout, so only the code under test varies.
 # Commits that touch none of $PATHS are skipped; set PATHS="" to sweep every commit.
+# Each line starts with where the config came from: a locked scenario's base config, or, at a commit
+# from before locks, its run YAML. A change of source shows as a change of config_digest.
 #
 # Usage:   sweep.sh <start> [end] [scenario]      end defaults to HEAD, the start is swept too
 # Example: bash scripts/replay/sweep.sh af98fd8 HEAD goal_single_tier_chain_spatial
 set -uo pipefail
 
-[ $# -ge 1 ] && [ $# -le 3 ] || { sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
+[ $# -ge 1 ] && [ $# -le 3 ] || { sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 START="$1" END="${2:-HEAD}" SCENARIO="${3:-goal_single_tier_chain_spatial}"
@@ -34,7 +36,8 @@ probe() {  # probe <label> <src dir>
   local line
   line=$(PYTHONPATH="$2" "$PY" "$PROBE" --label "$1" --out "$OUT" --scenario "$SCENARIO" 2>&1 | tail -1)
   case "$line" in
-    "$1":*) printf '%-10s %s\n' "$1" "${line#*: }" ;;
+    # The probe prints "<label> (<source>): ...", and older probes "<label>: ..."
+    "$1 ("*|"$1":*) printf '%-10s %s\n' "$1" "${line#"$1" }" ;;
     *) printf '%-10s FAILED: %s\n' "$1" "${line:0:140}" ;;
   esac
 }

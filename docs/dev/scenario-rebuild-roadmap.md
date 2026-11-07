@@ -42,9 +42,10 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | CSV logger | written | run, through the environment, and by the runner probe on 512 training steps on two envs; never on a full training run |
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
-| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay |
+| Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
 | Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; its "before" numbers for the move to 3.12 are in the commit that adds it |
 | Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behaviour: the world's step and free cells, the watchers, the environment's step, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: 31 pass |
+| Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
 
 ---
 
@@ -57,8 +58,7 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 
 1. Review and commit `scripts/runner_probe.py`, with its "before" numbers in the commit message.
 2. Push, so nothing lives only on this machine.
-3. Back up `output/` outside the repo. It is gitignored and holds the models, the logs and the four locked traces in
-   `output/replay_diff/baseline_*`.
+3. Back up `output/` outside the repo. It is gitignored and holds the models and the logs.
 4. `pip freeze > ~/syngrid-freeze-py310.txt` with the venv active: a record to compare with, not a file to install
    from.
 5. Note the other projects whose venvs point at the system 3.10; they break with it.
@@ -80,8 +80,8 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 **The checks, with delay's run YAML at `steps: 30`:**
 
 13. `pytest`, `ruff check src/syn_grid tests` and `python -m syn_grid.check_env`.
-14. The replay probe on all four scenarios, diffed against their `baseline_*` traces. They should match exactly; a
-    difference is a change of behaviour.
+14. The regression test, in step 13's `pytest`, plays all four locked scenarios against their baselines. They should
+    match exactly; a failure is a change of behaviour, and its message says how to see where with `diff.py`.
 15. `scripts/runner_probe.py` against its "before" numbers. The weights and actions may move with newer torch and
     numpy, so read how far; the CSV row counts, and the round trip finding its saved model by the run id, should hold.
 16. Human play through `scripts/run_app.sh`, to see whether the pygame and Triton crash in `AGENTS.md` still needs
@@ -109,11 +109,6 @@ the rest. The owner wants tooling that shows untested paths, such as branch cove
 Which libraries is open. The leads are coverage.py through `pytest-cov`, with branch coverage, and mutmut;
 mutmut is tried first on one file, to check that it tests the mutated copy and not the editable install.
 
-- **`tests/regression/`** pins each locked scenario's replay `stream_digest`, so a drift that today only the manual
-  probe catches fails in CI. See "The regression test runs the replay probe on each locked scenario's base config" in
-  `design-decisions.md`. The probe learns to build from the base config; the four baselines are recorded again from
-  the base configs into `tests/regression/baselines/`, replacing `output/replay_diff/baseline_*`, which came from the
-  run YAMLs. Build it sooner if a locked scenario is touched before then.
 - **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
   `check_env`, as one parametrized test.
 

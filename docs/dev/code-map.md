@@ -128,7 +128,8 @@ syn_grid/
 ```
 
 Outside it: `scripts/replay/` (probe, diff, sweep), `scripts/runner_probe.py` (fingerprints each algorithm's runner),
-`scripts/run_app.sh`, `scripts/tidy.sh`.
+`scripts/run_app.sh`, `scripts/tidy.sh`, and `tests/regression/baselines/` (each locked scenario's baseline, which
+`tests/regression/test_replay.py` checks through the replay probe).
 
 ## The layers
 

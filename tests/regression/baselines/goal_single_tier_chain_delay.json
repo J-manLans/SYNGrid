@@ -1,0 +1,20 @@
+{
+  "label": "goal_single_tier_chain_delay",
+  "scenario": "goal_single_tier_chain_delay",
+  "source": "base config",
+  "commit": "7b31caa",
+  "syn_grid_path": "/home/joel/Documents/programming/python/SYNGrid_benchmark/SYNGrid/src/syn_grid",
+  "config_digest": "ce045c5c0e3e111b",
+  "episodes": 200,
+  "steps": 7391,
+  "obs_dim": 14,
+  "distinct_obs": 1862,
+  "reward_sum": -1400.3033636203772,
+  "terminated": 200,
+  "truncated": 0,
+  "reached_max_steps": 29,
+  "mean_ep_len": 36.955,
+  "obs_digest": "87242837861d1dc8",
+  "reward_digest": "9cf172f191246b8d",
+  "stream_digest": "c35e3f8879b09738"
+}

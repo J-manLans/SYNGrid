@@ -7,11 +7,19 @@ Every observation, reward, terminated and truncated flag and episode length is w
 commits and compare them with diff.py: anything that differs, the code did. This is a change
 detector, not a test; the tape is a random walk, not a policy.
 
-The scenario is built from its run YAML in config/yaml/scenarios/, through its registry entry, as a
-run builds it. Imports sit inside functions, so PYTHONPATH can point this at another checkout.
+A locked scenario is built from its base config, the scenario as it was locked, so a run's tunables
+do not move the recording. --run-yaml builds it from its run YAML in config/yaml/scenarios/ instead,
+as a run builds it. A scenario that is not locked, or a commit from before locks, is built from its
+run YAML. Either way it goes through its registry entry. The summary says which source it used, and
+the commit and whether the tree was dirty.
+
+--baseline records the scenario's baseline: it writes to tests/regression/baselines/, named after
+the scenario, where the regression test reads it. Imports sit inside functions, so PYTHONPATH can
+point this at another checkout.
 
 Usage:
-    probe.py --label NAME [--scenario NAME] [--episodes N] [--out DIR]
+    probe.py --label NAME [--scenario NAME] [--episodes N] [--out DIR] [--run-yaml]
+    probe.py --baseline [--scenario NAME]
 
 Example:
     PYTHONPATH=src python scripts/replay/probe.py --label before
@@ -20,12 +28,15 @@ Example:
 import argparse
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 import numpy as np
+import yaml
 
 ENV_SEED = 20260516
 ACTION_SEED = 991
+BASELINES = Path(__file__).resolve().parents[2] / "tests" / "regression" / "baselines"
 
 
 def digest(data: bytes) -> str:
@@ -34,11 +45,18 @@ def digest(data: bytes) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--label", required=True)
+    ap.add_argument("--label")
     ap.add_argument("--scenario", default="goal_single_tier_chain_spatial")
     ap.add_argument("--episodes", type=int, default=200)
     ap.add_argument("--out", default="output/replay_diff")
+    ap.add_argument("--run-yaml", action="store_true")
+    ap.add_argument("--baseline", action="store_true")
     args = ap.parse_args()
+
+    if args.baseline and (args.label or args.run_yaml or args.episodes != 200):
+        ap.error("--baseline names, places and sizes the recording itself")
+    if not args.baseline and not args.label:
+        ap.error("--label is required without --baseline")
 
     import syn_grid
     from syn_grid.config.config_manager import ConfigManager
@@ -47,10 +65,17 @@ def main() -> int:
     from syn_grid.scenario.registry import SCENARIOS, build_scenario
 
     name = ScenarioName(args.scenario)
-    manager = ConfigManager()
-    conf = SCENARIOS[name].full_conf(
-        manager.load_raw(manager.scenario_config_path(name))
-    )
+    entry = SCENARIOS[name]
+    # A commit from before locks has no lock on its entries
+    lock = getattr(entry, "lock", None)
+    if lock is not None and not args.run_yaml:
+        with lock.base_config_path.open("r") as f:
+            conf = entry.conf_class(**yaml.safe_load(f))
+        source = "base config"
+    else:
+        manager = ConfigManager()
+        conf = entry.full_conf(manager.load_raw(manager.scenario_config_path(name)))
+        source = "run YAML"
     max_steps = conf.world_conf.max_steps
 
     register_env()
@@ -90,10 +115,12 @@ def main() -> int:
     trunc_arr = np.asarray(truncated, dtype=bool)
     lens = np.asarray(ep_lens, dtype=np.int64)
 
-    out = Path(args.out)
+    out, label = (
+        (BASELINES, name.value) if args.baseline else (Path(args.out), args.label)
+    )
     out.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
-        out / f"{args.label}.npz",
+        out / f"{label}.npz",
         obs=obs_mat,
         rewards=rew,
         terminated=term_arr,
@@ -101,10 +128,13 @@ def main() -> int:
         ep_lens=lens,
     )
 
+    package = Path(syn_grid.__file__).parent
     summary = {
-        "label": args.label,
+        "label": label,
         "scenario": name.value,
-        "syn_grid_path": str(Path(syn_grid.__file__).parent),
+        "source": source,
+        "commit": commit_of(package),
+        "syn_grid_path": str(package),
         "config_digest": digest(conf.model_dump_json().encode()),
         "episodes": int(lens.size),
         "steps": int(rew.size),
@@ -119,10 +149,32 @@ def main() -> int:
         "reward_digest": digest(rew.tobytes()),
         "stream_digest": digest(obs_mat.tobytes() + rew.tobytes()),
     }
-    (out / f"{args.label}.json").write_text(json.dumps(summary, indent=2))
+    (out / f"{label}.json").write_text(json.dumps(summary, indent=2) + "\n")
 
-    print(f"{args.label}: " + " ".join(f"{k}={summary[k]}" for k in list(summary)[4:]))
+    shown = list(summary)[list(summary).index("config_digest") :]
+    print(f"{label} ({source}): " + " ".join(f"{k}={summary[k]}" for k in shown))
     return 0
+
+
+def commit_of(package: Path) -> str | None:
+    """The commit the package's checkout is at, with "+dirty" if its tree has changes. None
+    outside a git checkout."""
+
+    def git(*cmd: str) -> str:
+        return subprocess.run(
+            ["git", "-C", str(package), *cmd],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+
+    try:
+        commit = git("rev-parse", "--short", "HEAD")
+        dirty = git("status", "--porcelain", "--", ".")
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+    return commit + ("+dirty" if dirty else "")
 
 
 if __name__ == "__main__":

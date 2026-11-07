@@ -1,0 +1,20 @@
+{
+  "label": "goal_single_tier_chain_scaling_dense",
+  "scenario": "goal_single_tier_chain_scaling_dense",
+  "source": "base config",
+  "commit": "7b31caa",
+  "syn_grid_path": "/home/joel/Documents/programming/python/SYNGrid_benchmark/SYNGrid/src/syn_grid",
+  "config_digest": "7c205755bfd2c849",
+  "episodes": 200,
+  "steps": 1784,
+  "obs_dim": 26,
+  "distinct_obs": 1133,
+  "reward_sum": -227.57012190837762,
+  "terminated": 200,
+  "truncated": 0,
+  "reached_max_steps": 2,
+  "mean_ep_len": 8.92,
+  "obs_digest": "7883f8413f36d201",
+  "reward_digest": "3803d4f9b216a987",
+  "stream_digest": "303ff473ec465081"
+}
