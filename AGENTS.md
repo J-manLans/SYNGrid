@@ -124,6 +124,9 @@ amended as the session goes, unless the owner says otherwise.
 - **Pull first.** Before the first edit of a session on the owner's local machine, say once "pull first, then we
   start", and wait for the owner to confirm. An agent in a cloud or web session starts from a fresh clone and does
   not ask.
+- **`scripts/` is the agent's.** The probes, the sweep and the helper scripts are the agent's to design, change,
+  move and tidy without asking. The owner learns how they work before a 1.0 release. A change to one is still listed
+  in the report and the commit message.
 - **Agree on where a new file or folder goes before creating it.** Show the tree it gives and say what sort of thing
   lives at that level. The owner reads the structure to picture the design. This covers renames and moves.
 - **Make the work reviewable.** After writing, list each file touched and what changed in it, say what was run and
