@@ -10,6 +10,7 @@
 # The thesis delay runs had delays of 30, 70, 130, 260 and 390 with max_steps of 150, 200, 300,
 # 550 and 850, so their spare steps were 90, 60, 40, 30 and 70. The step penalty is 0, so
 # waiting out a silence is free.
+
 world_conf:
   grid_conf:
     grid_rows: 5
@@ -35,7 +36,7 @@ world_conf:
     cool_down: 10
 
 delay_conf:
-  steps: 390
+  steps: 30
 
 obs_conf:
   observation_handler_conf:

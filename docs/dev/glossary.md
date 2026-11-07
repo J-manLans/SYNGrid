@@ -209,8 +209,11 @@ Terms are grouped by area. The last section lists the words that are used in two
   saves and loads it through `train()` and `eval()` (the round trip), and prints digests of the weights, the eval
   actions and the CSV rows. It is the check for the runners, which the replay probe does not reach.
 - **Tape:** the fixed, seeded action sequence the replay probe plays, read by one cursor across episodes.
-- **Trace:** one recording of the replay probe: every observation, reward, end flag and episode length. A trace is
-  named by the commit it was recorded at.
+- **Trace:** one recording of the replay probe: every observation, reward, end flag and episode length. A trace
+  recorded by hand is named by the commit it was recorded at.
+- **Baseline:** a locked scenario's reference trace, recorded from its base config, which the regression test checks
+  against. It is committed in `tests/regression/baselines/`, named after the scenario, and its `.json` records the
+  commit it was recorded at.
 
 ---
 

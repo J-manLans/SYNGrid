@@ -35,6 +35,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 - **Observation:** the kept perceptions; no timer; shared readers
 - **Runners and rendering:** the algorithm enum; SB3 specs; the policy name; human play; the renderer; window input;
   continued runs; Python 3.12
+- **Testing:** the regression test
 
 ---
 
@@ -893,7 +894,9 @@ pass (phase 6 adds three scenarios to the family).
 **Decision:** A scenario is composed from its full config. A locked scenario is three things:
 
 - **Its entry:** what no value changes, such as the scoring mode, the termination and the HUD.
-- **Its base config:** the full config that was run, as a read-only YAML in the package.
+- **Its base config:** the full config that was run, as a read-only YAML in the package. Where the thesis ran a
+  scenario at several sizes, its tunables hold the smallest: spatial on 5x5, scaling sparse at tier 4, scaling dense
+  at tier 6, delay at a delay of 30.
 - **Its tunables:** a model, frozen, strict and `extra="forbid"`, holding only what a run may set, under the full
   model's field names and nesting.
 
@@ -911,6 +914,9 @@ everything after it takes a `ScenarioConf`. `ConfigManager` reads YAML and knows
 idea.
 
 A scenario is locked once its runs learn in the same general direction as legacy.
+
+A run's YAML must state every tunable, so the base config's tunables reach no run. They are what the regression
+test records.
 
 **Why:** The values that make a scenario are data, so they live in a file that a person and a GUI can read, with
 comments, and one merge serves every locked scenario. An entry that composes from the full config serves a locked run and a
@@ -1228,4 +1234,29 @@ comes between phases, before 6b picks its tools, and with four locked traces and
 
 **Revisit if:** a dependency SYNGrid needs does not run on 3.12, or the checks in phase 6a show a change of behaviour
 that is not explained.
+
+## The regression test runs the replay probe on each locked scenario's base config (2026-11-07)
+
+**Decision:** `tests/regression/` runs the replay probe, `scripts/replay/probe.py`, as a subprocess for every locked
+scenario, with `PYTHONPATH=src`, and checks its `stream_digest` against the scenario's baseline. The probe builds a
+locked scenario from its base config, not from its run YAML. The baselines are committed in
+`tests/regression/baselines/`, a `.json` and an `.npz` per scenario, named after the scenario; the `.json` records
+the commit it was recorded at. A locked scenario with no baseline fails the test, so locking a scenario means
+recording its baseline. The probe needs no model: its tape is a seeded random walk.
+
+**Why:** The baselines are recorded by the probe, so the test checks them with the same code. `sweep.sh` runs today's
+probe against older commits, which works only while the probe carries its own loop. The base config changes only
+when the scenario does, so an experiment's tunables do not move the test. `PYTHONPATH=src` keeps the subprocess on
+this tree, whatever the editable install points at. Committed baselines reach CI, and the `.npz` lets `diff.py`
+show where a failing scenario moved.
+
+**Rejected:**
+
+- The tape loop in the package, imported by the test: the probe would keep a copy for `sweep.sh`, and two loops
+  would have to give the same digests.
+- Recording from the run YAML: changing a tunable for an experiment would fail the test with no code changed.
+- The digests as strings in the test: a second record of what the baseline files hold.
+- Baselines in `output/`: it is gitignored, so CI would have none, and a file was a baseline only by its name.
+
+**Revisit if:** the probe stops being the tool that records the baselines.
 

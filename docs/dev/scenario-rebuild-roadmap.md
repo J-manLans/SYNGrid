@@ -110,9 +110,10 @@ Which libraries is open. The leads are coverage.py through `pytest-cov`, with br
 mutmut is tried first on one file, to check that it tests the mutated copy and not the editable install.
 
 - **`tests/regression/`** pins each locked scenario's replay `stream_digest`, so a drift that today only the manual
-  probe catches fails in CI. Open first: how a test plays the tape, since the probe is a script in `scripts/replay/`
-  and not importable (move the loop into the package, run the script as a subprocess, or something else). The four
-  digests are in `output/replay_diff/baseline_*.json` and in the commits that recorded them. Build it sooner if a locked scenario is touched before then.
+  probe catches fails in CI. See "The regression test runs the replay probe on each locked scenario's base config" in
+  `design-decisions.md`. The probe learns to build from the base config; the four baselines are recorded again from
+  the base configs into `tests/regression/baselines/`, replacing `output/replay_diff/baseline_*`, which came from the
+  run YAMLs. Build it sooner if a locked scenario is touched before then.
 - **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
   `check_env`, as one parametrized test.
 
