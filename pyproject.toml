@@ -94,6 +94,8 @@ source = ["syn_grid"]
 omit = ["*/syn_grid/legacy/*", "*/__init__.py"]
 # The regression test runs the replay probe as a subprocess, and its lines count too.
 patch = ["subprocess"]
+# Which tests ran each line, shown by `coverage html --show-contexts`.
+dynamic_context = "test_function"
 
 [tool.pyright]
 # The legacy strain is a frozen copy and is never edited. Setting exclude replaces pyright's defaults, so they are
@@ -104,7 +106,8 @@ reportImplicitOverride = "warning"
 
 [tool.mutmut]
 source_paths = ["src/syn_grid"]
-also_copy = ["scripts"]
+# The targeted tests only: the regression test's probe runs on src/ and never sees a mutant.
+pytest_add_cli_args_test_selection = ["tests/unit", "tests/integration"]
 # The legacy strain is a frozen copy, and no test reaches it. The __init__.py files hold no code to mutate.
 do_not_mutate = ["*/legacy/*", "*/__init__.py"]
 # only_mutate = ["*/single_tier_chain/watcher.py"] # the trial: one file

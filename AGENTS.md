@@ -137,33 +137,52 @@ amended as the session goes, unless the owner says otherwise.
   be" or "here and not there". A docstring must still read correctly when the rebuild is done.
 - **Work still to do goes in a `# TODO` or `# NOTE` comment,** which the owner can search for. Put a tag in brackets
   when several belong together, as in `# TODO(delay):`.
-- **Every code change ships with its tests,** reviewed together with the code. Code an upcoming ablation may change
-  gets its tests after the ablation. Do not migrate or rewrite old tests unless asked: the suite is rebuilt from
-  scratch, see the roadmap. A test must fail when its behaviour is broken: reintroduce the defect and confirm it goes
-  red. Where tests go and how they are grouped is in `docs/code_style.md`. How a test file is written or tightened
-  is in "Writing tests" below.
+- **Every code change ships with its tests,** reviewed together with the code. Do not migrate or rewrite old tests
+  unless asked: the suite is rebuilt from scratch, see the roadmap. Where tests go and how they are grouped is in
+  `docs/code_style.md`. How they are written is in "Writing tests" below.
 
 ## Writing tests
 
-How the agent writes a test file or tightens one, a source file at a time. 100% is not the target: a file is done
-when every survivor and every uncovered line is either tested or listed with its reason.
+New rules get their tests before their code, and every change ends with a sweep of the files it touched. Why:
+"Tests come first, from the owner's rules" in `docs/dev/design-decisions.md`.
 
-1. **Measure.** Coverage of the source file, from its test file alone and from the whole suite
-   (`coverage run -m pytest <file>`, then `coverage report -m`), and mutmut's results for it.
+### New code: tests first
+
+1. The owner states the rules as behaviour: "when X happens, Y must happen", or "Y must never happen". Add the edge
+   cases and rules the owner missed, and ask where a rule is unclear.
+2. Write the tests, then stop. The owner reviews them before any code is written. They should read as the owner's
+   rules.
+3. Write the code with the tests as the guide, and see each test go red before it goes green.
+
+Tests go through the public entry points the rest of the code uses, and describe behaviour, not structure. Code whose
+design is still moving, such as a mechanic under ablation, is tried first and gets its tests once its rule is settled
+in `design-decisions.md`.
+
+### The sweep
+
+Every change ends with it, over the source files it touched, and tightening an existing test file is the same sweep.
+coverage and mutmut are a reading aid, not targets: a file is done when every survivor and every uncovered line is
+either tested or listed with its reason.
+
+1. **Run** pytest, the regression test included, so no locked scenario drifted. Then coverage of each touched file
+   (`coverage run -m pytest`, then `coverage report -m`), and mutmut on it. mutmut runs only `tests/unit` and
+   `tests/integration`, so a survivor means no targeted test guards that code.
 2. **Sort** each survivor and each uncovered line by one question: would a caller, through the public surface,
    notice if this broke?
    - Yes: a real gap, which gets a test.
    - No behaviour can change: an equivalent mutant, listed and not tested.
-   - Another test already fails: listed. The regression test cannot kill a mutant under mutmut, so check it by
-     hand: `mutmut apply <name>`, run `tests/regression`, and `git checkout` the file.
    - Nobody decided what should happen: a question for the owner, not a test. A test would decide it.
-   - Nothing depends on the code: flagged, not propped up with a test.
+   - Nothing depends on the code, such as a defensive branch or output text: listed, not propped up with a test.
    - The observation and render packages: skipped, since they are rebuilt.
 3. **Test the behaviour, not the mutant.** A test that reads a private attribute only to kill a mutant pins how the
    code works, not what it does.
 4. **Confirm it goes red** with its mutant (`mutmut run <name>`), or, where mutmut does not reach, with the code
    broken by hand and restored.
-5. **Report** per file: coverage and mutmut before and after, the tests added, and what is left with its reason.
+5. **Look for redundant tests.** `coverage html --show-contexts` lists on each line the tests that ran it. A test
+   whose lines all list others too, and which checks the same outcome, is a suspect: comment it out and run mutmut
+   on the file again. If nothing new survives, propose removing it.
+6. **Report** per file: coverage and mutmut before and after, the tests added or removed, and what is left with its
+   reason, briefly.
 
 Traps:
 
