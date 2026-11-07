@@ -1264,3 +1264,18 @@ show where a failing scenario moved.
 
 **Revisit if:** the probe stops being the tool that records the baselines.
 
+
+## Legacy stays until the perceptions are rewritten (2026-11-07)
+
+**Decision:** `legacy/`, the `USE_LEGACY` switch and `landscape-changes.md` are deleted at the end of phase 7b, once
+the five perceptions are rewritten, and not at the close-out. The owner deletes them.
+
+**Why:** Every scenario is locked, and the regression baselines are now what a change is checked against, so nothing at
+the scenario level needs legacy. The perceptions are the part the owner works on most closely, and legacy's
+perceptions stay runnable beside the rewritten ones until then.
+
+**Rejected:**
+
+- Deleting it now, reading the old perceptions from `cleanup-after-versioning` with `git show`: the source would
+  remain, but legacy's perceptions could no longer run next to the new ones.
+- Keeping it to the close-out: nothing after the perceptions compares against it.

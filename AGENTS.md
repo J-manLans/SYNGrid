@@ -147,7 +147,7 @@ amended as the session goes, unless the owner says otherwise.
 The working strain is `src/syn_grid/`. A frozen copy of the stable code is in `src/syn_grid/legacy/`, so it can be
 trained as it was and its curves compared with the rebuild. Each legacy package and loose file has a `_legacy` suffix
 and imports only other legacy copies. `USE_LEGACY` in `src/syn_grid/__main__.py` picks the strain. Nothing under
-`legacy/` is edited, and it is deleted when the rebuild is done.
+`legacy/` is edited, and it is deleted when phase 7b's perceptions are done.
 
 Legacy is a reference and not a target. Several decisions change rewards on purpose, so the rebuild is held against
 legacy's learning curves and not its rewards step for step.

@@ -54,21 +54,8 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 **Produces:** SYNGrid on Python 3.12, from Pop!_OS 24.04's system Python, checked against what it did on 3.10. See
 "SYNGrid moves to Python 3.12" in `design-decisions.md`.
 
-**The machine and the venv:**
-
-10. `requires-python` in `pyproject.toml` to `">=3.12,<3.13"`, since pip will not install on 3.12 under the old pin.
-    Then `rm -rf .venv`, `python3.12 -m venv .venv` (`sudo apt install python3.12-venv` if it complains), activate
-    it, and `pip install -e ".[dev]"`.
-11. Check the import path with the command in `AGENTS.md`, and `torch.cuda.is_available()`.
-12. Point the editor's interpreter at the new `.venv`.
-
 **The checks, with delay's run YAML at `steps: 30`:**
 
-13. `pytest`, `ruff check src/syn_grid tests` and `python -m syn_grid.check_env`.
-14. The regression test, in step 13's `pytest`, plays all four locked scenarios against their baselines. They should
-    match exactly; a failure is a change of behaviour, and its message says how to see where with `diff.py`.
-15. `scripts/runner_probe.py` against its "before" numbers. The weights and actions may move with newer torch and
-    numpy, so read how far; the CSV row counts, and the round trip finding its saved model by the run id, should hold.
 16. Human play through `scripts/run_app.sh`, to see whether the pygame and Triton crash in `AGENTS.md` still needs
     its fix on the new GPU stack.
 17. A short training run, eval with the renderer, and a look at TensorBoard.
