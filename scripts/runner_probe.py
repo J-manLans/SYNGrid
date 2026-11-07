@@ -24,8 +24,9 @@ one set of package versions. After a change of Python, torch or numpy the weight
 move without a bug; read how far before calling it behavioural.
 
 The scenario is built from its run YAML, as a run builds it. The probe works in its own folder,
-so what the runners write under `output/` goes there and not into the project. Imports sit
-inside functions, so PYTHONPATH can point this at another checkout.
+so what the runners write under `output/` goes there and not into the project. A folder given with
+`--work-dir` must be empty or new, since files from an earlier run would be counted with this
+one's. Imports sit inside functions, so PYTHONPATH can point this at another checkout.
 
 Usage:
     runner_probe.py [--scenario NAME] [--work-dir DIR]
@@ -55,9 +56,13 @@ def main() -> int:
     ap.add_argument("--scenario", default="goal_single_tier_chain_delay")
     ap.add_argument(
         "--work-dir",
-        help="the folder the runners write in; a temporary one if not given",
+        help="the folder the runners write in, empty or not there yet; a temporary one if not given",
     )
     args = ap.parse_args()
+    # The CSV line counts every file under the folder, so an earlier run's files would change it
+    given = Path(args.work_dir) if args.work_dir else None
+    if given and given.is_dir() and any(given.iterdir()):
+        ap.error(f"--work-dir {given} is not empty; give an empty or new folder")
 
     os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
     os.environ.setdefault("SDL_AUDIODRIVER", "dummy")

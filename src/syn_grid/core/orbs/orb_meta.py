@@ -7,7 +7,7 @@ image from it, and the agent sees the identity.
 """
 
 from enum import Enum
-from typing import Final, TypeAlias
+from typing import Final
 
 
 class OrbCategory(Enum):
@@ -36,7 +36,7 @@ class SynergyKind(Enum):
 
 
 # An orb's kind: a member of either enum. It is what digestion routes on.
-OrbKind: TypeAlias = DirectKind | SynergyKind
+type OrbKind = DirectKind | SynergyKind
 
 
 class OrbMeta:

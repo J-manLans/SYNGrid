@@ -17,16 +17,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Generic, TypeVar
+from typing import Any
 
 import yaml
 from pydantic import BaseModel
 
 from syn_grid.config.models.scenario.common_models import Perception, ScenarioConf
 from syn_grid.scenario.scenario import Scenario
-
-C = TypeVar("C", bound=ScenarioConf)
-
 
 # ============ #
 #     Lock     #
@@ -48,7 +45,7 @@ class Lock:
 
 
 @dataclass(frozen=True, kw_only=True)
-class ScenarioEntry(ABC, Generic[C]):
+class ScenarioEntry[C: ScenarioConf](ABC):
     """One scenario: its config, its visibility, its lock, and how its family composes it.
 
     `conf_class` is the full model the scenario is composed from. `perceptions` are the ones with
