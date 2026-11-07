@@ -62,7 +62,7 @@ mutmut is tried first on one file, to check that it tests the mutated copy and n
   `check_env`, as one parametrized test.
 
 **Done when:** the suite passes, covers the rebuilt strain's paths, and each test fails when the behaviour it checks is
-broken. Phase 7 starts after this.
+broken. Phase 7 starts after this. The observation and render packages will be rebuilt, so skip tests for them.
 
 ---
 

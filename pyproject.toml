@@ -83,3 +83,10 @@ force-exclude = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+
+[tool.pyright]
+# The legacy strain is a frozen copy and is never edited. Setting exclude replaces pyright's defaults, so they are
+# listed again.
+exclude = ["src/syn_grid/legacy", "**/node_modules", "**/__pycache__", "**/.*"]
+# A method that replaces a parent's must say so with @override; see docs/code_style.md.
+reportImplicitOverride = "warning"

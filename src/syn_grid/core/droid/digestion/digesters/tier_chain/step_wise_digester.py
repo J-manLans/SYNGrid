@@ -2,7 +2,7 @@
 Step-wise scoring: every tier orb eaten in order pays right away.
 """
 
-from typing import Final
+from typing import Final, override
 
 from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
@@ -37,6 +37,7 @@ class StepWiseDigester(TierDigester):
     #        API        #
     # ================= #
 
+    @override
     def undigested(self) -> float:
         return 0.0
 
@@ -44,9 +45,11 @@ class StepWiseDigester(TierDigester):
     #      Scoring      #
     # ================= #
 
+    @override
     def _score_progress(self, orb: BaseOrb) -> float:
         return orb.REWARD
 
+    @override
     def _score_break(self, orb: BaseOrb) -> float:
         restarts_chain = (
             orb.META.TIER == self._BASE_TIER and self.chain_tier != self._BASE_TIER
@@ -57,5 +60,6 @@ class StepWiseDigester(TierDigester):
 
         return self._CHAIN_BREAK_PENALTY
 
+    @override
     def _score_completion(self, orb: BaseOrb) -> float:
         return orb.REWARD

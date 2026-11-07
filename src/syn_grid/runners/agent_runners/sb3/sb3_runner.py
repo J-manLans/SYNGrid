@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Final
+from typing import Any, Final, override
 
 import numpy as np
 from gymnasium import Env
@@ -103,12 +103,14 @@ class SB3Runner(BaseAgentRunner):
     #        API        #
     # ================= #
 
+    @override
     def train(self) -> None:
         env = self._build_env(self._train_conf.render_mode, self._TRAIN)
         model = self._resolve_training_model(env)
 
         self._train_model(model, env)
 
+    @override
     def eval(self) -> None:
         env = self._build_env(self._eval_conf.render_mode, self._EVAL)
         model = self._artifact_manager.load_model(env, self._runner_conf.seed)

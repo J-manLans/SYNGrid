@@ -2,7 +2,7 @@
 Max-tier scoring: a chain pays only when it is completed.
 """
 
-from typing import Final
+from typing import Final, override
 
 from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
@@ -33,6 +33,7 @@ class MaxTierDigester(TierDigester):
     #        API        #
     # ================= #
 
+    @override
     def undigested(self) -> float:
         return 0.0
 
@@ -40,11 +41,14 @@ class MaxTierDigester(TierDigester):
     #      Scoring      #
     # ================= #
 
+    @override
     def _score_progress(self, orb: BaseOrb) -> float:
         return 0.0
 
+    @override
     def _score_break(self, orb: BaseOrb) -> float:
         return self._CHAIN_BREAK_PENALTY
 
+    @override
     def _score_completion(self, orb: BaseOrb) -> float:
         return self.chain_worth + orb.REWARD

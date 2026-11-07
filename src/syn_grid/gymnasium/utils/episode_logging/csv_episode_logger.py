@@ -1,6 +1,6 @@
 import csv
 from pathlib import Path
-from typing import Any, SupportsFloat
+from typing import Any, SupportsFloat, override
 
 import gymnasium as gym
 from gymnasium.core import ActType, ObsType
@@ -78,6 +78,7 @@ class CSVEpisodeLogger(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
     #       API         #
     # ================= #
 
+    @override
     def step(
         self, action: ActType
     ) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
@@ -90,6 +91,7 @@ class CSVEpisodeLogger(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
 
         return obs, reward, terminated, truncated, info
 
+    @override
     def close(self) -> None:
         super().close()
         self._csv_file.close()

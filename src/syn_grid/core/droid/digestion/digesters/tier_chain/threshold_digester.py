@@ -2,7 +2,7 @@
 Threshold scoring: a chain pays what it has gathered when it ends.
 """
 
-from typing import Final
+from typing import Final, override
 
 from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
@@ -36,6 +36,7 @@ class ThresholdDigester(TierDigester):
     #        API        #
     # ================= #
 
+    @override
     def undigested(self) -> float:
         return self.chain_worth
 
@@ -43,9 +44,11 @@ class ThresholdDigester(TierDigester):
     #      Scoring      #
     # ================= #
 
+    @override
     def _score_progress(self, orb: BaseOrb) -> float:
         return 0.0
 
+    @override
     def _score_break(self, orb: BaseOrb) -> float:
         repeated_base_tier = (
             self.chain_tier == self._BASE_TIER and orb.META.TIER == self._BASE_TIER
@@ -56,5 +59,6 @@ class ThresholdDigester(TierDigester):
 
         return self._CHAIN_BREAK_PENALTY + self.chain_worth
 
+    @override
     def _score_completion(self, orb: BaseOrb) -> float:
         return self.chain_worth + orb.REWARD

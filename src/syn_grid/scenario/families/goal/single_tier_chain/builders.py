@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, TypeVar, override
 
 from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
 from syn_grid.core.droid.digestion.digesters.neg_digester import NegDigester
@@ -88,6 +88,7 @@ class SingleTierChainEntry(ScenarioEntry[T]):
     tag: Callable[[T], str]
     watcher: Callable[[T], Callable[[], Watcher]] | None = None
 
+    @override
     def _compose(self, scenario_name: str, scenario_conf: T) -> Scenario:
         world_conf = scenario_conf.world_conf
 

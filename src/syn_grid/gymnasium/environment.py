@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, override
 
 import gymnasium as gym
 import numpy as np
@@ -69,6 +69,7 @@ class SYNGridEnv(gym.Env):
     #    Gymnasium contract    #
     # ======================== #
 
+    @override
     def reset(self, *, seed=None, options=None):
         # Gymnasium requires this call to control randomness and reproduce scenarios.
         super().reset(seed=seed)
@@ -86,6 +87,7 @@ class SYNGridEnv(gym.Env):
         # Return observation and info (not used)
         return self.obs, {}
 
+    @override
     def step(self, action: int):
         info: dict[str, Any] = {}
 
@@ -123,6 +125,7 @@ class SYNGridEnv(gym.Env):
             info,
         )
 
+    @override
     def render(self) -> np.ndarray | None:
         orbs = self.world.orbs_on_field()
 
@@ -137,6 +140,7 @@ class SYNGridEnv(gym.Env):
         if self.render_mode == "rgb_array":
             return frame
 
+    @override
     def close(self) -> None:
         # Close the renderer's window, if there is one.
         if self.render_mode in self.metadata["render_modes"]:

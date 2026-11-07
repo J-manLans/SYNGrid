@@ -9,6 +9,7 @@ hands the same run controls to SB3.
 """
 
 from collections.abc import Callable
+from typing import override
 
 from stable_baselines3.common.callbacks import BaseCallback
 
@@ -30,10 +31,12 @@ class RunControlsCallback(BaseCallback):
         self._renderer: PygameRenderer
         self.stopped: bool
 
+    @override
     def _on_training_start(self) -> None:
         self._renderer = self.training_env.get_attr("renderer", indices=0)[0]
         self.stopped = False
 
+    @override
     def _on_step(self) -> bool:
         player_quit = self._handle_run_controls(self._renderer)
         self.stopped = player_quit

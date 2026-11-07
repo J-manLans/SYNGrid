@@ -1,3 +1,5 @@
+from typing import override
+
 import numpy as np
 from gymnasium import spaces
 
@@ -14,9 +16,11 @@ class VectorMarkovian(BasePerception):
     #        API        #
     # ================= #
 
+    @override
     def reset(self) -> None:
         self._obs_data.fill(self._MISSING_ORB_VALUE)
 
+    @override
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
         droid_high = self._get_max_droid_position()
@@ -39,6 +43,7 @@ class VectorMarkovian(BasePerception):
             dtype=np.float32,
         )
 
+    @override
     def get_observation(self, state: GridWorld) -> np.ndarray:
         # Droid data
         droid_y, droid_x = state.droid.position

@@ -1,3 +1,5 @@
+from typing import override
+
 import numpy as np
 from gymnasium import spaces
 
@@ -15,9 +17,11 @@ class VectorFogOfWar(BasePerception):
     #        API        #
     # ================= #
 
+    @override
     def reset(self) -> None:
         self._obs_data.fill(self._MISSING_ORB_VALUE)
 
+    @override
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
         droid_high = self._get_max_droid_position()
@@ -40,6 +44,7 @@ class VectorFogOfWar(BasePerception):
             dtype=np.float32,
         )
 
+    @override
     def get_observation(self, state: GridWorld) -> np.ndarray:
         self._obs_data.fill(self._MISSING_ORB_VALUE)
 
