@@ -1,3 +1,5 @@
+"""What the delay watcher freezes, when it releases, and the recipe that makes it."""
+
 import numpy as np
 import pytest
 
@@ -172,3 +174,15 @@ class TestRecipe:
         recipe = DelayWatcherRecipe(DELAY)
 
         assert recipe() is not recipe()
+
+    def test_its_watcher_releases_after_the_recipes_delay(self, world: GridWorld):
+        watcher = DelayWatcherRecipe(DELAY)()
+        watcher.reset()
+        eaten, *others = _tier_orbs(world)
+        watcher.react(world, _eat(world, eaten))
+
+        _idle(watcher, world, DELAY - 1)
+        assert all(not o.is_active for o in others)
+
+        _idle(watcher, world, 1)
+        assert all(o.is_active for o in others)
