@@ -128,7 +128,12 @@ scratch.
 2. **Pixel.** The grid as an image, for a CNN. SB3's default CNN expects larger images, so it likely needs a small
    extractor too. `TinyGridCNN` in the same file trains but is unchecked.
 
-**Done when:** each new perception stays inside its observation space on random steps and an agent trains on it.
+3. **Delete legacy.** Once the perceptions are done: `legacy/`, the `USE_LEGACY` switch and `landscape-changes.md`.
+   The owner deletes it. Then the rebuild merges to `main`, with `version` in `pyproject.toml` at 0.5.0 and the tag
+   `v0.5.0`.
+
+**Done when:** each new perception stays inside its observation space on random steps and an agent trains on it, and
+nothing imports `legacy/`.
 
 ---
 
@@ -186,13 +191,11 @@ theme file, and the observation and the reward are unchanged.
 
 ## Phase 10: Close out
 
-- Delete `legacy/`, the `USE_LEGACY` switch and `landscape-changes.md` once the comparison is no longer needed.
 - Write `docs/architecture/` fresh, for people.
 - A naming pass once everything is wired and legacy is gone. The scenario and family names are done, and the
   mechanic's names (`digesters/tier_chain/`, `TierChainPopulation`) stay.
 
-**Done when:** the test suite still passes, and `legacy/` and the `USE_LEGACY` switch are gone and nothing imports
-them.
+**Done when:** the test suite still passes.
 
 ---
 

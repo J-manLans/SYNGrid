@@ -1268,7 +1268,9 @@ show where a failing scenario moved.
 ## Legacy stays until the perceptions are rewritten (2026-11-07)
 
 **Decision:** `legacy/`, the `USE_LEGACY` switch and `landscape-changes.md` are deleted at the end of phase 7b, once
-the five perceptions are rewritten, and not at the close-out. The owner deletes them.
+the five perceptions are rewritten, and not at the close-out. The owner deletes them. The rebuild then merges to
+`main` as 0.5.0, tagged `v0.5.0`; until then the version stays 0.4.0, so the number names one finished state, as 0.3.0
+and 0.4.0 did.
 
 **Why:** Every scenario is locked, and the regression baselines are now what a change is checked against, so nothing at
 the scenario level needs legacy. The perceptions are the part the owner works on most closely, and legacy's
