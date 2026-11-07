@@ -29,19 +29,21 @@ class CSVEpisodeLogger(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
     The wrapper is primarily intended for evaluation runs, where it can
     be used to persist episode-level data for analysis and plotting.
     It can also be used during training. When multiple environments are
-    used during training, episodes from all wrapped environments are logged.
+    used during training, each wrapped environment logs its episodes to a
+    file of its own.
 
     The wrapper does not distinguish between training and evaluation;
     it records the same episode-level data in either case.
 
     Args:
         env: Environment to wrap.
-        log_dir: Directory where the CSV file is written.
-        model_id: Identifier used as the CSV filename.
+        log_dir: Directory that holds the run's folder.
+        model_id: The run's id, which names the folder under ``log_dir``
+            that the run's CSV files are written to.
         metric_names: The names of the scenario's metrics, in order. They
             are the CSV's columns after the standard ones.
-        env_idx: Index of this environment among parallel envs, appended to the
-            filename so each parallel env writes to its own file.
+        env_idx: Index of this environment among parallel envs. The file is
+            named ``_env<env_idx>.csv``, so each parallel env writes its own.
 
     """
 
