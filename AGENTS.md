@@ -224,8 +224,6 @@ Each of these cost a wrong conclusion in this repo.
 
 - **`GridWorld.reset` needs an rng.** Pass `np.random.default_rng(seed)`, or let the environment pass its seeded
   `np_random`.
-- **Every perception returns the same buffer each step,** so `obs_t is obs_{t+1}`. Anything that keeps two
-  observations must copy.
 - **`runners/agent_runners/utils/extractors.py` is imported by nothing** and reads observation keys from before the
   rebuild. It stays on purpose: phase 7b works from it, not from scratch.
 - **`reproduction_package/` is committed and large.** Do not add to it. It records what the thesis runs did, and it

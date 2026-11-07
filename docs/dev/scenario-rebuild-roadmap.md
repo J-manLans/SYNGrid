@@ -44,7 +44,7 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
 | Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; on Python 3.12 the same digests as on 3.10 |
-| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behaviour: the world's step and free cells, the watchers, the environment's step, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: 31 pass |
+| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behaviour: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: 32 pass |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
 
 ---

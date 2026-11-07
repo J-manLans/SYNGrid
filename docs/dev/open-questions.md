@@ -51,11 +51,6 @@ a name and a parent" in `design-decisions.md`.
 
 ## Phase 7: The observation pass
 
-- **Whether a perception returns a new array each step.** Every perception fills the same buffer, so
-  `obs_t is obs_{t+1}`. Gymnasium 1.4.0 warns about it, and `check_env` now fails its reset-determinism check on it:
-  it copies the first two observations but not the third, which a later unseeded reset overwrites. With every
-  observation copied, the seeded resets match. Copying costs an allocation each step; keeping the buffer leaves
-  `check_env` failing. Raised on 2026-11-07.
 - **Which global features an observation carries.** The two kept perceptions carry none. Open for the rewritten ones.
   See: "The kept perceptions observe only what earned its place" in `design-decisions.md`.
 - **Whether chain progress is observed where tier orbs return.** In a single chain the orbs left on the field show

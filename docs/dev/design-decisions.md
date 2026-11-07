@@ -1278,3 +1278,23 @@ perceptions stay runnable beside the rewritten ones until then.
 - Deleting it now, reading the old perceptions from `cleanup-after-versioning` with `git show`: the source would
   remain, but legacy's perceptions could no longer run next to the new ones.
 - Keeping it to the close-out: nothing after the perceptions compares against it.
+
+## The environment hands out a copy of each observation (2026-11-07)
+
+**Decision:** A perception fills one buffer and returns it every step, and `ObservationHandler.get_observation`
+returns a copy of it. Every observation that leaves the environment is an array of its own, so one a caller keeps does
+not change with the next step.
+
+**Why:** Gymnasium asks for new observation data on every call. From 1.4.0 its passive checker warns when two
+observations share an object, and `check_env`'s reset-determinism check fails on a shared buffer, because a later
+reset overwrites an observation it compares. The copy is one small allocation a step, and the perceptions keep their
+buffers.
+
+**Rejected:**
+
+- A new array in each perception: every perception would change, and the rewritten ones would each have to remember.
+- The copy in the environment's `reset` and `step`: two places for what the handler does in one.
+- Keeping the shared buffer: `check_env` fails, and anything that keeps two observations must copy them itself.
+
+**Revisit if:** a perception returns something `.copy()` does not copy through, such as a dictionary of arrays.
+
