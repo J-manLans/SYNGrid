@@ -56,7 +56,9 @@ class TierWorldConf(GoalWorldConf, frozen=True, extra="forbid", strict=True):
         if self.tier_orb_conf.max_tier + 2 > cells:
             raise ValueError(
                 f"max_tier {self.tier_orb_conf.max_tier} does not fit a grid of {cells} cells: "
-                "each tier orb, the negative orb and the droid need a cell of their own"
+                "each tier orb, the negative orb and the droid need a cell of their own. "
+                "The negative orb's cell counts even when it is disabled, so enabling it "
+                "never leaves an orb without a cell"
             )
 
         return self
