@@ -55,4 +55,9 @@ class ObservationHandler:
         self.perception.reset()
 
     def get_observation(self, state: GridWorld) -> Any:
-        return self.perception.get_observation(state)
+        """The perception's encoding of the world, as an array of its own.
+
+        The perception refills one buffer every step, so the handler returns a copy: an observation
+        a caller keeps does not change with the next step.
+        """
+        return self.perception.get_observation(state).copy()

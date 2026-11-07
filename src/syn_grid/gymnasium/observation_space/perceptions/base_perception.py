@@ -101,6 +101,6 @@ class BasePerception(ABC):
         """Encode the world as it is now.
 
         The result fits the space ``setup_obs_space`` returned. A perception fills and returns the
-        same buffer every step, so a caller that keeps two observations must copy them.
+        same buffer every step; ``ObservationHandler`` copies it before it leaves the environment.
         """
         ...
