@@ -95,7 +95,7 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
     `requires-python` line in "Running things" in `AGENTS.md`, with the crash trap if step 16 changed it.
 19. The commit message says what was run, and how far anything moved.
 
-**Done when:** the four traces match, the runner probe's differences are read and explained, and a run trains and
+**Done when:** the regression test passes, the runner probe's differences are read and explained, and a run trains and
 renders on 3.12. Phase 6b starts after this, with `coverage`, `pytest-cov` and `mutmut` at their newest versions.
 
 ---
@@ -138,12 +138,12 @@ The two perceptions in the `Perception` enum brought in line with the new rules.
 3. The view radius, a field on `ObservationRules` that the limited-view perception reads in place of its hardcoded
    distance, and that the renderer's fog overlay reads in phase 8a.
 
-**One change at a time.** Each of the three is its own commit, and the replay probe is run after each against the
-locked traces. A difference is explained or reverted before the next change starts. The reward must not change.
+**One change at a time.** Each of the three is its own commit, and the regression test is run after each against the
+baselines. A difference is explained, and its baselines recorded again, or reverted before the next change starts. The reward must not change.
 Check whether anything scales the observation by its upper bound. When 7a is done, train spatial.
 
-**Done when:** the observation trace differs from the locked traces only where a change was meant to, the reward
-trace is identical, and spatial still learns.
+**Done when:** the observation differs from the baselines only where a change was meant to, the reward is identical,
+and spatial still learns.
 
 ### 7a½: Delay's frozen orbs
 
@@ -158,11 +158,11 @@ before 7b, so the new perceptions are written with the frozen state from the sta
    orb waits for its cell going.
 4. The frozen mark in the two kept perceptions, and the frozen skin in the renderer.
 5. Relock delay, as every scenario was locked: train it and compare the curves with today's delay, ablate what is in
-   doubt while its base config still changes, then lock it and record a new trace with the replay probe. Anything
+   doubt while its base config still changes, then lock it and record its baseline again with `probe.py --baseline`. Anything
    that moves the observation or reward goes in `landscape-changes.md`.
 
 **Done when:** the delay spread at −0.5 is run again on it and learns, and the bite's 0.1 is checked against the
-curves. The locked traces of spatial and scaling are unchanged.
+curves. The baselines of spatial and scaling are unchanged.
 
 ### 7b: New perceptions, one at a time
 
