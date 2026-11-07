@@ -54,26 +54,11 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 **Produces:** SYNGrid on Python 3.12, from Pop!_OS 24.04's system Python, checked against what it did on 3.10. See
 "SYNGrid moves to Python 3.12" in `design-decisions.md`.
 
-**Before the upgrade, on 22.04:**
-
-1. Review and commit `scripts/runner_probe.py`, with its "before" numbers in the commit message.
-2. Push, so nothing lives only on this machine.
-3. Back up `output/` outside the repo. It is gitignored and holds the models and the logs.
-4. `pip freeze > ~/syngrid-freeze-py310.txt` with the venv active: a record to compare with, not a file to install
-   from.
-5. Note the other projects whose venvs point at the system 3.10; they break with it.
-6. Check the free space with `df -h /`, and plug in the charger.
-
-**The upgrade:**
-
-7. `sudo apt update && sudo apt full-upgrade`, then reboot.
-8. `pop-upgrade release upgrade`, or Settings → OS Upgrade & Recovery, then Restart and Install.
-
 **The machine and the venv:**
 
-9. `python3 --version` says 3.12, and `nvidia-smi` shows the card and its driver.
-10. `rm -rf .venv`, `python3.12 -m venv .venv` (`sudo apt install python3.12-venv` if it complains), activate it, and
-    `pip install -e ".[dev]"`.
+10. `requires-python` in `pyproject.toml` to `">=3.12,<3.13"`, since pip will not install on 3.12 under the old pin.
+    Then `rm -rf .venv`, `python3.12 -m venv .venv` (`sudo apt install python3.12-venv` if it complains), activate
+    it, and `pip install -e ".[dev]"`.
 11. Check the import path with the command in `AGENTS.md`, and `torch.cuda.is_available()`.
 12. Point the editor's interpreter at the new `.venv`.
 
@@ -90,9 +75,8 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 
 **The repo, once the checks pass:**
 
-18. `requires-python` in `pyproject.toml` (see `open-questions.md`), `python-version` in
-    `.github/workflows/ci.yaml`, the Python version and the venv command in `CONTRIBUTING.md`, and the
-    `requires-python` line in "Running things" in `AGENTS.md`, with the crash trap if step 16 changed it.
+18. `python-version` in `.github/workflows/ci.yaml`, the Python version and the venv command in `CONTRIBUTING.md`,
+    and the `requires-python` line in "Running things" in `AGENTS.md`, with the crash trap if step 16 changed it.
 19. The commit message says what was run, and how far anything moved.
 
 **Done when:** the regression test passes, the runner probe's differences are read and explained, and a run trains and

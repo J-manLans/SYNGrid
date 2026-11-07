@@ -49,11 +49,6 @@ a name and a parent" in `design-decisions.md`.
   `output/user_scenarios/`, which keeps one ignored folder but is lost when `output/` is cleared, although forks are
   read by later runs and not produced by them. Either way it is found the way `output/` is. Raised on 2026-10-29.
 
-## Phase 6a: Move to Pop!_OS 24.04 and Python 3.12
-
-- **What `requires-python` says after the move:** `">=3.12,<3.13"`, pinned as 3.10 was, or `">=3.12"`, open to
-  newer Pythons. Raised on 2026-11-07.
-
 ## Phase 7: The observation pass
 
 - **Which global features an observation carries.** The two kept perceptions carry none. Open for the rewritten ones.
