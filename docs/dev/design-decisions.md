@@ -31,7 +31,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
   mechanics in strategies; the step result and the watcher; delay's ending; delay's values; delay's episode length; delay's frozen orbs;
   episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
-  locked scenarios; one entry per scenario; forks; the negative orb's switch
+  locked scenarios; one entry per scenario; forks; the negative orb's switch; the chain's room
 - **Observation:** the kept perceptions; no timer; shared readers
 - **Runners and rendering:** the algorithm enum; SB3 specs; the policy name; human play; the renderer; window input;
   continued runs; Python 3.12
@@ -873,6 +873,22 @@ there.
 scenario whose tier orbs return is not a single chain and belongs in another family).
 
 **Revisit if:** a scenario is added whose tier orbs expire or return.
+
+## A chain leaves a cell for the negative orb, on or off (2026-11-07)
+
+**Decision:** A single tier chain's grid has a cell for each tier orb, one for the negative orb and one for the
+droid, and a config with fewer is rejected. The negative orb's cell is counted whether it is switched on or not, so
+a world without it has one free cell at the tightest.
+
+**Why:** A world with an orb and no cell for it hangs on its first reset, waiting for room that never comes. Counting
+the negative orb only when it is on would let a locked run's switch, which is a tunable, turn an accepted config into
+one that hangs. A field packed to the last cell is not something an agent could solve most of the time, so the spare
+cell costs nothing worth having.
+
+**Rejected:** counting the negative orb only when it is enabled (the switch would decide whether a config is valid,
+and the tightest accepted grid would have no free cell).
+
+**Revisit if:** the family gets more orbs than the chain and the negative orb, or obstacles that take cells.
 
 ## The family is named single tier chain (2026-10-26)
 
