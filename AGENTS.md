@@ -140,7 +140,38 @@ amended as the session goes, unless the owner says otherwise.
 - **Every code change ships with its tests,** reviewed together with the code. Code an upcoming ablation may change
   gets its tests after the ablation. Do not migrate or rewrite old tests unless asked: the suite is rebuilt from
   scratch, see the roadmap. A test must fail when its behaviour is broken: reintroduce the defect and confirm it goes
-  red. Where tests go and how they are grouped is in `docs/code_style.md`.
+  red. Where tests go and how they are grouped is in `docs/code_style.md`. How a test file is written or tightened
+  is in "Writing tests" below.
+
+## Writing tests
+
+How the agent writes a test file or tightens one, a source file at a time. 100% is not the target: a file is done
+when every survivor and every uncovered line is either tested or listed with its reason.
+
+1. **Measure.** Coverage of the source file, from its test file alone and from the whole suite
+   (`coverage run -m pytest <file>`, then `coverage report -m`), and mutmut's results for it.
+2. **Sort** each survivor and each uncovered line by one question: would a caller, through the public surface,
+   notice if this broke?
+   - Yes: a real gap, which gets a test.
+   - No behaviour can change: an equivalent mutant, listed and not tested.
+   - Another test already fails: listed. The regression test cannot kill a mutant under mutmut, so check it by
+     hand: `mutmut apply <name>`, run `tests/regression`, and `git checkout` the file.
+   - Nobody decided what should happen: a question for the owner, not a test. A test would decide it.
+   - Nothing depends on the code: flagged, not propped up with a test.
+   - The observation and render packages: skipped, since they are rebuilt.
+3. **Test the behaviour, not the mutant.** A test that reads a private attribute only to kill a mutant pins how the
+   code works, not what it does.
+4. **Confirm it goes red** with its mutant (`mutmut run <name>`), or, where mutmut does not reach, with the code
+   broken by hand and restored.
+5. **Report** per file: coverage and mutmut before and after, the tests added, and what is left with its reason.
+
+Traps:
+
+- mutmut does not mutate a decorated method, such as a pydantic validator. Coverage is the only guide there.
+- After a change to `[tool.mutmut]`, `rm -rf mutants` before the next run, or mutmut keeps the old copy.
+- A test that builds a runner works in `tmp_path` with `monkeypatch.chdir`, so its `output/` lands there.
+- The run controls read pygame's queue in one batch and drop what follows Space in it. An event meant for the pause
+  screen is posted with `pygame.time.set_timer`.
 
 ## The two strains
 
