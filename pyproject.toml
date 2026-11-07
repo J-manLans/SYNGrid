@@ -62,8 +62,9 @@ extra = [
 
 dev = [
     "pytest>=9.0.2",
-    "coverage>=7.17.2", # Which lines and branches the tests run
-    "mutmut>=3.8.1", # Mutation testing: whether a test goes red when the code it guards is broken. mutmut run to run
+    "coverage>=7.17.2", # Which lines and branches the tests run. `coverage run -m pytest` to run, and `coverage report -m` to see results
+    "mutmut>=3.8.1", # Mutation testing: whether a test goes red when the code it guards is broken. `mutmut run` to run and `mutmut browse` to see results
+    "hypothesis>=6.170.15", # Property-based tests: a rule checked over many generated inputs, shrunk to the smallest that fails
     "ruff>=0.16" # For linting and removing unused imports. Formatting: ruff format path/to/file.py or ruff format path/to/package, removing unused imports: ruff check --select F401 --fix src/syn_grid
 ]
 
@@ -89,8 +90,8 @@ force-exclude = true
 [tool.coverage.run]
 branch = true
 source = ["syn_grid"]
-# The legacy strain is a frozen copy, and no test reaches it.
-omit = ["*/syn_grid/legacy/*"]
+# The legacy strain is a frozen copy, and no test reaches it. The __init__.py files hold no code to measure.
+omit = ["*/syn_grid/legacy/*", "*/__init__.py"]
 # The regression test runs the replay probe as a subprocess, and its lines count too.
 patch = ["subprocess"]
 
@@ -104,4 +105,6 @@ reportImplicitOverride = "warning"
 [tool.mutmut]
 source_paths = ["src/syn_grid"]
 also_copy = ["scripts"]
-only_mutate = ["*/single_tier_chain/watcher.py"] # the trial: one file
+# The legacy strain is a frozen copy, and no test reaches it. The __init__.py files hold no code to mutate.
+do_not_mutate = ["*/legacy/*", "*/__init__.py"]
+# only_mutate = ["*/single_tier_chain/watcher.py"] # the trial: one file

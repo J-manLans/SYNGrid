@@ -1318,3 +1318,28 @@ Without `patch`, the regression test alone reaches 25% of the code; with it, 54%
 
 - `pytest-cov`: a second way to start the same tool.
 
+## Hypothesis checks the world's invariants, and CI runs only pytest and ruff (2026-11-07)
+
+**Decision:** Hypothesis is in the `dev` extras, at 6.170.15, for property-based tests of the rules that hold for any
+seed and any sequence of actions: the observation stays in its space, the droid on the grid, the same seed and actions
+give the same trace, no orb is lost, no reward exceeds what the chain pays, and an episode ends by `max_steps`. These
+are a handful of tests at the world and environment level, and only these; everything else is an example test, which
+stays the form for one specific behaviour. CI runs them in `pytest` on a minimal, derandomized profile, so they are
+quick and cannot fail by chance. Locally they run on a profile as extensive as wanted. coverage and mutmut are local
+only, run while a file is worked on, and never in CI.
+
+**Why:** Example tests check an invariant only where someone thought to look; a property checks it over many generated
+inputs and shrinks a failure to its smallest case. The invariants are what catch the subtlest breakage, so they run on
+every push. mutmut is not pass or fail: its survivors are read, and some are always equivalent. A coverage floor
+would only fix today's 70% in place while the suite is rebuilt.
+
+**Rejected:**
+
+- Hypothesis kept out of CI: a change that breaks an invariant would pass CI.
+- mutmut in CI: slow, and there is no sensible rule for when it fails.
+- A coverage floor in CI during phase 6b.
+
+**Revisit if:** the suite is rebuilt at the end of phase 6b, for coverage in CI that fails only below a threshold:
+`fail_under` in `[tool.coverage.report]` for the total, or `diff-cover` for the lines a change touches, which matters
+once others send pull requests. Or the Hypothesis profile makes CI slow.
+
