@@ -34,7 +34,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
   locked scenarios; one entry per scenario; forks; the negative orb's switch; the chain's room
 - **Observation:** the kept perceptions; no timer; shared readers
 - **Runners and rendering:** the algorithm enum; SB3 specs; the policy name; human play; the renderer; window input;
-  continued runs; Python 3.12
+  continued runs; Python 3.12; legacy until the perceptions; the observation copy
 - **Testing:** the regression test; coverage and mutmut; Hypothesis; tests first
 
 ---
@@ -42,7 +42,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
 ## Principles
 
 The rules most decisions below follow.
-; Python 3.12
+
 - **Everything scenario-specific is a field of `Scenario`.** The test for a field is "does the Gymnasium side need
   it?"; what only the world needs stays inside `build_world`.
 - **A `Scenario` holds nothing that changes during an episode.** Training builds 16 envs from one `Scenario` in one
@@ -1255,32 +1255,6 @@ comes between phases, before 6b picks its tools, and with four locked traces and
 
 **Revisit if:** a dependency SYNGrid needs does not run on 3.12.
 
-## The regression test runs the replay probe on each locked scenario's base config (2026-11-07)
-
-**Decision:** `tests/regression/` runs the replay probe, `scripts/replay/probe.py`, as a subprocess for every locked
-scenario, with `PYTHONPATH=src`, and checks its `stream_digest` against the scenario's baseline. The probe builds a
-locked scenario from its base config, not from its run YAML. The baselines are committed in
-`tests/regression/baselines/`, a `.json` and an `.npz` per scenario, named after the scenario; the `.json` records
-the commit it was recorded at. A locked scenario with no baseline fails the test, so locking a scenario means
-recording its baseline. The probe needs no model: its tape is a seeded random walk.
-
-**Why:** The baselines are recorded by the probe, so the test checks them with the same code. `sweep.sh` runs today's
-probe against older commits, which works only while the probe carries its own loop. The base config changes only
-when the scenario does, so an experiment's tunables do not move the test. `PYTHONPATH=src` keeps the subprocess on
-this tree, whatever the editable install points at. Committed baselines reach CI, and the `.npz` lets `diff.py`
-show where a failing scenario moved.
-
-**Rejected:**
-
-- The tape loop in the package, imported by the test: the probe would keep a copy for `sweep.sh`, and two loops
-  would have to give the same digests.
-- Recording from the run YAML: changing a tunable for an experiment would fail the test with no code changed.
-- The digests as strings in the test: a second record of what the baseline files hold.
-- Baselines in `output/`: it is gitignored, so CI would have none, and a file was a baseline only by its name.
-
-**Revisit if:** the probe stops being the tool that records the baselines.
-
-
 ## Legacy stays until the perceptions are rewritten (2026-11-07)
 
 **Decision:** `legacy/`, the `USE_LEGACY` switch and `landscape-changes.md` are deleted at the end of phase 7b, once
@@ -1316,6 +1290,36 @@ buffers.
 - Keeping the shared buffer: `check_env` fails, and anything that keeps two observations must copy them itself.
 
 **Revisit if:** a perception returns something `.copy()` does not copy through, such as a dictionary of arrays.
+
+---
+
+# Testing
+
+## The regression test runs the replay probe on each locked scenario's base config (2026-11-07)
+
+**Decision:** `tests/regression/` runs the replay probe, `scripts/replay/probe.py`, as a subprocess for every locked
+scenario, with `PYTHONPATH=src`, and checks its `stream_digest` against the scenario's baseline. The probe builds a
+locked scenario from its base config, not from its run YAML. The baselines are committed in
+`tests/regression/baselines/`, a `.json` and an `.npz` per scenario, named after the scenario; the `.json` records
+the commit it was recorded at. A locked scenario with no baseline fails the test, so locking a scenario means
+recording its baseline. The probe needs no model: its tape is a seeded random walk.
+
+**Why:** The baselines are recorded by the probe, so the test checks them with the same code. `sweep.sh` runs today's
+probe against older commits, which works only while the probe carries its own loop. The base config changes only
+when the scenario does, so an experiment's tunables do not move the test. `PYTHONPATH=src` keeps the subprocess on
+this tree, whatever the editable install points at. Committed baselines reach CI, and the `.npz` lets `diff.py`
+show where a failing scenario moved.
+
+**Rejected:**
+
+- The tape loop in the package, imported by the test: the probe would keep a copy for `sweep.sh`, and two loops
+  would have to give the same digests.
+- Recording from the run YAML: changing a tunable for an experiment would fail the test with no code changed.
+- The digests as strings in the test: a second record of what the baseline files hold.
+- Baselines in `output/`: it is gitignored, so CI would have none, and a file was a baseline only by its name.
+
+**Revisit if:** the probe stops being the tool that records the baselines.
+
 
 ## The suite is measured by coverage.py alone, and mutmut (2026-11-07)
 
@@ -1377,8 +1381,9 @@ test, not a Hypothesis property.
 
 Every change ends with a sweep of the files it touched: pytest with the regression test, then coverage and mutmut,
 read survivor by survivor. A survivor that guards a rule gets a test; an equivalent mutant, a defensive branch, output
-text or an unreachable guard is listed with its reason. A test whose lines other tests also run, and whose removal
-lets no new mutant survive, is proposed for removal.
+text or an unreachable guard is listed with its reason. When a file's tests are tightened, a test whose lines other
+tests also run, and whose removal lets no new mutant survive, is proposed for removal. The redundancy check is not run
+on every change: over the suite it flagged 24 tests by coverage and confirmed none, at a full mutmut run per test.
 
 **Why:** Tests written after the code tend to mirror the implementation and confirm its mistakes. Written first, from
 the owner's rules, they keep the intent with the owner and the edge cases with the agent. The sweep catches what

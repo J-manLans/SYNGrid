@@ -178,7 +178,8 @@ either tested or listed with its reason.
    code works, not what it does.
 4. **Confirm it goes red** with its mutant (`mutmut run <name>`), or, where mutmut does not reach, with the code
    broken by hand and restored.
-5. **Look for redundant tests.** `coverage html --show-contexts` lists on each line the tests that ran it. A test
+5. **Look for redundant tests,** only when a file's tests are tightened, not on every change.
+   `coverage html --show-contexts` lists on each line the tests that ran it. A test
    whose lines all list others too, and which checks the same outcome, is a suspect: comment it out and run mutmut
    on the file again. If nothing new survives, propose removing it.
 6. **Report** per file: coverage and mutmut before and after, the tests added or removed, and what is left with its

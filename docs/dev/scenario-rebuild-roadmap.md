@@ -44,7 +44,7 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
 | Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; on Python 3.12 the same digests as on 3.10 |
-| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: 66 pass; every unit and integration test file worked through with coverage and mutmut, the suite at 78% |
+| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: passes; every unit and integration test file worked through with coverage and mutmut |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
 
 ---
@@ -59,10 +59,12 @@ The tools are coverage.py on its own and mutmut, to find the gaps, and Hypothesi
 suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the world's invariants" in
 `design-decisions.md`.
 
-- **First, measure what exists, before writing anything new.** `coverage run -m pytest && coverage report -m` shows
-  the code no test reaches. `mutmut run` over the whole codebase, without `only_mutate`, shows the code a test
-  reaches but would not notice breaking. Some survivors are equivalent mutants, changes no test can see, and are
-  read by hand.
+- **Test files for the source files with none,** written test-first: the owner states each file's rules, and the
+  tests are reviewed before anything else. `synergy_droid.py`, `tier_digester.py`, `orb_meta.py`, `termination.py`,
+  `base_orb.py`, `csv_episode_logger.py`, `artifact_manager.py` and `run_controls_callback.py`. See "Writing tests"
+  in `AGENTS.md`.
+- **The world's invariants as Hypothesis properties,** the handful in "Hypothesis checks the world's invariants" in
+  `design-decisions.md`, with a minimal derandomized profile for CI.
 - **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
   `check_env`, as one parametrized test.
 
