@@ -60,9 +60,36 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
 `design-decisions.md`.
 
 - **Test files for the source files with none,** written test-first: the owner states each file's rules, and the
-  tests are reviewed before anything else. `synergy_droid.py`, `tier_digester.py`, `orb_meta.py`, `termination.py`,
-  `base_orb.py`, `csv_episode_logger.py`, `artifact_manager.py` and `run_controls_callback.py`. See "Writing tests"
-  in `AGENTS.md`.
+  tests are reviewed before anything else (see "Writing tests" in `AGENTS.md`). Paths are under `src/syn_grid/`, in
+  order:
+  - Game rules:
+    1. `scenario/families/goal/single_tier_chain/termination.py`
+    2. `core/droid/synergy_droid.py`
+    3. `core/droid/digestion/digesters/tier_chain/tier_digester.py`, with `max_tier_digester.py`,
+       `step_wise_digester.py` and `threshold_digester.py`
+    4. `core/droid/digestion/digesters/neg_digester.py`
+    5. `core/droid/digestion/engine.py`
+    6. `core/orbs/base_orb.py`, with `synergy/chain/tier_orb.py` and `direct/negative_orb.py`
+    7. `core/utils/timer.py`
+    8. `scenario/blocks/populations/tier_chain_population.py` and `neg_population.py`, with `population.py`
+    9. `scenario/blocks/recipes/world_recipe.py` and `tier_digester_recipe.py`
+  - Config:
+    10. `config/config_manager.py`
+    11. the validators in `config/models/runner_models.py`, `scenario/common_models.py` and `global_models.py`
+  - Plumbing, where the agent proposes the rules for the owner to confirm:
+    12. `gymnasium/utils/episode_logging/csv_episode_logger.py`
+    13. `runners/agent_runners/sb3/artifact_manager.py`
+    14. `runners/agent_runners/sb3/run_controls_callback.py`
+    15. `runners/agent_runners/sb3/policy_resolver.py`
+    16. `runners/agent_runners/runner_registry.py`
+
+  Left without a test file:
+  - `core/orbs/orb_meta.py`: phase 7 moves the orb identity.
+  - The observation and render code, rebuilt in phases 7 and 8.
+  - Interfaces and data holders with no logic of their own.
+  - The entry points and glue the probes run.
+  - `extractors.py`.
+  - `gymnasium/environment.py`, whose step `tests/integration/test_env_step.py` covers.
 - **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
   `check_env`, as one parametrized test.
 
