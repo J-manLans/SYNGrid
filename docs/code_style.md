@@ -17,6 +17,18 @@ from typing import Final
 _chained_tiers: Final[list[int]] = []
 ```
 
+- **Overrides**: A method that replaces one inherited from a parent class, ours or a library's, is marked
+  `@override`, so a type checker flags it when the parent's method is renamed or gone. A class that only matches a
+  `Protocol` without inheriting from it overrides nothing, and its methods are not marked.
+
+```python
+from typing import override
+
+class VectorMarkovian(BasePerception):
+    @override
+    def get_observation(self, state: GridWorld) -> np.ndarray:
+```
+
 ## 2. Variable and Function Naming
 - Use snake_case as above for:
     - Variables
