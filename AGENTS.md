@@ -191,6 +191,7 @@ pip install -e ".[dev]"                    # required
 python3 -m syn_grid                        # run; USE_LEGACY in __main__.py picks the strain
 python3 -m syn_grid.check_env              # Gymnasium contract self-check
 ruff check src/syn_grid tests              # lint, CI scope
+coverage run -m pytest && coverage report -m   # coverage, with branches and the probe's subprocess
 ./scripts/tidy.sh                          # check --fix + format
 ```
 

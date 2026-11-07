@@ -55,8 +55,9 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 
 The tests written while the scenarios were locked are the start of it. Go over what exists, fill the gaps and tidy
 the rest. The owner wants tooling that shows untested paths, such as branch coverage, and mutation testing.
-Which libraries is open. The leads are coverage.py through `pytest-cov`, with branch coverage, and mutmut;
-mutmut is tried first on one file, to check that it tests the mutated copy and not the editable install.
+The tools are coverage.py on its own and mutmut; see "The suite is measured by coverage.py alone, and mutmut" in
+`design-decisions.md`. mutmut is tried first on one file, to check that it tests the mutated copy and not the
+editable install.
 
 - **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
   `check_env`, as one parametrized test.

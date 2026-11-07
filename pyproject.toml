@@ -62,6 +62,8 @@ extra = [
 
 dev = [
     "pytest>=9.0.2",
+    "coverage>=7.17.2", # Which lines and branches the tests run
+    "mutmut>=3.8.1", # Mutation testing: whether a test goes red when the code it guards is broken
     "ruff>=0.16" # For linting and removing unused imports. Formatting: ruff format path/to/file.py or ruff format path/to/package, removing unused imports: ruff check --select F401 --fix src/syn_grid
 ]
 
@@ -83,6 +85,14 @@ force-exclude = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+
+[tool.coverage.run]
+branch = true
+source = ["syn_grid"]
+# The legacy strain is a frozen copy, and no test reaches it.
+omit = ["*/syn_grid/legacy/*"]
+# The regression test runs the replay probe as a subprocess, and its lines count too.
+patch = ["subprocess"]
 
 [tool.pyright]
 # The legacy strain is a frozen copy and is never edited. Setting exclude replaces pyright's defaults, so they are
