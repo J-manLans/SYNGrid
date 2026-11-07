@@ -49,6 +49,14 @@ a name and a parent" in `design-decisions.md`.
   `output/user_scenarios/`, which keeps one ignored folder but is lost when `output/` is cleared, although forks are
   read by later runs and not produced by them. Either way it is found the way `output/` is. Raised on 2026-10-29.
 
+## Phase 6b: Rebuild the test suite
+
+- **How the regression test meets mutmut.** It starts the replay probe as a subprocess, which imports `syn_grid` from
+  `src/` through the editable install and never sees a mutant, so under mutmut it adds time and kills nothing; what
+  only it checks shows as survived. In the trial on `watcher.py`, `DelayWatcherRecipe` building its watcher with
+  `None` for the delay survived this way. Options: leave `tests/regression/` out of mutmut's runs, or have the probe
+  import from `mutants/src` under mutmut. Raised on 2026-11-07.
+
 ## Phase 7: The observation pass
 
 - **Which global features an observation carries.** The two kept perceptions carry none. Open for the rewritten ones.

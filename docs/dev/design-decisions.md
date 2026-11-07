@@ -1306,7 +1306,9 @@ buffers.
 **Decision:** Coverage is coverage.py on its own, run as `coverage run -m pytest` and read with `coverage report -m`.
 Its settings are in `[tool.coverage.run]` in `pyproject.toml`: branch coverage, `syn_grid` as the source, `legacy/`
 left out, and `patch = ["subprocess"]`, so the replay probe the regression test starts as a subprocess is measured
-too. Mutation testing is mutmut. Both are in the `dev` extras, at coverage 7.17.2 and mutmut 3.8.1.
+too. Mutation testing is mutmut. Both are in the `dev` extras, at coverage 7.17.2 and mutmut 3.8.1. mutmut tests
+the mutated copy and not the editable install: on `watcher.py` it killed 26 of 30 mutants. `also_copy` brings
+`scripts/` into its copy, since the regression test starts the replay probe from there.
 
 **Why:** `pytest-cov` only starts coverage from pytest's command line; the settings live in coverage's own config
 either way, and since its version 7 it leaves subprocesses to coverage's `patch` setting too. One dependency fewer.

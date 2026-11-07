@@ -213,3 +213,4 @@ output/
 .opencode/
 .vscode/
 !.vscode/launch.json
+mutants/

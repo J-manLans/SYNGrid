@@ -63,7 +63,7 @@ extra = [
 dev = [
     "pytest>=9.0.2",
     "coverage>=7.17.2", # Which lines and branches the tests run
-    "mutmut>=3.8.1", # Mutation testing: whether a test goes red when the code it guards is broken
+    "mutmut>=3.8.1", # Mutation testing: whether a test goes red when the code it guards is broken. mutmut run to run
     "ruff>=0.16" # For linting and removing unused imports. Formatting: ruff format path/to/file.py or ruff format path/to/package, removing unused imports: ruff check --select F401 --fix src/syn_grid
 ]
 
@@ -100,3 +100,8 @@ patch = ["subprocess"]
 exclude = ["src/syn_grid/legacy", "**/node_modules", "**/__pycache__", "**/.*"]
 # A method that replaces a parent's must say so with @override; see docs/code_style.md.
 reportImplicitOverride = "warning"
+
+[tool.mutmut]
+source_paths = ["src/syn_grid"]
+also_copy = ["scripts"]
+only_mutate = ["*/single_tier_chain/watcher.py"] # the trial: one file
