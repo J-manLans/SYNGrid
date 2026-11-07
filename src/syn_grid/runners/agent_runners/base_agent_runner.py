@@ -5,12 +5,13 @@ import pygame
 from gymnasium import Env
 from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo
 
+from syn_grid.config.models.runner_models import RunnerConf
 from syn_grid.gymnasium.utils.env_factory import make
 from syn_grid.gymnasium.utils.episode_logging.csv_episode_logger import (
     CSVEpisodeLogger,
 )
 from syn_grid.rendering.pygame_renderer import PygameRenderer
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
+from syn_grid.scenario.scenario import Scenario
 from syn_grid.utils.date_utils import get_date
 from syn_grid.utils.paths_util import get_project_path, get_syn_grid_path
 
@@ -19,9 +20,9 @@ class BaseAgentRunner(ABC):
     """
     What every agent runner shares, and the base for a runner of your own.
 
-    A runner implements `train` and `eval`. It is made from a `RunnerBundle`, which holds the
-    scenario and the runner config, and registered with a member in `Algorithm`
-    (`config/models/runner_models.py`) and an entry in `RUNNER` (`runner_registry.py`).
+    A runner implements `train` and `eval`. It is made from the scenario and the runner config,
+    and registered with a member in `Algorithm` (`config/models/runner_models.py`) and an entry
+    in `RUNNER` (`runner_registry.py`).
 
     It gets, ready to use:
 
@@ -41,11 +42,11 @@ class BaseAgentRunner(ABC):
     #       Init        #
     # ================= #
 
-    def __init__(self, runner_bundle: RunnerBundle):
-        self._runner_conf = runner_bundle.runner_conf.common_conf
-        self._train_conf = runner_bundle.runner_conf.train_conf
-        self._eval_conf = runner_bundle.runner_conf.eval_conf
-        self.scenario = runner_bundle.scenario
+    def __init__(self, scenario: Scenario, runner_conf: RunnerConf):
+        self._runner_conf = runner_conf.common_conf
+        self._train_conf = runner_conf.train_conf
+        self._eval_conf = runner_conf.eval_conf
+        self.scenario = scenario
         self._save_folder = self.scenario.scenario_name
         # Get current date and time to us as id for unique file naming
         self._date = get_date()

@@ -37,7 +37,7 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | The other five perceptions | legacy, in `legacy/` | — |
 | Renderer | written | run, in human mode |
 | `HumanRunner` | written | run |
-| SB3 runner: `BaseSB3Runner`, and an `SB3Spec` each for PPO, FSPPO and RPPO in `RUNNER` | written | learned: PPO and RPPO, before the specs; run: all three by the runner probe, 512 steps through `train()`, saved, loaded and evaluated through `eval()`, the same as before the specs |
+| SB3 runner: `SB3Runner`, and an `SB3Spec` each for PPO, FSPPO and RPPO in `RUNNER` | written | learned: PPO and RPPO, before the specs; run: all three by the runner probe, 512 steps through `train()`, saved, loaded and evaluated through `eval()`, the same as before the specs |
 | `BaseAgentRunner`, the extension point for users' runners | written | run, through the SB3 runner; a user's own runner built in a test; the run controls played by hand, video recording not run since `_wrap_episode_stats` came in |
 | CSV logger | written | run, through the environment, and by the runner probe on 512 training steps on two envs; never on a full training run |
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |

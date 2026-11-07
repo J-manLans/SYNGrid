@@ -4,7 +4,6 @@ from syn_grid.config.models.runner_models import RunnerConf
 from syn_grid.config.models.scenario.common_models import ScenarioConf
 from syn_grid.gymnasium.utils.env_factory import register_env
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.runner_registry import build_runner
 from syn_grid.runners.human_runner.human_runner import HumanRunner
 from syn_grid.scenario.registry import SCENARIOS, build_scenario
@@ -26,10 +25,9 @@ def main() -> None:
         HumanRunner(scenario).play()
         return
 
-    runner_bundle = RunnerBundle(scenario=scenario, runner_conf=runner_conf)
-    runner = build_runner(runner_bundle)
+    runner = build_runner(scenario, runner_conf)
 
-    dispatch(runner, config_manager, runner_bundle, global_conf)
+    dispatch(runner, config_manager, runner_conf, global_conf)
 
 
 # ================= #
@@ -63,7 +61,7 @@ def load_experiment_configs(
 def dispatch(
     runner: BaseAgentRunner,
     config_manager: ConfigManager,
-    runner_bundle: RunnerBundle,
+    runner_conf: RunnerConf,
     global_conf: GlobalConf,
 ) -> None:
     """
@@ -74,7 +72,7 @@ def dispatch(
     Args:
         runner: The agent runner to dispatch to (train or eval).
         config_manager: Used to save a config snapshot if enabled.
-        runner_bundle: The loaded experiment configuration.
+        runner_conf: The runner configuration, read for whether to train or evaluate.
         global_conf: The global configuration, read for the snapshot
             setting and the scenario's name.
     """
@@ -87,7 +85,7 @@ def dispatch(
         print("Config snapshot saved. Exiting.")
         return
 
-    if runner_bundle.runner_conf.common_conf.training:
+    if runner_conf.common_conf.training:
         runner.train()
     else:
         runner.eval()

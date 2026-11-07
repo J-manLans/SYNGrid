@@ -1107,9 +1107,9 @@ cloning it and installing it editable, so a user's extension is an edit to their
 
 ## An SB3 algorithm is a spec in the runner table (2026-11-06)
 
-**Decision:** SYNGrid's SB3 algorithms share one runner, `BaseSB3Runner`. Each is an `SB3Spec` in `RUNNER`: the SB3
-class, the device, what it adds to the shared hyperparameters, and an optional frame stack. Calling a spec with a
-runner bundle makes its runner, so `RUNNER` holds a spec for an SB3 algorithm and a class for a user's own runner
+**Decision:** SYNGrid's SB3 algorithms share one runner, `SB3Runner`. Each is an `SB3Spec` in `RUNNER`: the SB3
+class, the device, what it adds to the shared hyperparameters, and an optional frame stack. Calling a spec with the
+scenario and the runner config makes its runner, so `RUNNER` holds a spec for an SB3 algorithm and a class for a user's own runner
 alike. The eval loop hands every model the recurrent state and the episode starts, which a policy that is not
 recurrent ignores.
 
@@ -1121,12 +1121,14 @@ takes the state and the episode starts for every algorithm, so the eval strategi
 - A runner subclass per SB3 algorithm: a file of copies for four values.
 - An execution strategy per algorithm: `predict` already takes the state for all of them.
 - Merging `BaseAgentRunner` into the SB3 runner: it is the extension point for users' runners.
+- A `RunnerBundle` holding the scenario and the runner config: two fields and no behaviour, in the signature of every
+  user's runner.
 
 ## The policy's name comes from the algorithm (2026-10-13)
 
 **Decision:** `resolve_policy(perception, algorithm)` returns the one name in the algorithm's `policy_aliases` that
-starts with the perception's base policy, and raises if there is not exactly one. The base SB3 runner calls it; a
-concrete runner says nothing about the policy. The table from a perception's leading word to a base policy stays:
+starts with the perception's base policy, and raises if there is not exactly one. The SB3 runner calls it; a
+spec says nothing about the policy. The table from a perception's leading word to a base policy stays:
 `vector` to `Mlp`, `composite` to `MultiInput`, `grid` to `Cnn`.
 
 **Why:** It removes the LSTM special case, and naming the algorithm names the policy family.

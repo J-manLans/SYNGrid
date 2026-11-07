@@ -10,7 +10,6 @@ from syn_grid.gymnasium.utils.episode_logging.csv_episode_logger import (
     CSVEpisodeLogger,
 )
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.scenario.registry import SCENARIOS
 
 # ================= #
@@ -36,7 +35,7 @@ def _runner(log_dir: Path) -> _OwnRunner:
         entry.full_conf(manager.load_raw(manager.scenario_config_path(name))),
     )
     runner_conf = manager.load_config("runner_config.yaml", RunnerConf)
-    runner = _OwnRunner(RunnerBundle(scenario=scenario, runner_conf=runner_conf))
+    runner = _OwnRunner(scenario, runner_conf)
     runner._log_dir = log_dir
 
     return runner

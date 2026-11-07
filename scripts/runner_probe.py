@@ -67,7 +67,6 @@ def main() -> int:
     from syn_grid.config.models.global_models import ScenarioName
     from syn_grid.config.models.runner_models import Algorithm, RunnerConf
     from syn_grid.gymnasium.utils.env_factory import register_env
-    from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
     from syn_grid.runners.agent_runners.runner_registry import build_runner
     from syn_grid.scenario.registry import SCENARIOS, build_scenario
 
@@ -111,7 +110,7 @@ def main() -> int:
                 ),
             }
         )
-        runner = build_runner(RunnerBundle(scenario=scenario, runner_conf=runner_conf))
+        runner = build_runner(scenario, runner_conf)
         runner._log_dir = work_dir / "pieces" / alg.value
 
         env = runner._build_env(None, "train")
@@ -153,12 +152,12 @@ def main() -> int:
             f"digest={digest(repr(files).encode())}"
         )
 
-        _round_trip(alg, runner_conf, scenario, build_runner, RunnerBundle)
+        _round_trip(alg, runner_conf, scenario, build_runner)
 
     return 0
 
 
-def _round_trip(alg, runner_conf, scenario, build_runner, RunnerBundle) -> None:
+def _round_trip(alg, runner_conf, scenario, build_runner) -> None:
     """Train and save through `train()`, then load and evaluate through `eval()`."""
 
     train_conf = runner_conf.model_copy(
@@ -176,7 +175,7 @@ def _round_trip(alg, runner_conf, scenario, build_runner, RunnerBundle) -> None:
             ),
         }
     )
-    build_runner(RunnerBundle(scenario=scenario, runner_conf=train_conf)).train()
+    build_runner(scenario, train_conf).train()
 
     eval_conf = train_conf.model_copy(
         update={
@@ -185,7 +184,7 @@ def _round_trip(alg, runner_conf, scenario, build_runner, RunnerBundle) -> None:
             )
         }
     )
-    runner = build_runner(RunnerBundle(scenario=scenario, runner_conf=eval_conf))
+    runner = build_runner(scenario, eval_conf)
 
     # Watch what eval() loads and does, around the runner's own methods
     loaded = []

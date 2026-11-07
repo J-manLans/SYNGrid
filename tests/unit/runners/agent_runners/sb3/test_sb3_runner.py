@@ -4,9 +4,8 @@ from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.config.models.runner_models import Algorithm, RunnerConf
 from syn_grid.gymnasium.utils.env_factory import register_env
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.runner_registry import build_runner
-from syn_grid.runners.agent_runners.sb3.base_sb3_runner import BaseSB3Runner
+from syn_grid.runners.agent_runners.sb3.sb3_runner import SB3Runner
 from syn_grid.scenario.registry import SCENARIOS
 
 # ================= #
@@ -14,7 +13,7 @@ from syn_grid.scenario.registry import SCENARIOS
 # ================= #
 
 
-def _runner(alg: Algorithm) -> BaseSB3Runner:
+def _runner(alg: Algorithm) -> SB3Runner:
     register_env()
     name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL
     manager = ConfigManager()
@@ -37,8 +36,8 @@ def _runner(alg: Algorithm) -> BaseSB3Runner:
             ),
         }
     )
-    runner = build_runner(RunnerBundle(scenario=scenario, runner_conf=runner_conf))
-    assert isinstance(runner, BaseSB3Runner)
+    runner = build_runner(scenario, runner_conf)
+    assert isinstance(runner, SB3Runner)
 
     return runner
 

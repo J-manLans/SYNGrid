@@ -6,7 +6,7 @@ travel alongside a checkpoint for eval or continued training to be valid.
 
 Whether to create or load is an orchestration decision (it depends on
 whether we're training from scratch, continuing training, or evaluating),
-so that branching stays in BaseSB3Runner. This class only knows how to do
+so that branching stays in SB3Runner. This class only knows how to do
 each half once asked.
 """
 

@@ -12,13 +12,14 @@ from stable_baselines3.common.vec_env import (
     VecNormalize,
 )
 
+from syn_grid.config.models.runner_models import RunnerConf
 from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
-from syn_grid.runners.agent_runners.runner_bundle import RunnerBundle
 from syn_grid.runners.agent_runners.sb3.artifact_manager import ArtifactManager
 from syn_grid.runners.agent_runners.sb3.policy_resolver import resolve_policy
 from syn_grid.runners.agent_runners.sb3.run_controls_callback import (
     RunControlsCallback,
 )
+from syn_grid.scenario.scenario import Scenario
 from syn_grid.utils.paths_util import get_project_path
 
 # ================= #
@@ -28,7 +29,8 @@ from syn_grid.utils.paths_util import get_project_path
 
 @dataclass(frozen=True)
 class SB3Spec:
-    """One SB3 algorithm as SYNGrid runs it. Calling it with a runner bundle makes its runner.
+    """One SB3 algorithm as SYNGrid runs it. Calling it with a scenario and a runner config
+    makes its runner.
 
     Attributes:
         algorithm: the SB3 algorithm class, such as `PPO` or `RecurrentPPO`.
@@ -45,8 +47,8 @@ class SB3Spec:
     hyper_parameters: Mapping[str, Any] = field(default_factory=dict)
     frame_stack: int | None = None
 
-    def __call__(self, runner_bundle: RunnerBundle) -> "BaseSB3Runner":
-        return BaseSB3Runner(runner_bundle, self)
+    def __call__(self, scenario: Scenario, runner_conf: RunnerConf) -> "SB3Runner":
+        return SB3Runner(scenario, runner_conf, self)
 
 
 # ================= #
@@ -54,7 +56,7 @@ class SB3Spec:
 # ================= #
 
 
-class BaseSB3Runner(BaseAgentRunner):
+class SB3Runner(BaseAgentRunner):
     """
     Trains and evaluates any SB3 algorithm, as its `SB3Spec` describes it.
 
@@ -76,8 +78,8 @@ class BaseSB3Runner(BaseAgentRunner):
         "n_epochs": 4,
     }
 
-    def __init__(self, runner_bundle: RunnerBundle, spec: SB3Spec):
-        super().__init__(runner_bundle)
+    def __init__(self, scenario: Scenario, runner_conf: RunnerConf, spec: SB3Spec):
+        super().__init__(scenario, runner_conf)
         self._spec = spec
         print(f"Initializing {spec.algorithm.__name__}...")
 
@@ -94,7 +96,7 @@ class BaseSB3Runner(BaseAgentRunner):
             hyper_parameters=hyper_parameters,
             model_dir=self._model_dir,
             vec_norm_stats_dir=self._init_vec_norm_stats_dir(),
-            find_latest_saved_path=super()._find_latest_saved_path,
+            find_latest_saved_path=self._find_latest_saved_path,
         )
 
     # ================= #
@@ -114,8 +116,10 @@ class BaseSB3Runner(BaseAgentRunner):
         self._eval_model(env, model)
 
     # ================= #
-    #       Hooks       #
+    #      Helpers      #
     # ================= #
+
+    # === Env === #
 
     def _build_env(self, render_mode: str | None, sub_dir: str) -> VecEnv:
         """The vectorized env a run trains or evaluates on: normalized, then stacked if the
@@ -129,10 +133,6 @@ class BaseSB3Runner(BaseAgentRunner):
             env = VecFrameStack(env, self._spec.frame_stack)
 
         return env
-
-    # ================= #
-    #      Helpers      #
-    # ================= #
 
     # === Properties === #
 
@@ -153,8 +153,6 @@ class BaseSB3Runner(BaseAgentRunner):
         )
         vec_norm_stats_dir.mkdir(parents=True, exist_ok=True)
         return vec_norm_stats_dir
-
-    # === Env === #
 
     def _make_dummy_vec_env(self, render_mode: str | None, sub_dir: str) -> DummyVecEnv:
         # If we are training, create as many envs that the config specifies.
@@ -241,7 +239,7 @@ class BaseSB3Runner(BaseAgentRunner):
         )
 
         try:
-            for i in range(1, self._train_conf.iterations + 1):
+            for _ in range(self._train_conf.iterations):
                 model.learn(
                     total_timesteps=self._train_conf.timesteps,
                     callback=debugging_callback,
@@ -304,8 +302,5 @@ class BaseSB3Runner(BaseAgentRunner):
 
                     if dones[0]:
                         break
-        except Exception as e:
-            print(f"System crashed: {e}")
-            raise
         finally:
             env.close()
