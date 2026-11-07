@@ -5,12 +5,12 @@ is written is in [`docs/code_style.md`](docs/code_style.md).
 
 ## Setup
 
-SYNGrid needs Python 3.10.
+SYNGrid needs Python 3.12.
 
 ```bash
 git clone https://github.com/J-manLans/SYNGrid.git
 cd SYNGrid
-python3.10 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 ```

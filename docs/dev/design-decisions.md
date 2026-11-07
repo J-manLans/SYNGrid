@@ -1216,8 +1216,8 @@ the same name as one trained from scratch on 7x7, and only a tag remembered by h
 
 **Decision:** SYNGrid moves from Python 3.10 to 3.12, the system Python of Pop!_OS 24.04, which the owner's machine
 moves to. `requires-python` is `">=3.12,<3.13"`, pinned to one minor version as 3.10 was. Models saved under 3.10
-may not load under 3.12; that is accepted, and a run is retrained from its config and seed where it is needed. The
-move and its checks are phase 6a in the roadmap.
+may not load under 3.12; that is accepted, and a run is retrained from its config and seed where it is needed. On
+3.12 the four regression baselines and the runner probe's digests are the same as on 3.10.
 
 **Why:** Nothing recorded a reason for the pin to 3.10; it was the system Python of Pop!_OS 22.04. Tools have begun to
 drop 3.10: coverage.py's newest line needs 3.11, so every dev tool would freeze at its last 3.10 release. The move
@@ -1236,8 +1236,7 @@ comes between phases, before 6b picks its tools, and with four locked traces and
 - `">=3.10,<3.13"`, keeping 3.10 as the floor: nothing runs on 3.10 after the move, a `str` enum formats differently
   in an f-string before 3.11, and phase 6b's newest dev tools need 3.11.
 
-**Revisit if:** a dependency SYNGrid needs does not run on 3.12, or the checks in phase 6a show a change of behaviour
-that is not explained.
+**Revisit if:** a dependency SYNGrid needs does not run on 3.12.
 
 ## The regression test runs the replay probe on each locked scenario's base config (2026-11-07)
 

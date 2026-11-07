@@ -194,7 +194,7 @@ ruff check src/syn_grid tests              # lint, CI scope
 ./scripts/tidy.sh                          # check --fix + format
 ```
 
-`python` is not on PATH outside the venv. `requires-python` is `>=3.10,<3.11`. Rendering needs
+`python` is not on PATH outside the venv. `requires-python` is `>=3.12,<3.13`. Rendering needs
 `SDL_VIDEODRIVER=dummy` and `SDL_AUDIODRIVER=dummy` on a machine without devices.
 
 ## Verify before asserting
@@ -230,7 +230,3 @@ Each of these cost a wrong conclusion in this repo.
   rebuild. It stays on purpose: phase 7b works from it, not from scratch.
 - **`reproduction_package/` is committed and large.** Do not add to it. It records what the thesis runs did, and it
   stays until the owner decides how it connects to the thesis.
-- **A pygame window and a model load crash together on the owner's machine.** Opening a window loads Mesa's LLVM on
-  the AMD iGPU, and Triton's own LLVM then segfaults when SB3 loads a model. It hits eval with a renderer and training
-  with one. Start through `scripts/run_app.sh` or the `launch.json` entry, which put the window on the NVIDIA card, or
-  set `SDL_FRAMEBUFFER_ACCELERATION=0`. See `docs/dev/archive/pygame-triton-segfault.md`.

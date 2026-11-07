@@ -6,7 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** move to Pop!_OS 24.04 and Python 3.12 (phase 6a), then rebuild the test suite (phase 6b).
+**Next:** rebuild the test suite (phase 6b).
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. The
 suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
@@ -43,31 +43,9 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
-| Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; its "before" numbers for the move to 3.12 are in the commit that adds it |
+| Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; on Python 3.12 the same digests as on 3.10 |
 | Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behaviour: the world's step and free cells, the watchers, the environment's step, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: 31 pass |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
-
----
-
-## Phase 6a: Move to Pop!_OS 24.04 and Python 3.12
-
-**Produces:** SYNGrid on Python 3.12, from Pop!_OS 24.04's system Python, checked against what it did on 3.10. See
-"SYNGrid moves to Python 3.12" in `design-decisions.md`.
-
-**The checks, with delay's run YAML at `steps: 30`:**
-
-16. Human play through `scripts/run_app.sh`, to see whether the pygame and Triton crash in `AGENTS.md` still needs
-    its fix on the new GPU stack.
-17. A short training run, eval with the renderer, and a look at TensorBoard.
-
-**The repo, once the checks pass:**
-
-18. `python-version` in `.github/workflows/ci.yaml`, the Python version and the venv command in `CONTRIBUTING.md`,
-    and the `requires-python` line in "Running things" in `AGENTS.md`, with the crash trap if step 16 changed it.
-19. The commit message says what was run, and how far anything moved.
-
-**Done when:** the regression test passes, the runner probe's differences are read and explained, and a run trains and
-renders on 3.12. Phase 6b starts after this, with `coverage`, `pytest-cov` and `mutmut` at their newest versions.
 
 ---
 

@@ -195,3 +195,19 @@ For the current development/reproduction package, the NVIDIA-offload workaround 
 Before a future `1.0.0` release, it may be worth investigating whether the underlying Triton/Mesa/LLVM conflict can be eliminated or whether a more portable solution can be implemented.
 
 For now, the segmentation fault investigation is considered resolved.
+
+### Status on Pop!_OS 24.04 (2026-11-07)
+
+The crash does not reproduce after the move to Pop!_OS 24.04 and Python 3.12. Eval with the renderer runs with plain
+`python3 -m syn_grid`, with the window on the AMD iGPU (radeonsi), and the NVIDIA offload is no longer used:
+`scripts/run_app.sh` and the `env` block in `.vscode/launch.json` are gone. If it comes back, the minimal
+reproduction and the offload command above still apply.
+
+| | 22.04, with the crash | 24.04, without it |
+|---|---|---|
+| Mesa | 25.1.5 | 26.1.6 |
+| System LLVM | 15 | 18 and 20 |
+| Triton | 3.7.1 | 3.9.0 |
+| PyTorch | 2.13.0+cu130 | 2.15.0+cu132 |
+| NVIDIA driver | 580.173.02 | 595.104.02 |
+| Pygame, SDL | 2.6.1, 2.28.4 | 2.6.1, 2.28.4 |
