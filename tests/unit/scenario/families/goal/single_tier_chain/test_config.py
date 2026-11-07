@@ -1,3 +1,5 @@
+"""What the single tier chain configs accept, and the steps delay's config gives an episode."""
+
 import copy
 from typing import Any
 
@@ -61,6 +63,33 @@ class TestDelayMaxSteps:
         raw["world_conf"]["max_steps"] = 250
 
         with pytest.raises(ValidationError, match="max_steps"):
+            TierDelayScenarioConf(**raw)
+
+    def test_a_config_missing_a_block_is_told_which(self, delay_base: dict[str, Any]):
+        raw = _with(delay_base, delay=100)
+        del raw["delay_conf"]
+
+        with pytest.raises(ValidationError, match="delay_conf"):
+            TierDelayScenarioConf(**raw)
+
+
+class TestChainFitsGrid:
+    """A chain needs a cell for each tier orb, the negative orb and the droid."""
+
+    def test_a_chain_that_leaves_the_negative_orb_and_the_droid_a_cell_is_accepted(
+        self, delay_base: dict[str, Any]
+    ):
+        TierDelayScenarioConf(
+            **_with(delay_base, delay=100, rows=2, cols=2, max_tier=2)
+        )
+
+    def test_the_negative_orbs_cell_counts_while_it_is_switched_off(
+        self, delay_base: dict[str, Any]
+    ):
+        raw = _with(delay_base, delay=100, rows=2, cols=2, max_tier=3)
+        assert not raw["world_conf"]["neg_orb_conf"]["enabled"]
+
+        with pytest.raises(ValidationError, match="max_tier 3 does not fit .* 4 cells"):
             TierDelayScenarioConf(**raw)
 
 

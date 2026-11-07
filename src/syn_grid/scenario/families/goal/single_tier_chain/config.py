@@ -41,6 +41,9 @@ class TierWorldConf(GoalWorldConf, frozen=True, extra="forbid", strict=True):
     timeout penalty; see `docs/dev/rppo-regression.md`.
 
     A world whose `neg_orb_conf` is enabled holds one negative orb.
+
+    The grid has a cell for each tier orb, the negative orb and the droid, whether the
+    negative orb is enabled or not, so switching it on never leaves an orb without a cell.
     """
 
     tier_orb_conf: TierOrbConf
@@ -48,12 +51,12 @@ class TierWorldConf(GoalWorldConf, frozen=True, extra="forbid", strict=True):
 
     @model_validator(mode="after")
     def validate_chain_fits_grid(self):
-        if self.tier_orb_conf.max_tier >= (
-            self.grid_conf.grid_rows * self.grid_conf.grid_cols
-        ):
+        cells = self.grid_conf.grid_rows * self.grid_conf.grid_cols
+        # One cell for the negative orb and one for the droid
+        if self.tier_orb_conf.max_tier + 2 > cells:
             raise ValueError(
-                "max_tier can't be higher than number of cells in the grid, "
-                "there will be no space for orbs"
+                f"max_tier {self.tier_orb_conf.max_tier} does not fit a grid of {cells} cells: "
+                "each tier orb, the negative orb and the droid need a cell of their own"
             )
 
         return self

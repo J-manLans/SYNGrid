@@ -1,3 +1,5 @@
+"""What one tick of the world does, how it fills its field, and which cells are free."""
+
 import numpy as np
 import pytest
 
@@ -18,22 +20,34 @@ STEP_PENALTY = -0.001
 # ================= #
 
 
+def _make_world(
+    grid: tuple[int, int], max_active_orbs: int, life_span: int | None = None
+) -> GridWorld:
+    """A world with a three-tier chain, before its first reset."""
+
+    orbs = TierChainPopulation(
+        max_tier=3,
+        base_reward=1.0,
+        growth_factor=1.5,
+        cool_down=None,
+        life_span=life_span,
+    ).create()
+    droid = SynergyDroid(
+        [MaxTierDigester(max_tier=3, chain_break_penalty=-0.1)],
+        grid,
+        max_energy=50.0,
+        step_penalty=STEP_PENALTY,
+        boundary_penalty=-1.0,
+    )
+    return GridWorld(grid, max_active_orbs, 100, orbs, droid)
+
+
 @pytest.fixture
 def world() -> GridWorld:
     """A 5x5 world with a three-tier chain. The droid starts in the centre, at (2, 2), with tier 1
     just left of it and the other tiers far away."""
 
-    orbs = TierChainPopulation(
-        max_tier=3, base_reward=1.0, growth_factor=1.5, cool_down=None, life_span=None
-    ).create()
-    droid = SynergyDroid(
-        [MaxTierDigester(max_tier=3, chain_break_penalty=-0.1)],
-        (5, 5),
-        max_energy=50.0,
-        step_penalty=STEP_PENALTY,
-        boundary_penalty=-1.0,
-    )
-    world = GridWorld((5, 5), 3, 100, orbs, droid)
+    world = _make_world((5, 5), 3)
     world.reset(np.random.default_rng(0))
 
     # Place the orbs by hand, so the next step's outcome is known
@@ -74,6 +88,53 @@ class TestPerformDroidAction:
 
         assert result.consumed is None
         assert result.reward == pytest.approx(STEP_PENALTY)
+
+
+class TestLifeSpan:
+    """An orb with a life span leaves the field when it runs out."""
+
+    def test_it_leaves_unless_the_droid_eats_it_on_its_last_tick(self):
+        world = _make_world((5, 5), 3, life_span=2)
+        world.reset(np.random.default_rng(0))
+        cells = {1: [2, 4], 2: [0, 0], 3: [4, 4]}
+        for orb in world.ALL_ORBS:
+            assert orb.META.TIER is not None
+            orb.position = cells[orb.META.TIER]
+
+        world.perform_droid_action(DroidAction.RIGHT)
+        assert len(world.orbs_on_field()) == 3
+
+        result = world.perform_droid_action(DroidAction.RIGHT)
+        assert result.consumed is _tier_1(world).META
+        assert world.orbs_on_field() == []
+
+
+class TestReset:
+    """Filling the field at the start of an episode."""
+
+    def test_every_orb_lands_inside_a_grid_with_more_columns_than_rows(self):
+        world = _make_world((2, 6), 3)
+
+        for seed in range(50):
+            world.reset(np.random.default_rng(seed))
+
+            assert world.grid_dimensions == (2, 6)
+            for orb in world.orbs_on_field():
+                assert 0 <= orb.position[0] < 2 and 0 <= orb.position[1] < 6
+
+
+class TestFieldLimit:
+    """The field holds no more than `max_active_orbs` at once."""
+
+    def test_a_ready_orb_waits_while_the_field_is_full(self):
+        world = _make_world((5, 5), 2)
+        world.reset(np.random.default_rng(0))
+        for orb, cell in zip(world.orbs_on_field(), ([0, 0], [4, 4])):
+            orb.position = cell
+
+        world.perform_droid_action(DroidAction.RIGHT)
+
+        assert len(world.orbs_on_field()) == 2
 
 
 class TestIsCellFree:

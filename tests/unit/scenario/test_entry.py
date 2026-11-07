@@ -1,3 +1,5 @@
+"""The checks a scenario entry makes before it composes a scenario."""
+
 from typing import Any
 
 import pytest
@@ -31,7 +33,9 @@ class TestBuild:
     """The checks an entry makes before it composes a scenario."""
 
     def test_a_config_of_another_class_is_rejected(self):
-        with pytest.raises(TypeError, match="configured by"):
+        with pytest.raises(
+            TypeError, match="configured by .* given a TierScenarioConf"
+        ):
             SCENARIOS[DELAY].build(DELAY.value, _run_conf(SPATIAL))
 
     def test_a_perception_without_the_scenarios_visibility_is_rejected(self):
@@ -41,5 +45,8 @@ class TestBuild:
         }
         seeing_all = conf.model_copy(update={"obs_conf": type(conf.obs_conf)(**obs)})
 
-        with pytest.raises(ValueError, match="does not allow the perception"):
+        with pytest.raises(
+            ValueError,
+            match="does not allow the perception 'vector_markovian'. Allowed: vector_fog_of_war$",
+        ):
             SCENARIOS[SPATIAL].build(SPATIAL.value, seeing_all)

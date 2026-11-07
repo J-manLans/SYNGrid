@@ -44,7 +44,7 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
 | Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; on Python 3.12 the same digests as on 3.10 |
-| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behaviour: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: 66 pass; every unit and integration test file worked through with coverage and mutmut, the suite at 78% |
+| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: 66 pass; every unit and integration test file worked through with coverage and mutmut, the suite at 78% |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
 
 ---
@@ -66,7 +66,7 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
 - **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
   `check_env`, as one parametrized test.
 
-**Done when:** the suite passes, covers the rebuilt strain's paths, and each test fails when the behaviour it checks is
+**Done when:** the suite passes, covers the rebuilt strain's paths, and each test fails when the behavior it checks is
 broken. Phase 7 starts after this. The observation and render packages will be rebuilt, so skip tests for them.
 
 ---
