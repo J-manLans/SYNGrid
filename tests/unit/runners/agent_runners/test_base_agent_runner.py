@@ -18,10 +18,16 @@ from syn_grid.runners.agent_runners.base_agent_runner import BaseAgentRunner
 from syn_grid.scenario.registry import SCENARIOS
 
 # ================= #
-#     Fixtures      #
+#     Constants     #
 # ================= #
 
+
 SPATIAL = ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL
+
+
+# ================= #
+#     Stand-ins     #
+# ================= #
 
 
 class _OwnRunner(BaseAgentRunner):
@@ -32,6 +38,21 @@ class _OwnRunner(BaseAgentRunner):
 
     @override
     def eval(self) -> None: ...
+
+
+class _PauseRecorder:
+    """Stands in for the renderer the run controls are handed: counts the pause screens."""
+
+    def __init__(self):
+        self.pauses = 0
+
+    def draw_pause(self) -> None:
+        self.pauses += 1
+
+
+# ================= #
+#      Helpers      #
+# ================= #
 
 
 def _runner(
@@ -77,14 +98,20 @@ def _runner(
     return _OwnRunner(scenario, runner_conf)
 
 
-class _PauseRecorder:
-    """Stands in for the renderer the run controls are handed: counts the pause screens."""
+def _key(key: int) -> None:
+    pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=key))
 
-    def __init__(self):
-        self.pauses = 0
 
-    def draw_pause(self) -> None:
-        self.pauses += 1
+def _later(event: pygame.event.Event) -> None:
+    """Post `event` once the pause has started. The run controls read the queue in one batch and
+    drop what follows Space in it, so an event meant for the pause screen has to come after."""
+
+    pygame.time.set_timer(event, 50, loops=1)
+
+
+# ================= #
+#     Fixtures      #
+# ================= #
 
 
 @pytest.fixture
@@ -98,19 +125,8 @@ def events(monkeypatch: pytest.MonkeyPatch):
     pygame.display.quit()
 
 
-def _key(key: int) -> None:
-    pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=key))
-
-
-def _later(event: pygame.event.Event) -> None:
-    """Post `event` once the pause has started. The run controls read the queue in one batch and
-    drop what follows Space in it, so an event meant for the pause screen has to come after."""
-
-    pygame.time.set_timer(event, 50, loops=1)
-
-
 # ================= #
-#      Tests        #
+#       Tests       #
 # ================= #
 
 

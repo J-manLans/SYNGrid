@@ -158,6 +158,18 @@ For the helpers section, provide subheadings indicating what section the helpers
   baseline in `tests/regression/baselines/` recorded it. A locked scenario without a baseline fails.
 - Inside a file, one class per method or behaviour under test, named `Test<Thing>`, with a one-line docstring.
   Fixtures and helpers stay at module level, so every class in the file can use them.
+- A test file's module level is in sections, with the headings of section 5, each used only when the file has
+  something for it, in this order:
+  - **Constants:** module-level values, such as a scenario name or a penalty the tests share.
+  - **Stand-ins:** classes that play a collaborator, such as a recorder, a fake or a user's own runner, and what
+    they record into.
+  - **Helpers:** functions that build or drive what a test needs, and Hypothesis strategies. A helper that serves
+    one test class goes under a subheading named for it, such as `# === Invariants === #`, after the shared ones.
+  - **Fixtures:** `@pytest.fixture` functions only.
+  - **Tests:** the test classes, with no headings between them.
+
+  Stand-ins and helpers come before the fixtures because Python reads a function's annotations when it is defined,
+  so a fixture that returns a stand-in needs the stand-in above it.
 
 ```python
 class TestPerformDroidAction:

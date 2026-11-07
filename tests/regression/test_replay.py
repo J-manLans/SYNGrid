@@ -10,13 +10,25 @@ from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.scenario.registry import SCENARIOS
 
 # ================= #
-#     Fixtures      #
+#     Constants     #
 # ================= #
 
+
 REPO = Path(__file__).resolve().parents[2]
+
+
 PROBE = REPO / "scripts" / "replay" / "probe.py"
+
+
 BASELINES = Path(__file__).parent / "baselines"
+
+
 LOCKED = [name for name, entry in SCENARIOS.items() if entry.lock is not None]
+
+
+# ================= #
+#      Helpers      #
+# ================= #
 
 
 def _record(name: ScenarioName, out: Path) -> dict:
@@ -36,7 +48,7 @@ def _record(name: ScenarioName, out: Path) -> dict:
 
 
 # ================= #
-#      Tests        #
+#       Tests       #
 # ================= #
 
 

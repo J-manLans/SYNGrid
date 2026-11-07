@@ -1351,7 +1351,12 @@ seed and any sequence of actions: the observation stays in its space, the droid 
 give the same trace, no orb is lost, no reward exceeds what the chain pays, and an episode ends by `max_steps`. These
 are a handful of tests at the world and environment level, and only these; everything else is an example test, which
 stays the form for one specific behaviour. CI runs them in `pytest` on a minimal, derandomized profile, so they are
-quick and cannot fail by chance. Locally they run on a profile as extensive as wanted. coverage and mutmut are local
+quick and cannot fail by chance. Locally they run on a profile as extensive as wanted. The profiles are registered in
+`tests/conftest.py`: `ci`, 25 examples, is the default, and `dev`, 1000, is chosen with `HYPOTHESIS_PROFILE=dev`. The
+world's invariants are in the world's test file and the episode's in the environment's step test, each class named
+`TestInvariants`; the observation's waits for the rewritten perceptions. An episode's actions mix a repeated pattern
+with steps towards the next tier orb, since a random walk almost never completes a chain and the reward bound would
+then check nothing. coverage and mutmut are local
 only, run while a file is worked on, and never in CI.
 
 **Why:** Example tests check an invariant only where someone thought to look; a property checks it over many generated

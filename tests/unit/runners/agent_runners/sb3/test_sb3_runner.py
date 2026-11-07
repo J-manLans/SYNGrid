@@ -25,81 +25,16 @@ from syn_grid.runners.agent_runners.sb3.sb3_runner import SB3Runner, SB3Spec
 from syn_grid.scenario.registry import SCENARIOS
 
 # ================= #
-#     Fixtures      #
+#     Constants     #
 # ================= #
+
 
 SPATIAL = ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL
 
 
-def _runner(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    alg: Algorithm = Algorithm.PPO,
-    *,
-    common: dict[str, Any] | None = None,
-    train: dict[str, Any] | None = None,
-    eval: dict[str, Any] | None = None,
-) -> SB3Runner:
-    """A runner of spatial, working in `tmp_path`, so what it writes lands there. The runner
-    config's values that a test reads are set here, not taken from the user's YAML."""
-
-    register_env()
-    manager = ConfigManager()
-    entry = SCENARIOS[SPATIAL]
-    scenario = entry.build(
-        SPATIAL.value,
-        entry.full_conf(manager.load_raw(manager.scenario_config_path(SPATIAL))),
-    )
-    base = manager.load_config("runner_config.yaml", RunnerConf)
-    runner_conf = base.model_copy(
-        update={
-            "common_conf": base.common_conf.model_copy(
-                update={
-                    "alg": alg,
-                    "seed": 3,
-                    "tag": None,
-                    "training": True,
-                    **(common or {}),
-                }
-            ),
-            "train_conf": base.train_conf.model_copy(
-                update={
-                    "n_envs": 1,
-                    "render_mode": None,
-                    "csv_output": False,
-                    "record_video": False,
-                    "continue_training": False,
-                    "tensorboard_output": False,
-                    "model_output": True,
-                    **(train or {}),
-                }
-            ),
-            "eval_conf": base.eval_conf.model_copy(
-                update={
-                    "num_eval_episodes": 1,
-                    "render_mode": None,
-                    "csv_output": False,
-                    "record_video": False,
-                    **(eval or {}),
-                }
-            ),
-        }
-    )
-    monkeypatch.chdir(tmp_path)
-    runner = build_runner(scenario, runner_conf)
-    assert isinstance(runner, SB3Runner)
-
-    return runner
-
-
-def _wrappers(env: Any) -> list[type]:
-    """The classes in a gym env's wrapper chain, outermost first."""
-
-    chain = []
-    while env is not None:
-        chain.append(type(env))
-        env = getattr(env, "env", None)
-    return chain
+# ================= #
+#     Stand-ins     #
+# ================= #
 
 
 class _RecordingModel:
@@ -173,6 +108,82 @@ class _OneStepEpisodes:
         self.closed = True
 
 
+# ================= #
+#      Helpers      #
+# ================= #
+
+
+def _runner(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    alg: Algorithm = Algorithm.PPO,
+    *,
+    common: dict[str, Any] | None = None,
+    train: dict[str, Any] | None = None,
+    eval: dict[str, Any] | None = None,
+) -> SB3Runner:
+    """A runner of spatial, working in `tmp_path`, so what it writes lands there. The runner
+    config's values that a test reads are set here, not taken from the user's YAML."""
+
+    register_env()
+    manager = ConfigManager()
+    entry = SCENARIOS[SPATIAL]
+    scenario = entry.build(
+        SPATIAL.value,
+        entry.full_conf(manager.load_raw(manager.scenario_config_path(SPATIAL))),
+    )
+    base = manager.load_config("runner_config.yaml", RunnerConf)
+    runner_conf = base.model_copy(
+        update={
+            "common_conf": base.common_conf.model_copy(
+                update={
+                    "alg": alg,
+                    "seed": 3,
+                    "tag": None,
+                    "training": True,
+                    **(common or {}),
+                }
+            ),
+            "train_conf": base.train_conf.model_copy(
+                update={
+                    "n_envs": 1,
+                    "render_mode": None,
+                    "csv_output": False,
+                    "record_video": False,
+                    "continue_training": False,
+                    "tensorboard_output": False,
+                    "model_output": True,
+                    **(train or {}),
+                }
+            ),
+            "eval_conf": base.eval_conf.model_copy(
+                update={
+                    "num_eval_episodes": 1,
+                    "render_mode": None,
+                    "csv_output": False,
+                    "record_video": False,
+                    **(eval or {}),
+                }
+            ),
+        }
+    )
+    monkeypatch.chdir(tmp_path)
+    runner = build_runner(scenario, runner_conf)
+    assert isinstance(runner, SB3Runner)
+
+    return runner
+
+
+def _wrappers(env: Any) -> list[type]:
+    """The classes in a gym env's wrapper chain, outermost first."""
+
+    chain = []
+    while env is not None:
+        chain.append(type(env))
+        env = getattr(env, "env", None)
+    return chain
+
+
 def _record_training_side_effects(
     runner: SB3Runner, monkeypatch: pytest.MonkeyPatch, model: object, env: object
 ) -> dict[str, int]:
@@ -196,7 +207,7 @@ def _record_training_side_effects(
 
 
 # ================= #
-#      Tests        #
+#       Tests       #
 # ================= #
 
 

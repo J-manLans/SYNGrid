@@ -10,6 +10,18 @@ from syn_grid.scenario.registry import SCENARIOS, build_scenario
 from syn_grid.scenario.scenario import Scenario
 
 # ================= #
+#      Helpers      #
+# ================= #
+
+
+def _field_state(world: GridWorld) -> list[tuple[bool, list[int], int | None]]:
+    return [
+        (orb.is_active, list(orb.position), orb.TIMER.remaining)
+        for orb in world.ALL_ORBS
+    ]
+
+
+# ================= #
 #     Fixtures      #
 # ================= #
 
@@ -33,15 +45,8 @@ def world(scenario: Scenario) -> GridWorld:
     return world
 
 
-def _field_state(world: GridWorld) -> list[tuple[bool, list[int], int | None]]:
-    return [
-        (orb.is_active, list(orb.position), orb.TIMER.remaining)
-        for orb in world.ALL_ORBS
-    ]
-
-
 # ================= #
-#      Tests        #
+#       Tests       #
 # ================= #
 
 

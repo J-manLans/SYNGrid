@@ -1,7 +1,10 @@
-"""What one tick of the world does, how it fills its field, and which cells are free."""
+"""What one tick of the world does, how it fills its field, which cells are free, and what holds
+for any grid, seed and actions."""
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from syn_grid.core.droid.digestion.digesters.tier_chain.max_tier_digester import (
     MaxTierDigester,
@@ -13,12 +16,22 @@ from syn_grid.scenario.blocks.populations.tier_chain_population import (
     TierChainPopulation,
 )
 
+# ================= #
+#     Constants     #
+# ================= #
+
+
 STEP_PENALTY = -0.001
+
+
 CHAIN_BREAK_PENALTY = -0.1
+
+
 MAX_STEPS = 100
 
+
 # ================= #
-#     Fixtures      #
+#      Helpers      #
 # ================= #
 
 
@@ -44,6 +57,61 @@ def _make_world(
     return GridWorld(grid, max_active_orbs, MAX_STEPS, orbs, droid)
 
 
+def _tier(world: GridWorld, tier: int) -> BaseOrb:
+    return next(orb for orb in world.ALL_ORBS if orb.META.TIER == tier)
+
+
+def _tier_1(world: GridWorld) -> BaseOrb:
+    return _tier(world, 1)
+
+
+# === Invariants === #
+
+# Any grid a three-tier chain fits in, any seed, any actions, with or without a life span
+_any_world = st.fixed_dictionaries(
+    {
+        "grid": st.tuples(st.integers(2, 6), st.integers(2, 6)),
+        "max_active_orbs": st.integers(1, 3),
+        "life_span": st.none() | st.integers(1, 6),
+        "seed": st.integers(0, 2**32 - 1),
+        "actions": st.lists(st.sampled_from(DroidAction), max_size=60),
+    }
+)
+
+
+def _played(world_args: dict) -> tuple[GridWorld, list]:
+    """A world reset with the seed and played through the actions, and its trace: after the reset
+    and each tick, the droid's cell, the cells on the field, and the tick's result."""
+
+    world = _make_world(
+        world_args["grid"], world_args["max_active_orbs"], world_args["life_span"]
+    )
+    world.reset(np.random.default_rng(world_args["seed"]))
+
+    def snapshot(result=None):
+        return (
+            tuple(world.droid.position),
+            tuple(tuple(o.position) for o in world.orbs_on_field()),
+            None
+            if result is None
+            else (
+                result.reward,
+                result.consumed and (result.consumed.KIND, result.consumed.TIER),
+            ),
+        )
+
+    trace = [snapshot()]
+    for action in world_args["actions"]:
+        trace.append(snapshot(world.perform_droid_action(action)))
+
+    return world, trace
+
+
+# ================= #
+#     Fixtures      #
+# ================= #
+
+
 @pytest.fixture
 def world() -> GridWorld:
     """A 5x5 world with a three-tier chain. The droid starts in the centre, at (2, 2), with tier 1
@@ -62,16 +130,8 @@ def world() -> GridWorld:
     return world
 
 
-def _tier(world: GridWorld, tier: int) -> BaseOrb:
-    return next(orb for orb in world.ALL_ORBS if orb.META.TIER == tier)
-
-
-def _tier_1(world: GridWorld) -> BaseOrb:
-    return _tier(world, 1)
-
-
 # ================= #
-#      Tests        #
+#       Tests       #
 # ================= #
 
 
@@ -179,3 +239,31 @@ class TestIsCellFree:
         _tier_1(world).de_spawn()
 
         assert world.is_cell_free([2, 1])
+
+
+class TestInvariants:
+    """What holds for any grid, seed and actions."""
+
+    @given(_any_world)
+    def test_the_droid_and_the_field_stay_on_the_grid_and_apart(self, world_args):
+        world = _make_world(
+            world_args["grid"], world_args["max_active_orbs"], world_args["life_span"]
+        )
+        rows, cols = world_args["grid"]
+        world.reset(np.random.default_rng(world_args["seed"]))
+
+        for action in [None, *world_args["actions"]]:
+            if action is not None:
+                world.perform_droid_action(action)
+
+            cells = [tuple(o.position) for o in world.orbs_on_field()]
+            droid = tuple(world.droid.position)
+            assert 0 <= droid[0] < rows and 0 <= droid[1] < cols
+            assert all(0 <= r < rows and 0 <= c < cols for r, c in cells)
+            assert len(set(cells)) == len(cells)
+            assert droid not in cells
+            assert len(cells) <= world_args["max_active_orbs"]
+
+    @given(_any_world)
+    def test_the_same_seed_and_actions_give_the_same_trace(self, world_args):
+        assert _played(world_args)[1] == _played(world_args)[1]

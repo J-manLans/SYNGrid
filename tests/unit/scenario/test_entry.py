@@ -10,11 +10,19 @@ from syn_grid.config.models.scenario.common_models import ScenarioConf
 from syn_grid.scenario.registry import SCENARIOS
 
 # ================= #
-#     Fixtures      #
+#     Constants     #
 # ================= #
 
+
 SPATIAL = ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL
+
+
 DELAY = ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY
+
+
+# ================= #
+#      Helpers      #
+# ================= #
 
 
 def _run_conf(name: ScenarioName) -> ScenarioConf:
@@ -25,7 +33,7 @@ def _run_conf(name: ScenarioName) -> ScenarioConf:
 
 
 # ================= #
-#      Tests        #
+#       Tests       #
 # ================= #
 
 

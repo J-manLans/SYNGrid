@@ -15,33 +15,16 @@ from syn_grid.scenario.families.goal.single_tier_chain.watcher import (
 from syn_grid.scenario.registry import SCENARIOS
 
 # ================= #
-#     Fixtures      #
+#     Constants     #
 # ================= #
+
 
 DELAY = 3
 
 
-@pytest.fixture
-def world() -> GridWorld:
-    """Delay's world, with the negative orb on, at the start of an episode."""
-
-    name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY
-    manager = ConfigManager()
-    raw = manager.load_raw(manager.scenario_config_path(name))
-    raw["world_conf"]["neg_orb_conf"] = {"enabled": True}
-    entry = SCENARIOS[name]
-    world = entry.build(name.value, entry.full_conf(raw)).build_world()
-    world.reset(np.random.default_rng(0))
-
-    return world
-
-
-@pytest.fixture
-def watcher() -> DelayWatcher:
-    watcher = DelayWatcher(DELAY)
-    watcher.reset()
-
-    return watcher
+# ================= #
+#      Helpers      #
+# ================= #
 
 
 def _tier_orbs(world: GridWorld) -> list[BaseOrb]:
@@ -70,7 +53,35 @@ def _off_the_field(world: GridWorld) -> list[BaseOrb]:
 
 
 # ================= #
-#      Tests        #
+#     Fixtures      #
+# ================= #
+
+
+@pytest.fixture
+def world() -> GridWorld:
+    """Delay's world, with the negative orb on, at the start of an episode."""
+
+    name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY
+    manager = ConfigManager()
+    raw = manager.load_raw(manager.scenario_config_path(name))
+    raw["world_conf"]["neg_orb_conf"] = {"enabled": True}
+    entry = SCENARIOS[name]
+    world = entry.build(name.value, entry.full_conf(raw)).build_world()
+    world.reset(np.random.default_rng(0))
+
+    return world
+
+
+@pytest.fixture
+def watcher() -> DelayWatcher:
+    watcher = DelayWatcher(DELAY)
+    watcher.reset()
+
+    return watcher
+
+
+# ================= #
+#       Tests       #
 # ================= #
 
 

@@ -16,7 +16,7 @@ from syn_grid.scenario.registry import SCENARIOS
 from syn_grid.scenario.scenario import Scenario
 
 # ================= #
-#     Fixtures      #
+#      Helpers      #
 # ================= #
 
 
@@ -30,7 +30,7 @@ def _scenario(name: ScenarioName, **overrides: dict) -> Scenario:
 
 
 # ================= #
-#      Tests        #
+#       Tests       #
 # ================= #
 
 

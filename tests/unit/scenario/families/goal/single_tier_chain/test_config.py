@@ -14,19 +14,16 @@ from syn_grid.scenario.families.goal.single_tier_chain.config import (
 from syn_grid.scenario.registry import SCENARIOS
 
 # ================= #
-#     Fixtures      #
+#     Constants     #
 # ================= #
+
 
 DELAY = ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY
 
 
-@pytest.fixture
-def delay_base() -> dict[str, Any]:
-    lock = SCENARIOS[DELAY].lock
-    assert lock is not None
-
-    with lock.base_config_path.open("r") as f:
-        return yaml.safe_load(f)
+# ================= #
+#      Helpers      #
+# ================= #
 
 
 def _with(
@@ -40,8 +37,37 @@ def _with(
     return raw
 
 
+# === Delay tunables === #
+
+
+def _run(**extra: Any) -> dict[str, Any]:
+    raw: dict[str, Any] = {
+        "world_conf": {"neg_orb_conf": {"enabled": False}},
+        "delay_conf": {"steps": 390},
+        "obs_conf": {"observation_handler_conf": {"perception": "vector_markovian"}},
+    }
+    for key, value in extra.items():
+        raw[key] = {**raw.get(key, {}), **value}
+
+    return raw
+
+
 # ================= #
-#      Tests        #
+#     Fixtures      #
+# ================= #
+
+
+@pytest.fixture
+def delay_base() -> dict[str, Any]:
+    lock = SCENARIOS[DELAY].lock
+    assert lock is not None
+
+    with lock.base_config_path.open("r") as f:
+        return yaml.safe_load(f)
+
+
+# ================= #
+#       Tests       #
 # ================= #
 
 
@@ -91,18 +117,6 @@ class TestChainFitsGrid:
 
         with pytest.raises(ValidationError, match="max_tier 3 does not fit .* 4 cells"):
             TierDelayScenarioConf(**raw)
-
-
-def _run(**extra: Any) -> dict[str, Any]:
-    raw: dict[str, Any] = {
-        "world_conf": {"neg_orb_conf": {"enabled": False}},
-        "delay_conf": {"steps": 390},
-        "obs_conf": {"observation_handler_conf": {"perception": "vector_markovian"}},
-    }
-    for key, value in extra.items():
-        raw[key] = {**raw.get(key, {}), **value}
-
-    return raw
 
 
 class TestDelayTunables:

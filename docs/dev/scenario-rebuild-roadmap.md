@@ -63,8 +63,6 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
   tests are reviewed before anything else. `synergy_droid.py`, `tier_digester.py`, `orb_meta.py`, `termination.py`,
   `base_orb.py`, `csv_episode_logger.py`, `artifact_manager.py` and `run_controls_callback.py`. See "Writing tests"
   in `AGENTS.md`.
-- **The world's invariants as Hypothesis properties,** the handful in "Hypothesis checks the world's invariants" in
-  `design-decisions.md`, with a minimal derandomized profile for CI.
 - **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
   `check_env`, as one parametrized test.
 
@@ -139,7 +137,8 @@ scratch.
    The owner deletes it. Then the rebuild merges to `main`, with `version` in `pyproject.toml` at 0.5.0 and the tag
    `v0.5.0`.
 
-**Done when:** each new perception stays inside its observation space on random steps and an agent trains on it, and
+**Done when:** each perception stays inside its observation space, checked by the last of the world's Hypothesis
+invariants, added to `TestInvariants` in `tests/integration/test_env_step.py`; an agent trains on each new one; and
 nothing imports `legacy/`.
 
 ---
