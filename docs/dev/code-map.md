@@ -193,8 +193,8 @@ perception is reset and writes the first observation.
    `families/goal/single_tier_chain/termination.py`: the droid ending the task (out of energy, a chain broken or
    completed) or the clock, with the timeout penalty only when the clock alone ended it. Every scenario in the
    family uses it.
-4. If terminated, `droid.on_termination(ending_reward)` adds what the digesters gathered and did not pay, plus the
-   ending reward, to the score and to this step's reward.
+4. If terminated, `droid.on_termination(terminal_reward)` adds what the digesters gathered and did not pay, plus the
+   terminal reward, to the score and to this step's reward.
 5. At the end of an episode the scenario's metrics go into `info` under `SYN_STATS_KEY`.
 6. Render if a mode is set, then the perception writes the observation.
 

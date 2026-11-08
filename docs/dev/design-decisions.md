@@ -151,7 +151,7 @@ can be tried alone.
   so the enum states it twice, and it is a conditional in the wrong component.
 - The orb carrying its own scoring (the old engine): orbs are the same in every mode.
 - `max_tier` read off the orb (legacy): `TierOrb` does not store it.
-- The last orb's reward held in the base (legacy's `_pending_reward`): no mode reads it.
+- The last orb's reward held in the base (legacy's `_pterminal_reward`): no mode reads it.
 
 ## The scoring modes pay the same orbs at different times (2026-10-12)
 
@@ -254,10 +254,10 @@ variable to Pyright and does not satisfy the protocol's instance variable.
 |---|---|
 | `take_step` | the step penalty and the boundary penalty |
 | `consume_orb` | what digestion pays for the eaten orb |
-| `on_termination(ending_reward)` | what digestion is owed (the engine's `undigested`) plus what termination says the ending costs; to the score only |
+| `on_termination(terminal_reward)` | what digestion is owed (the engine's `undigested`) plus what termination says the ending costs; to the score only |
 
 The environment's step: the droid acts, termination decides, and if `outcome.terminated` the environment adds
-`droid.on_termination(outcome.ending_reward)`. Termination decides on the state before anything is settled, so a
+`droid.on_termination(outcome.terminal_reward)`. Termination decides on the state before anything is settled, so a
 payout cannot change whether the episode ends. The observation, the HUD and the metrics are read after, so the last
 frame shows the final score and the energy the episode ended with.
 
@@ -286,7 +286,7 @@ allowed.
 ## A truncated episode settles nothing (2026-10-25)
 
 **Decision:** `on_termination` runs only when an episode is terminated. On a truncation nothing is settled: what a
-digester holds is not paid and no `ending_reward` is taken in. Only a continuous scenario truncates.
+digester holds is not paid and no `terminal_reward` is taken in. Only a continuous scenario truncates.
 
 **Why:** At a truncation the learner bootstraps from the last observation (SB3 adds `gamma * V(terminal_obs)`), and
 that value stands for the rest of the episode, including what the droid holds. Paying it out as well counts it twice.
@@ -310,7 +310,7 @@ it, but check that it bootstraps at truncation.
 | Any ending | the droid's `on_termination` | what its digesters say they are owed |
 | Timeout | termination, through `on_termination` | `timeout_penalty`, on top of the row above |
 
-Termination only adds to the step's reward, and returns `EpisodeOutcome.ending_reward` and changes nothing. The
+Termination only adds to the step's reward, and returns `EpisodeOutcome.terminal_reward` and changes nothing. The
 clock is charged only when it alone ended the episode: a chain completed or broken on the last step, or energy running
 out on it, pays no `timeout_penalty`. What is owed is settled at every ending, so threshold and step-wise total the
 same over an episode. `undigested` is abstract, so every mode has to state it.

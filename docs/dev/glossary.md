@@ -108,7 +108,7 @@ Terms are grouped by area. The last section lists the words that are used in two
   termination's included. The droid keeps it beside energy, since every reward goes through the droid. It starts at
   0 and has no bounds.
 - **Settle:** the droid taking in what its digestion has left undigested when the episode is terminated, in `on_termination`.
-- **Ending reward:** what termination says the ending itself costs or pays, `EpisodeOutcome.ending_reward`. The
+- **Terminal reward:** what termination says the ending itself costs or pays, `EpisodeOutcome.terminal_reward`. The
   environment hands it to the droid's `on_termination`. In a goal scenario it is the timeout penalty or 0.
 - **Reward:** what one step pays. A negative reward is a penalty.
 - **Penalty:** a config value that must be 0 or negative. Every field whose name ends in `_penalty` is checked.
