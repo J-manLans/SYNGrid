@@ -317,7 +317,7 @@ scenario or a stochastic one, where orbs pay different amounts and the agent has
 
 ---
 
-## A guide entity that walks the chain and vanishes (2026-11-09)
+## A guide entity that walks the chain (2026-11-09)
 
 **Idea:** A second body on the grid, a ghost, that shows the agent the tier order and does nothing else. The agent
 cannot see the tiers, so the ghost is the only place the order can come from.
@@ -328,18 +328,23 @@ The rules as talked through:
   visible, the ghost included, on every step.
 - The ghost walks the shortest path from orb to orb in tier order. It only passes over them and never eats one, so
   it touches no orb, no digester and no score.
-- It walks tiers 2, 3 and 4, stops on tier 4, and leaves the field untouched at tier 1. The agent has to find the one
-  orb the ghost never visited and eat it first, then follow the ghost's route. An agent that only copies the ghost
-  eats a tier 2 first, which breaks the chain and ends the episode, so imitation earns nothing.
-- The ghost can stay on the grid for this to hold. Leaving after it has stopped is optional, and it adds a memory
-  test: the agent has to remember the route once the ghost is gone.
+- It walks every tier but one, stops on the last tier it walks, and leaves one orb untouched. Which tier is left alone
+  is the ghost's one dial: tier 1 or tier 4.
+- With tier 1 left alone, the ghost walks 2, 3 and 4. The agent has to find the orb nobody visited and eat it first,
+  then follow the ghost's route. An agent that only copies the ghost eats a tier 2 first, which breaks the chain and
+  ends the episode, so imitation earns nothing.
+- With tier 4 left alone, the ghost walks 1, 2 and 3. Copying gets the agent through three tiers, and the test is
+  that it must then finish the chain on the orb the ghost never touched. It is the easier setting.
+- The ghost's behaviour is locked, so it is the same in every episode and the dial is the only thing that changes
+  what the scenario asks. It always takes the shortest path with a fixed tie rule, never eats, and does the same
+  thing when it stops. Whether it then stays or leaves is decided once and not tunable.
 - The ghost's trail can be switched on as an option. With it off, the agent has to remember what the ghost did, which
   suits a recurrent policy. With it on, the history is in the observation and a stateless policy can read it. One
   scenario, two questions: can the agent learn the order, and can it remember it. Results must say which setting
   they came from.
 
-An earlier version left tier 4 untouched. It was weaker: following the ghost got the agent through three tiers and it
-failed only at the end. Leaving tier 1 untouched makes the first eat the test.
+Leaving tier 1 untouched is the harder setting: the first eat is the test. Leaving tier 4 untouched is easier,
+because following the ghost already gets the agent through three tiers.
 
 **Where it came from:** The owner, by voice on 2026-11-09, after asking what a rival or ghost droid could be besides
 a score fight (the obvious design: contact decided by who has the higher score). The idea moved from enemy to
@@ -362,7 +367,9 @@ teacher once the tiers were hidden.
 - The ghost needs a fixed rule when a shortest path has several routes, such as rows before columns, or the walk is
   not reproducible and the replay probe cannot hold it.
 - Where the ghost starts: the centre, where the droid starts, or somewhere else.
-- How long the ghost walks, and how many steps the agent has after it leaves. That is another dial.
+- Whether the ghost stays on the grid after it stops or leaves. It is decided once, and a leaving ghost adds a memory
+  test on top.
+- How long the ghost walks, and how many steps the agent has after it stops. Locked with the rest of its behaviour.
 - What the ghost needs from the engine: a place in the world's step, a place in the observation, and a way to
   leave. A watcher may fit the first, see "Field effects through a watcher" above.
 - The word "trace" in the glossary is the replay probe's recording. The ghost's trail needs another name so the two
