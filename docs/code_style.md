@@ -158,6 +158,9 @@ For the helpers section, provide subheadings indicating what section the helpers
   baseline in `tests/regression/baselines/` recorded it. A locked scenario without a baseline fails.
 - Inside a file, one class per method or behaviour under test, named `Test<Thing>`, with a one-line docstring.
   Fixtures and helpers stay at module level, so every class in the file can use them.
+- A value that a test puts in and expects back unchanged, such as an orb's reward or a penalty, is a constant, so
+  the two cannot drift. A value the code works out, such as a chain's worth, is written out in the test as the
+  worked example it is, not computed with the code's own formula.
 - Fixtures that several test files in a folder share go in a `conftest.py` there, which nothing imports. A value
   such a fixture depends on is a fixture too, so a test file's own fixtures can take it and the two cannot drift.
 - A test file's module level is in sections, with the headings of section 5, each used only when the file has
