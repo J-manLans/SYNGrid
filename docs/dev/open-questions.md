@@ -62,7 +62,9 @@ a name and a parent" in `design-decisions.md`.
   See: "A truncated episode settles nothing" and "An orb's timer is not observed" in `design-decisions.md`.
 - **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.** The
   world writes the dense id back onto the meta, so the meta cannot be frozen until the id lives elsewhere. Negative
-  has to keep sorting before the tiers, or existing observations change.
+  has to keep sorting before the tiers, or existing observations change. The dense ids also number tier orbs in tier
+  order, so the identity the agent sees is the tier's rank and tells it the chain's order without learning it: decide
+  whether that is intended or a leak.
 - **What the observation shows for an orb that never expires,** if a rewritten perception brings the timer back. A
   tier orb's timer reads `None` on the field. A 0, a -1 or a separate flag. Raised on 2026-10-18.
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
