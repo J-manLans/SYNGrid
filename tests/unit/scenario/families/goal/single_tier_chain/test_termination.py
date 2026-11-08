@@ -192,8 +192,16 @@ class TestGoingOn:
 
         outcome = termination.evaluate(world)
 
-        assert not outcome.terminated
+        # Gymnasium's terminated is a bool, so False and not only falsy
+        assert outcome.terminated is False
         assert outcome.terminal_reward == 0.0
+
+    def test_a_droid_with_less_than_one_energy_left_goes_on(
+        self, world: GridWorld, termination: SingleTierChainTermination
+    ):
+        world.droid.energy = 0.5
+
+        assert termination.evaluate(world).terminated is False
 
 
 class TestTruncation:
