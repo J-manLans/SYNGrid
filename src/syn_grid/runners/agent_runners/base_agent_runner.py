@@ -110,8 +110,10 @@ class BaseAgentRunner(ABC):
 
     # === Env factory === #
 
-    def _make_raw_env(self, render_mode: str | None) -> Env:
-        return make(self.scenario, render_mode)
+    def _make_raw_env(
+        self, render_mode: str | None, render_fps: int | None = None
+    ) -> Env:
+        return make(self.scenario, render_mode, render_fps)
 
     # === Wrappers === #
 

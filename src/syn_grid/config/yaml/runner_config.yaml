@@ -11,6 +11,9 @@ common_conf:
   # Optional. Joined onto the scenario's tag in the run id; set it when you
   # change something outside the scenario's own axis.
   tag: chain_break_terminates_orb_penalty_0.5
+  # Steps shown per second: paces training and eval in human mode, and recorded videos'
+  # playback.
+  fps: 8
 
 train_conf:
   continue_training: false

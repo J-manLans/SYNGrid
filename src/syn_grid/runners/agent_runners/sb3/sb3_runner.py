@@ -176,7 +176,7 @@ class SB3Runner(BaseAgentRunner):
         duplicate video output when running multiple environments in parallel.
         """
 
-        env = self._make_raw_env(render_mode)
+        env = self._make_raw_env(render_mode, self._runner_conf.fps)
 
         csv_output = (
             self._train_conf.csv_output

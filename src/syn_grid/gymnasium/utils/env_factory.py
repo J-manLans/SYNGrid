@@ -16,12 +16,21 @@ def register_env() -> None:
         )
 
 
-def make(scenario: Scenario, render_mode: str | None) -> Env:
+def make(
+    scenario: Scenario, render_mode: str | None, render_fps: int | None = None
+) -> Env:
     """
     Creates the registered environment and check it for correctness, used when training or evaluating the agent.
+
+    `render_fps` sets how many steps a second it renders; None keeps the environment's default.
     """
 
-    return gym.make("syn_grid-v0", scenario=scenario, render_mode=render_mode)
+    return gym.make(
+        "syn_grid-v0",
+        scenario=scenario,
+        render_mode=render_mode,
+        render_fps=render_fps,
+    )
 
 
 def check_my_env(env: Env):

@@ -25,6 +25,9 @@ class CommonConf(BaseModel, frozen=True, extra="forbid", strict=True):
     seed: int
     training: bool
     tag: str | None = None
+    # Steps shown per second, above 0 as Gymnasium requires. It paces the window when training
+    # or evaluating in human mode, and sets how fast a recorded video plays back.
+    fps: int = Field(gt=0)
 
 
 class TrainConf(BaseModel, frozen=True, extra="forbid", strict=True):

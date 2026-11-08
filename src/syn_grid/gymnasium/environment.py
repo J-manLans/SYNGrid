@@ -35,9 +35,15 @@ class SYNGridEnv(gym.Env):
         self,
         scenario: Scenario,
         render_mode: str | None = None,
+        render_fps: int | None = None,
     ):
         # Set up bench environment;
         self.render_mode = render_mode
+
+        # An own copy of the class's metadata, so this env's fps leaves every other env's alone.
+        # Gymnasium's wrappers, its checker and RecordVideo all read it from here.
+        if render_fps is not None:
+            self.metadata = {**type(self).metadata, "render_fps": render_fps}
         self.world = scenario.build_world()
         self._hud = scenario.hud
         self._termination = scenario.termination
