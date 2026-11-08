@@ -370,6 +370,11 @@ teacher once the tiers were hidden.
 - Whether the ghost stays on the grid after it stops or leaves. It is decided once, and a leaving ghost adds a memory
   test on top.
 - How long the ghost walks, and how many steps the agent has after it stops. Locked with the rest of its behaviour.
+- Whether the ghost is a real entity in the world or a scripted route the scenario advances, with the observation
+  reading a pointer on it. For the model they are the same: a few numbers in the observation, and drawing happens
+  only for eval and human viewing, so training speed does not depend on it. The owner leans towards a real ghost,
+  because the renderer then draws it like anything else and the human view needs no special case. The scripted route
+  is lighter, since the ghost touches nothing, but it would be drawn by a separate path.
 - What the ghost needs from the engine: a place in the world's step, a place in the observation, and a way to
   leave. A watcher may fit the first, see "Field effects through a watcher" above.
 - The word "trace" in the glossary is the replay probe's recording. The ghost's trail needs another name so the two
