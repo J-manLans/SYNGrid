@@ -17,8 +17,7 @@ Breaking one of these costs the owner something. Each is detailed in the section
 
 ## The project
 
-SYNGrid is a grid, a droid and orbs, and a scenario is a choice of orbs, observation and goal. Read
-`docs/vision.md` first for where it is heading, then the roadmap for what is next.
+SYNGrid is a grid, a droid and orbs, and a scenario is a choice of orbs, observation and goal.
 
 The scenario layer is being rebuilt on `rebuilding-scenario`, file by file: the owner and the agent design each piece
 together, the agent writes it, and the owner reviews it.
@@ -48,8 +47,15 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | `docs/code_style.md` | How code is written |
 | `CONTRIBUTING.md`, `README.md` | For people outside: how to contribute, what SYNGrid is |
 
-Read the `design-decisions.md` index, the decision files for the area in full, and `open-questions.md` before giving
-a design opinion, and do not treat an open question as decided. Read `docs/code_style.md` before writing code.
+## Starting a session
+
+Read in this order, and do not ask the owner what these already answer:
+
+1. `docs/vision.md`, for where the project is heading.
+2. The roadmap's **Next** line and its "Where things stand" table, for what is next and what has run.
+3. Before a design opinion: the `design-decisions.md` index, the decision files for the area in full, and
+   `open-questions.md`. Do not treat an open question as decided.
+4. Before reading code, `docs/dev/code-map.md`. Before writing code, `docs/code_style.md`.
 
 ## Where things go
 
@@ -71,7 +77,7 @@ Each file in `docs/dev/` opens with what it is for and what stays out of it. Rea
 
 A fact is written in the file that owns it, by the table above, and another file that needs it points there instead
 of repeating it. The traps below are the exception: each stays a short warning here, and the owning file holds the
-detail.
+detail. When two docs disagree, the file that owns the fact wins and the other is fixed, `README.md` included.
 
 ## The docs sweep
 

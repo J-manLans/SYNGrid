@@ -5,7 +5,7 @@
 > SYNGrid lets you systematically vary benchmark dimensions — such as temporal delay, dependency depth, observability, and reward density — through configuration rather than creating new environments. While designed around temporal credit assignment, the framework is intended to support controlled experiments within a single configurable grid.
 >
 > **Status:** Research prototype. Evaluated across three scenarios in a [bachelor's thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794).
-> The scenario layer is being rebuilt so that scenarios are composed from parts. The spatial and scaling sparse scenarios run on the rebuilt code. Delay and scaling dense are not rebuilt yet. The thesis runs are kept in [`reproduction_package/`](./reproduction_package/).
+> The scenario layer is being rebuilt so that scenarios are composed from parts. Where the rebuild stands is in the [roadmap](./docs/dev/scenario-rebuild-roadmap.md). The thesis runs are kept in [`reproduction_package/`](./reproduction_package/).
 
 ---
 
