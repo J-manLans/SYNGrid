@@ -38,7 +38,7 @@ class TierDigester(ABC):
         chain_worth: the summed reward of the orbs in the running chain. A
             break or a completion clears it, and a tier 1 orb that starts a new
             chain starts a new sum.
-        chains_progressed: how many times a chain has grown this episode.
+        chain_progresses: how many times a chain has grown this episode.
         chains_broken: how many times a tier orb was eaten out of order this
             episode.
         chains_completed: how many chains have reached the last tier this
@@ -78,6 +78,7 @@ class TierDigester(ABC):
         if tier is None:
             raise ValueError("A tier digester can only digest an orb with a tier")
 
+        # Check if the consumed orb causes a chain break
         if tier != self.chain_tier + 1:
             reward = self._score_break(orb)
             self.chains_broken += 1
@@ -85,10 +86,12 @@ class TierDigester(ABC):
 
             if tier == self._BASE_TIER:
                 self._grow_chain(tier, orb.REWARD)
+        # Check if the consumed orb completes the chain
         elif tier == self._MAX_TIER:
             reward = self._score_completion(orb)
             self.chains_completed += 1
             self._clear_chain()
+        # Else it is a progression and is handled below
         else:
             reward = self._score_progress(orb)
             self.chain_progresses += 1
