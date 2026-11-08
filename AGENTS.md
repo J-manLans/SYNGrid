@@ -190,7 +190,9 @@ either tested or listed with its reason.
 
 Traps:
 
-- mutmut does not mutate a decorated method, such as a pydantic validator. Coverage is the only guide there.
+- mutmut does not mutate a decorated method: one marked `@override`, which most strategy methods are, or a pydantic
+  validator. A clean mutmut run says nothing about them. Break each one in a touched file by hand, run the tests,
+  restore it, and say in the report which were checked that way.
 - After a change to `[tool.mutmut]`, `rm -rf mutants` before the next run, or mutmut keeps the old copy.
 - A test that builds a runner works in `tmp_path` with `monkeypatch.chdir`, so its `output/` lands there.
 - The run controls read pygame's queue in one batch and drop what follows Space in it. An event meant for the pause
