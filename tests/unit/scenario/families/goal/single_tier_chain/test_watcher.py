@@ -1,9 +1,11 @@
 """What the delay watcher freezes, when it releases, and the recipe that makes it."""
 
+from typing import Any
+
 import numpy as np
 import pytest
+import yaml
 
-from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.core.grid_world import GridWorld, StepResult
 from syn_grid.core.orbs.base_orb import BaseOrb
@@ -25,6 +27,14 @@ DELAY = 3
 # ================= #
 #      Helpers      #
 # ================= #
+
+
+def _base_raw(name: ScenarioName) -> dict[str, Any]:
+    """A locked scenario's base config as plain data, so a run's YAML cannot move the test."""
+
+    lock = SCENARIOS[name].lock
+    assert lock is not None
+    return yaml.safe_load(lock.base_config_path.read_text())
 
 
 def _tier_orbs(world: GridWorld) -> list[BaseOrb]:
@@ -62,11 +72,10 @@ def world() -> GridWorld:
     """Delay's world, with the negative orb on, at the start of an episode."""
 
     name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY
-    manager = ConfigManager()
-    raw = manager.load_raw(manager.scenario_config_path(name))
-    raw["world_conf"]["neg_orb_conf"] = {"enabled": True}
+    raw = _base_raw(name)
+    raw["world_conf"]["neg_orb_conf"]["enabled"] = True
     entry = SCENARIOS[name]
-    world = entry.build(name.value, entry.full_conf(raw)).build_world()
+    world = entry.build(name.value, entry.conf_class(**raw)).build_world()
     world.reset(np.random.default_rng(0))
 
     return world

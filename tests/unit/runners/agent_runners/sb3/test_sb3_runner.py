@@ -130,7 +130,7 @@ def _runner(
     entry = SCENARIOS[SPATIAL]
     scenario = entry.build(
         SPATIAL.value,
-        entry.full_conf(manager.load_raw(manager.scenario_config_path(SPATIAL))),
+        SCENARIOS[SPATIAL].base_conf(),
     )
     base = manager.load_config("runner_config.yaml", RunnerConf)
     runner_conf = base.model_copy(

@@ -71,11 +71,29 @@ class ScenarioEntry[C: ScenarioConf](ABC):
         # Only a check: it rejects what a run may not set, and the object is not kept.
         self.lock.scenario_tunables(**raw)
 
-        with self.lock.base_config_path.open("r") as f:
-            base = yaml.safe_load(f)
-
         # The merged config is the complete one, so this is what gets validated as the full model.
-        return self.conf_class(**_merge(base, raw))
+        return self.conf_class(**_merge(self._base_raw(), raw))
+
+    def base_conf(self) -> C:
+        """
+        The full config a locked scenario was run with: its base config, validated as the full
+        model. It is what a run's tunables are merged onto, and what a test of the scenario's rules
+        builds from, since a run's YAML is edited to train.
+
+        Raises:
+            ValueError: the scenario is not locked, so it has no base config.
+        """
+
+        return self.conf_class(**self._base_raw())
+
+    def _base_raw(self) -> dict[str, Any]:
+        if self.lock is None:
+            raise ValueError(
+                f"{self.conf_class.__name__}'s scenario is not locked: it has no base config"
+            )
+
+        with self.lock.base_config_path.open("r") as f:
+            return yaml.safe_load(f)
 
     def build(self, scenario_name: str, scenario_conf: ScenarioConf) -> Scenario:
         """Check that the config is this entry's config class and that its perception is allowed,

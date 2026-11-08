@@ -8,7 +8,6 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.config.models.scenario.common_models import ScenarioConf
 from syn_grid.core.droid.synergy_droid import DroidAction
@@ -66,10 +65,7 @@ class RecordingTermination:
 def _locked_env(name: ScenarioName) -> SYNGridEnv:
     """A locked scenario's env from its base config, built once and reset by each example."""
 
-    manager = ConfigManager()
-    conf = SCENARIOS[name].full_conf(
-        manager.load_raw(manager.scenario_config_path(name))
-    )
+    conf = SCENARIOS[name].base_conf()
     return SYNGridEnv(build_scenario(name, conf), render_mode=None)
 
 
@@ -104,10 +100,7 @@ def log() -> CallLog:
 @pytest.fixture
 def env(log: CallLog) -> SYNGridEnv:
     name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL
-    manager = ConfigManager()
-    conf: ScenarioConf = SCENARIOS[name].full_conf(
-        manager.load_raw(manager.scenario_config_path(name))
-    )
+    conf: ScenarioConf = SCENARIOS[name].base_conf()
     scenario: Scenario = build_scenario(name, conf)
 
     scenario = replace(

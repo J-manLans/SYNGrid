@@ -1,8 +1,10 @@
 """How the single tier chain family composes a scenario: its tag, negative orb and watcher."""
 
-import pytest
+from typing import Any
 
-from syn_grid.config.config_manager import ConfigManager
+import pytest
+import yaml
+
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.core.droid.digestion.digesters.direct_digester import NegDigester
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
@@ -20,13 +22,22 @@ from syn_grid.scenario.scenario import Scenario
 # ================= #
 
 
-def _scenario(name: ScenarioName, **overrides: dict) -> Scenario:
-    manager = ConfigManager()
-    raw = manager.load_raw(manager.scenario_config_path(name))
-    raw["world_conf"] = {**raw.get("world_conf", {}), **overrides}
+def _base_raw(name: ScenarioName) -> dict[str, Any]:
+    """A locked scenario's base config as plain data, so a run's YAML cannot move the test."""
+
+    lock = SCENARIOS[name].lock
+    assert lock is not None
+    return yaml.safe_load(lock.base_config_path.read_text())
+
+
+def _scenario(name: ScenarioName, *, negative_orb: bool = False) -> Scenario:
+    """A locked scenario from its base config, with its negative orb switched on if asked."""
+
+    raw = _base_raw(name)
+    raw["world_conf"]["neg_orb_conf"]["enabled"] = negative_orb
     entry = SCENARIOS[name]
 
-    return entry.build(name.value, entry.full_conf(raw))
+    return entry.build(name.value, entry.conf_class(**raw))
 
 
 # ================= #
@@ -50,8 +61,7 @@ class TestTag:
     )
     def test_names_the_axis_then_the_steps(self, name: ScenarioName, start: str):
         entry = SCENARIOS[name]
-        manager = ConfigManager()
-        conf = entry.full_conf(manager.load_raw(manager.scenario_config_path(name)))
+        conf = entry.conf_class(**_base_raw(name))
         world = conf.world_conf
         expected = start.format(
             rows=world.grid_conf.grid_rows,
@@ -66,8 +76,7 @@ class TestTag:
 
     def test_a_negative_orb_adds_neg(self):
         scenario = _scenario(
-            ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL,
-            neg_orb_conf={"enabled": True},
+            ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL, negative_orb=True
         )
 
         assert scenario.scenario_tag.endswith("_Neg")
@@ -78,13 +87,9 @@ class TestNegativeOrb:
 
     def test_it_has_the_configs_values_and_lives_a_corner_to_corner_walk(self):
         name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL
-        manager = ConfigManager()
-        raw = manager.load_raw(manager.scenario_config_path(name))
-        raw["world_conf"] = {
-            **raw.get("world_conf", {}),
-            "neg_orb_conf": {"enabled": True},
-        }
-        conf = SCENARIOS[name].full_conf(raw)
+        raw = _base_raw(name)
+        raw["world_conf"]["neg_orb_conf"]["enabled"] = True
+        conf = SCENARIOS[name].conf_class(**raw)
         negative = conf.world_conf.neg_orb_conf
         grid = conf.world_conf.grid_conf
 
@@ -106,10 +111,7 @@ class TestWatcher:
 
     def test_delay_watches_with_its_delay(self):
         name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_DELAY
-        manager = ConfigManager()
-        conf = SCENARIOS[name].full_conf(
-            manager.load_raw(manager.scenario_config_path(name))
-        )
+        conf = SCENARIOS[name].conf_class(**_base_raw(name))
 
         scenario = SCENARIOS[name].build(name.value, conf)
 

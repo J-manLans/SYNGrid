@@ -3,7 +3,6 @@
 import numpy as np
 import pytest
 
-from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models.global_models import ScenarioName
 from syn_grid.gymnasium.environment import SYNGridEnv
 from syn_grid.gymnasium.observation_space.observation_handler import ObservationHandler
@@ -18,10 +17,7 @@ from syn_grid.scenario.scenario import Scenario
 @pytest.fixture
 def scenario() -> Scenario:
     name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL
-    manager = ConfigManager()
-    conf = SCENARIOS[name].full_conf(
-        manager.load_raw(manager.scenario_config_path(name))
-    )
+    conf = SCENARIOS[name].base_conf()
     return build_scenario(name, conf)
 
 
