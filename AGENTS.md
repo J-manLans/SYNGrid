@@ -28,7 +28,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 |---|---|
 | `docs/vision.md` | Where the project is heading, and the questions to ask of a new idea |
 | `docs/dev/scenario-rebuild-roadmap.md` | What is left, in order, and what is stub, legacy or not yet run |
-| `docs/dev/design-decisions.md` | What is settled, why, and what was turned down |
+| `docs/dev/design-decisions.md` | What is settled, why, and what was turned down: the principles, and an index of every decision by title. The decisions themselves are in `docs/dev/decisions/`, one file per area |
 | `docs/dev/open-questions.md` | What is not decided yet, by the phase that needs it |
 | `docs/dev/codebase-ideas.md` | Ideas worth returning to that are not problems now |
 | `docs/dev/glossary.md` | What the words mean. Use its terms |
@@ -38,15 +38,15 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | `docs/code_style.md` | How code is written |
 | `CONTRIBUTING.md`, `README.md` | For people outside: how to contribute, what SYNGrid is |
 
-Read `design-decisions.md` and `open-questions.md` before giving a design opinion, and do not treat an open question
-as decided. Read `docs/code_style.md` before writing code.
+Read the `design-decisions.md` index, the decision files for the area in full, and `open-questions.md` before giving
+a design opinion, and do not treat an open question as decided. Read `docs/code_style.md` before writing code.
 
 ## Where things go
 
 | When | Update |
 |---|---|
-| A decision is made | `design-decisions.md`, in the present tense |
-| A question is answered | remove it from `open-questions.md`; the answer goes to `design-decisions.md` |
+| A decision is made | its area's file in `decisions/`, in the present tense, and its title in the `design-decisions.md` index |
+| A question is answered | remove it from `open-questions.md`; the answer goes to its area's file in `decisions/` |
 | A question comes up | `open-questions.md`, under the phase that needs it |
 | A roadmap step is done | remove it from the roadmap, and update the has-it-run cell in its table |
 | Code is first run, or first learns | the has-it-run cell in the roadmap's table |
@@ -73,7 +73,7 @@ A sweep is four checks:
 
 1. The roadmap and `open-questions.md` against what was done: remove finished steps and answered questions, and update
    the has-it-run cells.
-2. Decisions from the session that are missing from `design-decisions.md`.
+2. Decisions from the session that are missing from `decisions/`, or from the `design-decisions.md` index.
 3. New terms that belong in `glossary.md`.
 4. Anything that landed in the wrong file, by the table above.
 
