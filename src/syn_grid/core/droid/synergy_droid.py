@@ -121,7 +121,7 @@ class SynergyDroid:
 
         return self._digestion_engine.get(digester_class)
 
-    def on_termination(self, ending_reward: float) -> float:
+    def on_termination(self, terminal_reward: float) -> float:
         """Settle the droid when the episode is terminated, and return what that adds to the last
         step's reward.
 
@@ -130,7 +130,7 @@ class SynergyDroid:
         ended it, so a droid that ran out of energy still has none. It is called once per episode.
         """
 
-        settled = self._digestion_engine.undigested() + ending_reward
+        settled = self._digestion_engine.undigested() + terminal_reward
         self.score += settled
 
         return settled

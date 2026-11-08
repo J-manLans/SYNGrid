@@ -102,7 +102,7 @@ class SYNGridEnv(gym.Env):
         # A truncation is not settled: the learner bootstraps what the droid holds from the last
         # observation.
         if outcome.terminated:
-            reward += self.world.droid.on_termination(outcome.ending_reward)
+            reward += self.world.droid.on_termination(outcome.terminal_reward)
 
         # The metrics are read after the droid is settled, so they see how the episode ended.
         # TODO: still think I should only do this if csv output is on. Basically, I will most use

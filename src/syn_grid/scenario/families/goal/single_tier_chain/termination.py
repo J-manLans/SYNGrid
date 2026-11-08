@@ -56,6 +56,6 @@ class SingleTierChainTermination:
         # The clock is charged only when it alone ended the episode. A task ended on the last step
         # is not also a timeout.
         if not droid_ended_task:
-            return EpisodeOutcome(terminated=True, ending_reward=self.timeout_penalty)
+            return EpisodeOutcome(terminated=True, terminal_reward=self.timeout_penalty)
 
         return EpisodeOutcome(terminated=True)

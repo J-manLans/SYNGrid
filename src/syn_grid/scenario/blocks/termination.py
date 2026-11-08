@@ -39,14 +39,14 @@ class EpisodeOutcome:
 
     Attributes:
         terminated: the task is over, reached or failed.
-        ending_reward: what the ending itself costs or pays, on top of what the
+        terminal_reward: what the ending itself costs or pays, on top of what the
             droid took in this step. It is 0 when the episode goes on.
         truncated: the clock stopped an episode that has no task to fail. A
             goal scenario leaves it at False.
     """
 
     terminated: bool
-    ending_reward: float = 0.0
+    terminal_reward: float = 0.0
     truncated: bool = False
 
 
