@@ -62,6 +62,10 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
 - **Test files for the source files with none,** written test-first: the owner states each file's rules, and the
   tests are reviewed before anything else (see "Writing tests" in `AGENTS.md`). Paths are under `src/syn_grid/`, in
   order:
+  The depth follows what a bug would cost. A wrong game rule changes what every agent learns and fails silently, so
+  the game rules get the full treatment. A config validator gets tests for the rules that would otherwise let a wrong
+  world through. Plumbing gets a few smoke tests and the rules a user would notice breaking: the runner probe already
+  covers much of it, and its bugs show as a crash or a wrong file.
   - Game rules:
     1. `core/orbs/base_orb.py`, with `synergy/chain/tier_orb.py` and `direct/fixed_reward_orb.py`
     2. `core/utils/timer.py`
