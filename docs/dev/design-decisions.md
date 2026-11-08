@@ -110,7 +110,9 @@ A tier chain is broken only by a tier orb eaten out of order. A negative orb cos
 alone.
 
 A reader that needs what a digester knows asks the droid, `world.droid.get_digester(TierDigester)`, which forwards to
-the engine's `get`, and reads its attributes. The engine stays private to the droid.
+the engine's `get`, and reads its attributes. The engine stays private to the droid. A class that more than one
+registered digester belongs to, such as `DirectDigester` with both direct kinds registered, raises instead of picking
+one: the reader asks for the exact class.
 
 **Why:** Each digester can be read and tried alone, and each kind has one meaning: a tier orb is about order, a
 negative orb costs what its reward says. Adding a negative orb to a scenario changes one thing, so its effect on a

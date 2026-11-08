@@ -29,7 +29,8 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | Max-tier digester | written | learned |
 | Step-wise digester | written | written |
 | Threshold digester | written | run, by a script through the environment |
-| Negative orb: digester, population, bundle | written | learned; played in human mode in spatial, sparse and dense; `negatives_eaten` read by the owner at the end of a human run, and correct |
+| Negative orb: a `FixedRewardOrb` of the negative kind, `NegDigester`, population, bundle | written | learned; played in human mode in spatial, sparse and dense; `negatives_eaten` read by the owner at the end of a human run, and correct; after it became a fixed reward orb, a random walk of each locked scenario with it on matched the old code |
+| Positive orb: `DirectKind.POSITIVE`, `PosDigester`, the renderer's branch | written; no population, config block or bundle, so no scenario holds one | not run outside the unit tests |
 | `SingleTierChainTermination` | written; every scenario in the family uses it | learned before the refactor; the three locked traces unchanged after it |
 | Droid, engine, `GridWorld`, orbs, timer | written | learned |
 | Environment | written | learned; `check_env` passes |
@@ -44,7 +45,7 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
 | Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; on Python 3.12 the same digests as on 3.10 |
-| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner` | run: passes; every unit and integration test file worked through with coverage and mutmut |
+| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner`; single tier chain termination, the droid, the tier and direct digesters, the engine and the fixed reward orb | run: passes; every unit and integration test file worked through with coverage and mutmut |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
 
 ---

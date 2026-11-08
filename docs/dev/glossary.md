@@ -151,6 +151,8 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Digestion:** turning an eaten orb into a reward.
 - **Digester:** the rules for one orb kind. It keeps its own episode state and knows no other digester.
 - **Engine:** the router that hands an eaten orb to the digester of its kind.
+- **Direct digester:** the digester of a direct kind. `DirectDigester` holds the rule, paying what the orb is worth,
+  and each kind has a subclass that only names its kind: `NegDigester`, `PosDigester`.
 - **Chain:** the tiers eaten in order so far. It starts at tier 1 and grows one tier at a time.
 - **Progress:** an eaten tier orb that is the next tier and not the last.
 - **Completion:** an eaten tier orb that is the next tier and the last. The chain is over.
