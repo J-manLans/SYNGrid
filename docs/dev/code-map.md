@@ -40,13 +40,13 @@ syn_grid/
 │   │   │   │   │   ├── step_wise_digester.py
 │   │   │   │   │   ├── threshold_digester.py
 │   │   │   │   │   └── tier_digester.py
-│   │   │   │   └── neg_digester.py
+│   │   │   │   └── direct_digester.py
 │   │   │   ├── digester.py
 │   │   │   └── engine.py
 │   │   └── synergy_droid.py
 │   ├── orbs/
 │   │   ├── direct/
-│   │   │   └── negative_orb.py
+│   │   │   └── fixed_reward_orb.py
 │   │   ├── synergy/
 │   │   │   ├── chain/
 │   │   │   │   └── tier_orb.py
@@ -207,8 +207,9 @@ can use are in `scenario/blocks/readers.py`; the family's own are in `builders.p
 - **What a tier orb pays and when:** `core/droid/digestion/digesters/tier_chain/`. `tier_digester.py` tracks the
   chain; each scoring mode is a subclass. Spatial and sparse use `MaxTierDigester`, dense `ThresholdDigester`.
   `StepWiseDigester` is for the continuous scenarios, which have no entry yet.
-- **The negative orb:** `core/orbs/direct/negative_orb.py`, its digester `neg_digester.py`, its population
-  `scenario/blocks/populations/neg_population.py`, and `_negative_bundle` and `neg_orb_conf.enabled` in `builders.py`.
+- **The negative orb:** a `FixedRewardOrb` from `core/orbs/direct/fixed_reward_orb.py`, its digester `NegDigester` in
+  `direct_digester.py`, its population `scenario/blocks/populations/neg_population.py`, and `_negative_bundle` and
+  `neg_orb_conf.enabled` in `builders.py`.
 - **A new orb kind:** its kind in `core/orbs/orb_meta.py`, its class under `core/orbs/`, a digester under
   `core/droid/digestion/digesters/`, a population under `scenario/blocks/populations/`, and a bundle in the family's `builders.py`.
 - **What the agent sees:** `scenario/blocks/observation.py` (what the scenario states), the perceptions under

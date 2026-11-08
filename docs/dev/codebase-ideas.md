@@ -304,6 +304,10 @@ where it ends and the droid does not, so either the world asks the droid to clam
 **Idea:** A direct orb that pays a positive reward when it is eaten, with no order to keep: the negative orb's
 counterpart, with its own digester and config block.
 
+**Built so far:** the orb and its digester: `FixedRewardOrb(DirectKind.POSITIVE, ...)` and `PosDigester`, tested, and
+the renderer draws it. What is left waits for a scenario that holds one: a population, a config block that checks the
+reward is above 0, and a bundle in that family's builders.
+
 **Where it came from:** Deciding on 2026-11-08 that a tier chain has at least two tiers. A max tier of 1 was the only
 way to get an orb that simply pays, and this orb is what replaces it. See "A tier chain has at least two tiers" in
 `design-decisions.md`.

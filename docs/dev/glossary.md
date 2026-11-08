@@ -127,6 +127,10 @@ Terms are grouped by area. The last section lists the words that are used in two
   own block in the config.
 - **Category:** direct or synergy. It is not stored; it follows from which enum the kind belongs to.
 - **Direct orb:** pays a reward and nothing else, on the step it is eaten. The negative orb is one.
+- **Fixed reward orb:** a direct orb that pays the same reward every time, `FixedRewardOrb`. The negative and the
+  positive orb are both one, told apart by their kind.
+- **Negative orb, positive orb:** a fixed reward orb of `DirectKind.NEGATIVE` or `DirectKind.POSITIVE`. The positive
+  orb is written but no scenario holds one yet.
 - **Synergy orb:** leaves something behind that changes a later outcome. The tier orb is one.
 - **Chain orb, effect orb:** the two groups inside synergy. A chain orb's payoff depends on which orbs of its kind
   came before. An effect orb changes something other than itself. They are folders, not kinds, and no effect orb is

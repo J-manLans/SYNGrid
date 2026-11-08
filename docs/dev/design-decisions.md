@@ -29,6 +29,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
   values; the ablations; legacy as a reference
 - **Orbs and the world:** two categories; cool-down and lifespan; weights and counts; the orb field; the step clock;
   mechanics in strategies; the step result and the watcher; delay's ending; delay's values; delay's episode length; delay's frozen orbs;
+  the direct orb and its digesters;
   episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
   locked scenarios; one entry per scenario; forks; the negative orb's switch; the chain's room; two tiers at least
@@ -478,6 +479,33 @@ synergy digester holds episode state. A new orb is an enum member and a digester
   kind anyway.
 
 **Revisit if:** an orb turns up that fits neither test.
+
+## A direct orb is one class per way of paying, and one digester per kind (2026-11-08)
+
+**Decision:** `FixedRewardOrb` is the direct orb that pays the same reward every time. It takes its kind and its
+reward, so the negative orb and the positive orb are one class: `FixedRewardOrb(DirectKind.NEGATIVE, ...)` and
+`FixedRewardOrb(DirectKind.POSITIVE, ...)`. The kind is what the agent, digestion and the renderer tell them apart by.
+The reward's sign is checked by the kind's config block, not by the orb.
+
+`DirectDigester` holds the rules for every direct kind: it pays the orb's reward, counts it in `eaten`, and owes
+nothing. Each kind has a subclass that only names its kind, `NegDigester` and `PosDigester`, in the same file, and a
+new direct kind adds its subclass there: the file is the whole package, so there is no `direct/` folder. The
+orb decides how much it pays and the digester collects it, so a drawn or an ageing direct orb would be a class of its
+own beside `FixedRewardOrb` and use the same base digester. No shared base orb class is written until such an orb
+exists.
+
+**Why:** The negative and the positive orb differ only in their kind and their sign. One class per kind would be two
+near copies. The engine routes on the kind and readers look a digester up by its class, so a subclass per kind fits
+both without changing the engine.
+
+**Rejected:**
+
+- One kind for both, with the sign in the reward: the agent could not tell a hazard from a treat. Orbs that look alike
+  and pay differently are a scenario of their own, and this class serves it with one kind.
+- `DirectOrb` as the name: the category also covers drawn and ageing rewards, and the name would claim them.
+- One `DirectDigester` instance per kind with no subclasses: `get_digester` could not tell them apart, so the engine
+  would have to look digesters up by kind.
+- A direct orb that changes the world (an orb bomb, a teleport): that is synergy, as decided in "Two orb categories".
 
 ## An orb carries its own cool-down and lifespan (2026-10-18)
 

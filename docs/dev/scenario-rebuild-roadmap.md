@@ -63,9 +63,9 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
   tests are reviewed before anything else (see "Writing tests" in `AGENTS.md`). Paths are under `src/syn_grid/`, in
   order:
   - Game rules:
-    1. `core/droid/digestion/digesters/neg_digester.py`
+    1. `core/droid/digestion/digesters/direct_digester.py`
     2. `core/droid/digestion/engine.py`
-    3. `core/orbs/base_orb.py`, with `synergy/chain/tier_orb.py` and `direct/negative_orb.py`
+    3. `core/orbs/base_orb.py`, with `synergy/chain/tier_orb.py` and `direct/fixed_reward_orb.py`
     4. `core/utils/timer.py`
     5. `scenario/blocks/populations/tier_chain_population.py` and `neg_population.py`, with `population.py`
     6. `scenario/blocks/recipes/world_recipe.py` and `tier_digester_recipe.py`
