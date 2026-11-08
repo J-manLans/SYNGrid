@@ -41,7 +41,8 @@ class TierOrbConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
     """Tier orbs: how many tiers there are, what each is worth, and what
     breaking their order costs.
 
-    `max_tier` is the highest tier.
+    `max_tier` is the highest tier, at least 2: one tier would be an orb that
+    just pays, with no order to keep.
 
     A tier's reward is `base_reward * tier ** growth_factor`. A growth factor
     of 1 makes the rewards grow linearly with the tier.
@@ -51,7 +52,7 @@ class TierOrbConf(PenaltyCheckedConf, frozen=True, extra="forbid", strict=True):
     How tier orbs are scored is stated by each scenario's builder.
     """
 
-    max_tier: int = Field(gt=0)
+    max_tier: int = Field(ge=2)
     base_reward: float
     growth_factor: float = Field(gt=0)
     chain_break_penalty: float
