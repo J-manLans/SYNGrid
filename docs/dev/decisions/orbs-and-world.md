@@ -26,8 +26,9 @@ differently; and `tier`, an int for `SynergyKind.TIER` and `None` for every othe
 enum. The routing key is `OrbKind = DirectKind | SynergyKind`, defined in `orb_meta.py`. The word is kind
 everywhere, since `type` is a builtin.
 
-**Why:** Direct stays a small closed set, which lines up with the digesters: a direct digester is stateless, a
-synergy digester holds episode state. A new orb is an enum member and a digester, with no new field.
+**Why:** Direct stays a small closed set, which lines up with the digesters: a direct digester holds nothing a later
+orb's payout depends on (its count of orbs eaten is for the metrics), while a synergy digester holds episode state that
+changes what a later orb pays. A new orb is an enum member and a digester, with no new field.
 
 **Rejected:**
 
