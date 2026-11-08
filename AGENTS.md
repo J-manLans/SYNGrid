@@ -112,8 +112,9 @@ amended as the session goes, unless the owner says otherwise.
   choice is genuinely open. Clear enough means the owner has stated a preference, even loosely, not that one can be
   guessed.
 - **Spitball before verdicts.** In a design talk, open with what the code does and one question, and reason step by
-  step together. Do not come back with a numbered list of calls, unless the owner asks for a recommendation. Give an
-  opinion when asked and label it a lean. A restated option is not a decision: something is decided when the owner
+  step together. Do not come back with a numbered list of calls, unless the owner asks for a recommendation. When a
+  choice is open, give a lean with it, labelled as a lean and with its reason, even unasked: the owner wants to hear
+  it. A restated option is not a decision: something is decided when the owner
   says so.
 - **Confirm before refining.** When the owner's summary is right, say yes plainly first. Add a detail only when it
   changes the picture.
