@@ -12,18 +12,30 @@ from syn_grid.core.orbs.direct.fixed_reward_orb import FixedRewardOrb
 from syn_grid.core.orbs.orb_meta import DirectKind
 
 # ================= #
+#     Constants     #
+# ================= #
+
+
+NEG_REWARD = -1.0
+
+
+# Not 1.0, so a digester that paid 1 whatever the orb would be caught
+POS_REWARD = 2.0
+
+
+# ================= #
 #     Fixtures      #
 # ================= #
 
 
 @pytest.fixture
 def negative_orb() -> BaseOrb:
-    return FixedRewardOrb(DirectKind.NEGATIVE, -1.0, cool_down=0, life_span=1)
+    return FixedRewardOrb(DirectKind.NEGATIVE, NEG_REWARD, cool_down=0, life_span=1)
 
 
 @pytest.fixture
 def positive_orb() -> BaseOrb:
-    return FixedRewardOrb(DirectKind.POSITIVE, 2.0, cool_down=0, life_span=1)
+    return FixedRewardOrb(DirectKind.POSITIVE, POS_REWARD, cool_down=0, life_span=1)
 
 
 # ================= #
@@ -35,14 +47,14 @@ class TestDigest:
     """What eating an orb pays, and how it is counted."""
 
     def test_an_orb_pays_what_it_is_worth(self, positive_orb: BaseOrb):
-        assert PosDigester().digest(positive_orb) == 2.0
+        assert PosDigester().digest(positive_orb) == POS_REWARD
 
     def test_each_orb_eaten_counts_once(self, negative_orb: BaseOrb):
         digester = NegDigester()
 
         paid = [digester.digest(negative_orb), digester.digest(negative_orb)]
 
-        assert paid == [-1.0, -1.0]
+        assert paid == [NEG_REWARD, NEG_REWARD]
         assert digester.eaten == 2
 
 

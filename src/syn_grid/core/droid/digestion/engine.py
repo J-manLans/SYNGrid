@@ -74,11 +74,20 @@ class DigestionEngine:
 
         This is how a reader reaches what a digester knows. Asking for a base
         class finds the subclass that is registered, so a reader does not need
-        to know which scoring mode a scenario uses.
+        to know which scoring mode a scenario uses. A base class that more than
+        one registered digester belongs to raises, since the engine cannot tell
+        which one the reader means: ask for the exact class then.
         """
 
-        for digester in self._digesters.values():
-            if isinstance(digester, digester_class):
-                return digester
+        found = [d for d in self._digesters.values() if isinstance(d, digester_class)]
 
-        raise KeyError(f"No {digester_class.__name__} is registered")
+        if not found:
+            raise KeyError(f"No {digester_class.__name__} is registered")
+
+        if len(found) > 1:
+            raise LookupError(
+                f"More than one digester is a {digester_class.__name__}: "
+                + ", ".join(type(d).__name__ for d in found)
+            )
+
+        return found[0]
