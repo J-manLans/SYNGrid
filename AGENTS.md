@@ -69,13 +69,16 @@ A pass over the docs that ties them back together at the end of a session. When 
 ending, say once, "want a docs sweep before we stop?", and drop it if they decline. The owner can also ask for one at
 any time.
 
-A sweep is four checks:
+A sweep is five checks:
 
 1. The roadmap and `open-questions.md` against what was done: remove finished steps and answered questions, and update
    the has-it-run cells.
 2. Decisions from the session that are missing from `decisions/`, or from the `design-decisions.md` index.
 3. New terms that belong in `glossary.md`.
 4. Anything that landed in the wrong file, by the table above.
+5. Size: flag any doc past about 4,000 words (`wc -w`), and any idea in `codebase-ideas.md` or trap here that no
+   longer applies. Flag only; how to shrink a doc is the owner's call. `AGENTS.md` weighs most, since every session
+   reads it in full.
 
 Say what changed, and flag borderline calls instead of guessing. Whether something is a decision or still open, and
 whether it is an idea or a problem, is the owner's to say.
