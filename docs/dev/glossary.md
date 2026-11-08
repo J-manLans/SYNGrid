@@ -150,7 +150,7 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Chain:** the tiers eaten in order so far. It starts at tier 1 and grows one tier at a time.
 - **Progress:** an eaten tier orb that is the next tier and not the last.
 - **Completion:** an eaten tier orb that is the next tier and the last. The chain is over.
-- **Break:** an eaten tier orb that is any other tier. A tier 1 starts a new chain; any other tier leaves none.
+- **Break:** an eaten tier orb that is any other tier. It leaves no chain, whatever its tier.
 - **Chain worth:** the summed reward of the orbs in the running chain, `chain_worth`, kept in every mode. Whether
   it has been paid depends on the mode.
 - **Undigested:** what a digester has gathered and not paid, and still pays if the episode ends now. Every

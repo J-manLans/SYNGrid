@@ -135,12 +135,13 @@ subclass what that pays, counts it and moves the chain:
 
 - **Progress:** the next tier, not the last. A tier 1 with no chain running starts one.
 - **Completion:** the next tier, and the last. The chain is over.
-- **Break:** any other tier. A tier 1 starts a new chain at 1; any other tier leaves none.
+- **Break:** any other tier. It leaves no chain, whatever its tier; a new chain starts with the next tier 1.
 
 A mode writes `_score_progress`, `_score_break` and `_score_completion`, each handed the orb and called before the
 chain moves, and `undigested`, what the chain has gathered and not paid. The base holds what readers take:
 `chain_tier`, `chain_worth`, and the counters `chain_progresses`, `chains_broken` and `chains_completed`, as plain
-public attributes. The base takes `max_tier`; each mode takes what it pays with. The scenario's entry picks the subclass.
+public attributes. Each tier orb counts once, under the one thing it did, so the counters add up to the tier orbs
+eaten. The base takes `max_tier`; each mode takes what it pays with. The scenario's entry picks the subclass.
 
 **Why:** Adding a mode is adding a class, not editing one that works. A scenario loads only its mode, and each mode
 can be tried alone.
@@ -160,18 +161,16 @@ can be tried alone.
 
 | | Progress | Break | Completion | Owed at the end |
 |---|---|---|---|---|
-| Step-wise | the orb's reward | the penalty, plus the orb's reward if it restarts a chain | the orb's reward | 0 |
+| Step-wise | the orb's reward | the penalty | the orb's reward | 0 |
 | Threshold | 0 | the penalty, plus what the chain had gathered | what the chain had gathered, plus the orb's reward | what the chain has gathered |
 | Max-tier | 0 | the penalty | what the chain had gathered, plus the orb's reward | 0 |
 
 A chain completed without a break pays the same total in all three, and step-wise and threshold pay the same total for
 any sequence once threshold has paid what it holds.
 
-The break is one rule everywhere: a tier orb that is not the next one. A tier 1 that breaks a longer chain is the
-first orb of a new one and counts towards its `chain_worth`; in step-wise it is paid its reward on top of the
-penalty, so a chain completed after a restart pays its full worth in every mode. Step-wise and threshold share one
-exception: a tier 1 eaten while the chain is at 1 pays the penalty alone, or tier 1 orbs could be farmed where orbs
-respawn.
+The break is one rule everywhere: a tier orb that is not the next one, and it leaves no chain. The orb that breaks is
+never paid or held, a tier 1 included, so a new chain starts with the next tier 1 and every completed chain pays its
+full worth. Nothing is paid for a tier 1 eaten out of order, so tier 1 orbs cannot be farmed where orbs respawn.
 
 **Why:** The modes form one family, so comparing two isolates when the reward arrives. The agent gets one rule: eat
 the tier one above the chain.
@@ -186,10 +185,12 @@ the tier one above the chain.
 - A separate `tier_consumption_penalty` (legacy): a second number for the same idea.
 - A tier 1 never costing a penalty (legacy step-wise): it can be farmed.
 - A threshold break paying only the last tier (legacy), or no penalty: a special case, and a free cash-out.
-- A restarted chain's sum starting at 0: a completed chain should always pay the same.
+- A tier 1 that breaks a chain starting a new one (legacy, and this decision until 2026-11-08): the metrics could not
+  tell what a break left behind, and it took three special cases: the restart in the base, step-wise paying the
+  tier 1's reward on top of the penalty, and threshold paying a repeated tier 1 the penalty alone so it could not be
+  farmed. In threshold the restarted tier 1 was also settled at the end, one base reward more than the break paid.
 
-**Revisit if:** a goal scenario lets tier orbs return, since a restarting tier 1 then pays for a chain that may never
-grow; or long chains train worse because the prize grows (try the discount and exploration first, then the base
+**Revisit if:** long chains train worse because the prize grows (try the discount and exploration first, then the base
 reward, then reward normalisation).
 
 ## A new scoring mode is a new scenario (2026-10-11)
@@ -432,6 +433,7 @@ These differ from legacy on purpose:
   return.
 - A negative orb does not break a chain.
 - Step-wise has no completion bonus, uses `chain_break_penalty`, and charges it for a tier 1 out of order.
+- A tier 1 that breaks a chain leaves no chain; legacy restarted the chain with it.
 - A threshold break pays the penalty plus everything gathered, not the last tier's reward.
 - An ending adds to the step's reward instead of replacing it; a threshold timeout pays `timeout_penalty`; a threshold
   chain is paid what it is owed when energy reaches 0.

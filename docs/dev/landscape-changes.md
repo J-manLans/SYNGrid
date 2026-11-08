@@ -244,7 +244,8 @@ statistics and not by the bounds, and SB3 rescales a `Box` by its bounds only fo
 
 The reward changes decided on 2026-10-11 and after are listed in "Legacy is a reference, not a target" in
 `design-decisions.md`. They are on purpose and are not repeated here. In short: a max-tier chain pays what its orbs are
-worth and not a fixed 10, a negative orb no longer breaks a chain, and an ending adds to the step's reward where
+worth and not a fixed 10, a negative orb no longer breaks a chain, a tier 1 that breaks a chain no longer starts
+a new one, and an ending adds to the step's reward where
 legacy's timeout replaced it.
 
 Compare curves, not rewards, and set the base reward so the two sides are of similar size first. That is the roadmap's
