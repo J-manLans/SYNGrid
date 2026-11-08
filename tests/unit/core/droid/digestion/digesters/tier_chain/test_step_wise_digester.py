@@ -1,4 +1,4 @@
-"""What a break pays under step-wise scoring."""
+"""What step-wise scoring pays: every orb eaten in order pays its own reward when it is eaten."""
 
 import pytest
 
@@ -67,6 +67,36 @@ def digester() -> StepWiseDigester:
 # ================= #
 
 
+class TestProgress:
+    """The next tier, not the last."""
+
+    def test_an_orb_that_grows_the_chain_pays_its_reward(
+        self, digester: StepWiseDigester, orbs: list[BaseOrb]
+    ):
+        paid = _eat(digester, orbs, 1, 2)
+
+        assert paid == [10.0, 20.0]
+
+
+class TestCompletion:
+    """The next tier, and the last."""
+
+    def test_a_completed_chain_pays_its_full_worth_one_orb_at_a_time(
+        self, digester: StepWiseDigester, orbs: list[BaseOrb]
+    ):
+        paid = _eat(digester, orbs, 1, 2, 3)
+
+        assert paid == [10.0, 20.0, 30.0]
+
+    def test_after_a_completed_chain_a_tier_1_starts_a_new_one(
+        self, digester: StepWiseDigester, orbs: list[BaseOrb]
+    ):
+        # A completion pays like a progress here, so only the next orb shows the chain was over
+        paid = _eat(digester, orbs, 1, 2, 3, 1)
+
+        assert paid[-1] == 10.0
+
+
 class TestBreak:
     """A tier orb eaten out of order."""
 
@@ -77,3 +107,14 @@ class TestBreak:
         paid = _eat(digester, orbs, 1, 2, 1)
 
         assert paid == [10.0, 20.0, CHAIN_BREAK_PENALTY]
+
+
+class TestUndigested:
+    """What a running chain is owed when the episode ends."""
+
+    def test_a_running_chain_is_owed_nothing_since_its_orbs_were_paid(
+        self, digester: StepWiseDigester, orbs: list[BaseOrb]
+    ):
+        _eat(digester, orbs, 1, 2)
+
+        assert digester.undigested() == 0.0
