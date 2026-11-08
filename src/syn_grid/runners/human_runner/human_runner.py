@@ -26,6 +26,10 @@ class HumanRunner:
     #       Init        #
     # ================= #
 
+    # Nothing animates between steps, so the frame cap only delays the next move. A high cap keeps
+    # play in step with the keys, even when they are pressed quickly.
+    _FPS: Final[int] = 60
+
     _KEY_ACTIONS: Final[dict[int, DroidAction]] = {
         pygame.K_LEFT: DroidAction(0),
         pygame.K_DOWN: DroidAction(1),
@@ -34,7 +38,7 @@ class HumanRunner:
     }
 
     def __init__(self, scenario: Scenario):
-        self._env = cast(SYNGridEnv, make(scenario, "human").unwrapped)
+        self._env = cast(SYNGridEnv, make(scenario, "human", self._FPS).unwrapped)
 
     # ================= #
     #        API        #
