@@ -314,3 +314,53 @@ way to get an orb that simply pays, and this orb is what replaces it. See "A tie
 
 **Why it might matter:** It is the plainest reward a scenario can hold, and a building block for a continuous
 scenario or a stochastic one, where orbs pay different amounts and the agent has to read the risk.
+
+---
+
+## A guide entity that walks the chain and vanishes (2026-11-09)
+
+**Idea:** A second body on the grid, a ghost, that shows the agent the tier order and does nothing else. The agent
+cannot see the tiers, so the ghost is the only place the order can come from.
+
+The rules as talked through:
+
+- The orbs land in new positions every episode, and their tiers are hidden from the observation. Everything else is
+  visible, the ghost included, on every step.
+- The ghost walks the shortest path from orb to orb in tier order. It only passes over them and never eats one, so
+  it touches no orb, no digester and no score.
+- It walks tiers 1, 2 and 3, stops on tier 3, and then leaves the grid. Tier 4 is never visited, so the agent has to
+  finish the chain itself. An agent that only follows the ghost ends at tier 3 with nothing left to copy.
+- Tier orbs 1 to 3 stay on the field, so the agent still has to eat them in order before tier 4.
+- The ghost's trail can be switched on as an option. With it off, the agent has to remember what the ghost did, which
+  suits a recurrent policy. With it on, the history is in the observation and a stateless policy can read it. One
+  scenario, two questions: can the agent learn the order, and can it remember it. Results must say which setting
+  they came from.
+
+**Where it came from:** The owner, by voice on 2026-11-09, after asking what a rival or ghost droid could be besides
+a score fight (the obvious design: contact decided by who has the higher score). The idea moved from enemy to
+teacher once the tiers were hidden.
+
+**Why it might matter:**
+
+- It asks for something no scenario does today: learning a hidden order by watching it, not by trial and error with
+  the end reward as the only teacher. The ghost vanishing is what stops it being plain imitation.
+- The trail is a vector, since the observation is one. A cell the ghost never visited reads 0. A visited cell reads a
+  value that falls with age, down to a floor above 0, so the oldest cell is still readable when the ghost leaves.
+  How fast it falls is a dial. Listing only the visited cells, as position and age, keeps the size fixed on a large
+  grid. Order numbers in the cells would do the same with less shading.
+- Companions, rivals and guides would share the same machinery: a second entity with its own movement rule. The owner
+  would file this under an entity family, but one scenario does not show the shape yet. A second or third entity
+  scenario is the moment to build it.
+
+**Open points:**
+
+- The ghost needs a fixed rule when a shortest path has several routes, such as rows before columns, or the walk is
+  not reproducible and the replay probe cannot hold it.
+- Where the ghost starts: the centre, where the droid starts, or somewhere else.
+- How long the ghost walks, and how many steps the agent has after it leaves. That is another dial.
+- What the ghost needs from the engine: a place in the world's step, a place in the observation, and a way to
+  leave. A watcher may fit the first, see "Field effects through a watcher" above.
+- The word "trace" in the glossary is the replay probe's recording. The ghost's trail needs another name so the two
+  do not mix.
+- A small agent may find the shortcut of following the ghost and eating what it passes. Training one early and
+  watching what it does would show whether the vanishing is enough.
