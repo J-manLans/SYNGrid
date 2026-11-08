@@ -6,5 +6,5 @@
 snapshot:
   enabled: false
   id:
-scenario: goal_single_tier_chain_scaling_sparse
+scenario: goal_single_tier_chain_delay
 human_control: false

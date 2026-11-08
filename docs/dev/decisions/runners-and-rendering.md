@@ -82,7 +82,9 @@ rejecting `human_control` with a snapshot on (a human run is for trying somethin
   maximum for a bar, a reader). The environment calls the readers and hands the values over.
 - A scenario says what to show and in what order, never a pixel. Placement belongs to the renderer and its theme
   file. The images are constants in the renderer, the frame rate comes from the env's metadata; there is no
-  `RendererConf`.
+  `RendererConf`. An agent run sets the frame rate with `common_conf.fps`, which paces a human-mode window and a
+  recorded video's playback, and the env takes its own copy of the metadata for it. Human play caps at a fixed 60,
+  since nothing animates between steps and a lower cap only delays the next move.
 - The fog overlay dims cells farther from the droid than a view radius on `ObservationRules`, the same one the
   perception reads.
 - The HUD is to be stacked from drawn pieces (a top cap, a tiling row piece, a bottom cap), drawn by element kind,

@@ -153,7 +153,8 @@ A scenario's entry holds its full model, the perceptions with its visibility, an
 composes it from: the
 tunables and the base config, as `Lock.scenario_tunables` and `Lock.base_config_path`. A tunables model is named after
 its scenario, as `SpatialScenarioConf`; scaling sparse and
-dense are configured alike and share `ScalingScenarioConf`. The entry does the merge, and checks the perception on every
+dense are configured alike and share `ScalingScenarioConf`. The entry does the merge, hands the base config out as
+`base_conf()` for a test or a GUI to build from, and checks the perception on every
 config it builds, so a fork is held to its parent's visibility too. The tunables model never leaves the entry, so
 everything after it takes a `ScenarioConf`. `ConfigManager` reads YAML and knows nothing of locks; a lock is a scenario
 idea.
