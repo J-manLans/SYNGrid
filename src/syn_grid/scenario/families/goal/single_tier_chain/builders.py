@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypeVar, override
 
 from syn_grid.config.models.scenario.orb_models import NegOrbConf, TierOrbConf
-from syn_grid.core.droid.digestion.digesters.neg_digester import NegDigester
+from syn_grid.core.droid.digestion.digesters.direct_digester import NegDigester
 from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
 )
@@ -210,7 +210,7 @@ def _chains_completed(world: GridWorld) -> float:
 
 def _negatives_eaten(world: GridWorld) -> float:
     """How many negative orbs have been eaten this episode."""
-    return world.droid.get_digester(NegDigester).negatives_eaten
+    return world.droid.get_digester(NegDigester).eaten
 
 
 # ----------- #

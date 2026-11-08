@@ -4,7 +4,7 @@ import pytest
 
 from syn_grid.config.config_manager import ConfigManager
 from syn_grid.config.models.global_models import ScenarioName
-from syn_grid.core.droid.digestion.digesters.neg_digester import NegDigester
+from syn_grid.core.droid.digestion.digesters.direct_digester import NegDigester
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.populations.neg_population import NegPopulation
 from syn_grid.scenario.blocks.recipes.world_recipe import WorldRecipe

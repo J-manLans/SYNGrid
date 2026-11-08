@@ -11,7 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
+from syn_grid.core.orbs.direct.fixed_reward_orb import FixedRewardOrb
+from syn_grid.core.orbs.orb_meta import DirectKind
 
 # ################### #
 # Population Strategy #
@@ -50,4 +51,8 @@ class NegPopulation:
         It comes back off the field, and the world places it.
         """
 
-        return [NegativeOrb(self.reward, self.cool_down, self.life_span)]
+        return [
+            FixedRewardOrb(
+                DirectKind.NEGATIVE, self.reward, self.cool_down, self.life_span
+            )
+        ]

@@ -256,6 +256,8 @@ class PygameRenderer:
 
         if orb_meta.KIND == DirectKind.NEGATIVE:
             self._window_surface.blit(self.graphics["negative_orb_img"], pos)
+        elif orb_meta.KIND == DirectKind.POSITIVE:
+            self._window_surface.blit(self.graphics["positive_orb_img"], pos)
         else:
             if orb_meta.KIND == SynergyKind.TIER and orb_meta.TIER is not None:
                 self._draw_tier_orb(orb_meta.TIER, pos)

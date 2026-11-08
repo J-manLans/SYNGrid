@@ -9,7 +9,8 @@ from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
 )
 from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.core.orbs.direct.negative_orb import NegativeOrb
+from syn_grid.core.orbs.direct.fixed_reward_orb import FixedRewardOrb
+from syn_grid.core.orbs.orb_meta import DirectKind
 
 # ================= #
 #     Constants     #
@@ -173,7 +174,9 @@ class TestRejection:
 
     def test_an_orb_with_no_tier_is_rejected(self, digester: _Recorder):
         with pytest.raises(ValueError, match="tier"):
-            digester.digest(NegativeOrb(penalty=-1.0, cool_down=0, life_span=1))
+            digester.digest(
+                FixedRewardOrb(DirectKind.NEGATIVE, -1.0, cool_down=0, life_span=1)
+            )
 
 
 class TestReset:

@@ -23,6 +23,7 @@ class DirectKind(Enum):
 
     NONE = 0
     NEGATIVE = 1
+    POSITIVE = 2
 
 
 class SynergyKind(Enum):

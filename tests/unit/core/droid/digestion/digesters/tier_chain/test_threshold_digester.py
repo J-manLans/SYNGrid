@@ -77,8 +77,14 @@ class TestSameTotalAsStepWise:
     """Threshold pays what step-wise pays, only later."""
 
     # The fixtures are built once for all the examples, which is safe: digesting never changes
-    # an orb, and each example builds its own digesters
-    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+    # an orb, and each example builds its own digesters. The profile's own suppressions are kept,
+    # since a list given here replaces them
+    @settings(
+        suppress_health_check=[
+            *settings().suppress_health_check,
+            HealthCheck.function_scoped_fixture,
+        ]
+    )
     @given(data=st.data())
     def test_any_sequence_pays_the_same_total_once_what_is_held_is_paid(
         self, max_tier: int, eat: Callable[..., list[float]], data: st.DataObject
