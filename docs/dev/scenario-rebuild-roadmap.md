@@ -63,26 +63,22 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
   tests are reviewed before anything else (see "Writing tests" in `AGENTS.md`). Paths are under `src/syn_grid/`, in
   order:
   - Game rules:
-    1. `scenario/families/goal/single_tier_chain/termination.py`
-    2. `core/droid/synergy_droid.py`
-    3. `core/droid/digestion/digesters/tier_chain/tier_digester.py`, with `max_tier_digester.py`,
-       `step_wise_digester.py` and `threshold_digester.py`
-    4. `core/droid/digestion/digesters/neg_digester.py`
-    5. `core/droid/digestion/engine.py`
-    6. `core/orbs/base_orb.py`, with `synergy/chain/tier_orb.py` and `direct/negative_orb.py`
-    7. `core/utils/timer.py`
-    8. `scenario/blocks/populations/tier_chain_population.py` and `neg_population.py`, with `population.py`
-    9. `scenario/blocks/recipes/world_recipe.py` and `tier_digester_recipe.py`
+    1. `core/droid/digestion/digesters/neg_digester.py`
+    2. `core/droid/digestion/engine.py`
+    3. `core/orbs/base_orb.py`, with `synergy/chain/tier_orb.py` and `direct/negative_orb.py`
+    4. `core/utils/timer.py`
+    5. `scenario/blocks/populations/tier_chain_population.py` and `neg_population.py`, with `population.py`
+    6. `scenario/blocks/recipes/world_recipe.py` and `tier_digester_recipe.py`
   - Config:
-    10. `config/config_manager.py`
-    11. the validators in `config/models/runner_models.py`, `scenario/common_models.py`, `scenario/orb_models.py`
-        and `global_models.py`
+    7. `config/config_manager.py`
+    8. the validators in `config/models/runner_models.py`, `scenario/common_models.py`, `scenario/orb_models.py`
+       and `global_models.py`
   - Plumbing, where the agent proposes the rules for the owner to confirm:
-    12. `gymnasium/utils/episode_logging/csv_episode_logger.py`
-    13. `runners/agent_runners/sb3/artifact_manager.py`
-    14. `runners/agent_runners/sb3/run_controls_callback.py`
-    15. `runners/agent_runners/sb3/policy_resolver.py`
-    16. `runners/agent_runners/runner_registry.py`
+    9. `gymnasium/utils/episode_logging/csv_episode_logger.py`
+    10. `runners/agent_runners/sb3/artifact_manager.py`
+    11. `runners/agent_runners/sb3/run_controls_callback.py`
+    12. `runners/agent_runners/sb3/policy_resolver.py`
+    13. `runners/agent_runners/runner_registry.py`
 
   Left without a test file:
   - `core/orbs/orb_meta.py`: phase 7 moves the orb identity.
