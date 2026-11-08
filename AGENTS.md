@@ -2,8 +2,18 @@
 
 How an agent works with the owner and in this repo: the working rules, the doc map, where each kind of fact goes,
 commands and traps. No state, progress, decisions or history: state is in the roadmap's table, decisions are in
-`docs/dev/design-decisions.md`, and history is in `git log`. Trust the code over any doc, and say so when they
-disagree.
+`docs/dev/design-decisions.md`, and history is in `git log`.
+
+## Hard rules
+
+Breaking one of these costs the owner something. Each is detailed in the section named.
+
+- Never commit code before the owner says so. Docs may be committed. (Commits)
+- Never edit anything under `src/syn_grid/legacy/`. (The two strains)
+- Trust the code over any doc, and say so when they disagree.
+- On the owner's machine, say "pull first, then we start" and wait before the first edit. (How to work with the owner)
+- Agree on where a new file or folder goes before creating it, renames and moves included. (How to work with the
+  owner)
 
 ## The project
 
