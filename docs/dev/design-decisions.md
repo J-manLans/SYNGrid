@@ -247,6 +247,11 @@ variable to Pyright and does not satisfy the protocol's instance variable.
 
 - **Energy** is what the droid has left. It starts at `max_energy`, stays between 0 and `max_energy`, and the episode
   ends when it reaches 0, in every scenario. One config value is the start and the cap.
+- **Each reward is clamped as it comes in.** An orb eaten in the tick whose step drains the droid to 0 pays into
+  energy after the step's cost, whatever it pays: a completed chain, a threshold break's pending worth or any other
+  payout. A positive payout leaves the droid alive after the step, so energy does not end the episode, and the
+  droid walks on unless termination ends the episode for another reason, as a completed or broken chain does in the
+  single tier chain family. A negative payout leaves energy at 0.
 - **Score** is the episode's return, the sum of every reward the environment hands back. It starts at 0 in `reset`,
   has no bounds and no config, and equals what SB3's `Monitor` logs.
 
@@ -258,7 +263,8 @@ variable to Pyright and does not satisfy the protocol's instance variable.
 
 The environment's step: the droid acts, termination decides, and if `outcome.terminated` the environment adds
 `droid.on_termination(outcome.terminal_reward)`. Termination decides on the state before anything is settled, so a
-payout cannot change whether the episode ends. The observation, the HUD and the metrics are read after, so the last
+settled payout cannot change whether the episode ends. An orb eaten in the step is not settled: it is paid in the
+tick, before termination decides. The observation, the HUD and the metrics are read after, so the last
 frame shows the final score and the energy the episode ended with.
 
 **Why:** With one door for every reward, energy and score cannot drift from what the agent was paid, and every
@@ -278,7 +284,8 @@ a threshold chain showed energy again on its last frame.
 - A general `receive(reward)` on the droid: a general door makes "every reward goes through the droid" too easy to
   satisfy. Settling and paying the ending are one event, so one call.
 - `end_episode` as the name: it covers truncation, where nothing is settled.
-- A held chain reviving a droid that runs out while steps remain: it lets a payout change whether the episode ends.
+- A held chain reviving a droid that runs out while steps remain: it lets a settled payout change whether the
+  episode ends. An orb eaten in the draining step is not this: it is paid in the tick, like any eaten orb.
 
 **Revisit if:** a continuous scenario needs a droid to bank rewards beyond the cap, which the old uncapped number
 allowed.
