@@ -150,9 +150,12 @@ New rules get their tests before their code, and every change ends with a sweep 
 
 1. The owner states the rules as behaviour: "when X happens, Y must happen", or "Y must never happen". Add the edge
    cases and rules the owner missed, and ask where a rule is unclear.
-2. Write the tests, then stop. The owner reviews them before any code is written. They should read as the owner's
+2. Close in on the rules together before writing anything, also when they come as a finished prompt. Review them
+   against the code and give an opinion: what is missing, what is unclear, and how each rule would be tested. Write
+   the tests once the owner and the agent agree.
+3. Write the tests, then stop. The owner reviews them before any code is written. They should read as the owner's
    rules.
-3. Write the code with the tests as the guide, and see each test go red before it goes green.
+4. Write the code with the tests as the guide, and see each test go red before it goes green.
 
 Tests go through the public entry points the rest of the code uses, and describe behaviour, not structure. Code whose
 design is still moving, such as a mechanic under ablation, is tried first and gets its tests once its rule is settled
