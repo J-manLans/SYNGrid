@@ -328,13 +328,18 @@ The rules as talked through:
   visible, the ghost included, on every step.
 - The ghost walks the shortest path from orb to orb in tier order. It only passes over them and never eats one, so
   it touches no orb, no digester and no score.
-- It walks tiers 1, 2 and 3, stops on tier 3, and then leaves the grid. Tier 4 is never visited, so the agent has to
-  finish the chain itself. An agent that only follows the ghost ends at tier 3 with nothing left to copy.
-- Tier orbs 1 to 3 stay on the field, so the agent still has to eat them in order before tier 4.
+- It walks tiers 2, 3 and 4, stops on tier 4, and leaves the field untouched at tier 1. The agent has to find the one
+  orb the ghost never visited and eat it first, then follow the ghost's route. An agent that only copies the ghost
+  eats a tier 2 first, which breaks the chain and ends the episode, so imitation earns nothing.
+- The ghost can stay on the grid for this to hold. Leaving after it has stopped is optional, and it adds a memory
+  test: the agent has to remember the route once the ghost is gone.
 - The ghost's trail can be switched on as an option. With it off, the agent has to remember what the ghost did, which
   suits a recurrent policy. With it on, the history is in the observation and a stateless policy can read it. One
   scenario, two questions: can the agent learn the order, and can it remember it. Results must say which setting
   they came from.
+
+An earlier version left tier 4 untouched. It was weaker: following the ghost got the agent through three tiers and it
+failed only at the end. Leaving tier 1 untouched makes the first eat the test.
 
 **Where it came from:** The owner, by voice on 2026-11-09, after asking what a rival or ghost droid could be besides
 a score fight (the obvious design: contact decided by who has the higher score). The idea moved from enemy to
@@ -343,7 +348,7 @@ teacher once the tiers were hidden.
 **Why it might matter:**
 
 - It asks for something no scenario does today: learning a hidden order by watching it, not by trial and error with
-  the end reward as the only teacher. The ghost vanishing is what stops it being plain imitation.
+  the end reward as the only teacher. The untouched first orb is what stops it being plain imitation.
 - The trail is a vector, since the observation is one. A cell the ghost never visited reads 0. A visited cell reads a
   value that falls with age, down to a floor above 0, so the oldest cell is still readable when the ghost leaves.
   How fast it falls is a dial. Listing only the visited cells, as position and age, keeps the size fixed on a large
@@ -362,5 +367,7 @@ teacher once the tiers were hidden.
   leave. A watcher may fit the first, see "Field effects through a watcher" above.
 - The word "trace" in the glossary is the replay probe's recording. The ghost's trail needs another name so the two
   do not mix.
-- A small agent may find the shortcut of following the ghost and eating what it passes. Training one early and
-  watching what it does would show whether the vanishing is enough.
+- With four orbs a blind guess hits tier 1 one time in four. It is a weak shortcut, since a wrong pick ends the
+  episode, but a small agent may still settle for it. Training one early and watching what it does would show.
+- What the agent learns is a rule, the unvisited orb first and the rest in the ghost's order. Whether a larger chain
+  makes that harder or easier is open.
