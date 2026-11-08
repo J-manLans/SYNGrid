@@ -166,6 +166,22 @@ class TestBreak:
         assert digester.chain_worth == 0.0
 
 
+class TestCounters:
+    """What the episode's counters add up to."""
+
+    def test_each_tier_orb_counts_once_so_the_counters_add_up_to_the_orbs_eaten(
+        self, digester: _Recorder, orbs: list[BaseOrb]
+    ):
+        # Two completed chains, then two breaks
+        tiers = (1, 2, 3, 1, 2, 3, 2, 2)
+
+        _eat(digester, orbs, *tiers)
+
+        assert digester.chain_progresses == 4
+        assert digester.chains_completed == 2
+        assert digester.chains_broken == 2
+
+
 class TestHooks:
     """What each payout hook is shown."""
 

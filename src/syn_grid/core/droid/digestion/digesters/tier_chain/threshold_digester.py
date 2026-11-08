@@ -17,8 +17,6 @@ class ThresholdDigester(TierDigester):
     orbs in the chain are worth together. A tier orb eaten out of order pays
     the chain break penalty plus what the chain had gathered so far.
 
-    A tier 1 orb eaten while the chain is at tier 1 pays the penalty alone.
-
     A chain that is running when the episode ends is owed what it has
     gathered.
     """
@@ -50,13 +48,6 @@ class ThresholdDigester(TierDigester):
 
     @override
     def _score_break(self, orb: BaseOrb) -> float:
-        repeated_base_tier = (
-            self.chain_tier == self._BASE_TIER and orb.META.TIER == self._BASE_TIER
-        )
-
-        if repeated_base_tier:
-            return self._CHAIN_BREAK_PENALTY
-
         return self._CHAIN_BREAK_PENALTY + self.chain_worth
 
     @override

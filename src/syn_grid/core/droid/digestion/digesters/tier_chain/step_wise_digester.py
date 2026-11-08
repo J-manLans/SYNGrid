@@ -16,10 +16,6 @@ class StepWiseDigester(TierDigester):
     An orb that grows or completes the chain pays its own reward. A tier orb
     eaten out of order pays the chain break penalty and not its reward.
 
-    A tier 1 orb that breaks a longer chain starts a new one, so it pays the
-    penalty and its reward. Eaten while the chain is at tier 1 it pays the
-    penalty alone.
-
     A chain that is running when the episode ends is owed nothing, because
     each of its orbs has been paid.
     """
@@ -51,13 +47,6 @@ class StepWiseDigester(TierDigester):
 
     @override
     def _score_break(self, orb: BaseOrb) -> float:
-        restarts_chain = (
-            orb.META.TIER == self._BASE_TIER and self.chain_tier != self._BASE_TIER
-        )
-
-        if restarts_chain:
-            return self._CHAIN_BREAK_PENALTY + orb.REWARD
-
         return self._CHAIN_BREAK_PENALTY
 
     @override
