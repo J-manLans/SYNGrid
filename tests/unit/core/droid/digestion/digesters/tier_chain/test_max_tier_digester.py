@@ -1,13 +1,11 @@
 """What max-tier scoring pays: a chain pays its whole worth when it is completed, and nothing before."""
 
+from collections.abc import Callable
+
 import pytest
 
 from syn_grid.core.droid.digestion.digesters.tier_chain.max_tier_digester import (
     MaxTierDigester,
-)
-from syn_grid.core.orbs.base_orb import BaseOrb
-from syn_grid.scenario.blocks.populations.tier_chain_population import (
-    TierChainPopulation,
 )
 
 # ================= #
@@ -15,30 +13,7 @@ from syn_grid.scenario.blocks.populations.tier_chain_population import (
 # ================= #
 
 
-MAX_TIER = 3
-
-
-# Tier orbs are worth 10, 20 and 30
-BASE_REWARD = 10.0
-
-
-GROWTH_FACTOR = 1.0
-
-
 CHAIN_BREAK_PENALTY = -0.5
-
-
-# ================= #
-#      Helpers      #
-# ================= #
-
-
-def _eat(digester: MaxTierDigester, orbs: list[BaseOrb], *tiers: int) -> list[float]:
-    """Digest a tier orb of each tier, in the order given; returns what each paid."""
-
-    return [
-        digester.digest(next(o for o in orbs if o.META.TIER == tier)) for tier in tiers
-    ]
 
 
 # ================= #
@@ -47,19 +22,8 @@ def _eat(digester: MaxTierDigester, orbs: list[BaseOrb], *tiers: int) -> list[fl
 
 
 @pytest.fixture
-def orbs() -> list[BaseOrb]:
-    return TierChainPopulation(
-        max_tier=MAX_TIER,
-        base_reward=BASE_REWARD,
-        growth_factor=GROWTH_FACTOR,
-        cool_down=None,
-        life_span=None,
-    ).create()
-
-
-@pytest.fixture
-def digester() -> MaxTierDigester:
-    return MaxTierDigester(max_tier=MAX_TIER, chain_break_penalty=CHAIN_BREAK_PENALTY)
+def digester(max_tier: int) -> MaxTierDigester:
+    return MaxTierDigester(max_tier=max_tier, chain_break_penalty=CHAIN_BREAK_PENALTY)
 
 
 # ================= #
@@ -71,9 +35,9 @@ class TestProgress:
     """The next tier, not the last."""
 
     def test_an_orb_that_grows_the_chain_pays_nothing(
-        self, digester: MaxTierDigester, orbs: list[BaseOrb]
+        self, digester: MaxTierDigester, eat: Callable[..., list[float]]
     ):
-        paid = _eat(digester, orbs, 1, 2)
+        paid = eat(digester, 1, 2)
 
         assert paid == [0.0, 0.0]
 
@@ -82,9 +46,9 @@ class TestCompletion:
     """The next tier, and the last."""
 
     def test_the_orb_that_completes_the_chain_pays_its_full_worth(
-        self, digester: MaxTierDigester, orbs: list[BaseOrb]
+        self, digester: MaxTierDigester, eat: Callable[..., list[float]]
     ):
-        paid = _eat(digester, orbs, 1, 2, 3)
+        paid = eat(digester, 1, 2, 3)
 
         assert paid[-1] == 10.0 + 20.0 + 30.0
 
@@ -93,9 +57,9 @@ class TestBreak:
     """A tier orb eaten out of order."""
 
     def test_a_break_pays_the_penalty_and_what_the_chain_gathered_is_lost(
-        self, digester: MaxTierDigester, orbs: list[BaseOrb]
+        self, digester: MaxTierDigester, eat: Callable[..., list[float]]
     ):
-        paid = _eat(digester, orbs, 1, 2, 1)
+        paid = eat(digester, 1, 2, 1)
 
         assert paid[-1] == CHAIN_BREAK_PENALTY
         assert digester.undigested() == 0.0
@@ -105,8 +69,8 @@ class TestUndigested:
     """What a running chain is owed when the episode ends."""
 
     def test_a_running_chain_is_owed_nothing(
-        self, digester: MaxTierDigester, orbs: list[BaseOrb]
+        self, digester: MaxTierDigester, eat: Callable[..., list[float]]
     ):
-        _eat(digester, orbs, 1, 2)
+        eat(digester, 1, 2)
 
         assert digester.undigested() == 0.0
