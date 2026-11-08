@@ -161,6 +161,8 @@ For the helpers section, provide subheadings indicating what section the helpers
 - A value that a test puts in and expects back unchanged, such as an orb's reward or a penalty, is a constant, so
   the two cannot drift. A value the code works out, such as a chain's worth, is written out in the test as the
   worked example it is, not computed with the code's own formula.
+- A test builds a locked scenario from its base config, or from a config it writes itself, never from the run YAMLs a
+  person edits to train. Editing a run to train must not turn the suite red.
 - Fixtures that several test files in a folder share go in a `conftest.py` there, which nothing imports. A value
   such a fixture depends on is a fixture too, so a test file's own fixtures can take it and the two cannot drift.
 - A test file's module level is in sections, with the headings of section 5, each used only when the file has
