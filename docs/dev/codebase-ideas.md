@@ -296,3 +296,17 @@ progress or an orb that pays on its own. Clamping once per tick also needs someo
 where it ends and the droid does not, so either the world asks the droid to clamp at the end of
 `perform_droid_action`, or the droid's two paths stop clamping, which sits close to the rejected general
 `receive(reward)` door. It would change when episodes end, so it would go into `landscape-changes.md`.
+
+---
+
+## A positive direct orb (2026-11-08)
+
+**Idea:** A direct orb that pays a positive reward when it is eaten, with no order to keep: the negative orb's
+counterpart, with its own digester and config block.
+
+**Where it came from:** Deciding on 2026-11-08 that a tier chain has at least two tiers. A max tier of 1 was the only
+way to get an orb that simply pays, and this orb is what replaces it. See "A tier chain has at least two tiers" in
+`design-decisions.md`.
+
+**Why it might matter:** It is the plainest reward a scenario can hold, and a building block for a continuous
+scenario or a stochastic one, where orbs pay different amounts and the agent has to read the risk.

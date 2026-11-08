@@ -31,7 +31,7 @@ rejected alternative here. File paths, test runs and dates of work stay out, and
   mechanics in strategies; the step result and the watcher; delay's ending; delay's values; delay's episode length; delay's frozen orbs;
   episode state in `reset`
 - **Scenarios and config:** the package; config blocks; orb config classes; the single chain; the family's name;
-  locked scenarios; one entry per scenario; forks; the negative orb's switch; the chain's room
+  locked scenarios; one entry per scenario; forks; the negative orb's switch; the chain's room; two tiers at least
 - **Observation:** the kept perceptions; no timer; shared readers
 - **Runners and rendering:** the algorithm enum; SB3 specs; the policy name; human play; the renderer; window input;
   continued runs; Python 3.12; legacy until the perceptions; the observation copy
@@ -139,7 +139,7 @@ subclass what that pays, counts it and moves the chain:
 
 A mode writes `_score_progress`, `_score_break` and `_score_completion`, each handed the orb and called before the
 chain moves, and `undigested`, what the chain has gathered and not paid. The base holds what readers take:
-`chain_tier`, `chain_worth`, and the counters `chains_progressed`, `chains_broken` and `chains_completed`, as plain
+`chain_tier`, `chain_worth`, and the counters `chain_progresses`, `chains_broken` and `chains_completed`, as plain
 public attributes. The base takes `max_tier`; each mode takes what it pays with. The scenario's entry picks the subclass.
 
 **Why:** Adding a mode is adding a class, not editing one that works. A scenario loads only its mode, and each mode
@@ -851,6 +851,17 @@ base `WorldConf` declares no orb fields. A base class holds only fields certain 
 **Rejected:** `neg_orb_conf` on the base `WorldConf` (every scenario would accept it, and none could make it
 mandatory); a class per scenario (they drift); a class kept in its first family until a second needs it (a second is
 already expected).
+
+## A tier chain has at least two tiers (2026-11-08)
+
+**Decision:** `TierOrbConf.max_tier` is at least 2, as `Field(ge=2)`. The config is the front door: the tier
+population and the tier digester take a plain number and do not check it.
+
+**Why:** A chain of one tier is an orb that pays when it is eaten, with nothing to keep in order. That is a positive
+direct orb's job, not a chain's.
+
+**Rejected:** a validator with a message of its own: every simple bound in the config models is a `Field`, and
+pydantic's error names `max_tier`. A check in the digester or the population: the config already rejects it.
 
 ## The negative orb has a switch beside its values (2026-10-29)
 

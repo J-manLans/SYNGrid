@@ -75,7 +75,8 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
     9. `scenario/blocks/recipes/world_recipe.py` and `tier_digester_recipe.py`
   - Config:
     10. `config/config_manager.py`
-    11. the validators in `config/models/runner_models.py`, `scenario/common_models.py` and `global_models.py`
+    11. the validators in `config/models/runner_models.py`, `scenario/common_models.py`, `scenario/orb_models.py`
+        and `global_models.py`
   - Plumbing, where the agent proposes the rules for the owner to confirm:
     12. `gymnasium/utils/episode_logging/csv_episode_logger.py`
     13. `runners/agent_runners/sb3/artifact_manager.py`
