@@ -111,9 +111,16 @@ scratch.
 2. **Pixel.** The grid as an image, for a CNN. SB3's default CNN expects larger images, so it likely needs a small
    extractor too. `TinyGridCNN` in the same file trains but is unchecked.
 
-3. **Delete legacy.** Once the perceptions are done: `legacy/`, the `USE_LEGACY` switch and `landscape-changes.md`.
-   The owner deletes it. Then the rebuild merges to `main`, with `version` in `pyproject.toml` at 0.5.0 and the tag
-   `v0.5.0`.
+3. **Delete legacy.** Once the perceptions are done. The owner deletes `legacy/`; the agent then clears what points at
+   it, and a `grep -ri legacy` outside `docs/dev/archive/` and `reproduction_package/` finds nothing left:
+   - `src/syn_grid/__main__.py`: the `USE_LEGACY` switch, so it runs the rebuild alone.
+   - `pyproject.toml`: ruff's `extend-exclude`, coverage's `omit`, pyright's `exclude` and mutmut's `do_not_mutate`,
+     each with its comment.
+   - `landscape-changes.md`, whose only use is checking the rebuild against legacy, and its rows in `AGENTS.md`.
+   - `AGENTS.md`: "The two strains" and the other lines on legacy; the glossary's "Strain" and "Legacy"; the
+     code map and this table's legacy rows; the comment in `observation_handler.py` naming the perceptions still in
+     `legacy/`.
+   - Decisions that only say why legacy is kept, moved to `docs/dev/archive/` by its `README.md` or left as history.
 
 **Done when:** each perception stays inside its observation space, checked by the last of the world's Hypothesis
 invariants, added to `TestInvariants` in `tests/integration/test_env_step.py`; an agent trains on each new one; and
