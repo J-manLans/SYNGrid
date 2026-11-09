@@ -189,7 +189,9 @@ either tested or listed with its reason.
 
 1. **Run** pytest, the regression test included, so no locked scenario drifted. Then coverage of each touched file
    (`coverage run -m pytest`, then `coverage report -m`), and mutmut on it. mutmut runs only `tests/unit` and
-   `tests/integration`, so a survivor means no targeted test guards that code.
+   `tests/integration`, so a survivor means no targeted test guards that code. To scope mutmut to the touched
+   files, set `only_mutate` in `[tool.mutmut]` and put the line back after the run. It is the one edit to
+   `pyproject.toml` the agent makes without asking.
 2. **Sort** each survivor and each uncovered line by one question: would a caller, through the public surface,
    notice if this broke?
    - Yes: a real gap, which gets a test.

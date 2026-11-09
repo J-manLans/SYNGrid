@@ -26,6 +26,10 @@ differently; and `tier`, an int for `SynergyKind.TIER` and `None` for every othe
 enum. The routing key is `OrbKind = DirectKind | SynergyKind`, defined in `orb_meta.py`. The word is kind
 everywhere, since `type` is a builtin.
 
+The values of `OrbCategory`, `DirectKind` and `SynergyKind` start at 1, so 0 stays free for an observation to mean
+"no orb", as a 2D observation that writes the kind into a cell would need. The perception writes that 0; it is not a
+member of the enums.
+
 **Why:** Direct stays a small closed set, which lines up with the digesters: a direct digester holds nothing a later
 orb's payout depends on (its count of orbs eaten is for the metrics), while a synergy digester holds episode state that
 changes what a later orb pays. A new orb is an enum member and a digester, with no new field.
@@ -38,6 +42,8 @@ changes what a later orb pays. A new orb is an enum member and a digester, with 
 - Direct meaning "happens at once": an orb bomb happens at once and changes more than the score.
 - A stored `CATEGORY`, or a separate meta class for tier orbs: the enum already says it, and readers would check the
   kind anyway.
+- A `NONE` member in each enum to hold the 0: it is a kind no orb can be, an `OrbMeta` accepted it, and it widened
+  every slot of the radix identity by one.
 
 **Revisit if:** an orb turns up that fits neither test.
 
