@@ -65,6 +65,8 @@ a name and a parent" in `design-decisions.md`.
   has to keep sorting before the tiers, or existing observations change. The dense ids also number tier orbs in tier
   order, so the identity the agent sees is the tier's rank and tells it the chain's order without learning it: decide
   whether that is intended or a leak.
+  When it is settled, the identity tests are revisited with it: `TestIdentities` in `test_grid_world.py`, which pins
+  negative as 1 and the tiers counting up from 2, and `TestIdentity` in `test_orb_meta.py`.
 - **What the observation shows for an orb that never expires,** if a rewritten perception brings the timer back. A
   tier orb's timer reads `None` on the field. A 0, a -1 or a separate flag. Raised on 2026-10-18.
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split

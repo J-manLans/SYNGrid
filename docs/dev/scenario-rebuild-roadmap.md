@@ -6,10 +6,6 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**First:** `TestIdentities` in `tests/unit/core/test_grid_world.py` reads the identities in the order
-`TierChainPopulation` returns the tiers, so a change of that order fails it with the remap still right. Look each orb
-up by kind and tier.
-
 **Next:** rebuild the test suite (phase 6b).
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. The

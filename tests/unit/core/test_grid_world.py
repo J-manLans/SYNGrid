@@ -256,8 +256,9 @@ class TestIdentities:
         )
         world = _make_world((5, 5), max_active_orbs=5, extra_orbs=negatives)
 
-        # The tiers 1 to 3 come first in the world's list, and the two negatives after them
-        assert [orb.META.IDENTITY for orb in world.ALL_ORBS] == [2, 3, 4, 1, 1]
+        # Each orb is looked up by what it is, so the order the world holds them in does not matter
+        assert [negative.META.IDENTITY for negative in negatives] == [1, 1]
+        assert [_tier(world, tier).META.IDENTITY for tier in (1, 2, 3)] == [2, 3, 4]
         assert world.max_identity == 4
 
 
