@@ -108,7 +108,10 @@ world's invariants are in the world's test file and the episode's in the environ
 `TestInvariants`; the observation's waits for the rewritten perceptions. An episode's actions mix a repeated pattern
 with steps towards the next tier orb, since a random walk almost never completes a chain and the reward bound would
 then check nothing. mutmut is local only, run while a file is worked on, and never in CI. coverage runs locally the
-same way, and in CI only for the floor; see "CI fails below a coverage floor of 85%".
+same way, and in CI only for the floor; see "CI fails below a coverage floor of 85%". CI installs the CPU build of torch
+from PyTorch's own index before the project: the runner has no GPU, no test needs one, and the default Linux build
+brings several GB of CUDA libraries. Its torch version can drift from a local install; it is pinned in that step if a
+test ever fails in CI alone because of it.
 
 **Why:** Example tests check an invariant only where someone thought to look; a property checks it over many generated
 inputs and shrinks a failure to its smallest case. The invariants are what catch the subtlest breakage, so they run on

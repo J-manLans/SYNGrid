@@ -30,6 +30,11 @@ jobs:
                 python-version: "3.12"
                 cache: "pip"
 
+            # The runner has no GPU, and torch's default Linux build brings several GB of CUDA libraries it never
+            # uses. With the CPU build in place, the next step finds torch installed and leaves it alone
+            - name: Install the CPU build of torch
+              run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
             - name: Install dependencies
               run: pip install -e ".[dev]"
 
