@@ -163,6 +163,11 @@ For the helpers section, provide subheadings indicating what section the helpers
   worked example it is, not computed with the code's own formula.
 - A test builds a locked scenario from its base config, or from a config it writes itself, never from the run YAMLs a
   person edits to train. Editing a run to train must not turn the suite red.
+- **Setup that tests share is written once,** as the rest of the code is. A world, a config or a helper that several
+  tests build is a shared fixture or helper, not a copy in each. The tier-chain digester tests share their orbs and
+  a way to eat them through one `conftest.py`, and tests build a locked scenario's config from its
+  `ScenarioEntry.base_conf`. Share it only when that pays off: setup used twice, or setup that would take complex
+  wiring to share, stays where it is.
 - Fixtures that several test files in a folder share go in a `conftest.py` there, which nothing imports. A value
   such a fixture depends on is a fixture too, so a test file's own fixtures can take it and the two cannot drift.
 - A test file's module level is in sections, with the headings of section 5, each used only when the file has
