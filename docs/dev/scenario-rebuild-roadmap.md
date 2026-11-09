@@ -6,6 +6,17 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
+**First:** find why mutmut reports a surviving mutant as a timeout, and fix it, before the next file's sweep relies
+on mutmut. In `core/orbs/orb_meta.py` every mutant the suite passes, one that only changes an error message
+included, came out as a timeout, which mutmut scores as caught; scoping with `only_mutate` did not change it. Leads,
+neither confirmed: the stats file's map from each function to the tests that reach it was empty when read after the
+run, and how the workers count CPU time against the limit. Check whether it hits every file or only ones the whole
+suite imports.
+
+**Then:** `TestIdentities` in `tests/unit/core/test_grid_world.py` reads the identities in the order
+`TierChainPopulation` returns the tiers, so a change of that order fails it with the remap still right. Look each orb
+up by kind and tier.
+
 **Next:** rebuild the test suite (phase 6b).
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. The
@@ -68,7 +79,8 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
   world through. Plumbing gets a few smoke tests and the rules a user would notice breaking: the runner probe already
   covers much of it, and its bugs show as a crash or a wrong file.
   - Game rules:
-    1. `core/orbs/base_orb.py` and `orb_meta.py`, with `synergy/chain/tier_orb.py` and `direct/fixed_reward_orb.py`
+    1. `core/orbs/base_orb.py` and `orb_meta.py`, with `synergy/chain/tier_orb.py` and `direct/fixed_reward_orb.py`,
+       whose tests exist and are rechecked
     2. `core/utils/timer.py`
     3. `scenario/blocks/populations/tier_chain_population.py` and `neg_population.py`, with `population.py`
     4. `scenario/blocks/recipes/world_recipe.py` and `tier_digester_recipe.py`
