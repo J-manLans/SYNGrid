@@ -375,6 +375,9 @@ teacher once the tiers were hidden.
   only for eval and human viewing, so training speed does not depend on it. The owner leans towards a real ghost,
   because the renderer then draws it like anything else and the human view needs no special case. The scripted route
   is lighter, since the ghost touches nothing, but it would be drawn by a separate path.
+- The identity the agent sees for an orb numbers tier orbs in tier order, so it would give the order away. The ghost
+  scenario withholds the identity for itself alone, which leaves the radix identity and the dense remap as they are
+  everywhere else.
 - What the ghost needs from the engine: a place in the world's step, a place in the observation, and a way to
   leave. A watcher may fit the first, see "Field effects through a watcher" above.
 - The word "trace" in the glossary is the replay probe's recording. The ghost's trail needs another name so the two

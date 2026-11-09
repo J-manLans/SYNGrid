@@ -68,7 +68,7 @@ suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the w
   world through. Plumbing gets a few smoke tests and the rules a user would notice breaking: the runner probe already
   covers much of it, and its bugs show as a crash or a wrong file.
   - Game rules:
-    1. `core/orbs/base_orb.py`, with `synergy/chain/tier_orb.py` and `direct/fixed_reward_orb.py`
+    1. `core/orbs/base_orb.py` and `orb_meta.py`, with `synergy/chain/tier_orb.py` and `direct/fixed_reward_orb.py`
     2. `core/utils/timer.py`
     3. `scenario/blocks/populations/tier_chain_population.py` and `neg_population.py`, with `population.py`
     4. `scenario/blocks/recipes/world_recipe.py` and `tier_digester_recipe.py`

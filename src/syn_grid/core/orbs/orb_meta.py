@@ -29,7 +29,7 @@ class DirectKind(Enum):
 class SynergyKind(Enum):
     """Orbs that leave something behind which changes a later outcome."""
 
-    # TODO: when adding a new orb, ensure that ole MAX_SENTINEL for tier orbs wasn't needed. The
+    # TODO: when adding a new orb, ensure that old MAX_SENTINEL for tier orbs wasn't needed. The
     # one introduced when the radix identity was added
 
     NONE = 0
