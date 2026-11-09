@@ -110,4 +110,3 @@ source_paths = ["src/syn_grid"]
 pytest_add_cli_args_test_selection = ["tests/unit", "tests/integration"]
 # The legacy strain is a frozen copy, and no test reaches it. The __init__.py files hold no code to mutate.
 do_not_mutate = ["*/legacy/*", "*/__init__.py"]
-# only_mutate = ["*/single_tier_chain/watcher.py"] # the trial: one file

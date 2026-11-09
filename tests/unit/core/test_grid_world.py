@@ -12,6 +12,8 @@ from syn_grid.core.droid.digestion.digesters.tier_chain.max_tier_digester import
 from syn_grid.core.droid.synergy_droid import DroidAction, SynergyDroid
 from syn_grid.core.grid_world import GridWorld
 from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.direct.fixed_reward_orb import FixedRewardOrb
+from syn_grid.core.orbs.orb_meta import DirectKind
 from syn_grid.scenario.blocks.populations.tier_chain_population import (
     TierChainPopulation,
 )
@@ -36,9 +38,12 @@ MAX_STEPS = 100
 
 
 def _make_world(
-    grid: tuple[int, int], max_active_orbs: int, life_span: int | None = None
+    grid: tuple[int, int],
+    max_active_orbs: int,
+    life_span: int | None = None,
+    extra_orbs: tuple[BaseOrb, ...] = (),
 ) -> GridWorld:
-    """A world with a three-tier chain, before its first reset."""
+    """A world with a three-tier chain and any extra orbs after it, before its first reset."""
 
     orbs = TierChainPopulation(
         max_tier=3,
@@ -46,7 +51,7 @@ def _make_world(
         growth_factor=1.5,
         cool_down=None,
         life_span=life_span,
-    ).create()
+    ).create() + list(extra_orbs)
     droid = SynergyDroid(
         [MaxTierDigester(max_tier=3, chain_break_penalty=CHAIN_BREAK_PENALTY)],
         grid,
@@ -239,6 +244,21 @@ class TestIsCellFree:
         _tier_1(world).de_spawn()
 
         assert world.is_cell_free([2, 1])
+
+
+class TestIdentities:
+    """The numbers the agent tells orbs apart by, set when the world is built."""
+
+    def test_they_count_from_1_with_negative_first_and_the_tiers_in_order(self):
+        negatives = tuple(
+            FixedRewardOrb(DirectKind.NEGATIVE, -1.0, cool_down=None, life_span=None)
+            for _ in range(2)
+        )
+        world = _make_world((5, 5), max_active_orbs=5, extra_orbs=negatives)
+
+        # The tiers 1 to 3 come first in the world's list, and the two negatives after them
+        assert [orb.META.IDENTITY for orb in world.ALL_ORBS] == [2, 3, 4, 1, 1]
+        assert world.max_identity == 4
 
 
 class TestInvariants:

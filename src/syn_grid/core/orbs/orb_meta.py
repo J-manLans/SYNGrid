@@ -9,11 +9,12 @@ image from it, and the agent sees the identity.
 from enum import Enum
 from typing import Final
 
+# The values of these enums start at 1, so 0 stays free to mean "no orb" in an observation
+
 
 class OrbCategory(Enum):
     """The two groups of orb kinds. One digit of an orb's identity."""
 
-    NONE = 0
     DIRECT = 1
     SYNERGY = 2
 
@@ -21,7 +22,6 @@ class OrbCategory(Enum):
 class DirectKind(Enum):
     """Orbs that change the score and nothing else, on the step they are eaten."""
 
-    NONE = 0
     NEGATIVE = 1
     POSITIVE = 2
 
@@ -32,7 +32,6 @@ class SynergyKind(Enum):
     # TODO: when adding a new orb, ensure that old MAX_SENTINEL for tier orbs wasn't needed. The
     # one introduced when the radix identity was added
 
-    NONE = 0
     TIER = 1
 
 
