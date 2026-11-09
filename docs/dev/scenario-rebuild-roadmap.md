@@ -6,20 +6,7 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**First:** close the gaps the forkserver rerun of mutmut found, where no targeted test notices a change:
-
-1. `scenario/families/goal/single_tier_chain/builders.py`, `_tier_bundle`: the digester's `max_tier` can be dropped.
-   A built scenario's chain has to complete at the config's max tier.
-2. `runners/agent_runners/base_agent_runner.py`: any key, not only Space, resumes a pause; the run id's date, whose
-   test builds the expected id from `runner._date`; the `output/models` and `output/results/logs` folders.
-3. `runners/agent_runners/sb3/sb3_runner.py`: a continued run trains on the run's env; `sub_dir` and `env_idx` reach
-   each env, so the CSV lands in the train or eval folder and only env 0 records video; the run controls in a human
-   training run; the `output/vec_norm_stats` folder.
-
-The rerun's other survivors are message text, equivalent, or rendering only, and are listed in the commit that
-added this step.
-
-**Then:** `TestIdentities` in `tests/unit/core/test_grid_world.py` reads the identities in the order
+**First:** `TestIdentities` in `tests/unit/core/test_grid_world.py` reads the identities in the order
 `TierChainPopulation` returns the tiers, so a change of that order fails it with the remap still right. Look each orb
 up by kind and tier.
 
@@ -62,7 +49,7 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
 | Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; on Python 3.12 the same digests as on 3.10 |
-| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner`; single tier chain termination, the droid, the tier and direct digesters, the engine and the fixed reward orb | run: passes; every unit and integration test file worked through with coverage and mutmut, and mutmut rerun under `forkserver` over all of them; its gaps are under **First** |
+| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner`; single tier chain termination, the droid, the tier and direct digesters, the engine and the fixed reward orb | run: passes; every unit and integration test file worked through with coverage and mutmut, and mutmut rerun under `forkserver` over all of them, its silent gaps closed |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
 
 ---

@@ -245,6 +245,20 @@ class TestBuildEnv:
         assert evaluated_on.num_envs == 1
         assert trained_on.get_attr("render_mode") == ["rgb_array"] * 3
 
+    def test_each_training_env_writes_its_own_csv_into_the_train_folder(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        runner = _runner(tmp_path, monkeypatch, train={"n_envs": 3, "csv_output": True})
+
+        runner._build_env(None, "train").close()
+
+        run_folder = runner._log_dir / "train" / runner.get_unique_model_id()
+        assert sorted(p.name for p in run_folder.iterdir()) == [
+            "_env0.csv",
+            "_env1.csv",
+            "_env2.csv",
+        ]
+
 
 class TestMakeEnv:
     """The wrappers each env of a run gets."""
