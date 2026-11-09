@@ -4,8 +4,7 @@
 >
 > SYNGrid lets you systematically vary benchmark dimensions — such as temporal delay, dependency depth, observability, and reward density — through configuration rather than creating new environments. While designed around temporal credit assignment, the framework is intended to support controlled experiments within a single configurable grid.
 >
-> **Status:** Research prototype. Evaluated across three scenarios in a [bachelor's thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794).
-> The scenario layer is being rebuilt so that scenarios are composed from parts. Where the rebuild stands is in the [roadmap](./docs/dev/scenario-rebuild-roadmap.md). The thesis runs are kept in [`reproduction_package/`](./reproduction_package/).
+> **Status:** Research prototype. Evaluated across three scenarios in a [bachelor's thesis](https://urn.kb.se/resolve?urn=urn:nbn:se:miun:diva-57794). The thesis runs are kept in [`reproduction_package/`](./reproduction_package/).
 
 ---
 
@@ -32,16 +31,16 @@ SYNGrid is a configurable grid-based environment for isolating and diagnosing te
 **In its current form:** SYNGrid is a deliberately simple grid world with only two entities: the agent and orbs. The agent moves in the four cardinal directions, and orbs are consumed automatically when stepped on. Rather than adding new game systems, complexity comes from composing orb mechanics by toggling what types of orbs will be active in the run. The goal isn't to build increasingly complex worlds, but to vary one benchmark dimension at a time:
 
 - **Orb tier depth**: How long is the dependency chain? (tier 2 vs. tier 7)
-- **Delay**: Decide how many steps after consumption of an orb the next one can spawn, increasing the temporal credit assignment horizon.
+- **Delay**: How many steps the rest of the chain stays away after an orb is eaten, increasing the temporal credit assignment horizon.
 - **Observability**: Does the agent see the full grid (MDP), or only a 3×3 window around itself (POMDP)?
-- **Reward density**: Sparse (reward only on full chain completion) or dense (reward per correctly consumed orb).
-- **Grid size & spawn mechanics**: Adjust world complexity and orb availability.
+- **Reward density**: Sparse (reward only when the chain completes) or dense (a chain that breaks still pays for the part it got right).
+- **Grid size**: How much ground the agent has to cover.
 
 Change any of these, and the agent faces a different credit assignment challenge, without the need to touch code. A human-playable mode also lets you validate scenarios before training.
 
-**The core mechanic today:** Currently, there are two orb types: tier orbs, which must be collected in strict order (tier 1, then tier 2, then tier 3, and so on — collecting them out of order resets the chain), and negative orbs, which deliver a direct negative reward.
+**The core mechanic today:** Currently, there are two orb types: tier orbs, which must be collected in strict order (tier 1, then tier 2, then tier 3, and so on — collecting one out of order breaks the chain and ends the episode), and negative orbs, which deliver a direct negative reward.
 
-**Where it's headed:** The roadmap intends to extend this foundation with **Effect Orbs** — transient mechanics (nullifier, converter, hazard, etc) that interact and combine into richer scenarios, while keeping the config-driven paradigm intact. This would be where the "SYN" in SYNGrid stops being a stretch and starts earning its name.
+**Where it's headed:** SYNGrid is meant to grow with **Effect Orbs** — transient mechanics (nullifier, converter, hazard, etc) that interact and combine into richer scenarios, while keeping the config-driven paradigm intact. This would be where the "SYN" in SYNGrid stops being a stretch and starts earning its name.
 
 ### Three Validated Scenarios
 The bachelor's thesis established a proof of concept through three scenarios, each isolating a different dimension of temporal credit assignment.
@@ -91,14 +90,14 @@ python3 -m syn_grid
 
 This will train or evaluate an agent (or start a human play-testing session) based on the settings in [`src/syn_grid/config/yaml/`](/src/syn_grid/config/yaml/): `global_config.yaml` picks the scenario and whether a human plays it, `runner_config.yaml` sets the agent, and the scenario's own file in `scenarios/` sets its values.
 
-For detailed setup and reproduction instructions, see [`reproduction_package/info.md`](./reproduction_package/info.md).
+The thesis runs were made with v0.4.0. To reproduce them, check out the `v0.4.0` tag and follow [`reproduction_package/info.md`](./reproduction_package/info.md).
 
 ---
 
 ## Configuration
 SYNGrid experiments are defined through configuration rather than code. Changing benchmark dimensions such as dependency depth, delay, or observability requires only updating the configuration file, not modifying the environment.
 
-**Example:**
+**Example**, in a scaling scenario's file:
 
 ```yaml
 world_conf:
@@ -108,7 +107,7 @@ world_conf:
 
 > Changing only `max_tier` lengthens the dependency chain while leaving the rest of the environment unchanged.
 
-See the files in [`src/syn_grid/config/yaml/scenarios/`](/src/syn_grid/config/yaml/scenarios/) for all available options.
+Each scenario's file in [`src/syn_grid/config/yaml/scenarios/`](/src/syn_grid/config/yaml/scenarios/) lists the values it lets you change.
 
 ---
 

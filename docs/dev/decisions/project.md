@@ -33,6 +33,22 @@ These differ from legacy on purpose:
 
 **Rejected:** an exact per-step match of rewards, or reproducing legacy's results, as the bar.
 
+## The thesis runs live at the `v0.4.0` tag (2026-11-10)
+
+**Decision:** `reproduction_package/` leaves `main` with legacy, at the end of phase 7b. From then on the thesis runs
+are found at the `v0.4.0` tag, which holds the package and the code it was made with, and `README.md` points there.
+
+**Why:** Its configs run only on code from before the rebuild: on `main` its `info.md` asks for a `configs.yaml` that
+is gone, and legacy, with its own copy of that file, is the last code on `main` that could take them. Until legacy goes,
+the package's curves and configs are still a reference for the observation pass, as "Legacy is a reference, not a
+target" says. Afterwards the tag keeps everything from before the rebuild together. Deleting it from `main` does not
+shrink a clone, since it stays in the history; it keeps the tree to the code that runs.
+
+**Rejected:**
+
+- Deleting it now: phase 7 still compares against legacy, and the package's curves are part of that reference.
+- Keeping it on `main` for good: 469 MB of runs that nothing on `main` can make again.
+
 ## SYNGrid moves to Python 3.12, through Pop!_OS 24.04 (2026-11-07)
 
 **Decision:** SYNGrid moves from Python 3.10 to 3.12, the system Python of Pop!_OS 24.04, which the owner's machine

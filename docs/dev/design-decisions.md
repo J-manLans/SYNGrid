@@ -130,6 +130,7 @@ The rules most decisions below follow.
 ### Project: [`decisions/project.md`](decisions/project.md)
 
 - Legacy is a reference, not a target (2026-10-25)
+- The thesis runs live at the `v0.4.0` tag (2026-11-10)
 - SYNGrid moves to Python 3.12, through Pop!_OS 24.04 (2026-11-07)
 - Legacy stays until the perceptions are rewritten (2026-11-07)
 

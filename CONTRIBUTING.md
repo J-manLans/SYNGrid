@@ -27,6 +27,13 @@ ruff check src/syn_grid tests
 ruff format --check src/syn_grid tests
 ```
 
+A pull request into `main` also runs the tests under coverage and fails if the total is below 85%. To check it
+locally:
+
+```bash
+coverage run -m pytest && coverage report
+```
+
 If you touched the environment, the world or a scenario, also run `python3 -m syn_grid.check_env`, the Gymnasium
 contract check.
 

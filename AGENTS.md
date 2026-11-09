@@ -301,5 +301,5 @@ Each of these cost a wrong conclusion in this repo.
   `np_random`.
 - **`runners/agent_runners/utils/extractors.py` is imported by nothing** and reads observation keys from before the
   rebuild. It stays on purpose: phase 7b works from it, not from scratch.
-- **`reproduction_package/` is committed and large.** Do not add to it. It records what the thesis runs did, and it
-  stays until the owner decides how it connects to the thesis.
+- **`reproduction_package/` is committed and large.** Do not add to it. It records the thesis runs, which live at the
+  `v0.4.0` tag, and it leaves `main` with legacy at the end of phase 7b.

@@ -109,8 +109,6 @@ See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `des
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox. The sandbox is not on the roadmap.
 - **Whether `on_termination` guards against a second call.** It runs once per episode; a second call would pay the
   owed sum twice, and nothing stops it.
-- **How `reproduction_package/` connects to the thesis.** It records the thesis runs and stays in the repo until
-  this is decided. Raised on 2026-11-04.
 - **What a GUI needs from the models.** See "A GUI on top of the registry" in `codebase-ideas.md`.
 - **How a run points at the checkpoint it loads, and where a continued run records its parent.** Waits for the GUI,
   which picks a checkpoint from a list. Until then a checkpoint is found by the run id, and a curriculum stage renames

@@ -121,6 +121,8 @@ scratch.
      code map and this table's legacy rows; the comment in `observation_handler.py` naming the perceptions still in
      `legacy/`.
    - Decisions that only say why legacy is kept, moved to `docs/dev/archive/` by its `README.md` or left as history.
+   - `reproduction_package/`, which goes with it (see "The thesis runs live at the `v0.4.0` tag"); `README.md`'s
+     pointer then sends readers to the tag alone, and the glossary loses "Reproduction package".
 
 **Done when:** each perception stays inside its observation space, checked by the last of the world's Hypothesis
 invariants, added to `TestInvariants` in `tests/integration/test_env_step.py`; an agent trains on each new one; and
