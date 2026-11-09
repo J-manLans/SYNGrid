@@ -110,3 +110,8 @@ source_paths = ["src/syn_grid"]
 pytest_add_cli_args_test_selection = ["tests/unit", "tests/integration"]
 # The legacy strain is a frozen copy, and no test reaches it. The __init__.py files hold no code to mutate.
 do_not_mutate = ["*/legacy/*", "*/__init__.py"]
+# Fork each mutant from a clean server, not from mutmut's main process. The main process has run the suite once,
+# and torch's thread pool with it; a fork keeps the pool's locks but not its threads, so the SB3 tests hang and a
+# surviving mutant shows as a timeout, which mutmut scores as caught. See "mutmut forks from a clean server" in
+# docs/dev/decisions/testing.md.
+process_isolation = "forkserver"
