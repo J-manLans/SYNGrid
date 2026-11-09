@@ -2,15 +2,20 @@
 
 Ideas worth returning to that are not problems to solve now. Half-formed is fine.
 
-Decisions stay out: once an idea is decided, it moves to `design-decisions.md` and leaves here, or keeps only what is
-still an idea.
+Decisions stay out: once an idea is decided, it moves to its area's file in `decisions/` and leaves here, or keeps
+only what is still an idea.
+
 An idea that is dropped is deleted, or moves to `archive/dropped-ideas.md` when `archive/README.md` says it is
 worth keeping.
+
+Each entry opens with when it returns: a phase, a scenario or a piece of code that would make it matter, not a guess
+at how likely it is. When that point comes, a search for it here finds what waits on it.
 
 ---
 
 ## Entry template
 
+**Returns when:**
 **Idea:**
 **Where it came from:**
 **Why it might matter:**
@@ -18,6 +23,9 @@ worth keeping.
 ---
 
 ## A GUI on top of the registry (2026-10-12)
+
+**Returns when:** work on a GUI starts, which no phase of the roadmap holds. Picking a checkpoint returns sooner,
+when a run continues another, such as a curriculum stage.
 
 **Idea:** The owner's picture of the GUI the project is heading for.
 
@@ -97,6 +105,9 @@ on what is tunable, by voice on 2026-10-26, and the owner picturing the screen o
 
 ## A bundle that carries everything its orb kind brings (2026-10-12)
 
+**Returns when:** a second family uses an orb kind that one already uses, or phase 7 or 8b settles what a kind adds
+to the observation or the HUD.
+
 **Idea:** An `OrbBundle` holds a population and a way to make a digester. A kind brings more than that to a scenario:
 the metrics that read its digester, a tag suffix, HUD elements and observation features. The bundle could carry some
 of these, and a family's entry type would collect them from its bundles as it now sums their counts.
@@ -117,12 +128,14 @@ brick".
 - A metric's reader is the same in every family: take the kind's digester from the engine and read a counter. So the
   readers would move out of a family's `builders.py` and live with the kind. Followed to the end, that is one module per
   kind, which groups by kind where `scenario/blocks/populations/` and `scenario/blocks/recipes/` group by role.
-- The HUD's form and the observation's features are open, in phases 9 and 7. Putting either in the bundle decides
+- The HUD's form and the observation's features are open, in phases 8b and 7. Putting either in the bundle decides
   them early.
 
 ---
 
 ## A perception is two things: what the droid sees and how it is encoded (2026-10-12)
+
+**Returns when:** phase 7, the observation pass.
 
 **Idea:** Split the perception into two settings. One is the visibility: the whole world, or a window around the
 droid. The other is the encoding: a flat vector, a composite of named parts, a grid of cells, or pixels. That a
@@ -153,6 +166,8 @@ one side, and `markovian`, `fog_of_war` and `fully_pomdp` on the other.
 ---
 
 ## A held chain that keeps the droid alive (2026-10-16)
+
+**Returns when:** a stochastic goal scenario, with a continuous threshold tier chain beside the goal, is planned.
 
 **Idea:** In threshold scoring a held chain is worth something not yet paid. A droid that runs out of energy while
 holding one could have the chain cashed into energy and go on, so the chain doubles as a reserve.
@@ -197,6 +212,8 @@ scenario's own. Open when it is built:
 ---
 
 ## Effect orbs get their magic from the engine (2026-10-27)
+
+**Returns when:** effect orbs are built. The roadmap lists them under "Not on this roadmap".
 
 **Idea:** When effect orbs are built, the combining happens in the digestion engine and nowhere else. Digesters keep
 not knowing about each other. The engine already sees all of them, so it is the one place that can let one kind's orb
@@ -253,6 +270,9 @@ result, and a scenario's watcher reacts to it" in `design-decisions.md`.
 
 ## Orbs that block without being frozen (2026-11-06)
 
+**Returns when:** a scenario needs cells that block, or orbs placed on purpose, such as the vision's wall around
+a goal orb.
+
 **Idea:** An orb kind whose orbs block their cell for good: a wall. With blocking a property of its own, a wall is an
 orb that blocks and is never eaten, and walking into it costs nothing. A layout of them can shape a scenario, such
 as the vision's wall of deadly orbs around a goal orb.
@@ -267,6 +287,8 @@ random, is the larger part and is not touched.
 ---
 
 ## A guide entity that walks the chain (2026-11-09)
+
+**Returns when:** a scenario with a second body on the grid is planned: a guide, a rival or a companion.
 
 **Idea:** A second body on the grid, a ghost, that shows the agent the tier order and does nothing else. The agent
 cannot see the tiers, so the ghost is the only place the order can come from.

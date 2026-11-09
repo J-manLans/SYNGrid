@@ -116,3 +116,11 @@ See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `des
   which picks a checkpoint from a list. Until then a checkpoint is found by the run id, and a curriculum stage renames
   its parent's files by hand. See "A run that continues another gets its own id" in `design-decisions.md` and
   "Picking a checkpoint" under "A GUI on top of the registry" in `codebase-ideas.md`. Raised on 2026-11-04.
+
+  Continuing gets its tests when this is settled, not before: curriculum runs come after the GUI and a few new
+  scenarios. The rules to test then, as talked through on 2026-11-09: the continued model trains on the run's env;
+  it has the saved weights (tested today) and the saved normalization statistics, and goes on updating them; its
+  step count carries on, so the next checkpoint is named with the total. The statistics are the silent one: a fresh
+  `VecNormalize` crashes nothing and only learns worse. Also open: which seed a continued run uses. `load_model`
+  prints that the checkpoint's seed is authoritative but sets nothing, so whether a stage takes its parent's seed
+  or its own is undecided.

@@ -54,8 +54,9 @@ Read in this order, and do not ask the owner what these already answer:
 
 1. `docs/vision.md`, for where the project is heading.
 2. The roadmap's **Next** line and its "Where things stand" table, for what is next and what has run.
-3. Before a design opinion: the `design-decisions.md` index, the decision files for the area in full, and
-   `open-questions.md`. Do not treat an open question as decided.
+3. Before a design opinion: the `design-decisions.md` index, the decision files for the area in full,
+   `open-questions.md`, and the index in `docs/dev/archive/README.md`, so a dropped idea is not offered again. Do
+   not treat an open question as decided.
 4. Before reading code, `docs/dev/code-map.md`. Before writing code, `docs/code_style.md`.
 
 ## Where things go
@@ -127,9 +128,9 @@ changes, so the agent keeps docs out of it.
   A file that mixes code and docs counts as code. Comments and docstrings the owner asks for count as docs, even
   inside a code file.
 
-Amend the agent's own last commit when the change finishes or corrects it and it has not been pushed; otherwise
-make a new commit. When in doubt, ask the owner in one line whether to amend. A docs-only session is one commit,
-amended as the session goes, unless the owner says otherwise.
+A new commit is made only when the last one is pushed or is the owner's; otherwise the change is amended into it,
+whatever its subject. Before an amend, `git status -sb` shows whether the branch is ahead. When in doubt, ask the
+owner in one line whether to amend.
 
 ## How to work with the owner
 

@@ -38,7 +38,9 @@ but broke a principle is kept, with a line on why.
 - **A closed investigation** gets a file of its own, named for what it is about.
 - **Dropped ideas** collect in one file, `dropped-ideas.md`, made with the first entry. One entry per idea, by the
   template below.
-- **Every file is listed in the index below,** with the date it was archived and one line on what it holds.
+- **Every file is listed in the index below,** with the date it was archived and one line on what it holds. Each
+  dropped idea gets its own row, with its title, the date it was dropped and one line on why, so the index alone
+  says whether an idea was tried.
 
 An entry is short. It says what the thing was, why it ended, and what would have to change for the verdict to change.
 The last part is not an invitation to revisit: it lets the next reader see whether the ground has moved.
