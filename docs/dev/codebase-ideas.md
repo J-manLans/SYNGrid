@@ -4,6 +4,8 @@ Ideas worth returning to that are not problems to solve now. Half-formed is fine
 
 Decisions stay out: once an idea is decided, it moves to `design-decisions.md` and leaves here, or keeps only what is
 still an idea.
+An idea that is dropped is deleted, or moves to `archive/dropped-ideas.md` when `archive/README.md` says it is
+worth keeping.
 
 ---
 

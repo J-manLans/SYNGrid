@@ -44,7 +44,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | `docs/dev/glossary.md` | What the words mean. Use its terms |
 | `docs/dev/code-map.md` | Where the rebuilt code lives, and the path a run and a step take through it. Read it before reading code |
 | `docs/dev/landscape-changes.md` | Changes that could move what the agent sees or is paid, to check against legacy |
-| `docs/dev/archive/` | Finished work kept on purpose |
+| `docs/dev/archive/` | Closed investigations and dropped ideas worth keeping, with an index in its `README.md` |
 | `docs/code_style.md` | How code is written |
 | `CONTRIBUTING.md`, `README.md` | For people outside: how to contribute, what SYNGrid is |
 
@@ -71,7 +71,7 @@ Read in this order, and do not ask the owner what these already answer:
 | A word is coined | `glossary.md` |
 | A file or folder is added, moved or renamed, or a run's or a step's path changes | `code-map.md`, in the same change |
 | An idea that is not a problem now | `codebase-ideas.md` |
-| Finished work worth keeping | `docs/dev/archive/`, on purpose |
+| An investigation closes, or an idea is dropped, and both would cost to redo | `docs/dev/archive/`, by its `README.md`; otherwise delete it |
 | What was done, and what was run | the commit message |
 
 Each file in `docs/dev/` opens with what it is for and what stays out of it. Read that before adding to it.
