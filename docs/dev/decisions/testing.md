@@ -55,6 +55,46 @@ that no targeted test guards the code. The regression test still runs in every `
 - The probe importing from mutmut's copy under mutmut: the replay tape would count as guarding a rule, though it only
   says that something changed, not which rule broke.
 
+## mutmut forks from a clean server (2026-11-09)
+
+**Decision:** `[tool.mutmut]` sets `process_isolation = "forkserver"`. mutmut starts a server process that imports
+the test setup but runs no test, and forks each mutant's worker from it. The default, `fork`, forks each worker from
+mutmut's main process.
+
+**Why:** Under `fork`, a mutant that no early test kills hangs in the SB3 runner tests, and mutmut reports it as a
+timeout, which it counts as caught. Survivors were hidden as kills.
+
+The cause. Before testing mutants, mutmut runs the targeted suite once in its main process, to time the tests and map
+each function to the tests that reach it. The SB3 tests build a PPO model, and its weight init
+(`torch.nn.init.orthogonal_`) starts torch's CPU thread pool. A fork copies the process's memory, so the child
+inherits the pool's state and its locks, but only the forking thread: the pool's worker threads are not copied. When
+the child reaches an SB3 test, torch hands work to a pool whose workers do not exist and waits on a lock no one will
+release. mutmut's wall-clock timer then sends `SIGXCPU`, and the exit code reads as a timeout.
+
+Why only survivors. mutmut runs, for each mutant, every test that reaches the mutated function, from any test file.
+Every environment builds orbs, droids and a world, so the SB3 tests reach nearly all of `core/`. A killed mutant
+fails on an earlier test and stops; a survivor passes everything before the SB3 tests and hangs in them. `only_mutate`
+narrows which code is mutated, not which tests run, so it does not help.
+
+How it was found, on `core/orbs/orb_meta.py` (2026-11-09, mutmut 3.8.1, Python 3.12, torch on CPU): under `fork` the
+run had not finished after ten minutes. The workers sat at 0 seconds of CPU, one thread each, waiting on a futex, and
+`py-spy dump` showed them in `orthogonal_` under `PPO.__init__` in
+`tests/unit/runners/agent_runners/sb3/test_sb3_runner.py`. Under `forkserver`, after `rm -rf mutants`, the same file
+ran 49 mutants in about 70 seconds: 22 killed, 27 survived, no timeouts. The stats file's map from each function to
+its tests was full in both runs.
+
+The problem is known outside the repo: forking a process after torch, OpenMP or BLAS have started their thread pools
+deadlocks the child, and the usual fix is to fork from a clean process (`forkserver` or `spawn`). mutmut's own
+configuration names torch among the libraries `forkserver` is for.
+
+**Rejected:**
+
+- `fork` with torch limited to one thread (`OMP_NUM_THREADS=1` or `torch.set_num_threads(1)` in a conftest): it
+  depends on torch never starting a pool by another path, and it changes the threads the runner tests see.
+- Leaving the SB3 tests out of mutmut's test selection: the runner code they guard would lose its mutation check.
+
+**Revisit if:** mutmut changes how it isolates workers, or the SB3 tests stop building torch models.
+
 ## Hypothesis checks the world's invariants, and CI runs only pytest and ruff (2026-11-07)
 
 **Decision:** Hypothesis is in the `dev` extras, at 6.170.15, for property-based tests of the rules that hold for any

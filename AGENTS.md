@@ -215,7 +215,11 @@ Traps:
 - mutmut does not mutate a decorated method: one marked `@override`, which most strategy methods are, or a pydantic
   validator. A clean mutmut run says nothing about them. Break each one in a touched file by hand, run the tests,
   restore it, and say in the report which were checked that way.
-- After a change to `[tool.mutmut]`, `rm -rf mutants` before the next run, or mutmut keeps the old copy.
+- After a change to `[tool.mutmut]`, `rm -rf mutants` before the next run, or mutmut keeps the old copy and its old
+  verdicts.
+- mutmut runs with `process_isolation = "forkserver"`. Under the default `fork`, the SB3 tests hang on torch's thread
+  pool and every survivor that reaches them shows as a timeout, which mutmut counts as caught. A timeout is read as
+  a suspect, not a kill. Why: "mutmut forks from a clean server" in `docs/dev/design-decisions.md`.
 - After restoring a file broken by hand, delete its `__pycache__`. A restore of the same size in the same second
   leaves Python running the broken bytecode.
 - A test that builds a runner works in `tmp_path` with `monkeypatch.chdir`, so its `output/` lands there.
