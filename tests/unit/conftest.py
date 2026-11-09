@@ -1,4 +1,4 @@
-"""What the core tests share: letting steps of the world pass for a timer."""
+"""What the unit tests share: letting steps of the world pass for a timer."""
 
 from collections.abc import Callable
 

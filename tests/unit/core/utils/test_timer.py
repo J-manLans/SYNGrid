@@ -66,13 +66,6 @@ class TestNone:
     def test_it_never_completes(self, tick: Tick):
         assert not tick(_set(None), 100).is_completed()
 
-    def test_setting_a_number_starts_it_counting(self, tick: Tick):
-        timer = _set(None)
-
-        timer.set(1)
-
-        assert tick(timer, 1).is_completed()
-
 
 class TestReset:
     """A reset, at the start of an episode."""

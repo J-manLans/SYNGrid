@@ -264,12 +264,13 @@ def _negative_bundle(negative_conf: NegOrbConf, life_span: int) -> OrbBundle:
     """
     The negative orb and its digester, for a config whose negative orb is enabled.
 
-    A single tier chain scenario holds one negative orb. It spawns, despawns at the end of
-    `life_span` and returns elsewhere after its cool-down.
+    A single tier chain scenario holds one negative orb, and how many is not config. It spawns,
+    despawns at the end of `life_span` and returns elsewhere after its cool-down.
     """
 
     return OrbBundle(
         population=NegPopulation(
+            orbs=1,
             reward=negative_conf.reward,
             cool_down=negative_conf.cool_down,
             life_span=life_span,

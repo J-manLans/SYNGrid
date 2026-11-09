@@ -109,7 +109,8 @@ value per orb, not a class attribute shared by every env in the process.
 
 `weight` belongs to a kind's block only in a sampled family, through a weighted version of the block. `NegOrbConf` is
 `enabled`, `reward` and `cool_down`. A tier chain with an enabled negative block holds exactly one negative orb; the
-count is not config.
+count is not config. The one is the tier chain's choice, made in its builder: `NegPopulation` makes as many orbs as
+it is told, at least 1, so a later family can hold several without a second negative population (2026-11-09).
 
 Every population states how many orbs it makes, through `count`. A fixed field sums its bundles' counts for the field
 size, the observation slots and the sort limit. In a sampled field the field size comes from the config, the counts

@@ -1,7 +1,9 @@
 """How the single tier chain family composes a scenario: its tag, tier chain, metrics, negative orb and watcher."""
 
+from collections.abc import Callable
 from typing import Any
 
+import numpy as np
 import pytest
 import yaml
 
@@ -11,6 +13,7 @@ from syn_grid.core.droid.digestion.digesters.tier_chain.tier_digester import (
     TierDigester,
 )
 from syn_grid.core.orbs.orb_meta import DirectKind, SynergyKind
+from syn_grid.core.utils.timer import Timer
 from syn_grid.scenario.blocks.orb_bundle import OrbBundle
 from syn_grid.scenario.blocks.populations.neg_population import NegPopulation
 from syn_grid.scenario.blocks.recipes.world_recipe import WorldRecipe
@@ -20,6 +23,14 @@ from syn_grid.scenario.families.goal.single_tier_chain.watcher import (
 )
 from syn_grid.scenario.registry import SCENARIOS
 from syn_grid.scenario.scenario import Scenario
+
+# ================= #
+#     Constants     #
+# ================= #
+
+
+type Tick = Callable[[Timer, int], Timer]
+
 
 # ================= #
 #      Helpers      #
@@ -117,13 +128,42 @@ class TestTierChain:
         assert top.META.TIER == conf.world_conf.tier_orb_conf.max_tier
         assert digester.chains_completed == 1
 
+    def test_the_field_starts_with_every_orb_on_it(self):
+        # With the negative orb on, so the field holds both bundles' orbs
+        scenario = _scenario(
+            ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL, negative_orb=True
+        )
+        world = scenario.build_world()
+
+        world.reset(np.random.default_rng(0))
+
+        assert len(world.orbs_on_field()) == len(world.ALL_ORBS)
+
+    def test_its_orbs_never_expire_and_once_eaten_never_come_back(self, tick: Tick):
+        # An episode lasts at most max_steps, so no orb meets more steps than that
+        name = ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL
+        conf = _conf(name)
+        world = SCENARIOS[name].build(name.value, conf).build_world()
+        world.reset(np.random.default_rng(0))
+        tier_orbs = [o for o in world.ALL_ORBS if o.META.KIND == SynergyKind.TIER]
+        whole_episode = conf.world_conf.max_steps
+
+        for orb in tier_orbs:
+            tick(orb.TIMER, whole_episode)
+            assert orb.is_active and not orb.has_expired()
+
+            orb.consume()
+            tick(orb.TIMER, whole_episode)
+            assert not orb.is_ready()
+
 
 class TestMetrics:
     """What a scenario reports at the end of an episode, each number from what counts it."""
 
     def test_each_metric_reads_its_own_count(self):
-        # Spatial's chain tops out at tier 3. Each count ends on a different number, so two
-        # metrics that read each other's count fail too.
+        # One episode spatial can play: its chain tops out at tier 3, which ends the episode, and the
+        # negative orb returns after its cool-down, so it can be eaten more than once. Each count
+        # ends on a different number, so two metrics that read each other's count fail too.
         scenario = _scenario(
             ScenarioName.GOAL_SINGLE_TIER_CHAIN_SPATIAL, negative_orb=True
         )
@@ -139,17 +179,18 @@ class TestMetrics:
             orb for orb in world.ALL_ORBS if orb.META.KIND == DirectKind.NEGATIVE
         )
 
-        # Tiers 1 and 2 progress and 3 completes; then each tier 2 breaks, as no chain runs
-        for tier in (1, 2, 3, 2, 2, 2):
-            tiers.digest(tier_orb[tier])
-        for _ in range(4):
-            negatives.digest(negative_orb)
+        tiers.digest(tier_orb[1])
+        negatives.digest(negative_orb)
+        tiers.digest(tier_orb[2])
+        negatives.digest(negative_orb)
+        negatives.digest(negative_orb)
+        tiers.digest(tier_orb[3])
 
         assert {metric.name: metric.read(world) for metric in scenario.metrics} == {
             "chain_progresses": 2,
             "chains_completed": 1,
-            "chains_broken": 3,
-            "negatives_eaten": 4,
+            "chains_broken": 0,
+            "negatives_eaten": 3,
         }
 
 
@@ -167,6 +208,7 @@ class TestNegativeOrb:
         assert isinstance(recipe, WorldRecipe)
         assert recipe.orb_bundles[-1] == OrbBundle(
             population=NegPopulation(
+                orbs=1,
                 reward=negative.reward,
                 cool_down=negative.cool_down,
                 life_span=(grid.grid_rows - 1) + (grid.grid_cols - 1),

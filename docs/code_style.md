@@ -158,6 +158,9 @@ For the helpers section, provide subheadings indicating what section the helpers
   baseline in `tests/regression/baselines/` recorded it. A locked scenario without a baseline fails.
 - Inside a file, one class per method or behaviour under test, named `Test<Thing>`, with a one-line docstring.
   Fixtures and helpers stay at module level, so every class in the file can use them.
+- **A test plays what the code would really see,** values and sequences the world can produce, even when a shortcut
+  would be a few lines shorter. An orb that expires is removed, not eaten; a lifespan is one a grid can give. A step
+  the world never takes raises more questions than it saves.
 - A value that a test puts in and expects back unchanged, such as an orb's reward or a penalty, is a constant, so
   the two cannot drift. A value the code works out, such as a chain's worth, is written out in the test as the
   worked example it is, not computed with the code's own formula.
@@ -165,7 +168,7 @@ For the helpers section, provide subheadings indicating what section the helpers
   person edits to train. Editing a run to train must not turn the suite red.
 - **Setup that tests share is written once,** as the rest of the code is. A world, a config or a helper that several
   tests build is a shared fixture or helper, not a copy in each. The tier-chain digester tests share their orbs and
-  a way to eat them through one `conftest.py`, the core tests share `tick` through theirs, and tests build a locked
+  a way to eat them through one `conftest.py`, the unit tests share `tick` through theirs, and tests build a locked
   scenario's config from its `ScenarioEntry.base_conf`. A helper that can go in a `conftest.py` and is used often
   enough goes there, as a fixture, even across folders; how often is enough is the agent's judgment. Setup used by
   one or two tests of one file stays in that file.
