@@ -1,8 +1,7 @@
-"""How config files are found, loaded, validated and snapshotted.
+"""How config files are found, loaded and validated.
 
 The tests read the real run YAMLs only for what does not depend on their contents, so editing a run
-to train cannot turn them red: that a file exists, that it parses, and that it is copied byte for
-byte.
+to train cannot turn them red: that a file exists and that it parses.
 """
 
 from pathlib import Path
@@ -84,31 +83,3 @@ class TestLoad:
     def test_a_missing_file_is_refused_with_its_path(self):
         with pytest.raises(FileNotFoundError, match="no_such_config.yaml"):
             ConfigManager().load_raw("no_such_config.yaml")
-
-
-class TestSaveSnapshot:
-    """A copy of a run's config, saved with the run."""
-
-    def test_each_run_copies_the_file_byte_for_byte_into_the_saved_configs_folder(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        monkeypatch.chdir(tmp_path)
-
-        # Two runs, so the second saves into a folder the first already made
-        ConfigManager().save_snapshot(GLOBAL, "first_run")
-        ConfigManager().save_snapshot(GLOBAL, "second_run")
-
-        saved = tmp_path / "output" / "saved_configs"
-        original = _real_yaml(GLOBAL).read_bytes()
-        for run in ("first_run", "second_run"):
-            assert (saved / f"{run}.yaml").read_bytes() == original
-
-    def test_a_missing_file_is_refused_and_nothing_is_saved(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        monkeypatch.chdir(tmp_path)
-
-        with pytest.raises(FileNotFoundError):
-            ConfigManager().save_snapshot("no_such_config.yaml", "a_run")
-
-        assert not (tmp_path / "output" / "saved_configs" / "a_run.yaml").exists()

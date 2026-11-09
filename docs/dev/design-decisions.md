@@ -125,6 +125,7 @@ The rules most decisions below follow.
 - The renderer takes plain values, and the HUD is the scenario's list (2026-10-21)
 - Runners own the window's input, the renderer draws, and the env closes the window (2026-10-25)
 - A run that continues another gets its own id, and records its parent (2026-11-04)
+- No config snapshot until the GUI builds one (2026-11-09)
 
 ### Project: [`decisions/project.md`](decisions/project.md)
 

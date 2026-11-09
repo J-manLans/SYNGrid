@@ -66,12 +66,11 @@ algorithm class says); perceptions named after SB3's policies (SB3's wording wou
 ## Human play is not an agent runner (2026-10-13)
 
 **Decision:** `HumanRunner` is a plain class with `play()`. With `human_control` set, `app.main` runs it and returns
-before an agent runner is built. Human control overrides the snapshot and the runner config, with no check.
+before an agent runner is built. Human control overrides the runner config, with no check.
 
 **Why:** Human or agent is a choice about the whole run, made once, in `main`.
 
-**Rejected:** `HumanRunner` as a `BaseAgentRunner` with a `train()` that raises (it inherited what it could not use);
-rejecting `human_control` with a snapshot on (a human run is for trying something, and should start without edits).
+**Rejected:** `HumanRunner` as a `BaseAgentRunner` with a `train()` that raises (it inherited what it could not use).
 
 ## The renderer takes plain values, and the HUD is the scenario's list (2026-10-21)
 
@@ -132,3 +131,18 @@ by hand and typing its step count into `agent_steps`. A model that went through 
 the same name as one trained from scratch on 7x7, and only a tag remembered by hand told them apart.
 
 **Rejected:** extending the parent's id and folder (the id would name the first stage's grid, not the one trained on).
+
+## No config snapshot until the GUI builds one (2026-11-09)
+
+**Decision:** SYNGrid saves no copy of a run's config. The `snapshot` block in `global_config.yaml`,
+`SnapshotConf` and `ConfigManager.save_snapshot` are gone, and `app.dispatch` only trains or evaluates.
+
+**Why:** The snapshot copied the run's YAML byte for byte, which for a locked scenario is only the tunables, and it
+required an id that nothing read. The GUI's scenario builder is expected to need something different, and will build
+it then. Until then, a base config edit is committed before training on it, so a run's values can be looked up in git
+by its date.
+
+**Rejected:** fixing the snapshot now, to save the merged full config or the tunables beside their base config's
+name: work the GUI is expected to replace.
+
+**Revisit if:** runs need their config saved before the GUI exists.

@@ -161,8 +161,7 @@ Outside it: `scripts/replay/` (probe, diff, sweep), `scripts/runner_probe.py` (f
    termination, the HUD, the metrics, the watcher and a `WorldRecipe`. The entries differ in their scoring mode, tag
    function and watcher.
 4. `human_control` sends it to `HumanRunner`. Otherwise `runner_registry.build_runner` calls the algorithm's entry
-   in `RUNNER`, an `SB3Spec` that makes `SB3Runner`, and `app.dispatch` snapshots the config, trains or
-   evaluates.
+   in `RUNNER`, an `SB3Spec` that makes `SB3Runner`, and `app.dispatch` trains or evaluates.
 5. The runner makes environments with `env_factory.make(scenario, render_mode)`. `sb3_runner._make_env` wraps
    each in `RecordEpisodeStatistics`, the CSV logger and video as configured, then `DummyVecEnv` and `VecNormalize`,
    and `VecFrameStack` if the spec stacks frames. `policy_resolver` maps the perception name's prefix to the SB3 policy.

@@ -2,9 +2,6 @@
 #
 # `scenario` names the scenario to run; its tunables live in the YAML file of
 # the same name in `scenarios/`. `human_control` plays the scenario by hand and overrides
-# everything else: the snapshot and the runner config are ignored.
-snapshot:
-  enabled: false
-  id:
+# everything else: the runner config is ignored.
 scenario: goal_single_tier_chain_delay
 human_control: false

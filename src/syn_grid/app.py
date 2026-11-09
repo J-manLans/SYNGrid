@@ -20,14 +20,14 @@ def main() -> None:
 
     scenario = build_scenario(global_conf.scenario, scenario_conf)
 
-    # Human control overrides everything else: no snapshot, training or eval.
+    # Human control overrides everything else: no training or eval.
     if global_conf.human_control:
         HumanRunner(scenario).play()
         return
 
     runner = build_runner(scenario, runner_conf)
 
-    dispatch(runner, config_manager, runner_conf, global_conf)
+    dispatch(runner, runner_conf)
 
 
 # ================= #
@@ -58,32 +58,14 @@ def load_experiment_configs(
     return (global_conf, scenario_conf, runner_conf)
 
 
-def dispatch(
-    runner: BaseAgentRunner,
-    config_manager: ConfigManager,
-    runner_conf: RunnerConf,
-    global_conf: GlobalConf,
-) -> None:
+def dispatch(runner: BaseAgentRunner, runner_conf: RunnerConf) -> None:
     """
     Run an agent runner according to the loaded experiment configuration.
 
-    Handles the snapshot, training, and evaluation modes.
-
     Args:
         runner: The agent runner to dispatch to (train or eval).
-        config_manager: Used to save a config snapshot if enabled.
         runner_conf: The runner configuration, read for whether to train or evaluate.
-        global_conf: The global configuration, read for the snapshot
-            setting and the scenario's name.
     """
-
-    if global_conf.snapshot.enabled:
-        config_manager.save_snapshot(
-            config_manager.scenario_config_path(global_conf.scenario),
-            runner.get_unique_model_id(),
-        )
-        print("Config snapshot saved. Exiting.")
-        return
 
     if runner_conf.common_conf.training:
         runner.train()
