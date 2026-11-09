@@ -32,7 +32,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "syn-grid"
-version = "0.4.0"
+version = "0.5.0"
 license = {file = "LICENSE"}
 description = "A configurable benchmark framework for temporal credit assignment in reinforcement learning"
 readme = "README.md"
@@ -40,7 +40,7 @@ authors = [
     {name = "Joel Lansgren", email = "jola2311@student.miun.se"},
     {name = "Lauri Bernstéen", email = "labe2301@student.miun.se"}
 ]
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "gymnasium>=1.2",
     "stable-baselines3>=2.7.1",
@@ -49,18 +49,23 @@ dependencies = [
     "numpy>=2.2",
     "pygame>=2.6",
     "PyYAML>=6.0",
-    "pydantic>=2.12.5"
+    "pydantic>=2.12",
+    "moviepy>=2.2"
 ]
 
 [project.optional-dependencies]
 # Used for users who wants the extra functionalities but don't need the [dev] setup.
 extra = [
-    "matplotlib>=3.10"
+    "matplotlib>=3.10",
+    "pandas>=2.3"
 ]
 
 dev = [
     "pytest>=9.0.2",
-    "black>=26.1" # For automatic code formatting. Usage: black path/to/file.py or black src/syn_grid for the whole module
+    "coverage>=7.17.2", # Which lines and branches the tests run. `coverage run -m pytest` to run, and `coverage report -m` to see results
+    "mutmut>=3.8.1", # Mutation testing: whether a test goes red when the code it guards is broken. `mutmut run` to run and `mutmut browse` to see results
+    "hypothesis>=6.170.15", # Property-based tests: a rule checked over many generated inputs, shrunk to the smallest that fails
+    "ruff>=0.16" # For linting and removing unused imports. Formatting: ruff format path/to/file.py or ruff format path/to/package, removing unused imports: ruff check --select F401 --fix src/syn_grid
 ]
 
 [tool.setuptools.packages.find]
@@ -71,4 +76,48 @@ where = ["src"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-"syn_grid" = ["assets/**/*"]
+"syn_grid" = ["assets/**/*", "**/*.yaml"]
+
+[tool.ruff]
+# The legacy strain is a frozen copy and is never edited, formatting included.
+extend-exclude = ["src/syn_grid/legacy"]
+# Also when a file is named directly, as an editor does on save.
+force-exclude = true
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.coverage.run]
+branch = true
+source = ["syn_grid"]
+# The legacy strain is a frozen copy, and no test reaches it. The __init__.py files hold no code to measure.
+omit = ["*/syn_grid/legacy/*", "*/__init__.py"]
+# The regression test runs the replay probe as a subprocess, and its lines count too.
+patch = ["subprocess"]
+# Which tests ran each line, shown by `coverage html --show-contexts`.
+dynamic_context = "test_function"
+
+[tool.coverage.report]
+# A backstop against a dropped test file or a sizeable untested addition, three points under the total when phase
+# 6b closed (88%), to leave room for the observation and render rebuild. Raised once phases 7 and 8 are done; see
+# "CI fails below a coverage floor of 85%" in docs/dev/decisions/testing.md.
+fail_under = 85
+
+[tool.pyright]
+# The legacy strain is a frozen copy and is never edited. Setting exclude replaces pyright's defaults, so they are
+# listed again.
+exclude = ["src/syn_grid/legacy", "**/node_modules", "**/__pycache__", "**/.*"]
+# A method that replaces a parent's must say so with @override; see docs/code_style.md.
+reportImplicitOverride = "warning"
+
+[tool.mutmut]
+source_paths = ["src/syn_grid"]
+# The targeted tests only: the regression test's probe runs on src/ and never sees a mutant.
+pytest_add_cli_args_test_selection = ["tests/unit", "tests/integration"]
+# The legacy strain is a frozen copy, and no test reaches it. The __init__.py files hold no code to mutate.
+do_not_mutate = ["*/legacy/*", "*/__init__.py"]
+# Fork each mutant from a clean server, not from mutmut's main process. The main process has run the suite once,
+# and torch's thread pool with it; a fork keeps the pool's locks but not its threads, so the SB3 tests hang and a
+# surviving mutant shows as a timeout, which mutmut scores as caught. See "mutmut forks from a clean server" in
+# docs/dev/decisions/testing.md.
+process_isolation = "forkserver"

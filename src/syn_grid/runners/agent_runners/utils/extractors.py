@@ -1,8 +1,9 @@
+from typing import Any, override
+
 import torch as th
-import torch.nn as nn
 from gymnasium import spaces
-from typing import Any
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from torch import nn
 
 # TODO: look over these. TinyGridCNN works and can train CnnPolicy, but I haven't checked the logic
 # yet. GroupedMetaExtractor is for learning the agent to process a dict in its logically structured
@@ -53,6 +54,7 @@ class GroupedMetaExtractor(BaseFeaturesExtractor):
         total_concat_size = 32 + 32 + 64  # droid + orb + world features
         self._features_dim = total_concat_size
 
+    @override
     def forward(self, observations: th.Tensor) -> th.Tensor:
         # observations is a dictionary of tensors
         droid_features = self.droid_net(observations["droid_meta"])
@@ -98,6 +100,7 @@ class TinyGridCNN(BaseFeaturesExtractor):
             nn.ReLU(),
         )
 
+    @override
     def forward(self, observations):
         # Convert from channels-last (H, W, C) to channels-first (C, H, W)
         x = observations.permute(0, 3, 1, 2)

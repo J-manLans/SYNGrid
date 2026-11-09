@@ -1,0 +1,61 @@
+name: CI
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    validate:
+        runs-on: ubuntu-latest
+
+        env:
+            # Tests construct render_mode="human" environments.
+            # Use SDL's dummy video driver because CI has no display.
+            SDL_VIDEODRIVER: dummy
+            # CI runners have no audio device.
+            SDL_AUDIODRIVER: dummy
+            # The coverage floor is checked where branches meet main: a pull request into it, or a push to it.
+            CHECK_COVERAGE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'main') || github.ref == 'refs/heads/main' }}
+
+        steps:
+            # =========== #
+            #    Setup    #
+            # =========== #
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Set up Python
+              uses: actions/setup-python@v7
+              with:
+                python-version: "3.12"
+                cache: "pip"
+
+            - name: Install dependencies
+              run: pip install -e ".[dev]"
+
+            # =========== #
+            #    Tests    #
+            # =========== #
+            # Every push runs the tests. A pull request into main, or a push to main, runs them under coverage
+            # instead, which runs every test the same way and records which lines ran, and then checks the floor
+            # in pyproject.toml
+            - name: Run tests
+              if: env.CHECK_COVERAGE != 'true'
+              run: pytest
+
+            - name: Run tests under coverage
+              if: env.CHECK_COVERAGE == 'true'
+              run: coverage run -m pytest
+
+            - name: Check the coverage floor
+              if: env.CHECK_COVERAGE == 'true'
+              run: coverage report
+
+            # =========== #
+            #    Linter   #
+            # =========== #
+            - name: Check lint
+              run: ruff check src/syn_grid tests
+
+            - name: Check formatting
+              run: ruff format --check src/syn_grid tests

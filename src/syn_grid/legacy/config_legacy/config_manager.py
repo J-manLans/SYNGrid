@@ -1,0 +1,59 @@
+from typing import TypeVar
+
+import yaml
+from pydantic import BaseModel
+
+from syn_grid.legacy.utils_legacy.paths_util import get_project_path, get_syn_grid_path
+
+T = TypeVar("T", bound=BaseModel)
+
+# TODO: this one probably also needs some restructuring, especially since the goal is to move
+# towards a GUI, but I will do that job whenever I cross that river.
+
+
+class ConfigManager:
+    # ================= #
+    #       Init        #
+    # ================= #
+
+    def __init__(self, config_file: str):
+        self.yaml_path = get_syn_grid_path("config_legacy", config_file)
+        self.save_conf_path = get_project_path("output", "saved_configs")
+        if not self.yaml_path.exists():
+            raise FileNotFoundError(f"Config file not found: {self.yaml_path}")
+
+    # ================= #
+    #       API        #
+    # ================= #
+
+    def load_config(self, model_class: type[T]) -> T:
+        """
+        Load a YAML file into a Pydantic model instance.
+
+        This method reads the YAML file specified in `self.yaml_path` and
+        parses it into an instance of the given Pydantic model class.
+
+        Args:
+            model_class: A subclass of `BaseModel` that the YAML data will be parsed into.
+        Returns:
+            An instance of `model_class` populated with data from the YAML file.
+        """
+
+        with self.yaml_path.open("r") as f:
+            raw = yaml.safe_load(f)
+
+        return model_class(**raw)
+
+    def save_snapshot(self, save_conf_id: str) -> None:
+        """
+        Save a timestamped snapshot of the config file to the saved_configs folder.
+
+        Args:
+            save_conf_id: Identifier used as prefix in the snapshot filename.
+        """
+
+        self.save_conf_path.mkdir(parents=True, exist_ok=True)
+
+        snapshot_file = self.save_conf_path / f"{save_conf_id}.yaml"
+
+        snapshot_file.write_bytes(self.yaml_path.read_bytes())

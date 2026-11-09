@@ -1,0 +1,20 @@
+{
+  "label": "goal_single_tier_chain_spatial",
+  "scenario": "goal_single_tier_chain_spatial",
+  "source": "base config",
+  "commit": "7b31caa",
+  "syn_grid_path": "/home/joel/Documents/programming/python/SYNGrid_benchmark/SYNGrid/src/syn_grid",
+  "config_digest": "bac8d1d6d012735e",
+  "episodes": 200,
+  "steps": 5345,
+  "obs_dim": 14,
+  "distinct_obs": 527,
+  "reward_sum": -829.6171476933017,
+  "terminated": 200,
+  "truncated": 0,
+  "reached_max_steps": 14,
+  "mean_ep_len": 26.725,
+  "obs_digest": "285a2177c36566fc",
+  "reward_digest": "c2e7eef9c27c7b61",
+  "stream_digest": "26be49a9cae3ffd4"
+}

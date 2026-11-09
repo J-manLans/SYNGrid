@@ -1,48 +1,47 @@
+from typing import Any, Final
+
+from gymnasium import spaces
+
+from syn_grid.config.models.scenario.common_models import Perception
+from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
 from syn_grid.gymnasium.observation_space.perceptions.vector import (
-    VectorMarkovianEasy,
-    VectorMarkovian,
     VectorFogOfWar,
+    VectorMarkovian,
 )
-from syn_grid.gymnasium.observation_space.perceptions.composite import (
-    CompositeMarkovian,
-    CompositeFullyPOMDP,
-    CompositeGridMarkovian,
-)
-from syn_grid.gymnasium.observation_space.perceptions.spatial import (
-    GridPixel,
-)
-from syn_grid.config.models import ObsConfig
-from syn_grid.core.grid_world import GridWorld
+from syn_grid.scenario.blocks.observation import ObservationRules
 
-from gymnasium import spaces
-from typing import Final, Type, Any
-
-PERCEPTIONS = {
-    "vector_markovian_easy": VectorMarkovianEasy,
-    "vector_markovian": VectorMarkovian,
-    "vector_fog_of_war": VectorFogOfWar,
-    "composite_markovian": CompositeMarkovian,
-    "composite_fully_pomdp": CompositeFullyPOMDP,
-    "composite_grid_markovian": CompositeGridMarkovian,
-    "grid_pixel": GridPixel,
+# TODO(phase 7): the perceptions outside the `Perception` enum are rewritten from their copies in
+# `legacy/` in the observation pass: VectorMarkovianEasy, CompositeMarkovian, CompositeFullyPOMDP,
+# CompositeGridMarkovian and GridPixel.
+PERCEPTIONS: Final[dict[Perception, type[BasePerception]]] = {
+    Perception.VECTOR_FOG_OF_WAR: VectorFogOfWar,
+    Perception.VECTOR_MARKOVIAN: VectorMarkovian,
 }
 
 
 class ObservationHandler:
+    """Turns the world into the agent's observation, through the perception the scenario names.
+
+    Attributes:
+        perception: the perception that encodes the world, picked from ``PERCEPTIONS``.
+    """
+
     # ================= #
     #       Init        #
     # ================= #
 
-    def __init__(self, conf: ObsConfig, orbs: int, max_identity: int) -> None:
-        self._max_steps: Final[int] = conf.observation_handler.max_steps
-        perception_type: Type[BasePerception] = PERCEPTIONS[
-            conf.observation_handler.perception
-        ]
+    def __init__(
+        self,
+        observation: ObservationRules,
+        grid_dimensions: tuple[int, int],
+        max_identity: int,
+    ) -> None:
+        perception_type: type[BasePerception] = PERCEPTIONS[observation.perception]
         self.perception: Final[BasePerception] = perception_type(
-            conf.perception, orbs, max_identity
+            observation, grid_dimensions, max_identity
         )
 
     # ================= #
@@ -53,8 +52,12 @@ class ObservationHandler:
         return self.perception.setup_obs_space()
 
     def reset(self) -> None:
-        self.steps_left: int = self._max_steps
         self.perception.reset()
 
     def get_observation(self, state: GridWorld) -> Any:
-        return self.perception.get_observation(state, self.steps_left)
+        """The perception's encoding of the world, as an array of its own.
+
+        The perception refills one buffer every step, so the handler returns a copy: an observation
+        a caller keeps does not change with the next step.
+        """
+        return self.perception.get_observation(state).copy()

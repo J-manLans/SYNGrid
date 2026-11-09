@@ -1,0 +1,36 @@
+# SYNGrid runner config: how an agent is trained and evaluated.
+#
+# The scenario is selected in global_config.yaml and configured in its own
+# file.
+
+common_conf:
+  alg: PPO
+  agent_steps: '8001536'
+  seed: 3
+  training: true
+  # Optional. Joined onto the scenario's tag in the run id; set it when you
+  # change something outside the scenario's own axis.
+  tag: chain_break_terminates_orb_penalty_0.5
+  # Steps shown per second: paces training and eval in human mode, and recorded videos'
+  # playback.
+  fps: 8
+
+train_conf:
+  continue_training: false
+  csv_output: false
+  tensorboard_output: true
+  model_output: true
+  n_envs: 16
+  timesteps: 8000000
+  iterations: 1
+  render_mode: null
+  record_video: false
+  rec_interval: 100000
+  rec_length: 100
+
+eval_conf:
+  num_eval_episodes: 300
+  render_mode: 'human'
+  record_video: false
+  rec_episode: 100
+  csv_output: false

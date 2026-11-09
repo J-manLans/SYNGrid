@@ -1,0 +1,190 @@
+from abc import ABC, abstractmethod
+from pathlib import Path
+
+from gymnasium import Env
+from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo
+
+from syn_grid.legacy.gymnasium_legacy.utils.env_factory import make
+from syn_grid.legacy.gymnasium_legacy.utils.episode_logging.csv_episode_logger import (
+    CSVEpisodeLogger,
+)
+from syn_grid.legacy.runners_legacy.agent_runners.agent_bundle import AgentBundle
+from syn_grid.legacy.utils_legacy.date_utils import get_date
+from syn_grid.legacy.utils_legacy.paths_util import get_project_path
+
+
+class BaseAgentRunner(ABC):
+    # ================= #
+    #       Init        #
+    # ================= #
+
+    def __init__(self, agent_bundle: AgentBundle):
+        self._agent_conf = agent_bundle.agent_conf.global_agent_conf
+        self._train_conf = agent_bundle.agent_conf.train_agent_conf
+        self._eval_conf = agent_bundle.agent_conf.eval_agent_conf
+        self._obs_conf = agent_bundle.obs_conf
+        self._world_conf = agent_bundle.world_conf
+        # Get current date and time to us as id for unique file naming
+        self._date = get_date()
+
+        self._init_output_directories()
+        self._set_models_base_id()
+
+    # ================= #
+    #  Abstract methods #
+    # ================= #
+
+    @abstractmethod
+    def train(self) -> None: ...
+
+    @abstractmethod
+    def eval(self) -> None: ...
+
+    # ================= #
+    #         API       #
+    # ================= #
+
+    def get_unique_model_id(self) -> str:
+        """Return the model ID, with a timestamp to uniquely identify each run."""
+        return f"{self._id}_{self._date}"
+
+    # ================= #
+    #      Helpers      #
+    # ================= #
+
+    # === Setup === #
+
+    def _init_output_directories(self) -> None:
+        """
+        Create and store paths for model checkpoints and TensorBoard logs.
+
+        Uses the save_folder config value if provided, otherwise saves directly
+        under the default 'models' directory.
+        """
+
+        model_dir = get_project_path("output", "models")
+        log_dir = get_project_path("output", "results", "logs")
+
+        save_folder = self._agent_conf.save_folder
+        if save_folder:
+            model_dir /= save_folder
+            log_dir /= save_folder
+
+        self._model_dir = model_dir
+        self._log_dir = log_dir
+
+        self._model_dir.mkdir(parents=True, exist_ok=True)
+        self._log_dir.mkdir(parents=True, exist_ok=True)
+
+    def _set_models_base_id(self) -> None:
+        perception = self._obs_conf.observation_handler.perception
+        tier = self._world_conf.orb_factory_conf.types.tier.enabled
+        negative = self._world_conf.orb_factory_conf.types.negative.enabled
+
+        tag = (
+            f"TAG_{self._agent_conf.id_tag}_seed{self._agent_conf.seed}_"
+            if self._agent_conf.id_tag
+            else ""
+        )
+        tier_suffix = "" if tier else "_NoTier"
+        negative_suffix = "_Neg" if negative else ""
+        # The glob this feeds must not match a checkpoint trained on a different grid — the observation vector is a fixed length at every grid size.
+        grid = self._world_conf.grid_world_conf
+        grid_suffix = f"_{grid.grid_rows}x{grid.grid_cols}"
+
+        self._id = (
+            f"{perception}{grid_suffix}{tier_suffix}{negative_suffix}"
+            f"__{tag}{self._agent_conf.alg}"
+        )
+
+    # === Env factory === #
+
+    def _make_raw_env(self, render_mode: str | None) -> Env:
+        return make(render_mode, self._world_conf, self._obs_conf)
+
+    # === Wrappers === #
+
+    # --- Logger ---#
+
+    def _wrap_record_episode_statistics(self, env: Env) -> Env:
+        """
+        Wrap the environment with Gymnasium's episode statistics wrapper. It records episode reward, length, and elapsed time.
+        """
+
+        return RecordEpisodeStatistics(env)
+
+    def _wrap_episode_csv_logger(self, env: Env, sub_dir: str, env_idx: int = 0) -> Env:
+        """
+        Log standard and SYNGrid episode statistics to CSV.
+
+        Expects the environment to provide episode statistics through
+        ``RecordEpisodeStatistics``.
+
+        Args:
+            env: Environment to wrap.
+            sub_dir: Sub-directory (under the run's log dir) to write the CSV into.
+            env_idx: Index of this environment among parallel environments, if
+                running more than one. Appended to the filename so each parallel
+                environment writes to its own file instead of colliding on one.
+                Defaults to 0, which is all a single-environment runner needs.
+        """
+
+        return CSVEpisodeLogger(
+            env, self._log_dir / sub_dir, self.get_unique_model_id(), env_idx
+        )
+
+    # --- Video recording ---#
+
+    def _maybe_wrap_video(self, env: Env) -> Env:
+        # Training video
+        if self._agent_conf.training and self._train_conf.record_video:
+            local_interval = max(
+                1, self._train_conf.rec_interval // self._train_conf.n_envs
+            )
+
+            return self._rec_video_wrapper(
+                env,
+                step_trigger=lambda t: t % local_interval == 0,
+                video_length=self._train_conf.rec_length,
+            )
+        # Evaluation video
+        elif not self._agent_conf.training and self._eval_conf.record_video:
+            return self._rec_video_wrapper(
+                env,
+                episode_trigger=lambda t: t == self._eval_conf.rec_episode,
+            )
+
+        return env
+
+    def _rec_video_wrapper(self, env: Env, **trigger) -> RecordVideo:
+        video_output = (
+            get_project_path("output", "results", "videos") / self.get_unique_model_id()
+        )
+
+        return RecordVideo(
+            env,
+            str(video_output),
+            **trigger,
+        )
+
+    # === Persistence === #
+
+    def _find_latest_saved_path(self, dir: Path) -> Path:
+        """
+        Find the most recently modified saved file matching the configured agent steps and ID
+        """
+
+        if self._agent_conf.agent_steps == "":
+            raise ValueError("You forgot to specify the models steps")
+
+        file_name = f"{self._agent_conf.agent_steps}_{self._id}*"
+
+        matches = list(dir.glob(file_name))
+        if not matches:
+            raise FileNotFoundError(
+                f"\nNo model found for path: {file_name}"
+                f"\nIn: {self._agent_conf.save_folder if self._agent_conf.save_folder else 'base_dir'}"
+            )
+
+        # Multiple matching files may exist, so use the most recently modified one.
+        return max(matches, key=lambda p: p.stat().st_mtime)

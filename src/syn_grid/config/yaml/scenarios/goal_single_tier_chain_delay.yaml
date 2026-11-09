@@ -1,0 +1,19 @@
+# SYNGrid scenario config: goal_single_tier_chain_delay
+#
+# Delay's rules are in its base config (scenario/families/goal/single_tier_chain/
+# base_configs/delay.yaml). The tunables are below, and any other key is rejected.
+# The perception must be one that sees the whole grid: vector_markovian.
+#
+# The episode's steps follow from the delay and are not set here: two silences, one after
+# each tier orb but the last, plus 50 spare steps on 5x5. A delay of 390 gets 830 steps.
+
+world_conf:
+  neg_orb_conf:
+    enabled: false
+
+delay_conf:
+  steps: 30
+
+obs_conf:
+  observation_handler_conf:
+    perception: vector_markovian

@@ -1,57 +1,71 @@
-from syn_grid.utils.paths_util import get_package_path, get_project_path
-from syn_grid.utils.date_utils import get_date
+from pathlib import Path
+from typing import Any, TypeVar
 
 import yaml
-from typing import Type, TypeVar
 from pydantic import BaseModel
 
-T = TypeVar("T", bound=BaseModel)
+from syn_grid.config.models.global_models import ScenarioName
+from syn_grid.utils.paths_util import get_syn_grid_path
+
+M = TypeVar("M", bound=BaseModel)
+
+# TODO: this one probably also needs some restructuring, especially since the goal is to move
+# towards a GUI, but I will do that job whenever I cross that river.
 
 
 class ConfigManager:
     # ================= #
-    #       Init        #
+    #        API        #
     # ================= #
 
-    def __init__(self, config_file: str):
-        self.yaml_path = get_package_path("config", config_file)
-        self.save_conf_path = get_project_path("output", "saved_configs")
-        if not self.yaml_path.exists():
-            raise FileNotFoundError(f"Config file not found: {self.yaml_path}")
+    def scenario_config_path(self, scenario: ScenarioName) -> str:
+        """
+        Return the path of a scenario's YAML file, relative to `config/yaml/`.
 
-    # ================= #
-    #       API        #
-    # ================= #
+        Args:
+            scenario: The scenario whose config file is wanted.
+        """
 
-    def load_config(self, model_class: Type[T]) -> T:
+        return f"scenarios/{scenario.value}.yaml"
+
+    def load_config(self, relative_path: str, model_class: type[M]) -> M:
         """
         Load a YAML file into a Pydantic model instance.
 
-        This method reads the YAML file specified in `self.yaml_path` and
-        parses it into an instance of the given Pydantic model class.
-
         Args:
-            model_class: A subclass of `BaseModel` that the YAML data will be parsed into.
+            relative_path: Path of the YAML file, relative to `config/yaml/`.
+            model_class: Pydantic model class used to validate the configuration.
+
         Returns:
-            An instance of `model_class` populated with data from the YAML file.
+            An instance of `model_class` populated with the YAML data.
         """
 
-        with self.yaml_path.open("r") as f:
-            raw = yaml.safe_load(f)
+        return model_class(**self.load_raw(relative_path))
 
-        return model_class(**raw)
-
-    def save_snapshot(self, save_conf_id: str) -> None:
+    def load_raw(self, relative_path: str) -> dict[str, Any]:
         """
-        Save a timestamped snapshot of the config file to the saved_configs folder.
+        Load a YAML file as the dict it holds, for a caller that validates it itself.
 
         Args:
-            save_conf_id: Identifier used as prefix in the snapshot filename.
+            relative_path: Path of the YAML file, relative to `config/yaml/`.
+
+        Returns:
+            The parsed YAML.
         """
 
-        self.save_conf_path.mkdir(parents=True, exist_ok=True)
+        yaml_path = self._create_yaml_path(relative_path)
 
-        timestamp = get_date()
-        snapshot_file = self.save_conf_path / f"{save_conf_id}_{timestamp}.yaml"
+        with yaml_path.open("r") as f:
+            return yaml.safe_load(f)
 
-        snapshot_file.write_bytes(self.yaml_path.read_bytes())
+    # ================= #
+    #      Helpers      #
+    # ================= #
+
+    def _create_yaml_path(self, relative_path: str) -> Path:
+        yaml_path = get_syn_grid_path("config", "yaml", relative_path)
+
+        if not yaml_path.exists():
+            raise FileNotFoundError(f"Config file not found: {yaml_path}")
+
+        return yaml_path

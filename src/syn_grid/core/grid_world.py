@@ -1,80 +1,90 @@
-from syn_grid.config.models import (
-    GridWorldConf,
-    OrbFactoryConf,
-    DroidConf,
-    NegativeConf,
-    TierConf,
-)
-from syn_grid.gymnasium.action_space import DroidAction
-from syn_grid.core.droid.synergy_droid import SynergyDroid
-from syn_grid.core.orbs.orb_meta import OrbMeta
-from syn_grid.core.orbs.orb_factory import OrbFactory
-from syn_grid.core.orbs.base_orb import BaseOrb
-
-from numpy.random import Generator, default_rng
+from dataclasses import dataclass
 from typing import Final
+
+from numpy.random import Generator
+
+from syn_grid.core.droid.synergy_droid import DroidAction, SynergyDroid
+from syn_grid.core.orbs.base_orb import BaseOrb
+from syn_grid.core.orbs.orb_meta import OrbMeta
+
+
+@dataclass(frozen=True)
+class StepResult:
+    """What happened in one tick of the world.
+
+    Attributes:
+        reward: the step's cost plus what the eaten orb paid, already taken in by the droid.
+        consumed: the meta of the orb the droid ate this step, or None. The droid eats at most one
+            orb a step, since no two orbs share a cell.
+    """
+
+    reward: float
+    consumed: OrbMeta | None
 
 
 class GridWorld:
+    """
+    The grid an episode is played on. It runs the orb field and the step clock around the droid it is handed.
+
+    The world has one rule for every scenario. Orbs leave the field when the droid eats them or their lifespan runs
+    out, and one orb that is ready returns each step if the field has room. A scenario shapes the field through the
+    orbs it hands over, and states only how many may be on the field at once.
+    """
+
     # ================= #
     #       Init        #
     # ================= #
 
     def __init__(
         self,
-        conf: GridWorldConf,
-        orb_manager_conf: OrbFactoryConf,
-        droid_conf: DroidConf,
-        negative_orb_conf: NegativeConf,
-        tier_orb_conf: TierConf,
+        grid_dimensions: tuple[int, int],
+        max_active_orbs: int,
+        max_steps: int,
+        orbs: list[BaseOrb],
+        droid: SynergyDroid,
     ):
         """
-        Initializes the grid world. Defines the game world's size and initializes the droid and orbs.
+        Holds the grid's size, the droid and the orbs it is handed, how many orbs the field may hold at once, and the
+        step clock of an episode.
         """
 
         # World
-        self._conf: Final[GridWorldConf] = conf
+        self._max_active_orbs: Final[int] = max_active_orbs
+        self._rows: Final[int] = grid_dimensions[0]
+        self._cols: Final[int] = grid_dimensions[1]
+
+        # Step clock
+        self._max_steps: Final[int] = max_steps
+        self._steps_left: int = max_steps
 
         # Droid
-        self.droid: Final[SynergyDroid] = SynergyDroid(
-            droid_conf, conf.single_chain_mode
-        )
+        self.droid: Final[SynergyDroid] = droid
 
         # Orbs
-        self._active_orbs: Final[list[BaseOrb]] = []
-        self._inactive_orbs: list[BaseOrb] = []
-        self.ALL_ORBS: Final[list[BaseOrb]] = OrbFactory(
-            orb_manager_conf, negative_orb_conf, tier_orb_conf
-        ).create_orbs()
+        self.ALL_ORBS: Final[list[BaseOrb]] = orbs
 
         self._remap_sparse_identities_to_dense()
 
-    def reset(self, rng: Generator | None = None) -> None:
+    def reset(self, rng: Generator) -> None:
         """
-        Reset the droid to its starting position and re-spawns the orb at a random location
+        Reset the droid to its starting position, fill the orb field and restart the step clock. The orbs are placed
+        with `rng`, so the same generator gives the same layout.
         """
+
+        # Reset the step clock
+        self._steps_left = self._max_steps
 
         # Reset Droid
         self.droid.reset()
 
-        # Reset the orb arrays
-        self._active_orbs.clear()
-        self._inactive_orbs.clear()
-        self._inactive_orbs = self.ALL_ORBS.copy()
+        # Reset the orbs
         for orb in self.ALL_ORBS:
             orb.reset()
 
-        if rng == None:
-            rng = default_rng()
-
         self._rng = rng
 
-        if self._conf.single_chain_mode:
-            # spawn all orbs
-            for _ in range(self._conf.max_active_orbs):
-                self._spawn_random_orb_if_ready()
-        else:
-            # Spawn the first orb
+        # Fill the field
+        for _ in range(self._max_active_orbs):
             self._spawn_random_orb_if_ready()
 
     # ================= #
@@ -83,55 +93,70 @@ class GridWorld:
 
     # === Logic === #
 
-    def perform_droid_action(self, agent_action: DroidAction) -> float:
+    def perform_droid_action(self, agent_action: DroidAction) -> StepResult:
+        """
+        Run one tick of the world, set off by one droid action.
+
+        The droid takes its step, every orb's timer ticks, the droid eats the orb it stands on, an orb whose lifespan
+        ran out leaves the field, and one ready orb returns if the field has room. The droid is checked first, so it
+        wins an orb on the last tick of its life. Returns the step's cost plus what the eaten orb paid, and the eaten
+        orb's meta.
+        """
+
+        self._steps_left -= 1
+
         reward = 0.0
-        step_penalty = self.droid.perform_action(agent_action)
+        consumed: OrbMeta | None = None
+        step_penalty = self.droid.take_step(agent_action)
 
         for orb in self.ALL_ORBS:
-            if orb.is_active:
-                # only decrease timer for tier orbs if de-spawning is activated in the configs
-                if orb.META.TIER == 0 or self._conf.de_spawn_tiers:
-                    orb.TIMER.tick()
-                if orb.TIMER.is_completed():
-                    orb.de_spawn()
-                    self._toggle_orb_to_inactive(orb)
-                elif self.droid.position == orb.position:
-                    # consume orb
-                    reward = self.droid.consume_orb(orb)
-                    self._toggle_orb_to_inactive(orb)
-                    if self._conf.delay_mode:
-                        self._deactivate_all_orbs()
-            else:
-                # decrease the cooldown for inactive orbs
-                orb.TIMER.tick()
+            orb.TIMER.tick()
 
-        if self._conf.single_chain_mode and self._conf.delay_mode:
-            self._reactivate_all_orbs()
-        elif not self._conf.single_chain_mode:
-            if len(self._active_orbs) < self._conf.max_active_orbs:
-                self._spawn_random_orb_if_ready()
+            # The contact check comes first, so the droid wins an orb on its last tick of life
+            if orb.is_active and self.droid.position == orb.position:
+                reward = self.droid.consume_orb(orb)
+                consumed = orb.META
+            elif orb.has_expired():
+                orb.de_spawn()
 
-        return step_penalty + reward
+        # Bring back one ready orb if the field has room
+        if len(self.orbs_on_field()) < self._max_active_orbs:
+            self._spawn_random_orb_if_ready()
+
+        return StepResult(step_penalty + reward, consumed)
 
     # === Getters === #
 
-    def get_orb_positions(self, only_active: bool) -> list[list[int]]:
-        if only_active:
-            return [o.position for o in self._active_orbs]
+    @property
+    def grid_dimensions(self) -> tuple[int, int]:
+        """The grid's size as (rows, cols)."""
+        return self._rows, self._cols
 
-        return [o.position for o in self.ALL_ORBS]
+    @property
+    def steps_left(self) -> int:
+        """How many steps the episode has left. Each action takes one, and a reset restarts it at `max_steps`."""
 
-    def get_orb_is_active_status(self, only_active: bool) -> list[bool]:
-        if only_active:
-            return [o.is_active for o in self._active_orbs]
+        return self._steps_left
 
-        return [o.is_active for o in self.ALL_ORBS]
+    def orbs_on_field(self) -> list[BaseOrb]:
+        """The orbs that are on the field now, which are the ones that can be seen and eaten."""
 
-    def get_orb_meta(self, only_active: bool) -> list[OrbMeta]:
-        if only_active:
-            return [o.META for o in self._active_orbs]
+        return [o for o in self.ALL_ORBS if o.is_active]
 
-        return [o.META for o in self.ALL_ORBS]
+    def is_cell_free(self, position: list[int]) -> bool:
+        """Whether a cell is free of the droid and of every orb on the field, so an orb can be
+        placed in it."""
+
+        # Check against droid
+        if position == self.droid.position:
+            return False
+
+        # Check against the orbs on the field
+        for orb in self.orbs_on_field():
+            if position == orb.position:
+                return False
+
+        return True
 
     # ================= #
     #      Helpers      #
@@ -139,6 +164,8 @@ class GridWorld:
 
     # === Init === #
 
+    # TODO(phase 7): the remap and `max_identity` stay until the observation pass settles where an
+    # orb's dense identity lives (see open-questions.md).
     def _remap_sparse_identities_to_dense(self) -> None:
         """Remap radix identities to dense sequential indices to simplify learning"""
 
@@ -158,27 +185,12 @@ class GridWorld:
 
         self.max_identity = next_dense - 1
 
-    # === API === #
-
-    def _deactivate_all_orbs(self) -> None:
-        for orb in self._active_orbs:
-            orb.reset()
-            orb.TIMER.set(self._conf.delay)
-
-    def _reactivate_all_orbs(self) -> None:
-        for orb in self._active_orbs:
-            if orb.TIMER.is_completed():
-                orb.spawn(orb.position)
-
-    def _toggle_orb_to_inactive(self, orb: BaseOrb) -> None:
-        idx = self._active_orbs.index(orb)
-        depleted = self._active_orbs.pop(idx)
-        self._inactive_orbs.append(depleted)
-
     # === Global === #
 
     def _spawn_random_orb_if_ready(self) -> None:
-        ready_orbs = [o for o in self._inactive_orbs if o.TIMER.is_completed()]
+        """Put one random ready orb in a random free cell. Does nothing when no orb is ready."""
+
+        ready_orbs = [o for o in self.ALL_ORBS if o.is_ready()]
         if not ready_orbs:
             return
 
@@ -186,28 +198,10 @@ class GridWorld:
 
         while True:
             position = [
-                int(self._rng.integers(0, self._conf.grid_rows)),
-                int(self._rng.integers(0, self._conf.grid_cols)),
+                int(self._rng.integers(0, self._rows)),
+                int(self._rng.integers(0, self._cols)),
             ]
 
-            if self._empty_spawn_cell(position):
-                self._inactive_orbs.remove(orb)
+            if self.is_cell_free(position):
                 orb.spawn(position)
-                self._active_orbs.append(orb)
                 break
-
-    def _empty_spawn_cell(self, position: list[int]) -> bool:
-        # Check against droid
-        if position == self.droid.position:
-            return False
-
-        # If there are no active orbs we can spawn right away
-        if len(self._active_orbs) == 0:
-            return True
-
-        # Else check against all active orbs
-        for r in self._active_orbs:
-            if position == r.position:
-                return False
-
-        return True

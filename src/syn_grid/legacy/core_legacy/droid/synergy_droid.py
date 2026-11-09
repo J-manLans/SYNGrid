@@ -1,0 +1,100 @@
+from typing import Final
+
+from syn_grid.legacy.config_legacy.models import DroidConf
+from syn_grid.legacy.core_legacy.droid.digestion_engine import DigestionEngine
+from syn_grid.legacy.core_legacy.orbs.base_orb import BaseOrb
+from syn_grid.legacy.gymnasium_legacy.action_space import DroidAction
+
+
+class SynergyDroid:
+    # ================= #
+    #       Init        #
+    # ================= #
+
+    def __init__(self, conf: DroidConf, single_chain_mode: bool):
+        """
+        Initializes the droid.
+
+        Defines the game world so the droid know its bounds, set its starting score and store it for later resetting.
+        """
+
+        self._conf: Final[DroidConf] = conf
+        self._single_chain_mode = single_chain_mode
+        self.digestion_engine: Final[DigestionEngine] = DigestionEngine(
+            conf.tier_consumption_penalty,
+            conf.reward_multiplier,
+            conf.chain_break_penalty,
+        )
+
+    def reset(self) -> None:
+        """
+        Initialize Droids starting position at the center of the grid and reset its score and the digestion engine.
+        """
+
+        self.position: list[int] = [
+            self._conf.grid_rows // 2,
+            self._conf.grid_cols // 2,
+        ]
+        self.score: float = self._conf.starting_score
+        self.digestion_engine.reset()
+
+    # ================= #
+    #        API        #
+    # ================= #
+
+    def perform_action(self, agent_action: DroidAction) -> float:
+        """Performs current action"""
+
+        # Move droid to the next cell
+        match agent_action:
+            case DroidAction.LEFT:
+                boundary_penalty = self._moveTowardsMinBound(1)
+            case DroidAction.RIGHT:
+                boundary_penalty = self._moveTowardsMaxBound(
+                    1, self._conf.grid_cols - 1
+                )
+            case DroidAction.UP:
+                boundary_penalty = self._moveTowardsMinBound(0)
+            case DroidAction.DOWN:
+                boundary_penalty = self._moveTowardsMaxBound(
+                    0, self._conf.grid_rows - 1
+                )
+            case _:
+                raise TypeError("This action isn't implemented")
+
+        return self._apply_reward(self._conf.step_penalty + boundary_penalty)
+
+    def consume_orb(self, orb: BaseOrb) -> float:
+        """Consumes the orb, add its reward to its score and returns the reward"""
+
+        reward = self.digestion_engine.digest(orb.consume())
+        return self._apply_reward(reward)
+
+    # ================= #
+    #      Helpers      #
+    # ================= #
+
+    def _moveTowardsMinBound(self, axis: int) -> float:
+        if self.position[axis] - 1 < 0:
+            self.position[axis] = 0
+            return self._conf.boundary_penalty
+
+        self.position[axis] = self.position[axis] - 1
+        return 0.0
+
+    def _moveTowardsMaxBound(self, axis: int, bound: int) -> float:
+        if self.position[axis] + 1 > bound:
+            self.position[axis] = bound
+            return self._conf.boundary_penalty
+
+        self.position[axis] = self.position[axis] + 1
+        return 0.0
+
+    def _apply_reward(self, reward: float):
+        self.score += reward
+
+        self.score = max(
+            self.score, 0
+        )  # clip to 0 if we go negative at the end of an episode
+
+        return reward

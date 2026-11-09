@@ -1,76 +1,137 @@
-from syn_grid.config.models import WorldConfig
-from syn_grid.rendering.pygame_renderer import PygameRenderer
-from syn_grid.core.grid_world import GridWorld
-from syn_grid.gymnasium.utils.episode_termination import check_episode_end
+from typing import Any, Final, cast
+
+import pygame
+
+from syn_grid.core.droid.synergy_droid import DroidAction
+from syn_grid.gymnasium.environment import SYNGridEnv
+from syn_grid.gymnasium.utils.env_factory import make
+from syn_grid.gymnasium.utils.episode_logging.keys import SYN_STATS_KEY
+from syn_grid.scenario.scenario import Scenario
+
 
 class HumanRunner:
+    """
+    Play a scenario by hand through a real SYNGridEnv.
+
+    For inspecting a configuration, not for learning. It trains nothing,
+    writes no checkpoints, and records no metrics. Its job is to read
+    human input and pass actions to the environment, one episode after
+    another. When an episode ends, it shows a summary over the last frame:
+    the scenario's HUD values, its metrics and the last step's reward.
+    Space then plays the next episode, and Escape or closing the window
+    quits, as it does during an episode.
+    """
+
     # ================= #
     #       Init        #
     # ================= #
 
-    def __init__(self, run_conf: WorldConfig, steps_left: int):
-        self._renderer = PygameRenderer(run_conf.renderer_conf, 60)
+    # Nothing animates between steps, so the frame cap only delays the next move. A high cap keeps
+    # play in step with the keys, even when they are pressed quickly.
+    _FPS: Final[int] = 60
 
-        self.delay_mode = run_conf.grid_world_conf.delay_mode
-        self.chain_break_penalty = run_conf.droid_conf.chain_break_penalty
+    _KEY_ACTIONS: Final[dict[int, DroidAction]] = {
+        pygame.K_LEFT: DroidAction(0),
+        pygame.K_DOWN: DroidAction(1),
+        pygame.K_RIGHT: DroidAction(2),
+        pygame.K_UP: DroidAction(3),
+    }
 
-        self._world = GridWorld(
-            run_conf.grid_world_conf,
-            run_conf.orb_factory_conf,
-            run_conf.droid_conf,
-            run_conf.negative_orb_conf,
-            run_conf.tier_orb_conf,
-        )
-        self._steps_left = steps_left
+    def __init__(self, scenario: Scenario):
+        self._env = cast(SYNGridEnv, make(scenario, "human", self._FPS).unwrapped)
 
     # ================= #
     #        API        #
     # ================= #
 
-    def human_player_loop(self) -> None:
-        self._world.reset()
-        self._render()
-        action = None
+    def play(self) -> None:
+        """Play episodes one after another, blocking until the player quits."""
 
-        while True:
-            if action is not None:
-                rew = self._world.perform_droid_action(action)
-                self._steps_left -= 1
-                terminated, truncated, rew = check_episode_end(
-                    self._world,
-                    self._steps_left,
-                    self.delay_mode,
-                    self.chain_break_penalty,
-                    rew
-                )
-                self._render()
-
-                if terminated or truncated:
+        try:
+            while True:
+                player_quit = self._play_episode()
+                if player_quit:
                     break
-
-            action = self._renderer.get_user_action()
+        finally:
+            self._env.close()
 
     # ================= #
     #      Helpers      #
     # ================= #
 
-    def _render(self):
-        self._renderer.render(
-            self._world.droid.position,
-            self._world.get_orb_is_active_status(True),
-            self._world.get_orb_positions(True),
-            self._world.get_orb_meta(True),
-            self._get_hud_data(),
-            "human",
-        )
+    def _play_episode(self) -> bool:
+        """
+        Play one episode and show its summary.
 
-    def _get_hud_data(self) -> dict[str, int | float]:
-        hud_data: dict[str, int | float] = {}
+        Returns:
+            Whether the player quit, during the episode or on its summary.
+        """
 
-        hud_data["score"] = self._world.droid.score
-        hud_data["moves"] = self._steps_left
-        hud_data["current tier chain"] = (
-            self._world.droid.digestion_engine.chained_tiers
-        )
+        self._env.reset()
 
-        return hud_data
+        while True:
+            action = self._get_user_action()
+
+            # None is the player quitting.
+            if action is None:
+                return True
+
+            _, reward, terminated, truncated, info = self._env.step(action.value)
+
+            if terminated or truncated:
+                return self._show_summary(reward, info)
+
+    def _show_summary(self, reward: float, info: dict[str, Any]) -> bool:
+        """
+        Show the episode's summary and wait for Space or quitting. Other keys are ignored.
+
+        Returns:
+            Whether the player quit instead of playing again.
+        """
+
+        summary = {
+            **self._env.get_hud_data(),
+            **info[SYN_STATS_KEY],
+            "last reward": reward,
+        }
+
+        self._env.renderer.draw_summary(summary)
+
+        while True:
+            key = self._next_key()
+
+            if key is None:
+                return True
+            if key == pygame.K_SPACE:
+                return False
+
+    def _get_user_action(self) -> DroidAction | None:
+        """Blocks until an arrow key is pressed and returns its action, or None on quitting."""
+
+        while True:
+            key = self._next_key()
+
+            if key is None:
+                return None
+
+            action = self._KEY_ACTIONS.get(key)
+            if action is not None:
+                return action
+
+    def _next_key(self) -> int | None:
+        """
+        Blocks until a key is pressed and returns it.
+
+        Escape or closing the window returns None, which is the player quitting. Other input is
+        ignored.
+        """
+
+        while True:
+            event = pygame.event.wait()
+
+            if event.type == pygame.QUIT or (
+                event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
+            ):
+                return None
+            if event.type == pygame.KEYDOWN:
+                return event.key

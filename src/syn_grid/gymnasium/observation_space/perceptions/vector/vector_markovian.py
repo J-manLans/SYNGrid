@@ -1,33 +1,33 @@
+from typing import override
+
+import numpy as np
+from gymnasium import spaces
+
+from syn_grid.core.grid_world import GridWorld
 from syn_grid.gymnasium.observation_space.perceptions.base_perception import (
     BasePerception,
 )
-from syn_grid.core.grid_world import GridWorld
-
-from gymnasium import spaces
-import numpy as np
 
 
 class VectorMarkovian(BasePerception):
+    """A flat vector of the droid's position and every orb on the field, nearest first."""
 
     # ================= #
     #        API        #
     # ================= #
 
+    @override
     def reset(self) -> None:
         self._obs_data.fill(self._MISSING_ORB_VALUE)
 
+    @override
     def setup_obs_space(self) -> spaces.Space:
         # Define observation layout
-        droid_high = self._get_max_droid_positions()
+        droid_high = self._get_max_droid_position()
 
-        orb_high = np.concatenate(
-            [
-                np.array([self._ACTIVE_FLAG], dtype=np.float32),
-                self._get_max_orb_base(),
-            ]
-        )
+        orb_high = self._get_max_orb_values()
         self._orb_features = orb_high.shape[0]
-        orb_high = np.tile(orb_high, self._get_observable_orb_count())
+        orb_high = np.tile(orb_high, self._slot_count)
         self._orb_start_index = droid_high.shape[0]
 
         high = np.concatenate([droid_high, orb_high])
@@ -43,10 +43,11 @@ class VectorMarkovian(BasePerception):
             dtype=np.float32,
         )
 
-    def get_observation(self, state: GridWorld, steps_left: int) -> np.ndarray:
+    @override
+    def get_observation(self, state: GridWorld) -> np.ndarray:
         # Droid data
         droid_y, droid_x = state.droid.position
-        self._obs_data[0 : self._orb_start_index] = self._get_droid_values(
+        self._obs_data[0 : self._orb_start_index] = self._get_droid_position(
             droid_y, droid_x
         )
 

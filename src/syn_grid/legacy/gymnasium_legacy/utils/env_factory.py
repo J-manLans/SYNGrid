@@ -1,0 +1,30 @@
+import gymnasium as gym
+from gymnasium import Env
+from gymnasium.envs.registration import register, registry
+from gymnasium.utils.env_checker import check_env
+
+from syn_grid.legacy.config_legacy.models import ObsConfig, WorldConfig
+
+
+def register_env() -> None:
+    """Register the SynergyGrid Gym environment. Once registered, the id is usable in gym.make()."""
+
+    if "syn_grid-v0" not in registry:
+        register(
+            id="syn_grid-v0",
+            entry_point="syn_grid.legacy.gymnasium_legacy.environment:SYNGridEnv",
+        )
+
+
+def make(render_mode: str | None, world_conf: WorldConfig, obs_conf: ObsConfig) -> Env:
+    """
+    Creates the registered environment and check it for correctness, used when training or evaluating the agent.
+    """
+
+    return gym.make(
+        "syn_grid-v0", render_mode=render_mode, world_conf=world_conf, obs_conf=obs_conf
+    )
+
+
+def check_my_env(env: Env):
+    check_env(env.unwrapped)
