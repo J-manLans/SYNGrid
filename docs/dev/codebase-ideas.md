@@ -83,6 +83,16 @@ parent's files by hand. Found while talking it through:
 
 See "A run that continues another gets its own id, and records its parent" in `design-decisions.md`.
 
+**Forking a locked scenario (2026-10-29).** What a fork is, and where it is saved, is decided (see "A fork is a full
+config with a name and a parent" in `design-decisions.md`); this is how the screen could go. Picking spatial shows its
+axis as editable: the grid size, the negative orb's switch, and the perception as a dropdown of the perceptions with
+its visibility. The rest of the base config is grayed out, or hidden. An unlock button makes every value editable, or
+visible; the perception stays a dropdown with the same list, and the negative orb becomes its switch with its two
+values under it. Cancel throws the edits away and writes nothing. Save asks for a name and writes the fork. Tunable
+then becomes a property of the mode and not of the scenario: locked for runs that can be compared, unlocked for
+exploring. Until the GUI exists, a fork is a YAML written by hand. It came from talking through where to put the limit
+on what is tunable, by voice on 2026-10-26, and the owner picturing the screen on 2026-10-29.
+
 ---
 
 ## A bundle that carries everything its orb kind brings (2026-10-12)
@@ -186,25 +196,6 @@ scenario's own. Open when it is built:
 
 ---
 
-## A GUI forks a locked scenario instead of editing it (2026-10-29)
-
-**Idea:** The owner's picture of forking in the GUI. What a fork is, and where it is saved, is decided (see "A fork
-is a full config with a name and a parent" in `design-decisions.md`); this is how the screen could go.
-
-- Picking spatial shows its axis as editable: the grid size, the negative orb's switch, and the perception as a
-  dropdown of the perceptions with its visibility. The rest of the base config is grayed out, or hidden.
-- An unlock button makes every value editable, or visible. The perception stays a dropdown with the same list, and
-  the negative orb becomes its switch with its two values under it.
-- Cancel throws the edits away, and nothing is written. Save asks for a name and writes the fork.
-
-**Where it came from:** Talking through where to put the limit on what is tunable, by voice on 2026-10-26, and the
-owner picturing the screen on 2026-10-29.
-
-**Why it might matter:** Tunable becomes a property of the mode and not of the scenario: locked for runs that can be
-compared, unlocked for exploring. Until the GUI exists, a fork is a YAML written by hand.
-
----
-
 ## Effect orbs get their magic from the engine (2026-10-27)
 
 **Idea:** When effect orbs are built, the combining happens in the digestion engine and nowhere else. Digesters keep
@@ -298,24 +289,6 @@ progress or an orb that pays on its own. Clamping once per tick also needs someo
 where it ends and the droid does not, so either the world asks the droid to clamp at the end of
 `perform_droid_action`, or the droid's two paths stop clamping, which sits close to the rejected general
 `receive(reward)` door. It would change when episodes end, so it would go into `landscape-changes.md`.
-
----
-
-## A positive direct orb (2026-11-08)
-
-**Idea:** A direct orb that pays a positive reward when it is eaten, with no order to keep: the negative orb's
-counterpart, with its own digester and config block.
-
-**Built so far:** the orb and its digester: `FixedRewardOrb(DirectKind.POSITIVE, ...)` and `PosDigester`, tested, and
-the renderer draws it. What is left waits for a scenario that holds one: a population, a config block that checks the
-reward is above 0, and a bundle in that family's builders.
-
-**Where it came from:** Deciding on 2026-11-08 that a tier chain has at least two tiers. A max tier of 1 was the only
-way to get an orb that simply pays, and this orb is what replaces it. See "A tier chain has at least two tiers" in
-`design-decisions.md`.
-
-**Why it might matter:** It is the plainest reward a scenario can hold, and a building block for a continuous
-scenario or a stochastic one, where orbs pay different amounts and the agent has to read the risk.
 
 ---
 
