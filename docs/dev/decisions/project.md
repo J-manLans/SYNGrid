@@ -63,9 +63,11 @@ comes between phases, before 6b picks its tools, and with four locked traces and
 ## Legacy stays until the perceptions are rewritten (2026-11-07)
 
 **Decision:** `legacy/`, the `USE_LEGACY` switch and `landscape-changes.md` are deleted at the end of phase 7b, once
-the five perceptions are rewritten, and not at the close-out. The owner deletes them. The rebuild then merges to
-`main` as 0.5.0, tagged `v0.5.0`; until then the version stays 0.4.0, so the number names one finished state, as 0.3.0
-and 0.4.0 did.
+the five perceptions are rewritten, and not at the close-out. The owner deletes them.
+
+The rebuild merged into `main` before that, as 0.5.0, tagged `v0.5.0`, when phase 6b closed (2026-11-10), with legacy
+still in it. From then on each phase is worked on a small branch off `main` and merged back often, so `main` is the
+rebuild as far as it has come.
 
 **Why:** Every scenario is locked, and the regression baselines are now what a change is checked against, so nothing at
 the scenario level needs legacy. The perceptions are the part the owner works on most closely, and legacy's
