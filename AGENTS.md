@@ -21,8 +21,8 @@ Breaking one of these costs the owner something. Each is detailed in the section
 SYNGrid is a grid, a droid and orbs, and a scenario is a choice of orbs, observation and goal.
 
 The scenario layer is being rebuilt, file by file: the owner and the agent design each piece together, the agent
-writes it, and the owner reviews it. `main` holds the rebuild so far, and each phase is worked on a branch of its own
-off `main`, merged back through a pull request.
+writes it, and the owner reviews it. `main` holds the rebuild so far, and each phase is worked on a small branch of its
+own off `main`, merged back through a pull request with "Rebase and merge", so `main` stays a straight line.
 
 The pushed branch can be behind the owner's local tree. Read local files.
 
@@ -125,6 +125,11 @@ changes, so the agent keeps docs out of it.
 A new commit is made only when the last one is pushed or is the owner's; otherwise the change is amended into it,
 whatever its subject. Before an amend, `git status -sb` shows whether the branch is ahead. When in doubt, ask the
 owner in one line whether to amend.
+
+**A commit on an unmerged branch is cited by its title, not its hash.** "Rebase and merge" gives every commit of the
+branch a new hash on `main`, and the old ones vanish with the branch. A hash is cited only for a commit already on
+`main`. After a merge, switch to `main` and pull before anything else, since the local branch still holds the old
+hashes.
 
 ## How to work with the owner
 
