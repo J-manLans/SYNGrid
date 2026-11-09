@@ -8,7 +8,8 @@ commands and traps. No state, progress, decisions or history: state is in the ro
 
 Breaking one of these costs the owner something. Each is detailed in the section named.
 
-- Never commit code before the owner says so. Docs may be committed. (Commits)
+- Never commit code before the owner says commit or push. Docs about the code wait staged with it; other docs are
+  committed. (Commits)
 - Never edit anything under `src/syn_grid/legacy/`. (The two strains)
 - Trust the code over any doc, and say so when they disagree.
 - On the owner's machine, say "pull first, then we start" and wait before the first edit. (How to work with the owner)
@@ -113,11 +114,18 @@ A commit message says what changed, why, and what was run to check it, or that n
 notes the docs used to carry belong here, in the commit that made them true. The owner leaves commit messages mostly
 to the agent, so they carry the record.
 
-**Never commit code before the owner says so.** This is a hard rule: the owner reviews changes before they are
-committed. The exception is documentation, which the agent may commit when it is done. Comments and docstrings
-the owner asks for count as documentation, even inside a code file. Code is anything that does something, in a `.py`
-file, YAML or any other file, and it waits for review. When a coding job also updates the docs, stage and commit the
-doc files on their own and leave every code file uncommitted for review. A file that mixes the two waits whole.
+**Docs are the agent's to commit; code waits for the owner.** The owner reviews code in the list of unstaged
+changes, so the agent keeps docs out of it.
+
+- **Docs not about the code under review,** asked for or not, are committed when done, naming the files
+  (`git commit -- <files>`), so nothing staged goes with them. Several in a row are amended into the agent's last
+  docs commit while it is unpushed.
+- **Docs about the code under review** are staged and wait. When the owner says commit, they go in one commit with
+  the code. A file with changes of both kinds waits with the code.
+- **Code is never committed before the owner says commit or push.** This is a hard rule. A go to write it is not a
+  go to commit it. Code is anything that does something, in a `.py` file, YAML, `pyproject.toml` or any other file.
+  A file that mixes code and docs counts as code. Comments and docstrings the owner asks for count as docs, even
+  inside a code file.
 
 Amend the agent's own last commit when the change finishes or corrects it and it has not been pushed; otherwise
 make a new commit. When in doubt, ask the owner in one line whether to amend. A docs-only session is one commit,
