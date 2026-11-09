@@ -59,4 +59,5 @@ The last part is not an invitation to revisit: it lets the next reader see wheth
 
 | File | Archived | What it holds |
 |---|---|---|
+| `rppo-regression.md` | 2026-11-10 | Why spatial seemed to learn worse on RPPO after the first refactor: the timeout and chain-break penalties shared one field, so their ratio was pinned |
 | `pygame-triton-segfault.md` | 2026-11-07 | Why evaluation with pygame rendering crashed on a hybrid AMD and NVIDIA laptop, and the NVIDIA offload workaround |

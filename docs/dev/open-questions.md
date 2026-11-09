@@ -119,7 +119,7 @@ See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `des
 
   Continuing gets its tests when this is settled, not before: curriculum runs come after the GUI and a few new
   scenarios. The rules to test then, as talked through on 2026-11-09: the continued model trains on the run's env;
-  it has the saved weights (tested today) and the saved normalization statistics, and goes on updating them; its
+  it has the saved weights (already tested) and the saved normalization statistics, and goes on updating them; its
   step count carries on, so the next checkpoint is named with the total. The statistics are the silent one: a fresh
   `VecNormalize` crashes nothing and only learns worse. Also open: which seed a continued run uses. `load_model`
   prints that the checkpoint's seed is authoritative but sets nothing, so whether a stage takes its parent's seed

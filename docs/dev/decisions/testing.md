@@ -95,7 +95,7 @@ configuration names torch among the libraries `forkserver` is for.
 
 **Revisit if:** mutmut changes how it isolates workers, or the SB3 tests stop building torch models.
 
-## Hypothesis checks the world's invariants, and CI runs only pytest and ruff (2026-11-07)
+## Hypothesis checks the world's invariants, and CI runs the tests and ruff (2026-11-07)
 
 **Decision:** Hypothesis is in the `dev` extras, at 6.170.15, for property-based tests of the rules that hold for any
 seed and any sequence of actions: the observation stays in its space, the droid on the grid, the same seed and actions
@@ -107,8 +107,8 @@ quick and cannot fail by chance. Locally they run on a profile as extensive as w
 world's invariants are in the world's test file and the episode's in the environment's step test, each class named
 `TestInvariants`; the observation's waits for the rewritten perceptions. An episode's actions mix a repeated pattern
 with steps towards the next tier orb, since a random walk almost never completes a chain and the reward bound would
-then check nothing. coverage and mutmut are local
-only, run while a file is worked on, and never in CI.
+then check nothing. mutmut is local only, run while a file is worked on, and never in CI. coverage runs locally the
+same way, and in CI only for the floor; see "CI fails below a coverage floor of 85%".
 
 **Why:** Example tests check an invariant only where someone thought to look; a property checks it over many generated
 inputs and shrinks a failure to its smallest case. The invariants are what catch the subtlest breakage, so they run on
@@ -119,7 +119,7 @@ would only fix today's 70% in place while the suite is rebuilt.
 
 - Hypothesis kept out of CI: a change that breaks an invariant would pass CI.
 - mutmut in CI: slow, and there is no sensible rule for when it fails.
-- A coverage floor in CI during phase 6b.
+- A coverage floor in CI during phase 6b. Taken up when 6b closed: see "CI fails below a coverage floor of 85%".
 
 **Revisit if:** the suite is rebuilt at the end of phase 6b, for coverage in CI that fails only below a threshold:
 `fail_under` in `[tool.coverage.report]` for the total, or `diff-cover` for the lines a change touches, which matters
@@ -153,3 +153,29 @@ test-first alone does not, gaps and redundancy, but judgement decides what is wo
   suspects, and mutmut confirms only those.
 
 **Revisit if:** test-first slows design work that is still finding its rules, beyond the ablation exception.
+
+## CI fails below a coverage floor of 85% (2026-11-10)
+
+**Decision:** `fail_under = 85` in `[tool.coverage.report]`, so `coverage report` fails when the total is below 85%.
+The total, as configured, was 88% when phase 6b closed. CI checks it where branches meet `main`: on a pull request
+into `main` and on a push to it, CI runs the suite as `coverage run -m pytest`, which runs every test as `pytest` does,
+and then `coverage report`. Every other push runs plain `pytest`. Work goes in small branches merged often, so a drop
+shows within a branch or two of the change that made it.
+
+**Why:** A floor is a backstop: at 85 it fails on about 55 untested statements, a dropped test file or a mid-sized
+module with none. At 78 it would let about 180 through, more than a whole untested module. It sits three points
+under the total because phases 7 and 8 rebuild the observation and render code, part of what is untested today, and
+the total moves while they do. It does not check that new code is tested; the rule that every change ships with its
+tests, and the sweep, do that.
+
+**Rejected:**
+
+- 78: so low it fails only when a test file is deleted outright.
+- 88, the total at the time: harmless moves during the rebuild would fail it.
+- The floor on every push: a few seconds a run, for a check that a merge into `main`, made often, already gives.
+- `diff-cover` on the lines a change touches: what matters once others send pull requests; until then the sweep
+  covers it.
+
+**Revisit if:** phases 7 and 8 are done, to raise the floor toward the total then. Or others send pull requests, for
+`diff-cover`.
+

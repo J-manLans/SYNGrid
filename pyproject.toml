@@ -97,6 +97,12 @@ patch = ["subprocess"]
 # Which tests ran each line, shown by `coverage html --show-contexts`.
 dynamic_context = "test_function"
 
+[tool.coverage.report]
+# A backstop against a dropped test file or a sizeable untested addition, three points under the total when phase
+# 6b closed (88%), to leave room for the observation and render rebuild. Raised once phases 7 and 8 are done; see
+# "CI fails below a coverage floor of 85%" in docs/dev/decisions/testing.md.
+fail_under = 85
+
 [tool.pyright]
 # The legacy strain is a frozen copy and is never edited. Setting exclude replaces pyright's defaults, so they are
 # listed again.

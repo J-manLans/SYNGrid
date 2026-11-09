@@ -20,15 +20,9 @@ Breaking one of these costs the owner something. Each is detailed in the section
 
 SYNGrid is a grid, a droid and orbs, and a scenario is a choice of orbs, observation and goal.
 
-The scenario layer is being rebuilt on `rebuilding-scenario`, file by file: the owner and the agent design each piece
-together, the agent writes it, and the owner reviews it.
-
-| Branch | Role |
-|---|---|
-| `rebuilding-scenario` | the rebuild |
-| `cleanup-after-versioning` | last stable state before the rebuild |
-| `refactor-of-scenario-refactor` | the reference: read it, do not build on it |
-| `main` | older (v0.4.0) |
+The scenario layer is being rebuilt, file by file: the owner and the agent design each piece together, the agent
+writes it, and the owner reviews it. `main` holds the rebuild so far, and each phase is worked on a branch of its own
+off `main`, merged back through a pull request.
 
 The pushed branch can be behind the owner's local tree. Read local files.
 
@@ -166,9 +160,8 @@ owner in one line whether to amend.
   be" or "here and not there". A docstring must still read correctly when the rebuild is done.
 - **Work still to do goes in a `# TODO` or `# NOTE` comment,** which the owner can search for. Put a tag in brackets
   when several belong together, as in `# TODO(delay):`.
-- **Every code change ships with its tests,** reviewed together with the code. Do not migrate or rewrite old tests
-  unless asked: the suite is rebuilt from scratch, see the roadmap. Where tests go and how they are grouped is in
-  `docs/code_style.md`. How they are written is in "Writing tests" below.
+- **Every code change ships with its tests,** reviewed together with the code. Where tests go and how they are
+  grouped is in `docs/code_style.md`. How they are written is in "Writing tests" below.
 
 ## Writing tests
 
@@ -253,24 +246,6 @@ legacy's learning curves and not its rewards step for step.
   rendering stops with a `FileNotFoundError`.
 - The legacy run id has its own scheme. Give legacy runs their own tag or output folder.
 - The config schemas differ, so a comparison means something only if both configs describe the same world.
-
-## Reading the reference
-
-Read a file from `refactor-of-scenario-refactor` with `git show refactor-of-scenario-refactor:src/syn_grid/<path>`.
-Its traps:
-
-- `delay_on_consume` is `int | None`: `None` means off and `False` turns it on.
-- A `negative` block in a tier-chain config registers a digester but creates no orbs.
-- Scoring mode is passed by each builder, not set in config.
-- Threshold scoring and `NegativeDigester` were never executed there.
-- `TierChainTermination` is cut to what spatial reaches. The removed branches are in
-  `scenario/rules/termination.py` at `c105f7a`.
-- Five perceptions beyond the `Perception` enum read a config that is gone, and `WeightedPopulation` names a class
-  that is gone.
-- Its `docs/dev/scenario-refactor.md` is stale.
-
-`docs/dev/rppo-regression.md` is on `cleanup-after-versioning` only. It investigates why spatial learned worse after
-the first refactor; read it before touching the reward path.
 
 ## Running things
 

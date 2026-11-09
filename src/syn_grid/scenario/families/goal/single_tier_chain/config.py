@@ -38,7 +38,7 @@ class TierWorldConf(GoalWorldConf, frozen=True, extra="forbid", strict=True):
     `tier_orb_conf.max_tier` is the length of the chain, and therefore also the
     number of tier orbs on the field. All of them are present from the first
     step. `tier_orb_conf.chain_break_penalty` is set independently of the
-    timeout penalty; see `docs/dev/rppo-regression.md`.
+    timeout penalty; see `docs/dev/archive/rppo-regression.md`.
 
     A world whose `neg_orb_conf` is enabled holds one negative orb.
 

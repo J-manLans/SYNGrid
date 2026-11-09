@@ -6,10 +6,9 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** rebuild the test suite (phase 6b).
+**Next:** the observation pass (phase 7), starting with what it settles first.
 
-**Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together. The
-suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
+**Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together.
 
 ---
 
@@ -45,32 +44,8 @@ suite is rebuilt in phase 6b, and phase 7 does not start until that is finished.
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
 | Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; on Python 3.12 the same digests as on 3.10 |
-| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner`; single tier chain termination, the droid, the tier and direct digesters, the engine, the orb meta, the base orb, the tier orb, the fixed reward orb and the timer; the tier chain and negative populations, the world recipe and the tier digester recipe; the catalogue; the config manager; the scenario config blocks' limits; the CSV episode logger, the artifact manager, the run controls callback, the policy resolver and the runner registry | run: passes; every unit and integration test file worked through with coverage and mutmut, and mutmut rerun under `forkserver` over all of them, its silent gaps closed |
+| Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner`; single tier chain termination, the droid, the tier and direct digesters, the engine, the orb meta, the base orb, the tier orb, the fixed reward orb and the timer; the tier chain and negative populations, the world recipe and the tier digester recipe; the catalogue; the config manager; the scenario config blocks' limits; the CSV episode logger, the artifact manager, the run controls callback, the policy resolver and the runner registry; a sweep of every registered scenario through Gymnasium's checker and a whole episode. Left without a test file on purpose: the observation and render code, rebuilt in phases 7 and 8; interfaces and data holders with no logic of their own; the entry points and glue the probes run; `extractors.py`; `gymnasium/environment.py`, whose step `test_env_step.py` covers | run: passes; every unit and integration test file worked through with coverage and mutmut, and mutmut rerun under `forkserver` over all of them, its silent gaps closed |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
-
----
-
-## Phase 6b: Rebuild the test suite
-
-**Produces:** a test suite written from scratch against the rebuilt strain, tight and complete, not large.
-
-The tests written while the scenarios were locked are the start of it. Go over what exists, fill the gaps and tidy
-the rest. The owner wants tooling that shows untested paths, such as branch coverage, and mutation testing.
-The tools are coverage.py on its own and mutmut, to find the gaps, and Hypothesis for the world's invariants; see "The
-suite is measured by coverage.py alone, and mutmut" and "Hypothesis checks the world's invariants" in
-`design-decisions.md`.
-
-- **Left without a test file, on purpose:**
-  - The observation and render code, rebuilt in phases 7 and 8.
-  - Interfaces and data holders with no logic of their own.
-  - The entry points and glue the probes run.
-  - `extractors.py`.
-  - `gymnasium/environment.py`, whose step `tests/integration/test_env_step.py` covers.
-- **A scenario sweep in `tests/integration/`:** every registered scenario builds, resets, steps and passes
-  `check_env`, as one parametrized test.
-
-**Done when:** the suite passes, covers the rebuilt strain's paths, and each test fails when the behavior it checks is
-broken. Phase 7 starts after this. The observation and render packages will be rebuilt, so skip tests for them.
 
 ---
 

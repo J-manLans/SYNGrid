@@ -203,7 +203,6 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Strain:** one of the two copies of the code. The working strain is `src/syn_grid/`; the legacy strain is the
   frozen copy in `src/syn_grid/legacy/`.
 - **Legacy:** the stable code from before the rebuild. It is a reference and not a target.
-- **Reference:** the branch `refactor-of-scenario-refactor`, read for how things were done and not built on.
 - **Skeleton:** the intended structure of the scenario layer, with no logic, that the files in `src/syn_grid/scenario/`
   started from. It was kept in a `reference/` folder, removed on 2026-10-23.
 - **Reproduction package:** `reproduction_package/`, the configs and results of the thesis runs.
@@ -219,6 +218,11 @@ Terms are grouped by area. The last section lists the words that are used in two
 - **Baseline:** a locked scenario's reference trace, recorded from its base config, which the regression test checks
   against. It is committed in `tests/regression/baselines/`, named after the scenario, and its `.json` records the
   commit it was recorded at.
+- **Scenario sweep:** `tests/integration/test_scenario_sweep.py`. Every registered scenario, built from its base
+  config and made the way a run makes its env, goes through Gymnasium's checker and plays an episode to its end.
+- **Rule in a value:** a rule the code keeps through a value it passes rather than through logic, such as `None` for
+  no cool-down, a constant or a fixed count. Coverage counts its line as run and mutmut never changes it into another
+  value, so the test sweep reads each file for them.
 
 ---
 
@@ -233,5 +237,7 @@ Terms are grouped by area. The last section lists the words that are used in two
   settings is in `open-questions.md`.
 - **Pool.** The population file says a scenario "fills the orb pool"; the decisions use pool only for what a sampled
   field is drawn from.
+- **Sweep.** The test sweep ends every change (`AGENTS.md`, "Writing tests"); the docs sweep ends a session;
+  `sweep.sh` runs the replay probe at each commit in a range; and the scenario sweep is a test.
 - **Sparse and dense.** They name the two scaling scenarios. The scoring modes behind them are max-tier and
   threshold.

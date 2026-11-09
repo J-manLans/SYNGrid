@@ -138,5 +138,6 @@ The rules most decisions below follow.
 - The regression test runs the replay probe on each locked scenario's base config (2026-11-07)
 - The suite is measured by coverage.py alone, and mutmut (2026-11-07)
 - mutmut forks from a clean server (2026-11-09)
-- Hypothesis checks the world's invariants, and CI runs only pytest and ruff (2026-11-07)
+- Hypothesis checks the world's invariants, and CI runs the tests and ruff (2026-11-07)
+- CI fails below a coverage floor of 85% (2026-11-10)
 - Tests come first, from the owner's rules (2026-11-07)
