@@ -266,32 +266,6 @@ random, is the larger part and is not touched.
 
 ---
 
-## Clamping energy once per tick (2026-11-08)
-
-**Idea:** The droid clamps energy on each reward as it comes in, so a step that would take energy below 0 is cut at 0
-and the orb eaten in the same tick pays into a clean slate. At 0.03 energy and a step penalty of -1, the droid ends
-the tick with the orb's payout R and not R - 0.97: the overdraft is forgiven. The score, which has no bounds, is
-charged all of it. Clamping once per tick, on the sum of the step's cost and the orb's payout, would charge the
-overdraft against the orb, and the droid would live only if the orb paid more than it.
-
-**Where it came from:** Writing the droid's tests on 2026-11-08, after recording that an orb eaten in the draining
-step keeps the droid alive; see "Energy and score are two numbers" in `design-decisions.md`.
-
-**Why it might matter:** Probably not, and the owner leans against it: energy and score measure different things, so
-keeping them in step is not a goal, and they already part at the cap on purpose. What the forgiven overdraft gives
-is a droid alive with a little more energy than it paid for, at most one step's cost each time it eats on the step
-that drains it. A wall hit never comes before an eat, since a blocked move leaves the droid where it is and no orb on
-the field sits under it, so only the step penalty can be forgiven: at most 0.001 in spatial and the scaling
-scenarios, and nothing in delay. Under max-tier and threshold the only positive payouts end the episode anyway.
-
-It would matter with a large step penalty and an orb that pays while the episode goes on, such as step-wise scoring's
-progress or an orb that pays on its own. Clamping once per tick also needs someone to close the tick: the world knows
-where it ends and the droid does not, so either the world asks the droid to clamp at the end of
-`perform_droid_action`, or the droid's two paths stop clamping, which sits close to the rejected general
-`receive(reward)` door. It would change when episodes end, so it would go into `landscape-changes.md`.
-
----
-
 ## A guide entity that walks the chain (2026-11-09)
 
 **Idea:** A second body on the grid, a ghost, that shows the agent the tier order and does nothing else. The agent

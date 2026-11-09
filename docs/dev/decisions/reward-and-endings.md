@@ -52,6 +52,11 @@ a threshold chain showed energy again on its last frame.
 - `end_episode` as the name: it covers truncation, where nothing is settled.
 - A held chain reviving a droid that runs out while steps remain: it lets a settled payout change whether the
   episode ends. An orb eaten in the draining step is not this: it is paid in the tick, like any eaten orb.
+- Clamping energy once per tick, on the sum of the step's cost and the orb's payout, so an orb eaten in the draining
+  step pays off the overdraft first: energy is the droid's own state and need not keep step with the score, which is
+  charged in full. What is forgiven is at most one step's cost, each time the droid eats on the step that drains it
+  (0.001 in spatial and the scaling scenarios, nothing in delay). It would also need the world to tell the droid
+  where a tick ends.
 
 **Revisit if:** a continuous scenario needs a droid to bank rewards beyond the cap, which the old uncapped number
 allowed.
