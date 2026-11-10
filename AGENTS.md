@@ -38,6 +38,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | `docs/dev/glossary.md` | What the words mean. Use its terms |
 | `docs/dev/code-map.md` | Where the rebuilt code lives, and the path a run and a step take through it. Read it before reading code |
 | `docs/dev/landscape-changes.md` | Changes that could move what the agent sees or is paid, to check against legacy |
+| `docs/dev/procedures/` | How to do a job only some sessions need: the test sweep, the docs sweep, running legacy. Read the one the job needs, before starting it |
 | `docs/dev/archive/` | Closed investigations and dropped ideas worth keeping, with an index in its `README.md` |
 | `docs/code_style.md` | How code is written |
 | `CONTRIBUTING.md`, `README.md` | For people outside: how to contribute, what SYNGrid is |
@@ -66,6 +67,7 @@ Read in this order, and do not ask the owner what these already answer:
 | A word is coined | `glossary.md` |
 | A file or folder is added, moved or renamed, or a run's or a step's path changes | `code-map.md`, in the same change |
 | An idea that is not a problem now | `codebase-ideas.md` |
+| How a job only some sessions need is done | its file in `docs/dev/procedures/` |
 | An investigation closes, or an idea is dropped, and both would cost to redo | `docs/dev/archive/`, by its `README.md`; otherwise delete it |
 | What was done, and what was run | the commit message |
 
@@ -79,29 +81,7 @@ detail. When two docs disagree, the file that owns the fact wins and the other i
 
 A pass over the docs that ties them back together at the end of a session. When the owner signals that the session is
 ending, say once, "want a docs sweep before we stop?", and drop it if they decline. The owner can also ask for one at
-any time.
-
-A sweep is five checks:
-
-1. The roadmap and `open-questions.md` against what was done: remove finished steps and answered questions, and update
-   the has-it-run cells.
-2. Decisions from the session that are missing from `decisions/`, or from the `design-decisions.md` index.
-3. New terms that belong in `glossary.md`.
-4. Anything that landed in the wrong file, by the table above.
-5. Size: flag any doc past about 4,000 words (`wc -w`), and any idea in `codebase-ideas.md` or trap here that no
-   longer applies. Flag only; how to shrink a doc is the owner's call. `AGENTS.md` weighs most, since every session
-   reads it in full.
-
-Say what changed, and flag borderline calls instead of guessing. Whether something is a decision or still open, and
-whether it is an idea or a problem, is the owner's to say.
-
-If the owner says to go ahead and leaves, do only the mechanical parts: removing finished items, moving things to the
-right file, adding glossary terms. Leave a borderline call as it is and list it in the commit message, so it waits for
-the owner. Then commit the docs.
-
-A sweep has no subject of its own: it finishes the session's work. So it is almost always amended into the session's
-last commit, under the rule in "Commits", with its borderline calls added to that commit's message. It is a commit
-of its own only when that commit is pushed or is the owner's.
+any time. How a sweep is run is in `docs/dev/procedures/docs-sweep.md`.
 
 ## Commits
 
@@ -190,48 +170,11 @@ in `design-decisions.md`.
 
 ### The sweep
 
-Every change ends with it, over the source files it touched, and tightening an existing test file is the same sweep.
-coverage and mutmut are a reading aid, not targets: a file is done when every survivor, every uncovered line and
-every rule it decides in a value is either tested or listed with its reason.
+Every change ends with a sweep over the source files it touched, with coverage and mutmut, and tightening an existing
+test file is the same sweep. Read `docs/dev/procedures/test-sweep.md` before running one.
 
-1. **Run** pytest, the regression test included, so no locked scenario drifted. Then coverage of each touched file
-   (`coverage run -m pytest`, then `coverage report -m`), and mutmut on it. mutmut runs only `tests/unit` and
-   `tests/integration`, so a survivor means no targeted test guards that code. To scope mutmut to the touched
-   files, set `only_mutate` in `[tool.mutmut]` and put the line back after the run. It is the one edit to
-   `pyproject.toml` the agent makes without asking.
-2. **Read the file for what it decides,** not only for what the tools flag: a value passed as a choice (a `None`, a
-   constant, a fixed count) and any comment that says why. Coverage counts the line as run and mutmut never turns a
-   `None` into a number, so neither sees a rule that lives in a value. Each such rule joins the list sorted below.
-3. **Sort** each survivor and each uncovered line by one question: would a caller, through the public surface,
-   notice if this broke?
-   - Yes: a real gap, which gets a test.
-   - No behaviour can change: an equivalent mutant, listed and not tested.
-   - Nobody decided what should happen: a question for the owner, not a test. A test would decide it.
-   - Nothing depends on the code, such as a defensive branch or output text: listed, not propped up with a test.
-   - The observation and render packages: skipped, since they are rebuilt.
-4. **Test the behaviour, not the mutant.** A test that reads a private attribute only to kill a mutant pins how the
-   code works, not what it does.
-5. **Confirm it goes red** with its mutant (`mutmut run <name>`), or, where mutmut does not reach, with the code
-   broken by hand and restored.
-6. **Look for redundant tests,** only when a file's tests are tightened, not on every change.
-   `coverage html --show-contexts` lists on each line the tests that ran it. A test
-   whose lines all list others too, and which checks the same outcome, is a suspect: comment it out and run mutmut
-   on the file again. If nothing new survives, propose removing it.
-7. **Report** per file: coverage and mutmut before and after, the tests added or removed, and what is left with its
-   reason, briefly.
+Traps when writing a test:
 
-Traps:
-
-- mutmut does not mutate a decorated method: one marked `@override`, which most strategy methods are, or a pydantic
-  validator. A clean mutmut run says nothing about them. Break each one in a touched file by hand, run the tests,
-  restore it, and say in the report which were checked that way.
-- After a change to `[tool.mutmut]`, `rm -rf mutants` before the next run, or mutmut keeps the old copy and its old
-  verdicts.
-- mutmut runs with `process_isolation = "forkserver"`. Under the default `fork`, the SB3 tests hang on torch's thread
-  pool and every survivor that reaches them shows as a timeout, which mutmut counts as caught. A timeout is read as
-  a suspect, not a kill. Why: "mutmut forks from a clean server" in `docs/dev/design-decisions.md`.
-- After restoring a file broken by hand, delete its `__pycache__`. A restore of the same size in the same second
-  leaves Python running the broken bytecode.
 - A test that builds a runner works in `tmp_path` with `monkeypatch.chdir`, so its `output/` lands there.
 - The run controls read pygame's queue in one batch and drop what follows Space in it. An event meant for the pause
   screen is posted with `pygame.time.set_timer`.
@@ -243,14 +186,7 @@ trained as it was and its curves compared with the rebuild. Each legacy package 
 and imports only other legacy copies. `USE_LEGACY` in `src/syn_grid/__main__.py` picks the strain. Nothing under
 `legacy/` is edited, and it is deleted when phase 7b's perceptions are done.
 
-Legacy is a reference and not a target. Several decisions change rewards on purpose, so the rebuild is held against
-legacy's learning curves and not its rewards step for step.
-
-- Only one strain is imported per process. Both register the Gymnasium id `syn_grid-v0`.
-- The legacy config names its images as `assets/sprites/...` while the folder is `assets_legacy/`, so legacy
-  rendering stops with a `FileNotFoundError`.
-- The legacy run id has its own scheme. Give legacy runs their own tag or output folder.
-- The config schemas differ, so a comparison means something only if both configs describe the same world.
+Before running legacy or comparing it with the rebuild, read `docs/dev/procedures/legacy.md`.
 
 ## Running things
 

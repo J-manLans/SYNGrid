@@ -161,7 +161,8 @@ Terms are grouped by area. The last section lists the words that are used in two
   it has been paid depends on the mode.
 - **Undigested:** what a digester has gathered and not paid, and still pays if the episode ends now. Every
   digester states it through `undigested()`, and the droid settles the sum when the episode ends. Max-tier holds an
-  unpaid chain and returns 0, since an unfinished chain is lost. Only threshold has anything undigested today.
+  unpaid chain and returns 0, since an unfinished chain is lost. Of the digesters, only threshold holds anything
+  undigested.
 - **Scoring mode:** when a tier orb's worth is paid. An orb is worth the same in every mode.
 - **Max-tier:** nothing is paid until completion, which pays the whole chain.
 - **Step-wise:** each orb is paid as it is eaten.
@@ -237,7 +238,7 @@ Terms are grouped by area. The last section lists the words that are used in two
   settings is in `open-questions.md`.
 - **Pool.** The population file says a scenario "fills the orb pool"; the decisions use pool only for what a sampled
   field is drawn from.
-- **Sweep.** The test sweep ends every change (`AGENTS.md`, "Writing tests"); the docs sweep ends a session;
+- **Sweep.** The test sweep ends every change (`procedures/test-sweep.md`); the docs sweep ends a session;
   `sweep.sh` runs the replay probe at each commit in a range; and the scenario sweep is a test.
 - **Sparse and dense.** They name the two scaling scenarios. The scoring modes behind them are max-tier and
   threshold.

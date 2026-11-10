@@ -1,7 +1,7 @@
 # SYNGrid: the vision
 
-*Written 2026-10-27, from a long talk with the owner. It says where the project is heading, not what to build next. The
-roadmap does that. Read this first, then the roadmap.*
+*Written 2026-10-27, from a long talk with the owner. It says where the project is heading, not what to build next
+or how far it has come. The roadmap does both. Read this first, then the roadmap.*
 
 Picture a small arcade cabinet from a future that never happened. Chunky controls, a few dials, a screen of glowing
 numbers that don't tell you what they mean. On the screen is a grid. A little droid moves across it, eating orbs.
@@ -35,15 +35,15 @@ The question under it all is how an agent learns that something is worth holding
 chain was the first measurable form of that question, built for the thesis. Effect orbs are where it grows. What an
 effect orb is, beyond an orb that changes what other orbs are worth, is not known. It is found by trying them, together.
 
-Orbs and observation are free parts. The goal is not, yet. Today it is decided by the scenario's family (tier chain has
-its own termination, a continuous family would have another). Whether the goal becomes a part of its own, or stays a
-property of the family, is open. A tier-chain goal needs tier orbs, so the coupling may be real and not an accident.
+Orbs and observation are free parts. The goal belongs to the scenario's family (tier chain has its own termination, a
+continuous family would have another). Whether the goal becomes a part of its own, or stays a property of the family,
+is open. A tier-chain goal needs tier orbs, so the coupling may be real and not an accident.
 
 If goals do become a part, they are likely to be one-dimensional: eat this orb, survive so many steps, reach a score.
 A scenario's character then comes from its orbs and how they are arranged, not from its goal. Picture one nullify orb,
 and a wall of deadly orbs around a goal orb. The goal is only "eat the goal orb". What makes it hard is the deadly
-orbs, the nullify orb that disarms them, and the wall, and the wall is a layout that nothing can describe today. This
-is a line of thought, not a decision.
+orbs, the nullify orb that disarms them, and the wall, and the wall is a layout, which would be a part of its own.
+This is a line of thought, not a decision.
 
 ### The feel
 
@@ -92,8 +92,7 @@ that can be read.
 
 The observation adapts to the agent, and the scenario stays the same. The range is flat vectors, a richer composite
 layout, pixels (many agents expect images and a convolutional network), and text, so that a language model can play.
-Only the vector observations exist today. A text view makes reading the grid its own task, so results should be
-compared with care across observation types.
+A text view makes reading the grid its own task, so results should be compared with care across observation types.
 
 ### How it grows
 
@@ -130,10 +129,3 @@ not try to cover what they cover, match them or look like them. Do not steer it 
 
 The long bet, that isolated orb types could train structural priors for something like an active inference agent, is a
 possible future, written down in the thesis's future-work file. It is not part of this vision.
-
-### Where it stands (2026-10-27)
-
-The bones are there. One grid, one droid, orbs, and scenarios built from parts. The rebuild is making that cleaner,
-and spatial and scaling sparse are built. Delay and dense are not. The face is mostly ahead: the GUI, the look, the
-high score tracker, pixel and text observations, effect orbs, and scenarios that are interesting for a human. Being
-about a third of the way is a rough guess, not a measurement.

@@ -164,8 +164,8 @@ next mechanic:
 - **An orb state for "on the field, but not edible".** Frozen is the first. An effect orb that freezes others, or a
   hazard that disables an orb for a while, uses the same state.
 - **A cell the droid cannot enter.** The world's first obstacle. Because blocking is its own property, an orb can
-  block without being frozen, which is the first brick of a layout such as a wall around a goal orb, which nothing
-  can describe today (see `docs/vision.md`).
+  block without being frozen, which is the first brick of a layout such as a wall around a goal orb (see
+  `docs/vision.md`).
 - **A move into something solid.** The droid's move already stops at the grid's edge; a blocking orb extends the
   stop into the grid, without the edge's charge. A price on top, such as the bite, comes from what the orb is.
 - **An orb's state in the observation.** Once a perception marks one state, a later state arrives on the same

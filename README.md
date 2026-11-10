@@ -38,7 +38,7 @@ SYNGrid is a configurable grid-based environment for isolating and diagnosing te
 
 Change any of these, and the agent faces a different credit assignment challenge, without the need to touch code. A human-playable mode also lets you validate scenarios before training.
 
-**The core mechanic today:** Currently, there are two orb types: tier orbs, which must be collected in strict order (tier 1, then tier 2, then tier 3, and so on — collecting one out of order breaks the chain and ends the episode), and negative orbs, which deliver a direct negative reward.
+**The core mechanic:** the scenarios are built from two orb types: tier orbs, which must be collected in strict order (tier 1, then tier 2, then tier 3, and so on — collecting one out of order breaks the chain and ends the episode), and negative orbs, which deliver a direct negative reward.
 
 **Where it's headed:** SYNGrid is meant to grow with **Effect Orbs** — transient mechanics (nullifier, converter, hazard, etc) that interact and combine into richer scenarios, while keeping the config-driven paradigm intact. This would be where the "SYN" in SYNGrid stops being a stretch and starts earning its name.
 

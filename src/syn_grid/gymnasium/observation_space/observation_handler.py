@@ -14,8 +14,8 @@ from syn_grid.gymnasium.observation_space.perceptions.vector import (
 from syn_grid.scenario.blocks.observation import ObservationRules
 
 # TODO(phase 7): the perceptions outside the `Perception` enum are rewritten from their copies in
-# `legacy/` in the observation pass: VectorMarkovianEasy, CompositeMarkovian, CompositeFullyPOMDP,
-# CompositeGridMarkovian and GridPixel.
+# `legacy/` in the observation pass. But first look over what's here already, tighten, rework the
+# design pattern if needed etc.
 PERCEPTIONS: Final[dict[Perception, type[BasePerception]]] = {
     Perception.VECTOR_FOG_OF_WAR: VectorFogOfWar,
     Perception.VECTOR_MARKOVIAN: VectorMarkovian,
