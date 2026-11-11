@@ -204,7 +204,8 @@ against legacy would shift that feature by a step.
 
 ### The dense identity
 
-**Change:** The identity remap stays in the world until the observation pass.
+**Change:** The identity remap stays in the world until 7a moves it into a table the scenario builds, which should
+number the orbs as the world does.
 **Touches:** observation
 **Status:** open, with a `# TODO(phase 7)` in `grid_world.py`.
 **Check:** Phase 7.

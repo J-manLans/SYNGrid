@@ -74,8 +74,6 @@ Terms are grouped by area. The last section lists the words that are used in two
   frozen orb is not on the field, so it is neither seen nor eaten.
 - **Blocking:** an orb property that keeps the droid out of the orb's cell, the way the grid's edge keeps it on the
   grid. It costs nothing of itself. Freezing an orb turns it on.
-- **Bite:** the droid moving into a frozen orb. The move is blocked, the orb stays frozen, and the bite costs a
-  penalty of its own, which belongs to the frozen state and not to blocking.
 - **Population:** what makes one orb kind's orbs for a world. It decides which orbs exist, once per world. Putting
   them on the field is spawning, which the world does. The populations are shared, in `scenario/blocks/populations/`.
 - **Count:** how many orbs a population makes, known before any world exists. In a fixed field the counts of the
@@ -137,6 +135,9 @@ Terms are grouped by area. The last section lists the words that are used in two
   written.
 - **Tier:** a tier orb's place in the chain, from 1 up to `max_tier`. Every other orb has no tier.
 - **Identity:** the number the agent sees for an orb. Orbs of the same kind and tier share it.
+- **Radix identity:** an orb's kind and tier folded into one number, tier in the top place, computed by its meta.
+- **Dense identity:** an orb's rank among the radix identities of a scenario's orbs, 1 to N. It is what the agent
+  sees.
 - **Lifespan:** how many steps an orb stays on the field before it despawns, or `None` for an orb that stays until
   it is eaten. It belongs to the orb.
 - **Despawn:** an orb leaving the field without being eaten.
@@ -184,6 +185,10 @@ Terms are grouped by area. The last section lists the words that are used in two
   makes one.
 - **Slot:** the place for one orb in an observation.
 - **Global feature:** one value in the observation that is not about an orb, such as energy or steps left.
+- **Orb feature:** one value in an orb's slot beyond its active flag and position, such as its identity or a frozen
+  flag. The scenario lists them, as it lists global features.
+- **View radius:** how far from the droid the agent sees orbs. None is the full view; 1 and up is a limited view.
+- **Format:** what a perception class is once the view radius is the scenario's: vector, composite, grid or pixel.
 - **HUD:** what the renderer shows beside the grid. A scenario lists its elements.
 - **Metric:** one named number a scenario reports at the end of an episode.
 
@@ -234,8 +239,9 @@ Terms are grouped by area. The last section lists the words that are used in two
   populations and recipes every family shares. The two are different things.
 - **Axis model.** A name used for the tunables model. It also holds the perception, so the name is
   expected to change.
-- **Perception.** One config value that fixes both the visibility and the encoding. Whether it is split into two
-  settings is in `open-questions.md`.
+- **Perception.** Today one config value that fixes both the visibility and the encoding. It is decided to name only
+  the format, with the visibility in the scenario's view radius; see "A perception is a format, and the scenario
+  says what the agent knows".
 - **Pool.** The population file says a scenario "fills the orb pool"; the decisions use pool only for what a sampled
   field is drawn from.
 - **Sweep.** The test sweep ends every change (`procedures/test-sweep.md`); the docs sweep ends a session;

@@ -209,7 +209,7 @@ environment cannot, so the scenario holds a recipe, as it does for the world. Be
 watcher sleep: noticing on its own would mean scanning the field every step, and counting orbs mixes an eaten orb
 with an expired one or a refill. Freezing after the step gives every orb the same wait; legacy froze mid-loop, so
 orbs after the eaten one ticked once more. Where a frozen orb is while it waits is in "Delay's frozen orbs stay on
-the field, block their cell, and bite".
+the field and block their cell".
 
 The negative orb is not frozen because an agent that has learned to avoid it treats it as noise, so the chain's
 silence holds, and an optional orb that makes a scenario harder gets no rules of its own in delay. Its own cycle runs

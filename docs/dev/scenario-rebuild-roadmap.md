@@ -64,7 +64,11 @@ for an orb that never expires.
 
 The two perceptions in the `Perception` enum brought in line with the new rules. Nothing new is added.
 
-1. The orb identity: where the dense id lives, and whether the radix formula becomes a plain sort on kind and tier.
+1. The orb identity, as decided in "An orb's identity is the radix scalar, and tier order is meant to be seen" and
+   "An orb's identity is looked up in a table the scenario builds": the meta frozen, the world's remap replaced by
+   the scenario's table, and the observation unchanged. The identity tests are revisited with it: `TestIdentities`
+   in `test_grid_world.py`, which pins negative as 1 and the tiers counting up from 2, and `TestIdentity` in
+   `test_orb_meta.py`. When spatial is trained, also train it with the plain radix on the same seeds.
 2. Global features supplied by the scenario, as `GlobalFeature`s in `ObservationRules.global_features`, each with
    its bound and a reader. The two kept perceptions carry none. Chain progress is needed where tier orbs return.
 3. The view radius, a field on `ObservationRules` that the limited-view perception reads in place of its hardcoded
@@ -79,13 +83,13 @@ and spatial still learns.
 
 ### 7a½: Delay's frozen orbs
 
-Delay's next version, as decided in "Delay's frozen orbs stay on the field, block their cell, and bite" in
+Delay's next version, as decided in "Delay's frozen orbs stay on the field and block their cell" in
 `design-decisions.md`. It comes after 7a, so the mark lands on the aligned observation and the rebuilt suite, and
 before 7b, so the new perceptions are written with the frozen state from the start. The questions are in
 `open-questions.md`, under phase 7.
 
 1. An orb state for "on the field, but not edible", and blocking as an orb property of its own.
-2. The droid's move stopped by a blocking orb, with no charge of its own; the bite's penalty on a frozen orb.
+2. The droid's move stopped by a blocking orb, with no charge of its own.
 3. `DelayWatcher` freezing orbs in their cells in place of taking them off the field, and the rule that a released
    orb waits for its cell going.
 4. The frozen mark in the two kept perceptions, and the frozen skin in the renderer.
@@ -93,12 +97,13 @@ before 7b, so the new perceptions are written with the frozen state from the sta
    doubt while its base config still changes, then lock it and record its baseline again with `probe.py --baseline`. Anything
    that moves the observation or reward goes in `landscape-changes.md`.
 
-**Done when:** the delay spread at −0.5 is run again on it and learns, and the bite's 0.1 is checked against the
-curves. The baselines of spatial and scaling are unchanged.
+**Done when:** the delay spread at −0.5 is run again on it and learns. The baselines of spatial and scaling are unchanged.
 
 ### 7b: New perceptions, one at a time
 
-Rewritten from their copies in `legacy/` against the new rules, each added alone and checked before the next. The
+Rewritten from their copies in `legacy/` against the new rules, each added alone and checked before the next. A
+perception is a format, and the scenario lists what it shows (see "A perception is a format, and the scenario says
+what the agent knows"), so legacy's seven become vector, composite, grid and pixel. The
 extractors start from `extractors.py`, which the owner has read, and are reworked from there rather than written from
 scratch.
 
@@ -107,7 +112,9 @@ scratch.
 
 1. **Composite.** The observation as a dictionary of groups. SB3's `MultiInputPolicy` flattens every key by default,
    so it needs a features extractor of its own. `GroupedMetaExtractor` in `extractors.py` is a first attempt to
-   rewrite with this step.
+   rewrite with this step. The extractor is also the way out when a scenario's kinds crowd the radix identity: it
+   can run the identity through an embedding, a learned vector per id, as MiniHack does, while the observation stays
+   the same. See "An orb's identity is the radix scalar, and tier order is meant to be seen".
 2. **Pixel.** The grid as an image, for a CNN. SB3's default CNN expects larger images, so it likely needs a small
    extractor too. `TinyGridCNN` in the same file trains but is unchecked.
 

@@ -91,7 +91,7 @@ The rules most decisions below follow.
 - Delay ends as the family does (2026-11-06)
 - Delay's values: a free silence, and a break at half the timeout (2026-11-06)
 - Delay's episode length follows from the delay and the grid (2026-11-06)
-- Delay's frozen orbs stay on the field, block their cell, and bite (2026-11-06)
+- Delay's frozen orbs stay on the field and block their cell (2026-11-06, revised 2026-11-11)
 
 ### Scenarios and config: [`decisions/scenarios-and-config.md`](decisions/scenarios-and-config.md)
 
@@ -115,6 +115,12 @@ The rules most decisions below follow.
 - An orb's timer is not observed (2026-10-23)
 - The HUD and the observation share readers and keep their own lists (2026-10-23)
 - The environment hands out a copy of each observation (2026-11-07)
+- `vector_markovian_easy` is not rewritten (2026-11-11)
+- The composite perceptions are rewritten, as one (2026-11-11)
+- An orb's identity is the radix scalar, and tier order is meant to be seen (2026-11-12)
+- An orb's identity is looked up in a table the scenario builds (2026-11-12)
+- A perception is a format, and the scenario says what the agent knows (2026-11-11)
+- An orb slot's columns are orb features the scenario lists (2026-11-11)
 
 ### Runners and rendering: [`decisions/runners-and-rendering.md`](decisions/runners-and-rendering.md)
 

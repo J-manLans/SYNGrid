@@ -58,18 +58,15 @@ a name and a parent" in `design-decisions.md`.
   measuring credit assignment. It also matters at truncation, where what a running chain holds is paid only through
   the bootstrapped value. It would go in `ObservationRules.global_features`, per scenario. Raised on 2026-10-23.
   See: "A truncated episode settles nothing" and "An orb's timer is not observed" in `design-decisions.md`.
-- **Where an orb's dense identity lives, and whether the radix formula becomes a plain sort on kind and tier.** The
-  world writes the dense id back onto the meta, so the meta cannot be frozen until the id lives elsewhere. Negative
-  has to keep sorting before the tiers, or existing observations change. The dense ids also number tier orbs in tier
-  order, so the identity the agent sees is the tier's rank and tells it the chain's order without learning it: decide
-  whether that is intended or a leak.
-  When it is settled, the identity tests are revisited with it: `TestIdentities` in `test_grid_world.py`, which pins
-  negative as 1 and the tiers counting up from 2, and `TestIdentity` in `test_orb_meta.py`.
 - **What the observation shows for an orb that never expires,** if a rewritten perception brings the timer back. A
   tier orb's timer reads `None` on the field. A 0, a -1 or a separate flag. Raised on 2026-10-18.
-- **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`. If a perception is split
-  into what the droid sees and how it is encoded, the halves may belong to different sides.
-  See: "A perception is two things" in `codebase-ideas.md`.
+- **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`, which now names only a
+  format; the view radius and the feature lists are the scenario's.
+  See: "A perception is a format, and the scenario says what the agent knows" in `design-decisions.md`.
+- **When the perceptions become formats, and orb features arrive.** 7a adds nothing new, but if 7a½'s frozen mark is an
+  orb feature, the lists exist before it or the mark is built as a one-off. Raised on 2026-11-11.
+- **Whether the composite is a thin layer over the vector,** building the same parts and handing them out as a
+  `Dict` in place of joining them. To decide at the code. Raised on 2026-11-11.
 - **Whether the pixel observation gets a limited view, and which kind.** A crop of the window loses the droid's
   position; the full grid with the rest blacked out keeps it.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
@@ -78,18 +75,20 @@ a name and a parent" in `design-decisions.md`.
 
 Built between 7a and 7b, see the roadmap.
 
-See: "Delay's frozen orbs stay on the field, block their cell, and bite" in `design-decisions.md`. Raised on
+See: "Delay's frozen orbs stay on the field and block their cell" in `design-decisions.md`. Raised on
 2026-11-06.
 
-- **Where a penalty for moving into a blocking orb is set.** Blocking costs nothing of itself. Either a penalty is a
-  setting of a blocking orb, or a scenario adds it where it needs one, as delay adds the bite to its frozen orbs,
-  and the default is nothing. The owner leans towards the scenario adding it, which keeps the bite with the frozen
-  state and apart from blocking. The bite starts at around 0.1.
 - **How the droid's move learns that a cell is blocked.** Today the move knows only the grid's edges.
 - **How an orb holds the frozen state.** A state of its own (on the field, cooling down, frozen) in place of
   `is_active`, or a flag beside it. Two flags allow pairs that mean nothing, such as frozen and off the field.
   Blocking is a property apart from it either way.
-- **How the observation marks a frozen orb,** in each perception.
+- **How the observation marks a frozen orb.** Talked through on 2026-11-11, not decided. The lean: a frozen flag, 0
+  or 1, as an orb feature listed only by scenarios in which orbs can freeze, so spatial and scaling do not carry it.
+  A frozen tier-3 orb stays a tier-3 orb, so its identity is unchanged; a 0 or 1 is the plainest input there is and
+  keeps the state out of the identity's magnitude; as an orb feature it reaches the vector, the composite and the
+  grid at once. Against it: one flag per state allows pairs that mean nothing, such as frozen and burning, so a
+  second state would call for a single state feature. The other option raised: a state digit at the bottom of the
+  radix identity, which keeps the slot narrower but makes a frozen orb read as another kind.
 
 ## Phase 8b: The modular HUD
 

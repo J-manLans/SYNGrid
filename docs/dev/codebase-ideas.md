@@ -133,38 +133,6 @@ brick".
 
 ---
 
-## A perception is two things: what the droid sees and how it is encoded (2026-10-12)
-
-**Returns when:** phase 7, the observation pass.
-
-**Idea:** Split the perception into two settings. One is the visibility: the whole world, or a window around the
-droid. The other is the encoding: a flat vector, a composite of named parts, a grid of cells, or pixels. That a
-locked scenario fixes the visibility and the encoding is a tunable is decided (see "A locked scenario fixes the
-visibility, and the encoding is a tunable" in `design-decisions.md`); making them two settings is the idea.
-
-**Where it came from:** Deciding which perceptions a locked scenario offers, on 2026-10-12. The fog of war in
-`vector_fog_of_war.py` is one filter, which keeps the orbs within one cell of the droid, and nothing ties it to the
-vector encoding. The class names already read as a pair: `vector`, `composite`, `composite_grid` and `grid_pixel` on
-one side, and `markovian`, `fog_of_war` and `fully_pomdp` on the other.
-
-**Why it might matter:**
-
-- "Spatial offers only the perceptions with a limited view" then needs no list per scenario. With one enum, every new
-  perception has to be added by hand to each scenario that allows it.
-- The two halves may belong to different sides. The visibility follows from the task, which is the scenario's. The
-  encoding follows from the policy and its feature extractor, which is the runner's. This bears on the shape of
-  `obs_conf`, which is open.
-- The composite perceptions return `Dict` spaces that SB3 flattens into one vector, so they give the model nothing a
-  vector does not until a custom extractor is written. Their own notes say so.
-- A limited pixel observation can be made in two ways. A crop of the window is the same size on every grid and says
-  nothing about where the droid is. The full grid with everything outside the window blacked out keeps the position.
-  `vector_fog_of_war` gives the droid its position beside the orbs it sees, so the second is the closer match.
-- `composite_grid_markovian` and a pixel observation are not the same thing. The first is a rows x cols x channels
-  array where a cell holds facts (an active flag, the orb kind, the tier). The second is a picture the model has to
-  read. Both suit a CNN; the first is small and exact, the second large and slower.
-
----
-
 ## A held chain that keeps the droid alive (2026-10-16)
 
 **Returns when:** a stochastic goal scenario, with a continuous threshold tier chain beside the goal, is planned.
@@ -278,7 +246,7 @@ orb that blocks and is never eaten, and walking into it costs nothing. A layout 
 as the vision's wall of deadly orbs around a goal orb.
 
 **Where it came from:** The owner and the agent, while deciding that delay's frozen orbs block their cell. See
-"Delay's frozen orbs stay on the field, block their cell, and bite" in `design-decisions.md`.
+"Delay's frozen orbs stay on the field and block their cell" in `design-decisions.md`.
 
 **Why it might matter:** The vision says a scenario's character may come from how its orbs are arranged, and that
 nothing can describe a layout today. Blocking cells are the first piece of that. Placing walls on purpose, and not at
@@ -347,8 +315,8 @@ teacher once the tiers were hidden.
   because the renderer then draws it like anything else and the human view needs no special case. The scripted route
   is lighter, since the ghost touches nothing, but it would be drawn by a separate path.
 - The identity the agent sees for an orb numbers tier orbs in tier order, so it would give the order away. The ghost
-  scenario withholds the identity for itself alone, which leaves the radix identity and the dense remap as they are
-  everywhere else.
+  scenario withholds the identity for itself alone, which leaves the identity as it is everywhere
+  else.
 - What the ghost needs from the engine: a place in the world's step, a place in the observation, and a way to
   leave. A watcher may fit the first, see "Field effects through a watcher" above.
 - The word "trace" in the glossary is the replay probe's recording. The ghost's trail needs another name so the two
@@ -357,3 +325,16 @@ teacher once the tiers were hidden.
   episode, but a small agent may still settle for it. Training one early and watching what it does would show.
 - What the agent learns is a rule, the unvisited orb first and the rest in the ghost's order. Whether a larger chain
   makes that harder or easier is open.
+
+## Orbs that hurt on touch (2026-11-11)
+
+**Returns when:** a scenario needs an orb that costs the droid for moving into it, such as a fire orb.
+
+**Idea:** A blocking orb that charges a penalty when the droid moves into it. The price comes from what the orb is,
+not from blocking, so it is set by the orb or the scenario that adds it, and a blocking orb costs nothing by default.
+
+**Where it came from:** The owner, while dropping the bite from delay's frozen orbs: a frozen orb does not hurt, a
+fire orb would. See "Delay's frozen orbs stay on the field and block their cell" in `design-decisions.md`.
+
+**Why it might matter:** It is where the question of where a blocking orb's penalty is set comes back, once an orb
+needs one.

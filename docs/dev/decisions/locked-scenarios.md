@@ -96,8 +96,8 @@ silence is what delay hides; a window on top would mix spatial's memory test int
 - Spatial's step penalty: the silence would cost steps.
 - Any perception that does not see the whole grid: a window would test spatial too.
 
-**Revisit if:** -0.5 does worse than -0.1 at 30 or 70, which have not run at -0.5; or the bite of the frozen orbs
-changes what a wrong move costs.
+**Revisit if:** -0.5 does worse than -0.1 at 30 or 70, which have not run at -0.5; or the frozen orbs on the
+field change what a wrong move costs.
 
 ## Delay's episode length follows from the delay and the grid (2026-11-06)
 
@@ -128,16 +128,15 @@ hand-set number can.
 **Revisit if:** delay learns worse at 50 spare steps than at 70, or a grid size other than 5x5 shows the spare
 steps too tight or too loose.
 
-## Delay's frozen orbs stay on the field, block their cell, and bite (2026-11-06)
+## Delay's frozen orbs stay on the field and block their cell (2026-11-06, revised 2026-11-11)
 
 **Decision:** A frozen tier orb stays on the field in its own cell, drawn with a frozen skin, and thaws there when
 the delay is over. It blocks its cell: the droid cannot move onto it. Blocking is a property of its own, which an
 orb can have without being frozen; freezing an orb turns it on, and it turns off when the delay is over. A move into
 a blocking orb is stopped as a move into the grid's edge is, but blocking costs nothing of itself: the grid's edge
-always costs the boundary penalty, and a blocking orb such as a wall costs nothing. Moving into a frozen orb is a
-bite: the droid stays where it is, the orb stays frozen, and the bite costs a penalty of its own, around 0.1, on top
-of the step penalty. The bite's price belongs to the frozen state, with its skin and its delay, not to blocking.
-Since a frozen orb never leaves its cell, the rule that a released orb waits for its cell to clear goes.
+always costs the boundary penalty, and a blocking orb costs nothing. A move into a frozen orb costs nothing either:
+the droid stays where it is, the orb stays frozen, and the step penalty is all it pays. Since a frozen orb never
+leaves its cell, the rule that a released orb waits for its cell to clear goes.
 
 The observation marks a frozen orb as frozen, and carries no countdown.
 
@@ -148,15 +147,20 @@ comes in as delay's next version, so its spread is run again.
 `docs/vision.md`). An orb that vanishes and comes back in the same cell does not look frozen to a viewer, and to the
 agent it looks the same as an eaten orb or one that was never there. On the field, frozen is a state of its own,
 told apart from both. The end of the gap stays hidden: the agent sees what it is waiting for and where, not when it
-thaws. The bite is what biting a frozen apple would be: it does not go in, and it hurts a little. It is an event of
-its own, so it has a value of its own, and the step penalty stays what it is. A bite is not a wall, and blocking is
-not a bite: what a bump costs comes from what the orb is, so blocking stays one rule with no price of its own.
+thaws.
 
-Without the mark, a frozen orb and a thawed one in the same cell look the same, and the same move into it costs a
-bite or pays the orb. A stateless agent cannot tell the two apart, so the bite teaches it only to hang back after
-eating, and an agent with memory has to count the steps, which makes delay a memory test. With the mark, the agent
-knows that the orbs are frozen and not when they thaw, as it did when the field emptied, and also where they are.
-A countdown would show the end of the gap, which is what delay hides.
+A move into a frozen orb has no price of its own because the world already charges one: the move goes nowhere, so
+it is a wasted step. In delay the agent has to wait for the thaw, and bumping into a frozen orb is waiting in place,
+which costs what waiting anywhere else costs. A price on it would teach the agent to wait somewhere else, which is
+not what delay measures, and would add a reward value to tune and to check against legacy, where a frozen orb was an
+empty cell. The mark and the skin already say "not yet"; a price would say nothing more. What a bump costs comes from
+what the orb is, and a frozen orb does not hurt. An orb that does, such as a fire orb, is a different orb.
+
+Without the mark, a frozen orb and a thawed one in the same cell look the same, and the same move into it is blocked
+or pays the orb. A stateless agent cannot tell the two apart, and an agent with memory has to count the steps, which
+makes delay a memory test. With the mark, the agent knows that the orbs are frozen and not when they thaw, as it did
+when the field emptied, and also where they are. A countdown would show the end of the gap, which is what delay
+hides.
 
 What delay needs is built as general capabilities of the core, none of them about delay, so each is there for the
 next mechanic:
@@ -167,7 +171,7 @@ next mechanic:
   block without being frozen, which is the first brick of a layout such as a wall around a goal orb (see
   `docs/vision.md`).
 - **A move into something solid.** The droid's move already stops at the grid's edge; a blocking orb extends the
-  stop into the grid, without the edge's charge. A price on top, such as the bite, comes from what the orb is.
+  stop into the grid, without the edge's charge.
 - **An orb's state in the observation.** Once a perception marks one state, a later state arrives on the same
   channel.
 
@@ -184,11 +188,12 @@ wiring above is paid once, and the next mechanic gets it for free.
   of its own that the agent can tell apart.
 - A frozen orb the droid can walk over without eating it: the move stays simple, but a droid passing through a solid
   orb does not make sense to watch.
-- The bite costing the step penalty: delay's step penalty is 0, and a bite is not a step.
-- The bite costing the boundary penalty: a bite is not a wall.
+- A bite: a penalty of around 0.1 for a move into a frozen orb (decided 2026-11-06 and reversed on 2026-11-11). The
+  blocked move is already a wasted step, the bite would teach the agent to wait away from the orb, and it adds a
+  reward value to tune.
 - Blocking costing the boundary penalty: a wall costs nothing, and the boundary penalty is the grid's edge's.
-- A frozen orb that looks like any other, learned from the bite: the same view would sometimes cost and sometimes
-  pay.
+- A frozen orb that looks like any other, learned from bumping into it: the same view would sometimes be blocked
+  and sometimes pay.
 - A countdown in the observation: it shows the end of the gap.
 - Blocking as part of the frozen state: a wall orb would then have to be frozen to block.
 
