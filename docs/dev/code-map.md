@@ -12,122 +12,13 @@ When this map and the code disagree, the code is right; fix the map.
 
 ## The tree
 
-`src/syn_grid/`, without `legacy/`, `assets/` and the `__init__.py` files.
+Not kept here: a listing goes stale and costs words every session. Print the rebuilt strain's tree when it is needed:
 
-```
-syn_grid/
-├── config/
-│   ├── models/
-│   │   ├── scenario/
-│   │   │   ├── common_models.py
-│   │   │   └── orb_models.py
-│   │   ├── global_models.py
-│   │   └── runner_models.py
-│   ├── yaml/
-│   │   ├── scenarios/
-│   │   │   ├── goal_single_tier_chain_scaling_dense.yaml
-│   │   │   ├── goal_single_tier_chain_scaling_sparse.yaml
-│   │   │   └── goal_single_tier_chain_spatial.yaml
-│   │   ├── global_config.yaml
-│   │   └── runner_config.yaml
-│   └── config_manager.py
-├── core/
-│   ├── droid/
-│   │   ├── digestion/
-│   │   │   ├── digesters/
-│   │   │   │   ├── tier_chain/
-│   │   │   │   │   ├── max_tier_digester.py
-│   │   │   │   │   ├── step_wise_digester.py
-│   │   │   │   │   ├── threshold_digester.py
-│   │   │   │   │   └── tier_digester.py
-│   │   │   │   └── direct_digester.py
-│   │   │   ├── digester.py
-│   │   │   └── engine.py
-│   │   └── synergy_droid.py
-│   ├── orbs/
-│   │   ├── direct/
-│   │   │   └── fixed_reward_orb.py
-│   │   ├── synergy/
-│   │   │   ├── chain/
-│   │   │   │   └── tier_orb.py
-│   │   │   └── effect/
-│   │   ├── base_orb.py
-│   │   └── orb_meta.py
-│   ├── utils/
-│   │   └── timer.py
-│   └── grid_world.py
-├── gymnasium/
-│   ├── observation_space/
-│   │   ├── perceptions/
-│   │   │   ├── vector/
-│   │   │   │   ├── vector_fog_of_war.py
-│   │   │   │   └── vector_markovian.py
-│   │   │   └── base_perception.py
-│   │   └── observation_handler.py
-│   ├── utils/
-│   │   ├── episode_logging/
-│   │   │   ├── csv_episode_logger.py
-│   │   │   └── keys.py
-│   │   └── env_factory.py
-│   └── environment.py
-├── rendering/
-│   └── pygame_renderer.py
-├── runners/
-│   ├── agent_runners/
-│   │   ├── sb3/
-│   │   │   ├── artifact_manager.py
-│   │   │   ├── policy_resolver.py
-│   │   │   ├── run_controls_callback.py
-│   │   │   └── sb3_runner.py
-│   │   ├── utils/
-│   │   │   └── extractors.py
-│   │   ├── base_agent_runner.py
-│   │   └── runner_registry.py
-│   └── human_runner/
-│       └── human_runner.py
-├── scenario/
-│   ├── blocks/
-│   │   ├── populations/
-│   │   │   ├── neg_population.py
-│   │   │   ├── population.py
-│   │   │   └── tier_chain_population.py
-│   │   ├── recipes/
-│   │   │   ├── tier_digester_recipe.py
-│   │   │   └── world_recipe.py
-│   │   ├── hud.py
-│   │   ├── metrics.py
-│   │   ├── observation.py
-│   │   ├── orb_bundle.py
-│   │   ├── readers.py
-│   │   ├── termination.py
-│   │   └── watcher.py
-│   ├── families/
-│   │   ├── continuous/
-│   │   └── goal/
-│   │       ├── single_tier_chain/
-│   │       │   ├── base_configs/
-│   │       │   │   ├── delay.yaml
-│   │       │   │   ├── scaling_dense.yaml
-│   │       │   │   ├── scaling_sparse.yaml
-│   │       │   │   └── spatial.yaml
-│   │       │   ├── builders.py
-│   │       │   ├── config.py
-│   │       │   ├── scenarios.py
-│   │       │   ├── termination.py
-│   │       │   └── watcher.py
-│   │       └── config.py
-│   ├── entry.py
-│   ├── registry.py
-│   └── scenario.py
-├── utils/
-│   ├── date_utils.py
-│   └── paths_util.py
-├── __main__.py
-├── app.py
-└── check_env.py
+```bash
+find src/syn_grid -path '*/legacy' -prune -o -path '*/assets' -prune -o -type f ! -name '__init__.py' ! -name '*.pyc' -print | sort
 ```
 
-Outside it: `scripts/replay/` (probe, diff, sweep), `scripts/runner_probe.py` (fingerprints each algorithm's runner),
+Outside `src/syn_grid/`: `scripts/replay/` (probe, diff, sweep), `scripts/runner_probe.py` (fingerprints each algorithm's runner),
 `scripts/tidy.sh`, `tests/regression/baselines/` (each locked scenario's baseline, which
 `tests/regression/test_replay.py` checks through the replay probe), and `tests/conftest.py` (Hypothesis's profiles).
 
