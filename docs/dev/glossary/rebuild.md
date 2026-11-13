@@ -6,7 +6,7 @@
 - **Skeleton:** the intended structure of the scenario layer, with no logic, that the files in `src/syn_grid/scenario/`
   started from. It was kept in a `reference/` folder, removed on 2026-10-23.
 - **Reproduction package:** `reproduction_package/`, the configs and results of the thesis runs.
-- **Phase:** a step of `scenario-rebuild-roadmap.md`.
+- **Phase:** a step of the roadmap, one file in `scenario-rebuild-roadmap/`.
 - **Replay probe:** `scripts/replay/probe.py`. It plays the tape through a scenario and records what comes back.
   `diff.py` compares two recordings, and `sweep.sh` runs the probe at each commit in a range.
 - **Runner probe:** `scripts/runner_probe.py`. It trains each algorithm briefly with a seed, runs its eval loop, and

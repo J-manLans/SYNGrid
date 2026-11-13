@@ -31,7 +31,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | File | What it is for |
 |---|---|
 | `docs/vision.md` | Where the project is heading, and the questions to ask of a new idea |
-| `docs/dev/scenario-rebuild-roadmap.md` | What is left, in order, and what is stub, legacy or not yet run |
+| `docs/dev/scenario-rebuild-roadmap/` | What is left, in order, and what is stub, legacy or not yet run. `README.md` holds **Next**, the table and the phases; each phase is a file |
 | `docs/dev/design-decisions.md` | What is settled, why, and what was turned down: the principles, and an index of every decision by title. The decisions themselves are in `docs/dev/decisions/`, one file per area |
 | `docs/dev/open-questions.md` | What is not decided yet, by the phase that needs it |
 | `docs/dev/codebase-ideas/` | Ideas worth returning to that are not problems now, one file per idea. Its `README.md` is the index and the only part read outside a docs sweep |
@@ -48,7 +48,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 Read in this order, and do not ask the owner what these already answer:
 
 1. `docs/vision.md`, for where the project is heading.
-2. The roadmap's **Next** line and its "Where things stand" table, for what is next and what has run.
+2. The roadmap's `README.md`, for what is next and what has run, and the file of the phase its **Next** line names.
 3. Before a design opinion: the `design-decisions.md` index, the decision files for the area in full,
    `open-questions.md`, and the index in `docs/dev/archive/README.md`, so a dropped idea is not offered again. Do
    not treat an open question as decided.
@@ -62,7 +62,7 @@ Read in this order, and do not ask the owner what these already answer:
 | A decision is made | its area's file in `decisions/`, in the present tense, and its title in the `design-decisions.md` index |
 | A question is answered | remove it from `open-questions.md`; the answer goes to its area's file in `decisions/` |
 | A question comes up | `open-questions.md`, under the phase that needs it |
-| A roadmap step is done | remove it from the roadmap, and update the has-it-run cell in its table |
+| A roadmap step is done | remove it from its phase's file, and update the has-it-run cell in the README's table; when a phase is done, its file and its line go |
 | Code is first run, or first learns | the has-it-run cell in the roadmap's table |
 | A change touches reward, observation, layout or how often something appears | `landscape-changes.md` |
 | A word is coined | its area's file in `glossary/`, and its name in the index |

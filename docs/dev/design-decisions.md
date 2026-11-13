@@ -3,7 +3,8 @@
 What is settled, why, and the alternatives someone might suggest again, so that nobody has to guess why something is
 shaped as it is or put back what was left out on purpose.
 
-The decisions live in `decisions/`, one file per area. This file holds the principles most of them follow and an index
+The decisions live in `decisions/`, one file per area. A file stays under 2,500 words (`wc -w`); past that, the docs
+sweep proposes splitting it by topic, and splits it once the owner agrees on the files. This file holds the principles most of them follow and an index
 of every decision by title, so a decision can be found by its name. Read the area's file in full before giving a design
 opinion in that area.
 
@@ -72,12 +73,15 @@ The rules most decisions below follow.
 - The reward ladder is one formula on the shared tier orb block (2026-10-11)
 - Reward normalisation stays off (2026-10-11)
 
-### Orbs and the world: [`decisions/orbs-and-world.md`](decisions/orbs-and-world.md)
+### Orbs: [`decisions/orbs.md`](decisions/orbs.md)
 
 - Two orb categories, and an orb meta that stores only kind and tier (2026-10-12)
 - A direct orb is one class per way of paying, and one digester per kind (2026-11-08)
 - An orb carries its own cool-down and lifespan (2026-10-18)
 - A weight belongs to a sampled field, and a tier chain holds one negative orb (2026-10-12)
+
+### The world: [`decisions/world.md`](decisions/world.md)
+
 - The world runs the orb field, and a scenario states only its size (2026-10-13)
 - The step clock lives in the world (2026-10-23)
 - A scenario mechanic lives in its strategy when the world's public API is enough (2026-10-11)
@@ -103,8 +107,11 @@ The rules most decisions below follow.
 - Every scenario in the single tier chain family is a single chain (2026-10-18)
 - A chain leaves a cell for the negative orb, on or off (2026-11-07)
 - The family is named single tier chain (2026-10-26)
-- A locked scenario is a base config and its tunables in front of its entry (2026-11-06)
 - A scenario is one entry in its family's catalogue (2026-11-06)
+
+### Locking and forks: [`decisions/locking-and-forks.md`](decisions/locking-and-forks.md)
+
+- A locked scenario is a base config and its tunables in front of its entry (2026-11-06)
 - A locked scenario is what was run, and changing it makes a different scenario (2026-10-29)
 - A fork is a full config with a name and a parent (2026-10-29)
 - A locked scenario fixes the visibility, and the encoding is a tunable (2026-10-29)
@@ -115,10 +122,13 @@ The rules most decisions below follow.
 - An orb's timer is not observed (2026-10-23)
 - The HUD and the observation share readers and keep their own lists (2026-10-23)
 - The environment hands out a copy of each observation (2026-11-07)
-- `vector_markovian_easy` is not rewritten (2026-11-11)
-- The composite perceptions are rewritten, as one (2026-11-11)
 - An orb's identity is the radix scalar, and tier order is meant to be seen (2026-11-12)
 - An orb's identity is looked up in a table the scenario builds (2026-11-12)
+
+### Perceptions: [`decisions/perceptions.md`](decisions/perceptions.md)
+
+- `vector_markovian_easy` is not rewritten (2026-11-11)
+- The composite perceptions are rewritten, as one (2026-11-11)
 - A perception is a format, and the scenario says what the agent knows (2026-11-11)
 - An orb slot's columns are orb features the scenario lists (2026-11-11)
 
