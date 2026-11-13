@@ -5,9 +5,9 @@
 **Files:** `core/orbs/orb_meta.py`, `scenario/blocks/observation.py`, `gymnasium/observation_space/`, the
 observation part of the config.
 
-**Settle first** (see `open-questions.md`, phase 7): which global features an observation carries; whether non-tier
-synergy orbs despawn like negative orbs; the shape of `obs_conf`; what a perception that writes an orb's timer shows
-for an orb that never expires; what an orb kind's bundle carries, by phase 8b at the latest.
+**Settle first** (see `open-questions.md`, phase 7): which global features an observation carries; the shape of
+`obs_conf`; what a perception that writes an orb's timer shows for an orb that never expires; what an orb kind's bundle
+carries, by phase 8b at the latest.
 
 ## 7a: Align what is there today
 

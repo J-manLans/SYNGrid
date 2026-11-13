@@ -142,6 +142,28 @@ at random per spawn. Whole chains keep every chain completable.
 **Revisit if:** a scenario needs the mix to vary within an episode, each returning orb drawn from a pool. That is a
 sampled field (see "A weight belongs to a sampled field, and a tier chain holds one negative orb" in `orbs.md`).
 
+## In the sandbox every orb despawns and returns (2026-11-13)
+
+**Built by:** phase 10, the sandbox step.
+
+**Decision:** By default every orb in the sandbox despawns and returns, tier orbs included. Its lifespan is
+`_reachable_life_span(rows, cols)`, the longest walk between two cells, as the negative orb's is. Once it has
+despawned or been eaten, it returns after a cool-down, so the field refills and chains repeat. Both are values of
+each kind's block, so a user can change them, as every value in the sandbox can be.
+
+**Why:** The sandbox is continuous: it has no objective and ends only on the clock, so a field that emptied would
+leave the rest of the episode with nothing to do. The lifespan and the cool-down are the orb's own values, set by the
+population that makes it (see "An orb carries its own cool-down and lifespan" in `orbs.md`), so the sandbox's
+populations pass them where the single tier chain's pass `None`. A lifespan the droid can always cover keeps an orb
+reachable from anywhere before it goes.
+
+**Rejected:**
+
+- Tier orbs that stay until eaten and never return, as in the single tier chain: that is the family's guarantee, a
+  whole chain laid out at once, and a sandbox built on it would run dry.
+
+**Revisit if:** an orb kind has to stay on the field to work, as an effect orb might.
+
 ## The family is named single tier chain (2026-10-26)
 
 **Decision:** The family's names say what it guarantees: `scenario/families/goal/single_tier_chain/`,

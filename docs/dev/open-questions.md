@@ -78,8 +78,6 @@ a name and a parent" in `design-decisions.md`.
   `Dict` in place of joining them. To decide at the code. Raised on 2026-11-11.
 - **Whether the pixel observation gets a lantern, and which kind.** A crop of the window loses the droid's
   position; the full grid with the rest blacked out keeps it.
-- **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
-
 - **What an orb kind's bundle carries.** An `OrbBundle` holds a population and a way to make a digester. A kind also
   brings the metrics that read its digester, a tag suffix, HUD elements and observation features, which a family's
   entry adds by hand today: the negative orb's `if` block in `SingleTierChainEntry._compose` adds the bundle, extends
@@ -150,6 +148,8 @@ See: "Delay's frozen orbs stay on the field and block their cell" in `design-dec
   scenario has no objective and truncates on the clock, so a break that ended it would be an objective of its own.
   Raised on 2026-11-13.
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox, so its scoring mode can be set.
+- **The sandbox's default cool-down.** Every orb returns after one; what it is by default, a fixed number of steps or
+  one that follows the grid as the lifespan does, is not said. Raised on 2026-11-13.
 - **Whether a held chain keeps the droid alive.** In threshold scoring a held chain is worth something not yet paid,
   and a droid that runs out of energy while holding one could have it cashed into energy and go on. If built, the
   cash-out happens in the world after the droid acts and eats, and termination reads energy as usual, so a payout
@@ -178,6 +178,9 @@ See: "Delay's frozen orbs stay on the field and block their cell" in `design-dec
   kind could carry its own watcher in its bundle.
   See: "Digesters do not talk to each other" and "The world's step returns a result, and a scenario's watcher reacts
   to it" in `design-decisions.md`.
+- **Whether an effect orb kind despawns like the others,** or stays on the field. In the sandbox every orb despawns
+  and returns by default (see "In the sandbox every orb despawns and returns"); an effect orb that works by being on
+  the field, such as one that changes what its neighbours pay, may need to stay.
 - **Which effect orbs make the first set.** The vision names synergies, converters and hazards, and asks that each
   adds a distinct mechanic and its own metric. Raised on 2026-11-13.
 

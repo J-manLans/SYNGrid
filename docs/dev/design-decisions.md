@@ -114,6 +114,7 @@ The rules most decisions below follow.
 - Every scenario in the single tier chain family is a single chain (2026-10-18)
 - A chain leaves a cell for the negative orb, on or off (2026-11-07)
 - The sandbox is a fixed field, its tier orbs whole chains (2026-11-13)
+- In the sandbox every orb despawns and returns (2026-11-13)
 - The family is named single tier chain (2026-10-26)
 - A scenario is one entry in its family's catalogue (2026-11-06)
 
