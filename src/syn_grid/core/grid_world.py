@@ -164,8 +164,8 @@ class GridWorld:
 
     # === Init === #
 
-    # TODO(phase 7): the remap and `max_identity` stay until the observation pass settles where an
-    # orb's dense identity lives (see open-questions.md).
+    # TODO(phase 7): the remap and `max_identity` move into a table the scenario builds, in 7a (see
+    # "An orb's identity is looked up in a table the scenario builds" in docs/dev/decisions/observation.md).
     def _remap_sparse_identities_to_dense(self) -> None:
         """Remap radix identities to dense sequential indices to simplify learning"""
 

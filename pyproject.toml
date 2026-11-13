@@ -65,7 +65,13 @@ dev = [
     "coverage>=7.17.2", # Which lines and branches the tests run. `coverage run -m pytest` to run, and `coverage report -m` to see results
     "mutmut>=3.8.1", # Mutation testing: whether a test goes red when the code it guards is broken. `mutmut run` to run and `mutmut browse` to see results
     "hypothesis>=6.170.15", # Property-based tests: a rule checked over many generated inputs, shrunk to the smallest that fails
+    "pyright[nodejs]>=1.1.414", # Type checking: whether a class matches the protocol it is handed to, and that an override says so. The [nodejs] extra brings Node through pip. `pyright` to run; settings are in [tool.pyright] below
     "ruff>=0.16" # For linting and removing unused imports. Formatting: ruff format path/to/file.py or ruff format path/to/package, removing unused imports: ruff check --select F401 --fix src/syn_grid
+]
+
+# Drawing the class diagrams: `python scripts/diagrams/add_protocol_edges.py`. Not in dev, since CI never draws them.
+diagrams = [
+    "pylint>=4.1.3", # Brings pyreverse, which draws the diagrams. Only pyreverse is used, not the linter
 ]
 
 [tool.setuptools.packages.find]
@@ -106,7 +112,15 @@ fail_under = 85
 [tool.pyright]
 # The legacy strain is a frozen copy and is never edited. Setting exclude replaces pyright's defaults, so they are
 # listed again.
-exclude = ["src/syn_grid/legacy", "**/node_modules", "**/__pycache__", "**/.*"]
+# TODO: extractors.py is imported by nothing and reads observation keys from before the rebuild; it is kept as it is for
+# phase 7b to work from (see AGENTS.md's traps).
+exclude = [
+    "src/syn_grid/legacy",
+    "src/syn_grid/runners/agent_runners/utils/extractors.py",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+]
 # A method that replaces a parent's must say so with @override; see docs/code_style.md.
 reportImplicitOverride = "warning"
 

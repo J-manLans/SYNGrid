@@ -64,3 +64,9 @@ jobs:
 
             - name: Check formatting
               run: ruff format --check src/syn_grid tests
+
+            # =========== #
+            #    Types    #
+            # =========== #
+            - name: Check types
+              run: pyright src/syn_grid tests

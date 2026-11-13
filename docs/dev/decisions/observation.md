@@ -101,8 +101,10 @@ structure pays off only once there is one.
 ## An orb's identity is the radix scalar, and tier order is meant to be seen (2026-11-12)
 
 **Decision:** The identity the agent sees is one number per orb, built from the mixed-radix formula on category,
-kind and tier, with tier in the top place, so the identity grows with tier. That the agent can read the chain's
-order from it is intended, not a leak. It is one orb feature in the slot.
+kind and tier, with tier in the top place, so the identity grows with tier. The agent sees it as its rank among the
+scenario's orbs, the dense identity (see "An orb's identity is looked up in a table the scenario builds"), which keeps
+the order. That the agent can read the chain's order from it is intended, not a leak. It is one orb feature in the
+slot.
 
 **Why:** The thesis tried three designs. Identity began as three fields, category, type and tier. After the move to
 distance sorting, one-hot gave cleaner and faster convergence, but every tier was an identity of its own, so the
@@ -164,16 +166,21 @@ should not change.
 
 Where the remap came from is undecided. Two accounts:
 
-- **The thesis's lessons notes** (`lessons_learned_notes.md` in the project, written in the thesis era) record it as a
-  lesson of its own: the mixed-radix identity flatlined the LSTM under VecNormalize warm-up, and the dense
+- **The thesis's lessons notes** record it as a lesson of its own: the mixed-radix identity flatlined the LSTM under VecNormalize warm-up, and the dense
   sequential remap fixed it. They call it a narrower, debugging-flavoured lesson, kept apart from the dimensionality
   story of one-hot against scalar.
 - **The owner recalls** it coming in with the one-hot experiments, where each identity needed a column of its own and
   dense ids number those columns, and staying when one-hot was dropped because an ablation showed it learning a
-  little faster. The owner remembers the thesis runs working without it.
+  little faster. The owner tried one-hot, and it did not scale, since tiers 1, 2 and 3 were each a kind of their own;
+  how the remap fits with that is not clear.
 
-Either way the remap stays, for the even spacing it gives the scalar. `git log -S` on the remap may settle which
-account is right.
+`git log -S` does not settle it. The remap first appears in `ab70676` (2026-05-13), the same commit that brought in
+the radix identity, which replaced three fields (category, type and tier). No one-hot encoding was ever committed
+under `src/`, so the one-hot experiments may not have been committed, and nothing in the code mentions VecNormalize
+or an LSTM.
+
+The remap stays, for the even spacing it gives the scalar. Whether the plain radix does as well is for the experiment
+named under "Revisit if".
 
 **Rejected:**
 

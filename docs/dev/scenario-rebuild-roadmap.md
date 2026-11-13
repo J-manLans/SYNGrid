@@ -6,7 +6,8 @@ Nothing done stays here: when a step is done it is removed, and what was done an
 Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No dates, except where a fact needs
 one to be read correctly.
 
-**Next:** the observation pass (phase 7), starting with what it settles first.
+**Next:** fine-tuning the class diagrams (below), then the observation pass (phase 7), starting with what it settles
+first.
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together.
 
@@ -43,9 +44,26 @@ one to be read correctly.
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run, by hand on spatial: two recordings identical, a step-penalty change caught at step 0; the sweep run on one commit; the locked traces recorded for spatial, scaling sparse, scaling dense and delay; the probe building from the base config: the same digests as the old traces wherever the run YAML held the base config's values, and with `--run-yaml` the same as dense's old trace, which its tier-7 6x6 run YAML made; the sweep run on one commit after the change |
+| Class diagrams, `scripts/diagrams/add_protocol_edges.py` | written | run: by hand, 92 classes and 7 protocol arrows into `output/diagrams/`; without pylint it stops with the install message |
 | Runner probe, `scripts/runner_probe.py` | written | run: the same digests on repeated runs, and the same as the scratch version it came from; on Python 3.12 the same digests as on 3.10 |
 | Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behavior: the world's step and free cells, the watchers, the environment's step, the observation handler's copy, entries and the catalogue, delay's config, the SB3 runner and `BaseAgentRunner`; single tier chain termination, the droid, the tier and direct digesters, the engine, the orb meta, the base orb, the tier orb, the fixed reward orb and the timer; the tier chain and negative populations, the world recipe and the tier digester recipe; the catalogue; the config manager; the scenario config blocks' limits; the CSV episode logger, the artifact manager, the run controls callback, the policy resolver and the runner registry; a sweep of every registered scenario through Gymnasium's checker and a whole episode. Left without a test file on purpose: the observation and render code, rebuilt in phases 7 and 8; interfaces and data holders with no logic of their own; the entry points and glue the probes run; `extractors.py`; `gymnasium/environment.py`, whose step `test_env_step.py` covers | run: passes; every unit and integration test file worked through with coverage and mutmut, and mutmut rerun under `forkserver` over all of them, its silent gaps closed |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass; red on a change to a tier orb's worth, to a base config's value and on a missing baseline |
+
+---
+
+## Before phase 7: The class diagrams
+
+The script draws every class of the rebuilt strain into one Mermaid diagram, with protocol arrows. To fine-tune:
+
+1. Private attributes: pyreverse hides them by default, and with them their "has a" arrows, such as
+   `ArtifactManager --* SB3Runner`. `-f ALL` with `-k` (class names only) shows them: 62 relations against 57.
+2. SVG beside the Mermaid, through Graphviz: pyreverse's `.dot` output, the protocol arrows added to it, then
+   `dot -Tsvg`. Skipped with a message where Graphviz is missing.
+3. One diagram per top-level package beside the whole one, leaving out `rendering` and `utils`. A per-package diagram
+   loses its arrows to other packages, so the whole one stays.
+4. Whether "uses" arrows (`..>`) are added from the types of method parameters, for a chosen few.
+
+**Done when:** the diagrams show what the owner wants to redraw in draw.io.
 
 ---
 

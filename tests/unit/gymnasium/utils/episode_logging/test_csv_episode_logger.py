@@ -3,7 +3,7 @@ scenario's metrics, in a file of its own per env."""
 
 import csv
 from pathlib import Path
-from typing import Any
+from typing import Any, override
 
 import gymnasium as gym
 import pytest
@@ -48,11 +48,13 @@ class _Episodes(gym.Env):
         self._truncates = truncates
         self._left = 0
 
+    @override
     def reset(self, *, seed=None, options=None) -> tuple[int, dict[str, Any]]:
         super().reset(seed=seed)
         self._left = next(self._lengths)
         return 0, {}
 
+    @override
     def step(self, action: int) -> tuple[int, float, bool, bool, dict[str, Any]]:
         self._left -= 1
         ended = self._left == 0

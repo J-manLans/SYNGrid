@@ -185,8 +185,8 @@ Terms are grouped by area. The last section lists the words that are used in two
   makes one.
 - **Slot:** the place for one orb in an observation.
 - **Global feature:** one value in the observation that is not about an orb, such as energy or steps left.
-- **Orb feature:** one value in an orb's slot beyond its active flag and position, such as its identity or a frozen
-  flag. The scenario lists them, as it lists global features.
+- **Orb feature:** one value in an orb's slot beyond its active flag and position, such as its identity. The scenario
+  lists them, as it lists global features.
 - **View radius:** how far from the droid the agent sees orbs. None is the full view; 1 and up is a limited view.
 - **Format:** what a perception class is once the view radius is the scenario's: vector, composite, grid or pixel.
 - **HUD:** what the renderer shows beside the grid. A scenario lists its elements.
