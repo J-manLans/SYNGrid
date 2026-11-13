@@ -19,12 +19,10 @@ On a machine without a display or an audio device, set `SDL_VIDEODRIVER=dummy` a
 
 ## Before you send a change
 
-CI runs these on every push and pull request. Run them first:
+CI runs the tests and the type check on every push and pull request. Run them first:
 
 ```bash
 pytest
-ruff check src/syn_grid tests
-ruff format --check src/syn_grid tests
 pyright src/syn_grid tests
 ```
 
@@ -40,7 +38,9 @@ coverage run -m pytest && coverage report
 If you touched the environment, the world or a scenario, also run `python3 -m syn_grid.check_env`, the Gymnasium
 contract check.
 
-`./scripts/tidy.sh` fixes what ruff can fix and formats everything.
+`./scripts/tidy.sh` fixes what ruff can fix, formats the code, and lists markdown lines past 120 characters, which
+are rewrapped by hand. A pull request into `main` also runs `./scripts/tidy.sh --check`, which changes nothing and
+fails on anything the plain run would fix or list.
 
 ## Branches
 

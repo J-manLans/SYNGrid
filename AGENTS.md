@@ -173,11 +173,11 @@ Before running legacy or comparing it with the rebuild, read `docs/dev/procedure
 pip install -e ".[dev]"                    # required
 python3 -m syn_grid                        # run; USE_LEGACY in __main__.py picks the strain
 python3 -m syn_grid.check_env              # Gymnasium contract self-check
-ruff check src/syn_grid tests              # lint, CI scope
 pyright src/syn_grid tests                 # types, CI scope; needs the venv's python first on PATH
 coverage run -m pytest && coverage report -m   # coverage, with branches and the probe's subprocess
 HYPOTHESIS_PROFILE=dev pytest              # the invariants searched far; plain pytest runs CI's small profile
-./scripts/tidy.sh                          # check --fix + format
+./scripts/tidy.sh                          # ruff check --fix + format, and lists doc lines past 120
+./scripts/tidy.sh --check                  # what CI checks at main: changes nothing, fails on what tidy would do
 ```
 
 `python` is not on PATH outside the venv. `requires-python` is `>=3.12,<3.13`. Rendering needs

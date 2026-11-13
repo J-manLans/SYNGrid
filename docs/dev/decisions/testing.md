@@ -131,7 +131,7 @@ once others send pull requests. Or the Hypothesis profile makes CI slow.
 ## CI checks types with Pyright (2026-11-13)
 
 **Decision:** Pyright is in the `dev` extras, as `pyright[nodejs]`, which brings Node through pip, and CI runs
-`pyright src/syn_grid tests` after ruff. Its settings are in `pyproject.toml`'s `[tool.pyright]`, which Pylance reads
+`pyright src/syn_grid tests` on every push. Its settings are in `pyproject.toml`'s `[tool.pyright]`, which Pylance reads
 too, so the editor and CI agree. `runners/agent_runners/utils/extractors.py` is excluded: it is imported by nothing
 and kept as it is for phase 7b. pylint, which brings pyreverse for the class diagrams, is in an extra of its own,
 `diagrams`, which CI does not install.
@@ -203,3 +203,28 @@ tests, and the sweep, do that.
 **Revisit if:** phases 7 and 8 are done, to raise the floor toward the total then. Or others send pull requests, for
 `diff-cover`.
 
+## CI checks tidy where branches meet main (2026-11-13)
+
+**Decision:** CI runs `./scripts/tidy.sh --check` on a pull request into `main` and on a push to it, the moments the
+coverage floor is checked, and not on other pushes. `--check` changes nothing: it runs ruff's lint and its format
+check without fixing, and lists the markdown lines past 120 characters, and fails on any of them. The plain
+`./scripts/tidy.sh` fixes with ruff and lists the long lines without failing. Tests and Pyright still run on every
+push.
+
+**Why:** Lint and formatting are run in the session, with `tidy.sh`; what must not slip is what reaches `main`. A
+check at the merge is a reminder that tidy was not run, and a branch's pushes are never blocked by a lint or a docs
+nit. The width of the docs had no check at all, since ruff formats Python only, and one command now covers both. A
+long line is rewrapped by hand: a markdown formatter refills whole paragraphs, so a one-word edit would show as a
+paragraph rewritten in the diff.
+
+**Rejected:**
+
+- The ruff checks on every push, and only the doc width at `main`: two rules where one does.
+- The doc width only listed by `tidy.sh`, never in CI: easy to forget.
+- The doc width checked on every push: a branch blocked over a docs nit.
+- A script of its own for the width check: `tidy.sh` already runs where it is needed.
+- `mdformat` with a wrap of 120: it refills whole paragraphs, turns `---` into a row of underscores, and escapes
+  characters such as the underscore in `Pop!_OS`.
+
+**Revisit if:** others send pull requests and want lint feedback before the merge, or the width check flags lines it
+should skip.

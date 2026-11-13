@@ -14,8 +14,8 @@ jobs:
             SDL_VIDEODRIVER: dummy
             # CI runners have no audio device.
             SDL_AUDIODRIVER: dummy
-            # The coverage floor is checked where branches meet main: a pull request into it, or a push to it.
-            CHECK_COVERAGE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'main') || github.ref == 'refs/heads/main' }}
+            # The coverage floor and tidy are checked where branches meet main: a pull request into it, or a push to it.
+            AT_MAIN: ${{ (github.event_name == 'pull_request' && github.base_ref == 'main') || github.ref == 'refs/heads/main' }}
 
         steps:
             # =========== #
@@ -45,25 +45,25 @@ jobs:
             # instead, which runs every test the same way and records which lines ran, and then checks the floor
             # in pyproject.toml
             - name: Run tests
-              if: env.CHECK_COVERAGE != 'true'
+              if: env.AT_MAIN != 'true'
               run: pytest
 
             - name: Run tests under coverage
-              if: env.CHECK_COVERAGE == 'true'
+              if: env.AT_MAIN == 'true'
               run: coverage run -m pytest
 
             - name: Check the coverage floor
-              if: env.CHECK_COVERAGE == 'true'
+              if: env.AT_MAIN == 'true'
               run: coverage report
 
             # =========== #
-            #    Linter   #
+            #    Tidy     #
             # =========== #
-            - name: Check lint
-              run: ruff check src/syn_grid tests
-
-            - name: Check formatting
-              run: ruff format --check src/syn_grid tests
+            # Fails on anything ./scripts/tidy.sh would fix or list: ruff's lint and formatting, and markdown lines
+            # past 120 characters. Only where branches meet main, so a branch's pushes are never blocked by it
+            - name: Check tidy
+              if: env.AT_MAIN == 'true'
+              run: ./scripts/tidy.sh --check
 
             # =========== #
             #    Types    #
