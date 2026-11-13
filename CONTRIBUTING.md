@@ -25,7 +25,10 @@ CI runs these on every push and pull request. Run them first:
 pytest
 ruff check src/syn_grid tests
 ruff format --check src/syn_grid tests
+pyright src/syn_grid tests
 ```
+
+Pyright finds the installed packages through the first `python` on PATH, so activate the venv first.
 
 A pull request into `main` also runs the tests under coverage and fails if the total is below 85%. To check it
 locally:

@@ -128,6 +128,27 @@ would only fix today's 70% in place while the suite is rebuilt.
 `fail_under` in `[tool.coverage.report]` for the total, or `diff-cover` for the lines a change touches, which matters
 once others send pull requests. Or the Hypothesis profile makes CI slow.
 
+## CI checks types with Pyright (2026-11-13)
+
+**Decision:** Pyright is in the `dev` extras, as `pyright[nodejs]`, which brings Node through pip, and CI runs
+`pyright src/syn_grid tests` after ruff. Its settings are in `pyproject.toml`'s `[tool.pyright]`, which Pylance reads
+too, so the editor and CI agree. `runners/agent_runners/utils/extractors.py` is excluded: it is imported by nothing
+and kept as it is for phase 7b. pylint, which brings pyreverse for the class diagrams, is in an extra of its own,
+`diagrams`, which CI does not install.
+
+**Why:** Ruff lints and formats but checks no types. Pyright ran only inside VS Code, through Pylance, and only on the
+files open there, so a missing `@override`, or a class that did not match the protocol it is handed to, could reach
+`main` unseen. Protocols are matched, not inherited (see `docs/code_style.md`), so Pyright is what checks them.
+
+**Rejected:**
+
+- Pylance alone: it checks only open files, and only on a machine with VS Code.
+- The PyPI `pyright` without `[nodejs]`: it needs Node installed apart from the project.
+- pylint in `dev`: CI would install it on every run and never use it.
+
+**Revisit if:** Pyright's checks slow CI noticeably, or `extractors.py` is reworked in phase 7b, when its exclude
+goes.
+
 ## Tests come first, from the owner's rules (2026-11-07)
 
 **Decision:** When new code is added and its rules are decided, the owner states the rules as behaviour, "when X

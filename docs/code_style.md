@@ -19,8 +19,12 @@ _chained_tiers: Final[list[int]] = []
 
 - **Overrides**: A method that replaces one inherited from a parent class, ours or a library's, is marked
   `@override`, so a type checker flags it when the parent's method is renamed or gone. `reportImplicitOverride` in
-  `pyproject.toml`'s `[tool.pyright]` has Pylance flag a missing one. A class that only matches a
-  `Protocol` without inheriting from it overrides nothing, and its methods are not marked.
+  `pyproject.toml`'s `[tool.pyright]` has Pyright flag a missing one, in the editor through Pylance and in CI. A class
+  that only matches a `Protocol` without inheriting from it overrides nothing, and its methods are not marked.
+- **Protocols**: A class that implements a `Protocol` matches it and does not inherit from it. A subclass that forgets
+  a method inherits the protocol's empty one and nothing flags it; a class that only matches is checked by Pyright
+  wherever it is handed over as the protocol. The class diagrams draw these as realization arrows
+  (`scripts/diagrams/add_protocol_edges.py`), since a diagram tool sees only inheritance.
 
 ```python
 from typing import override

@@ -147,4 +147,5 @@ The rules most decisions below follow.
 - mutmut forks from a clean server (2026-11-09)
 - Hypothesis checks the world's invariants, and CI runs the tests and ruff (2026-11-07)
 - CI fails below a coverage floor of 85% (2026-11-10)
+- CI checks types with Pyright (2026-11-13)
 - Tests come first, from the owner's rules (2026-11-07)
