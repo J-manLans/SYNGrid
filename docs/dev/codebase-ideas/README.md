@@ -40,10 +40,7 @@ A file named for the idea, in kebab case, and a line in the index below.
 
 | Idea | Returns when |
 |---|---|
-| [A GUI on top of the registry](gui-on-the-registry.md) | work on a GUI starts, which no phase of the roadmap holds. Picking a checkpoint returns sooner, when a run continues another, such as a curriculum stage. |
-| [A bundle that carries everything its orb kind brings](bundle-carries-its-kind.md) | a second family uses an orb kind that one already uses, or phase 7 or 8b settles what a kind adds to the observation or the HUD. |
-| [A held chain that keeps the droid alive](held-chain-keeps-droid-alive.md) | a stochastic goal scenario, with a continuous threshold tier chain beside the goal, is planned. |
-| [Effect orbs get their magic from the engine](effect-orbs-magic-from-engine.md) | effect orbs are built. The roadmap lists them under "Not on this roadmap". |
+| [The GUI's version 2: creating a scenario](gui-version-2.md) | the GUI's version 1 (phase 9) and the sandbox (phase 10) are done. |
 | [Orbs that block without being frozen](blocking-orbs-without-freezing.md) | a scenario needs cells that block, or orbs placed on purpose, such as the vision's wall around a goal orb. |
 | [A guide entity that walks the chain](guide-ghost-walks-the-chain.md) | a scenario with a second body on the grid is planned: a guide, a rival or a companion. |
 | [Orbs that hurt on touch](orbs-that-hurt-on-touch.md) | a scenario needs an orb that costs the droid for moving into it, such as a fire orb. |

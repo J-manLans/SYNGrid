@@ -80,6 +80,16 @@ a name and a parent" in `design-decisions.md`.
   position; the full grid with the rest blacked out keeps it.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
 
+- **What an orb kind's bundle carries.** An `OrbBundle` holds a population and a way to make a digester. A kind also
+  brings the metrics that read its digester, a tag suffix, HUD elements and observation features, which a family's
+  entry adds by hand today: the negative orb's `if` block in `SingleTierChainEntry._compose` adds the bundle, extends
+  the tag and adds the `negatives_eaten` metric. Three sorts: the population and the digester must exist together;
+  the count and the metrics follow from the kind being present; what the HUD shows and what the agent observes are
+  the scenario's choice, and a kind should not make it. Options: the bundle carries its metrics, as a `metrics` field,
+  with their readers moving out of a family's `builders.py` to live with the kind, which ends at one module per kind;
+  or it carries what it carries today, and a second family using the same kind repeats the lines. Putting the HUD or
+  the observation in the bundle decides 7's and 8b's forms early. Raised on 2026-10-12.
+
 ### Delay's frozen orbs
 
 Built between 7a and 7b, see the roadmap.
@@ -110,22 +120,21 @@ See: "Delay's frozen orbs stay on the field and block their cell" in `design-dec
   2026-10-23.
 - **What the window does when the HUD and the grid differ in height.** The lean is that the taller sets it.
 
-## Not tied to a phase
+## Phase 9: The GUI
 
-- **Whether the episode logger moves into `runners/`.** It is a Gymnasium wrapper in `gymnasium/utils/`, and the
-  runners decide to wrap the environment with it and where its CSV goes. It imports nothing from `runners/` (checked
-  on 2026-11-13), and both the agent runners and the human runner use it, which speaks for where it is. The test: it
-  belongs with the runners if it changes mostly when run outputs, folders or run ids change. Raised on 2026-11-13.
-- **Properties or plain attributes for what readers take from a digester.** Plain public attributes now; the owner
-  may return to properties.
-- **Whether a `ScoringMode` enum survives** as a router for the sandbox. The sandbox is not on the roadmap.
-- **Whether `on_termination` guards against a second call.** It runs once per episode; a second call would pay the
-  owed sum twice, and nothing stops it.
-- **What a GUI needs from the models.** See "A GUI on top of the registry", `codebase-ideas/gui-on-the-registry.md`.
+- **Whether the GUI starts a run, or writes the config a run reads.** Version 1 picks and sets a scenario; how the
+  run that follows is started is not said. Raised on 2026-11-13.
 - **How a run points at the checkpoint it loads, and where a continued run records its parent.** Waits for the GUI,
   which picks a checkpoint from a list. Until then a checkpoint is found by the run id, and a curriculum stage renames
-  its parent's files by hand. See "A run that continues another gets its own id" in `design-decisions.md` and
-  "Picking a checkpoint" in `codebase-ideas/gui-on-the-registry.md`. Raised on 2026-11-04.
+  its parent's files by hand. Raised on 2026-11-04.
+  See: "A run that continues another gets its own id" in `design-decisions.md`.
+
+  What has to fit, found on 2026-11-04: the observation's shape and the algorithm, with the policy it brings. Bounds
+  that differ, as a new grid gives, already pass: the loaded `VecNormalize` keeps the space it was saved with and
+  checks shapes only, and accepting that on purpose is a choice to write down then. The `VecNormalize` statistics
+  saved beside the checkpoint come with it. A curriculum over the grid fits today. Over tiers in a continuous
+  scenario it fits, since the slot count is `max_active_orbs`, if identities stay put when the pool grows. Over tiers
+  in a single chain it does not, since the slot count follows the orbs; it needs a fixed slot count.
 
   Continuing gets its tests when this is settled, not before: curriculum runs come after the GUI and a few new
   scenarios. The rules to test then, as talked through on 2026-11-09: the continued model trains on the run's env;
@@ -134,3 +143,51 @@ See: "Delay's frozen orbs stay on the field and block their cell" in `design-dec
   `VecNormalize` crashes nothing and only learns worse. Also open: which seed a continued run uses. `load_model`
   prints that the checkpoint's seed is authoritative but sets nothing, so whether a stage takes its parent's seed
   or its own is undecided.
+
+## Phase 10: The sandbox
+
+- **Whether a broken chain ends a continuous episode.** In the single tier chain family a break ends it. A continuous
+  scenario has no objective and truncates on the clock, so a break that ended it would be an objective of its own.
+  Raised on 2026-11-13.
+- **Whether a `ScoringMode` enum survives** as a router for the sandbox, so its scoring mode can be set.
+- **Whether a held chain keeps the droid alive.** In threshold scoring a held chain is worth something not yet paid,
+  and a droid that runs out of energy while holding one could have it cashed into energy and go on. If built, the
+  cash-out happens in the world after the droid acts and eats, and termination reads energy as usual, so a payout
+  never undoes an ending. Against it: the droid can already cash out by breaking the chain on purpose while it has
+  moves left, which is the long-horizon trade-off the benchmark tests, and an automatic cash-out hands the agent the
+  answer. Where it would earn its place: a highly stochastic scenario with a continuous threshold chain beside a
+  goal, where one payout can take the droid to 0 and only a held chain insures against it. Open if built: whether it
+  pays the whole chain or only what keeps the droid alive, what a cash-out counts as, and what stochastic means.
+  Raised on 2026-10-16.
+  See: "Energy and score are two numbers, and every reward goes through the droid" in `design-decisions.md`.
+
+## Phase 11: Effect orbs
+
+- **How effect orbs get their magic from the engine.** The lean, talked through on 2026-10-27: the combining happens
+  in the digestion engine and nowhere else, so digesters still know nothing of each other. Each step is a pipeline in
+  a fixed order: tick (an optional `tick()` on each digester that has one), route (the eaten orb to its kind's
+  digester, as today), modify (the reward handed to each digester with the modifier capability, in a fixed order),
+  and reach the world (an effect that touches the field gets a narrow view to read and ask through). The capabilities
+  are small optional protocols beside `OrbDigester`, such as `Tickable` and `RewardModifier`, so a digester with none
+  is today's. To settle first: payouts that skip the pipeline, since `undigested()` is settled at the episode's end
+  and does not pass modify; and the order of modifiers, which do not commute. Open: whether modify runs before
+  routing, where the order is stated, and what the view of the world exposes. The other home raised, on 2026-11-05:
+  field effects through a watcher, which is handed the world and the eaten orb's kind every step, where the engine
+  lives in the droid and holds no world; a reward paid by a watcher would never reach a held payout. The owner's
+  direction: a kind's effects stay with the kind, with explicit channels where something has to communicate, and a
+  kind could carry its own watcher in its bundle.
+  See: "Digesters do not talk to each other" and "The world's step returns a result, and a scenario's watcher reacts
+  to it" in `design-decisions.md`.
+- **Which effect orbs make the first set.** The vision names synergies, converters and hazards, and asks that each
+  adds a distinct mechanic and its own metric. Raised on 2026-11-13.
+
+## Not tied to a phase
+
+- **Whether the episode logger moves into `runners/`.** It is a Gymnasium wrapper in `gymnasium/utils/`, and the
+  runners decide to wrap the environment with it and where its CSV goes. It imports nothing from `runners/` (checked
+  on 2026-11-13), and both the agent runners and the human runner use it, which speaks for where it is. The test: it
+  belongs with the runners if it changes mostly when run outputs, folders or run ids change. Raised on 2026-11-13.
+- **Properties or plain attributes for what readers take from a digester.** Plain public attributes now; the owner
+  may return to properties.
+- **Whether `on_termination` guards against a second call.** It runs once per episode; a second call would pay the
+  owed sum twice, and nothing stops it.

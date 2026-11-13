@@ -4,22 +4,28 @@ pyreverse, from pylint, draws the whole strain into `output/diagrams/classes.mmd
 `legacy/`, with private attributes and class names only (`-f ALL -k`). It also writes
 `packages.mmd`, the modules and their imports, from which this script drops every module no
 import touches. This script then reads the source with `ast`, so it imports nothing, and adds
-two kinds of arrow pyreverse cannot see:
+arrows pyreverse cannot see:
 
 - **Protocol arrows** (`Impl ..|> Proto`). pyreverse draws an arrow only for a base class a class
   names, so a class that matches a `typing.Protocol` structurally gets none. A class whose members
   cover all of a Protocol's members gets one; matching is by member name, not by signature.
-- **Handed-in arrows** (`Part --o Owner : attr`). pyreverse draws an attribute's arrow only where
-  it sees the class built, as in `self.x = SomeClass()`, so what a class is handed has none. For
-  each constructor, every parameter stored on `self` as it is, and every `self.x: T` the
-  constructor annotates, gets an arrow to the hinted type, usually a protocol, which is what the
-  class knows. A dataclass's or a pydantic model's fields count as its constructor's parameters,
-  and `self.x = param.field()` keeps what `field`, a `Callable` the param's class annotates,
-  returns, as the environment keeps the world its scenario builds.
-  Lists, tuples, dicts, `Final` and unions are unwrapped to what they hold; a `Callable` is not
-  followed, since it is called, not held.
+- **What a class keeps.** pyreverse draws an attribute's arrow only where it sees the class built,
+  as in `self.x = SomeClass()`, or a field whose type is a plain class. The script adds, in
+  pyreverse's own forms:
+  - an aggregation (`Part --o Owner : attr`) for what a constructor is handed and keeps: a
+    parameter stored on `self`, an empty container it annotates and fills, as the engine's dict
+    of digesters, `cast(T, ...)`, a field of a
+    parameter (`self._termination = scenario.termination`), or what a `Callable` field of a
+    parameter returns (`self.world = scenario.build_world()`);
+  - an association (`Owner --> Part : attr`) for a dataclass's or a pydantic model's field;
+  - a dependency (`Owner ..> Made : attr`) for a field that is a `Callable`, on what it returns,
+    as an entry's `scoring` returns a tier digester.
+  The arrow goes to the hinted type, usually a protocol, which is what the class knows; for a
+  stored parameter, to the parameter's hint, the narrower one. Lists, tuples, `Final`, unions
+  and module-level type aliases are unwrapped, a mapping to its values; what is inside a
+  `Callable` is followed only to what it returns.
 
-Both kinds are added to every diagram that holds the class, and an arrow the diagram already has
+These are added to every diagram that holds the class, and an arrow the diagram already has
 is left out. Then each group in `GROUPS` is cut out of the whole diagram into
 `classes_<name>.mmd`: its own classes, every arrow that touches one of them, and the classes at
 the other end of those arrows, marked `<<outside>>` as neighbours outside the group. A group also gets a
@@ -83,7 +89,7 @@ LEGEND_TEXT = """classDiagram
 
   class User
   class Used
-  User ..> Used : Dependency - takes or returns it in a method, as a digester takes a BaseOrb
+  User ..> Used : Dependency - takes or returns it, or holds a callable that makes it, as a digester takes a BaseOrb
 
   class Maker
   class Made
@@ -99,8 +105,11 @@ IGNORED_MEMBERS = {"__init__", "__slots__", "__doc__", "__module__"}
 FIELD_BASES = {"BaseModel", "NamedTuple"}
 # Annotations whose contents are not held: a callable is called, a ClassVar is not per instance.
 NOT_HELD = {"Callable", "ClassVar", "type"}
+MAPPINGS = {"dict", "Dict", "Mapping", "MutableMapping"}
 # Classes that make what a world holds: their «create» arrows go in the scenario group.
 CREATORS = re.compile(r"(Recipe|Population)$")
+# Module-level type aliases, `X = A | B` or `type X = ...`, filled in by `scan`.
+ALIASES: dict[str, ast.expr] = {}
 
 
 @dataclass(frozen=True)
@@ -214,6 +223,16 @@ def scan(src: Path) -> dict[str, ClassInfo]:
         if SKIP_DIRS & set(path.parts):
             continue
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for stmt in tree.body:
+            if isinstance(stmt, ast.TypeAlias) and isinstance(stmt.name, ast.Name):
+                ALIASES[stmt.name.id] = stmt.value
+            elif (
+                isinstance(stmt, ast.Assign)
+                and len(stmt.targets) == 1
+                and isinstance(stmt.targets[0], ast.Name)
+                and isinstance(stmt.value, ast.BinOp)
+            ):
+                ALIASES[stmt.targets[0].id] = stmt.value
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
                 bases = [b for b in map(_base_name, node.bases) if b]
@@ -285,19 +304,30 @@ def find_realizations(classes: dict[str, ClassInfo]) -> list[str]:
 
 
 def _held_types(annotation: ast.expr | None, known: set[str]) -> list[str]:
-    """The known classes an annotation holds, with containers, `Final` and unions unwrapped."""
+    """The known classes an annotation holds.
+
+    Containers, `Final`, unions and the type aliases in `ALIASES` are unwrapped; what is inside
+    a `Callable`, a `ClassVar` or a `type[...]` is not held.
+    """
     if annotation is None:
         return []
-    if isinstance(annotation, ast.Constant) and isinstance(annotation.value, str):
-        try:
-            annotation = ast.parse(annotation.value, mode="eval").body
-        except SyntaxError:
-            return []
     found: list[str] = []
+    seen_aliases: set[str] = set()
 
     def visit(node: ast.expr) -> None:
-        if isinstance(node, ast.Subscript):
-            if _base_name(node.value) in NOT_HELD:
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            try:
+                visit(ast.parse(node.value, mode="eval").body)
+            except SyntaxError:
+                return
+        elif isinstance(node, ast.Subscript):
+            base = _base_name(node.value)
+            if base in NOT_HELD:
+                return
+            if base in MAPPINGS and isinstance(node.slice, ast.Tuple):
+                visit(
+                    node.slice.elts[-1]
+                )  # a mapping holds its values; its keys index them
                 return
             visit(node.slice)
         elif isinstance(node, (ast.Tuple, ast.List)):
@@ -308,19 +338,99 @@ def _held_types(annotation: ast.expr | None, known: set[str]) -> list[str]:
             visit(node.right)
         else:
             name = _base_name(node)
-            if name in known and name not in found:
+            if name in ALIASES and name not in seen_aliases:
+                seen_aliases.add(name)
+                visit(ALIASES[name])
+            elif name in known and name not in found:
                 found.append(name)
 
     visit(annotation)
     return found
 
 
-def _handed_in(
+def _callable_returns(annotation: ast.expr | None) -> list[ast.expr]:
+    """What each `Callable` in an annotation returns, following a callable that returns one."""
+    if annotation is None:
+        return []
+    out: list[ast.expr] = []
+
+    def visit(node: ast.expr) -> None:
+        if isinstance(node, ast.BinOp):
+            visit(node.left)
+            visit(node.right)
+        elif (
+            isinstance(node, ast.Subscript)
+            and _base_name(node.value) == "Callable"
+            and isinstance(node.slice, ast.Tuple)
+            and len(node.slice.elts) == 2
+        ):
+            returns = node.slice.elts[1]
+            out.append(returns)
+            visit(returns)
+
+    visit(annotation)
+    return out
+
+
+def _field_annotation(info: ClassInfo, name: str) -> ast.expr | None:
+    """The annotation a class gives one of its class-level fields."""
+    for item in info.node.body if info.node else []:
+        if (
+            isinstance(item, ast.AnnAssign)
+            and isinstance(item.target, ast.Name)
+            and item.target.id == name
+        ):
+            return item.annotation
+    return None
+
+
+def _taken_from_param(
+    value: ast.expr, params: dict[str, ast.expr | None], classes: dict[str, ClassInfo]
+) -> ast.expr | None:
+    """The type a constructor keeps from a param it is handed, other than the param itself.
+
+    - `cast(T, ...)`: T.
+    - `param.field`: the field's annotation in the param's class, as `self._termination =
+      scenario.termination`.
+    - `param.field()`: what the field, a `Callable`, returns, as `self.world =
+      scenario.build_world()`.
+    """
+    if (
+        isinstance(value, ast.Call)
+        and isinstance(value.func, ast.Name)
+        and value.func.id == "cast"
+        and value.args
+    ):
+        return value.args[0]
+    called = isinstance(value, ast.Call)
+    target = value.func if isinstance(value, ast.Call) else value
+    if not (
+        isinstance(target, ast.Attribute)
+        and isinstance(target.value, ast.Name)
+        and target.value.id in params
+    ):
+        return None
+    hinted = _held_types(params[target.value.id], set(classes))
+    if len(hinted) != 1:
+        return None
+    annotation = _field_annotation(classes[hinted[0]], target.attr)
+    if not called:
+        return annotation
+    returns = _callable_returns(annotation)
+    return returns[0] if returns else None
+
+
+def _kept(
     info: ClassInfo, classes: dict[str, ClassInfo]
-) -> list[tuple[str, ast.expr | None]]:
-    """The (attribute, annotation) pairs a class's constructor is handed and keeps."""
+) -> list[tuple[str, ast.expr | None, bool]]:
+    """What a class keeps: (attribute, annotation, whether it is a field).
+
+    A field is a dataclass's or a pydantic model's class-level field. Everything else is what
+    the constructor is handed and keeps: a parameter stored on `self`, a `self.x: T` it
+    annotates, or what it takes from a parameter (see `_taken_from_param`).
+    """
     assert info.node is not None
-    pairs: list[tuple[str, ast.expr | None]] = []
+    kept: list[tuple[str, ast.expr | None, bool]] = []
     field_based = info.is_dataclass or bool(
         FIELD_BASES & (ancestors(info.name, classes) | set(info.bases))
     )
@@ -330,74 +440,64 @@ def _handed_in(
             and isinstance(item, ast.AnnAssign)
             and isinstance(item.target, ast.Name)
         ):
-            pairs.append((item.target.id, item.annotation))
+            kept.append((item.target.id, item.annotation, True))
         if isinstance(item, ast.FunctionDef) and item.name == "__init__":
             params = {
                 a.arg: a.annotation for a in item.args.args[1:] + item.args.kwonlyargs
             }
             for sub in ast.walk(item):
-                if isinstance(sub, ast.AnnAssign) and (
-                    name := _self_target(sub.target)
+                if isinstance(sub, ast.AnnAssign):
+                    targets, value = [sub.target], sub.value
+                elif isinstance(sub, ast.Assign):
+                    targets, value = sub.targets, sub.value
+                else:
+                    continue
+                if value is None:
+                    continue
+                if isinstance(value, ast.Name) and value.id in params:
+                    # The param's hint is the narrower one, as `kind: DirectKind` against
+                    # `self.KIND: Final[OrbKind]`.
+                    annotation = params[value.id] or getattr(sub, "annotation", None)
+                elif isinstance(sub, ast.AnnAssign) and isinstance(
+                    value, (ast.Dict, ast.List, ast.Set, ast.Tuple)
                 ):
-                    pairs.append((name, sub.annotation))
-                elif (
-                    isinstance(sub, ast.Assign)
-                    and isinstance(sub.value, ast.Name)
-                    and sub.value.id in params
-                ):
-                    for t in sub.targets:
-                        if name := _self_target(t):
-                            pairs.append((name, params[sub.value.id]))
-                elif isinstance(sub, ast.Assign) and (
-                    made := _made_by_param(sub.value, params, classes)
-                ):
-                    for t in sub.targets:
-                        if name := _self_target(t):
-                            pairs.append((name, made))
-    return pairs
+                    # An empty container the constructor fills from what it is handed, as
+                    # the engine's dict of digesters.
+                    annotation = sub.annotation
+                else:
+                    annotation = _taken_from_param(value, params, classes)
+                if annotation is None:
+                    continue
+                for t in targets:
+                    if name := _self_target(t):
+                        kept.append((name, annotation, False))
+    return kept
 
 
-def _made_by_param(
-    value: ast.expr, params: dict[str, ast.expr | None], classes: dict[str, ClassInfo]
-) -> ast.expr | None:
-    """What `param.field()` returns, where the param's class annotates `field` as a `Callable`.
+def find_kept(classes: dict[str, ClassInfo]) -> list[str]:
+    """Return an arrow for each class another class keeps, in pyreverse's own forms.
 
-    It is how a constructor keeps what a handed-in recipe makes, as `self.world =
-    scenario.build_world()`.
+    - A field: an association, `Owner --> Part : attr`, as pyreverse draws a field it sees.
+    - What a constructor is handed and keeps: an aggregation, `Part --o Owner : attr`.
+    - A field that is a `Callable`: a dependency on what it returns, `Owner ..> Made : attr`,
+      as an entry's `scoring` returns a tier digester.
     """
-    if not (
-        isinstance(value, ast.Call)
-        and isinstance(value.func, ast.Attribute)
-        and isinstance(value.func.value, ast.Name)
-        and value.func.value.id in params
-    ):
-        return None
-    hinted = _held_types(params[value.func.value.id], set(classes))
-    if len(hinted) != 1 or (info := classes[hinted[0]]).node is None:
-        return None
-    for item in info.node.body:
-        if (
-            isinstance(item, ast.AnnAssign)
-            and isinstance(item.target, ast.Name)
-            and item.target.id == value.func.attr
-            and isinstance(item.annotation, ast.Subscript)
-            and _base_name(item.annotation.value) == "Callable"
-            and isinstance(item.annotation.slice, ast.Tuple)
-            and len(item.annotation.slice.elts) == 2
-        ):
-            return item.annotation.slice.elts[1]
-    return None
-
-
-def find_handed_in(classes: dict[str, ClassInfo]) -> list[str]:
-    """Return a `Part --o Owner : attr` edge for each class a constructor is handed and keeps."""
     known = set(classes)
     edges: list[str] = []
     for owner in sorted(classes):
-        for attr, annotation in _handed_in(classes[owner], classes):
+        for attr, annotation, is_field in _kept(classes[owner], classes):
             for part in _held_types(annotation, known):
                 if part != owner:
-                    edges.append(f"{part} --o {owner} : {attr}")
+                    edges.append(
+                        f"{owner} --> {part} : {attr}"
+                        if is_field
+                        else f"{part} --o {owner} : {attr}"
+                    )
+            if is_field:
+                for returns in _callable_returns(annotation):
+                    for made in _held_types(returns, known):
+                        if made != owner:
+                            edges.append(f"{owner} ..> {made} : {attr}")
     return edges
 
 
@@ -656,10 +756,10 @@ def main() -> None:
     files = draw_diagrams()
     classes = scan(SRC_DIR)
     realizations = find_realizations(classes)
-    handed_in = find_handed_in(classes)
+    kept = find_kept(classes)
     for f in files:
         added = patch_mmd(f, realizations, interface=True)
-        added += patch_mmd(f, handed_in, interface=False)
+        added += patch_mmd(f, kept, interface=False)
         print(f"{f.relative_to(ROOT)}: {len(added)} edge(s) added")
         for a in added:
             print(f"    {a}")

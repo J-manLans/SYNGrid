@@ -124,7 +124,7 @@ runner reading `scenario.hud` itself (two places to read the HUD); polling for k
 
 ## A run that continues another gets its own id, and records its parent (2026-11-04)
 
-**Built by:** nothing on the roadmap yet. It waits for the GUI (see "Not tied to a phase" in `open-questions.md`).
+**Built by:** phase 9, the checkpoint step.
 
 **Decision:** A run that starts from another run's checkpoint, as a curriculum stage does, is a run of its own. It
 gets its own id from its own scenario and runner config, and it records which checkpoint it came from.

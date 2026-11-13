@@ -99,7 +99,7 @@ class SingleTierChainEntry(ScenarioEntry[T]):
             HudStat("current tier chain", _chain_progress),
         )
 
-        # The names are the old engine's stats keys. The logger's LogKey comes in phase 9.
+        # The names are the old engine's stats keys. The logger's LogKey comes in phase 12.
         metrics = (
             Metric("chains_broken", _chains_broken),
             Metric("chain_progresses", _chain_progresses),

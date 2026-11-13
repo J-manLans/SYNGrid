@@ -111,7 +111,7 @@ on its own clock, so it tells nothing about the gap.
 - The world's free-cell check counting frozen orbs: the watcher waits for a free cell instead, and the world stays
   as it was.
 - The watcher as the home of effect orbs, for now: an effect that belongs to an orb kind stays with the kind (see
-  `codebase-ideas/effect-orbs-magic-from-engine.md`).
+  "How effect orbs get their magic from the engine" in `open-questions.md`).
 
 **Revisit if:** a scenario needs to act inside the world's step, before it ends; termination starts reading the
 field, which makes the order of the watcher and termination matter; or a watcher needs to freeze an orb that has a

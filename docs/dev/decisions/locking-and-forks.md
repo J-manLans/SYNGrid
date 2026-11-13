@@ -83,7 +83,7 @@ gives, and the full model would hold a rule where it holds a number).
 
 ## A fork is a full config with a name and a parent (2026-10-29)
 
-**Built by:** nothing on the roadmap yet. What is open is under "Locking a scenario" in `open-questions.md`.
+**Built by:** phase 9, the forks step. What is open is under "Locking a scenario" in `open-questions.md`.
 
 **Decision:** Changing a locked scenario beyond its axis makes a fork: its base config copied, any value edited, and
 saved with a name of its own and the scenario it came from. A fork is built by its parent's entry, so it keeps the

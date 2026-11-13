@@ -63,8 +63,8 @@ teacher once the tiers were hidden.
   scenario withholds the identity for itself alone, which leaves the identity as it is everywhere
   else.
 - What the ghost needs from the engine: a place in the world's step, a place in the observation, and a way to
-  leave. A watcher may fit the first, see "Field effects through a watcher" in
-  `effect-orbs-magic-from-engine.md`.
+  leave. A watcher may fit the first, see the watcher under "How effect orbs get their
+  magic from the engine" in `open-questions.md`.
 - The word "trace" in the glossary is the replay probe's recording. The ghost's trail needs another name so the two
   do not mix.
 - With four orbs a blind guess hits tier 1 one time in four. It is a weak shortcut, since a wrong pick ends the

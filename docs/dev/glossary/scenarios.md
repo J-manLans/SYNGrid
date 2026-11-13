@@ -13,8 +13,8 @@
   mechanic keeps the name tier chain.
 - **Variant:** a scenario in a family that needs a config field the family lacks, and so has models of its own.
   Delay is the only one.
-- **Sandbox:** the planned continuous scenario where every value can be set and orb kinds can be added. It is not on
-  the roadmap.
+- **Sandbox:** the continuous scenario where every value can be set and orbs of every kind can be added, from the
+  GUI.
 - **Spatial:** the whole chain is on the grid and the droid sees a 3x3 window around itself. Its axis is the grid
   size.
 - **Scaling sparse, scaling dense:** the same world with max-tier scoring (sparse) and threshold scoring (dense).

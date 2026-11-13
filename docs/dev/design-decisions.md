@@ -113,6 +113,7 @@ The rules most decisions below follow.
 - The negative orb has a switch beside its values (2026-10-29)
 - Every scenario in the single tier chain family is a single chain (2026-10-18)
 - A chain leaves a cell for the negative orb, on or off (2026-11-07)
+- The sandbox is a fixed field, its tier orbs whole chains (2026-11-13)
 - The family is named single tier chain (2026-10-26)
 - A scenario is one entry in its family's catalogue (2026-11-06)
 
@@ -149,6 +150,11 @@ The rules most decisions below follow.
 - Runners own the window's input, the renderer draws, and the env closes the window (2026-10-25)
 - A run that continues another gets its own id, and records its parent (2026-11-04)
 - No config snapshot until the GUI builds one (2026-11-09)
+
+### The GUI: [`decisions/gui.md`](decisions/gui.md)
+
+- SYNGrid has a GUI, built on the registry (2026-10-12, settled 2026-11-13)
+- Forking a locked scenario is the same screen, unlocked (2026-10-29)
 
 ### Project: [`decisions/project.md`](decisions/project.md)
 

@@ -121,6 +121,27 @@ and the tightest accepted grid would have no free cell).
 
 **Revisit if:** the family gets more orbs than the chain and the negative orb, or obstacles that take cells.
 
+## The sandbox is a fixed field, its tier orbs whole chains (2026-11-13)
+
+**Built by:** phase 10, the sandbox step.
+
+**Decision:** The sandbox's field is fixed: every orb is stated and present, as in a tier chain. Each orb kind is set
+by a count. Tier orbs are set by a max tier and a number of chains, and each chain is one orb of every tier up to the
+max, so every chain on the field is whole: two chains at max tier 4 are two orbs each of tiers 1 to 4.
+
+**Why:** A count is what the user means and sees on the grid, and every population already takes one. Legacy's
+weights only arrived at counts by another road: each kind's weight became a ratio, the ratios were scaled to a pool
+size and rounded, with a ranking step and a minimum pool size, and that many orbs were built once. Nothing was drawn
+at random per spawn. Whole chains keep every chain completable.
+
+**Rejected:**
+
+- Weights per kind, as legacy had: an indirect way to a count, with rounding rules of its own.
+- A count per tier: it allows uneven chains, such as three tier 1 orbs and one tier 3.
+
+**Revisit if:** a scenario needs the mix to vary within an episode, each returning orb drawn from a pool. That is a
+sampled field (see "A weight belongs to a sampled field, and a tier chain holds one negative orb" in `orbs.md`).
+
 ## The family is named single tier chain (2026-10-26)
 
 **Decision:** The family's names say what it guarantees: `scenario/families/goal/single_tier_chain/`,

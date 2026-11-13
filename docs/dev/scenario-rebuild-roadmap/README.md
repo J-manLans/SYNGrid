@@ -50,7 +50,7 @@ it settles first.
 | `runners/agent_runners/utils/extractors.py` | legacy: imported by nothing, kept as phase 7b's starting point | — |
 | `scenario/families/continuous/` | empty package | — |
 | Replay scripts, `scripts/replay/` | written | run |
-| Class diagrams, `scripts/diagrams/add_protocol_edges.py` | written | run |
+| Class diagrams, `scripts/diagrams/add_protocol_edges.py` and `layers.py` | written | run |
 | Runner probe, `scripts/runner_probe.py` | written | run |
 | Tests | `tests/unit/` and `tests/integration/`, kept to as few as cover the behaviour. No test file on purpose: the observation and render code, rebuilt in phases 7 and 8; interfaces and data holders with no logic of their own; the entry points and glue the probes run; `extractors.py` | run: passes; every file swept with coverage and mutmut |
 | Regression test, `tests/regression/`, and the four baselines | written | run: 4 pass |
@@ -68,15 +68,18 @@ In order.
   shows what the agent sees.
 - [Phase 8b: The modular HUD](phase-8b-hud.md): a HUD stacked from drawn pieces and drawn by element kind, so a scenario
   can list any number of elements in the same style. It replaces the single `hud.png` and the matching by label.
-- [Phase 9: Logging](phase-9-logging.md): the CSV logging checked on real runs, and a plot made from a run's CSV.
-- [Phase 10: Close out](phase-10-close-out.md): fresh docs for people, and a naming pass once legacy is gone.
+- [Phase 9: The GUI](phase-9-gui.md): a scenario picked from the registry, its values in a form beside a preview,
+  forks of a locked scenario, and a checkpoint picked from a list.
+- [Phase 10: The sandbox](phase-10-sandbox.md): the continuous family and the sandbox scenario, with its screen in the
+  GUI.
+- [Phase 11: Effect orbs](phase-11-effect-orbs.md): what effect orbs need from the engine, and a first set of them,
+  each tried in the sandbox.
+- [Phase 12: Logging](phase-12-logging.md): the CSV logging checked on real runs, and a plot made from a run's CSV.
+  Always the last phase before the close-out.
+- [Phase 13: Close out](phase-13-close-out.md): fresh docs for people, and a naming pass once legacy is gone.
 
 ---
 
 ## Not on this roadmap
 
-- The continuous family and the sandbox scenario.
-- Effect orbs, and what they need from the engine: a tick, a stage before routing, a way to change what another
-  kind's orb pays, a way to reach the world. See "Effect orbs get their magic from the engine",
-  `codebase-ideas/effect-orbs-magic-from-engine.md`.
 - Sampled fields and the weighted orb blocks.
