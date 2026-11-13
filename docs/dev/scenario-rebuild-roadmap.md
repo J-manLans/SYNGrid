@@ -58,9 +58,7 @@ a starting point the owner redraws in draw.io, which imports Mermaid. To fine-tu
 
 1. Private attributes: pyreverse hides them by default, and with them their "has a" arrows, such as
    `ArtifactManager --* SB3Runner`. `-f ALL` with `-k` (class names only) shows them: 62 relations against 57.
-2. SVG beside the Mermaid, through Graphviz: pyreverse's `.dot` output, the protocol arrows added to it, then
-   `dot -Tsvg`. Skipped with a message where Graphviz is missing.
-3. Diagrams grouped around how the owner thinks of the code, beside the whole one. The whole one is for spotting
+2. Diagrams grouped around how the owner thinks of the code, beside the whole one. The whole one is for spotting
    connections, not for reading: at around ninety classes it is too dense. Each diagram is a name and the folders or
    classes it covers, kept as a short list in the script. A narrow diagram loses its arrows to the rest, so it shows
    its neighbours outside it as empty boxes.
@@ -81,7 +79,7 @@ a starting point the owner redraws in draw.io, which imports Mermaid. To fine-tu
    rework (8a), and the extractor joins the runners diagram once it is written (7b). Plotting reads the CSV the
    logger writes and calls nothing of it, a link a class diagram cannot show; whether the two get a diagram is for
    their rebuild (phase 9).
-4. Arrows for what is handed in. pyreverse draws an attribute's arrow only where it sees the class built, as in
+3. Arrows for what is handed in. pyreverse draws an attribute's arrow only where it sees the class built, as in
    `self.x = SomeClass()`. What a scenario injects arrives as a parameter, so links such as the droid's to its
    digesters are missing. The script adds them from the source, as it adds the protocol arrows: for each
    constructor, the parameters stored on `self`, with their type hints, lists and dicts unwrapped to what they hold.
