@@ -10,11 +10,13 @@ What stays out: the rules for committing, which are in `AGENTS.md`, "Commits".
 1. The roadmap and `open-questions.md` against what was done: remove finished steps and answered questions, and update
    the has-it-run cells.
 2. Decisions from the session that are missing from `decisions/`, or from the `design-decisions.md` index.
-3. New terms that belong in `glossary.md`.
+3. New terms that belong in `glossary/`, and that the index names every term in the file it is in.
 4. Anything that landed in the wrong file, by the table in `AGENTS.md`. A status fact outside the roadmap's table is
    one of these, `docs/vision.md` included.
 5. Size: flag any doc past about 4,000 words (`wc -w`), and any trap in `AGENTS.md` that no longer applies. The
-   files in `codebase-ideas/` are not counted: the folder has no size limit, and check 6 keeps it short. Flag only;
+   files in `codebase-ideas/` are not counted: the folder has no size limit, and check 6 keeps it short. A
+   `glossary/` file past 1,000 words is cut, by the rule in `glossary/README.md`; that is the one size the sweep acts
+   on. Flag only;
    how to shrink a doc is the owner's call. `AGENTS.md` weighs most, since every session reads it in full.
 6. `codebase-ideas/`, the one time its idea files are read without the owner asking. For each idea:
    - **built:** what was decided goes to its area's file in `decisions/`, and the file and its index line go;
