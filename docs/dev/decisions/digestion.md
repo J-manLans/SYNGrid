@@ -64,9 +64,9 @@ learning curve can be read.
 - Any non-tier orb breaking a chain (legacy): a direct orb changes the score and nothing else.
 - A public `digestion_engine` attribute on the droid: every reader would walk three levels into it.
 
-**Revisit if:** an orb has to change what another kind pays (see
-`codebase-ideas/effect-orbs-magic-from-engine.md`), something has to react to what happened and not only to what it paid, or a scenario wants an
-existing kind to break chains, in which case the scenario's entry hands the tier digester the set of breaking kinds.
+**Revisit if:** an orb has to change what another kind pays (see `codebase-ideas/effect-orbs-magic-from-engine.md`),
+something has to react to what happened and not only to what it paid, or a scenario wants an existing kind to break
+chains, in which case the scenario's entry hands the tier digester the set of breaking kinds.
 
 ## The tier digester is a template with one subclass per scoring mode (2026-10-15)
 
@@ -88,8 +88,8 @@ can be tried alone.
 
 **Rejected:**
 
-- One digester with a `ScoringMode` enum and a branch per mode (the reference): the scenario's entry already decides the mode,
-  so the enum states it twice, and it is a conditional in the wrong component.
+- One digester with a `ScoringMode` enum and a branch per mode (the reference): the scenario's entry already decides the
+  mode, so the enum states it twice, and it is a conditional in the wrong component.
 - The orb carrying its own scoring (the old engine): orbs are the same in every mode.
 - `max_tier` read off the orb (legacy): `TierOrb` does not store it.
 - The last orb's reward held in the base (legacy's `_pterminal_reward`): no mode reads it.
@@ -135,8 +135,8 @@ reward, then reward normalisation).
 
 ## A new scoring mode is a new scenario (2026-10-11)
 
-**Decision:** Scoring mode is not config. A different mode is a new registered scenario, an entry of its own in the family's
-catalogue. The continuous sandbox is the exception.
+**Decision:** Scoring mode is not config. A different mode is a new registered scenario, an entry of its own in the
+family's catalogue. The continuous sandbox is the exception.
 
 **Why:** The scenario name is the run's identity: run ids, result folders and comparisons hang on it. A mode in config
 would let two runs of one name pay differently.
@@ -148,10 +148,10 @@ the digesters.
 
 ## A tier bundle makes its digester from a frozen recipe (2026-10-14)
 
-**Decision:** A tier bundle's `make_digester` is a `TierDigesterRecipe`, a frozen dataclass of `scoring_mode` (the
-tier digester class), `max_tier` and `chain_break_penalty`. Calling it returns a new digester. A scenario's entry states its
-mode by naming the class as `scoring`, which reaches `_tier_bundle`. A digester whose constructor takes no values, as `NegDigester`, is
-its own `make_digester`; there is no recipe base class.
+**Decision:** A tier bundle's `make_digester` is a `TierDigesterRecipe`, a frozen dataclass of `scoring_mode` (the tier
+digester class), `max_tier` and `chain_break_penalty`. Calling it returns a new digester. A scenario's entry states its
+mode by naming the class as `scoring`, which reaches `_tier_bundle`. A digester whose constructor takes no values, as
+`NegDigester`, is its own `make_digester`; there is no recipe base class.
 
 `scenario/blocks/recipes/` holds every recipe: a frozen object a scenario holds that makes something with episode
 state when a world is built. The other is `WorldRecipe`, a scenario's `build_world`, shared by every family. It holds

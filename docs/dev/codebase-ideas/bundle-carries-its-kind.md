@@ -7,9 +7,9 @@ to the observation or the HUD.
 the metrics that read its digester, a tag suffix, HUD elements and observation features. The bundle could carry some
 of these, and a family's entry type would collect them from its bundles as it now sums their counts.
 
-**Where it came from:** Adding the negative orb to the single tier chain family. Its `if` block in `SingleTierChainEntry._compose`
-adds the bundle, extends the tag and adds the `negatives_eaten` metric: three lines that together mean "add this
-brick".
+**Where it came from:** Adding the negative orb to the single tier chain family. Its `if` block in
+`SingleTierChainEntry._compose` adds the bundle, extends the tag and adds the `negatives_eaten` metric: three lines that
+together mean "add this brick".
 
 **Why it might matter:**
 

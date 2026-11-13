@@ -18,10 +18,11 @@ Not kept here: a listing goes stale and costs words every session. Print the reb
 find src/syn_grid -path '*/legacy' -prune -o -path '*/assets' -prune -o -type f ! -name '__init__.py' ! -name '*.pyc' -print | sort
 ```
 
-Outside `src/syn_grid/`: `scripts/replay/` (probe, diff, sweep), `scripts/runner_probe.py` (fingerprints each algorithm's runner),
-`scripts/diagrams/add_protocol_edges.py` (draws the class diagrams into `output/diagrams/` with pyreverse, protocol arrows included; needs the `diagrams` extra),
-`scripts/tidy.sh`, `tests/regression/baselines/` (each locked scenario's baseline, which
-`tests/regression/test_replay.py` checks through the replay probe), and `tests/conftest.py` (Hypothesis's profiles).
+Outside `src/syn_grid/`: `scripts/replay/` (probe, diff, sweep), `scripts/runner_probe.py` (fingerprints each
+algorithm's runner), `scripts/diagrams/add_protocol_edges.py` (draws the class diagrams into `output/diagrams/` with
+pyreverse, protocol arrows included; needs the `diagrams` extra), `scripts/tidy.sh`, `tests/regression/baselines/` (each
+locked scenario's baseline, which `tests/regression/test_replay.py` checks through the replay probe), and
+`tests/conftest.py` (Hypothesis's profiles).
 
 ## The layers
 
@@ -102,7 +103,8 @@ can use are in `scenario/blocks/readers.py`; the family's own are in `builders.p
   `direct_digester.py`, its population `scenario/blocks/populations/neg_population.py`, and `_negative_bundle` and
   `neg_orb_conf.enabled` in `builders.py`.
 - **A new orb kind:** its kind in `core/orbs/orb_meta.py`, its class under `core/orbs/`, a digester under
-  `core/droid/digestion/digesters/`, a population under `scenario/blocks/populations/`, and a bundle in the family's `builders.py`.
+  `core/droid/digestion/digesters/`, a population under `scenario/blocks/populations/`, and a bundle in the family's
+  `builders.py`.
 - **What the agent sees:** `scenario/blocks/observation.py` (what the scenario states), the perceptions under
   `gymnasium/observation_space/perceptions/` (how it is encoded), `core/orbs/orb_meta.py` (the identity). The
   perceptions not yet rebuilt are listed in a TODO in `observation_handler.py`; their copies are in `legacy/`.

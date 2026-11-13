@@ -45,10 +45,10 @@ the world exposes.
 
 **Field effects through a watcher (2026-11-05).** Step 4 above, an effect that touches the field, may fit a watcher
 better than a view of the world handed through the engine: the engine lives inside the droid, which holds no world,
-while a watcher is handed the world and the eaten orb's kind every step. A reward effect could also be paid by a
-watcher the way termination pays its ending, through the droid and added to the step's reward, but a held payout
+while a watcher is handed the world and the eaten orb's kind every step. A reward effect could also be paid by a watcher
+the way termination pays its ending, through the droid and added to the step's reward, but a held payout
 (`undigested()`) never reaches the step result, and two homes for reward effects would need one chosen. The owner's
-direction: an orb kind's effects stay contained to the kind, with explicit channels where something has to
-communicate. A kind could carry its own watcher in its bundle (see "A bundle that carries everything its orb kind
-brings", `bundle-carries-its-kind.md`), so its field effect travels with it and the scenario never has to know. See "The world's step returns a
-result, and a scenario's watcher reacts to it" in `design-decisions.md`.
+direction: an orb kind's effects stay contained to the kind, with explicit channels where something has to communicate.
+A kind could carry its own watcher in its bundle (see "A bundle that carries everything its orb kind brings",
+`bundle-carries-its-kind.md`), so its field effect travels with it and the scenario never has to know. See "The world's
+step returns a result, and a scenario's watcher reacts to it" in `design-decisions.md`.

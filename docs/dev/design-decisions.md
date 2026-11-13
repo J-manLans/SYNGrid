@@ -4,9 +4,9 @@ What is settled, why, and the alternatives someone might suggest again, so that 
 shaped as it is or put back what was left out on purpose.
 
 The decisions live in `decisions/`, one file per area. A file stays under 2,500 words (`wc -w`); past that, the docs
-sweep proposes splitting it by topic, and splits it once the owner agrees on the files. This file holds the principles most of them follow and an index
-of every decision by title, so a decision can be found by its name. Read the area's file in full before giving a design
-opinion in that area.
+sweep proposes splitting it by topic, and splits it once the owner agrees on the files. This file holds the principles
+most of them follow and an index of every decision by title, so a decision can be found by its name. Read the area's
+file in full before giving a design opinion in that area.
 
 Written in the present tense. The story of how a decision changed is in `git log`; a reversal that still matters is a
 rejected alternative. File paths, test runs and dates of work stay out, and so do open points, which go in

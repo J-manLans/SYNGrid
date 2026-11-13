@@ -4,8 +4,8 @@
   the Gymnasium side needs and a way to build its world. It holds nothing that changes during an episode.
 - **Goal scenario:** a scenario with an objective to reach and a deadline to miss.
 - **Continuous scenario:** a scenario where reaching nothing ends the episode. None is written.
-- **Family:** the scenarios that share a folder, a config hierarchy and an entry type. The single tier chain family is spatial,
-  delay, scaling sparse and scaling dense. The families are in `scenario/families/`, grouped under `goal/` and,
+- **Family:** the scenarios that share a folder, a config hierarchy and an entry type. The single tier chain family is
+  spatial, delay, scaling sparse and scaling dense. The families are in `scenario/families/`, grouped under `goal/` and,
   when one is written, `continuous/`.
 - **Single tier chain:** what every scenario in the family of that name is: one tier chain, all of it laid out on the
   field at once and left there until it is eaten. So its tier orbs have no lifespan and no cool-down. A scenario whose

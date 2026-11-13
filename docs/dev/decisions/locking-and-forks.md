@@ -38,9 +38,9 @@ A run's YAML must state every tunable, so the base config's tunables reach no ru
 test records.
 
 **Why:** The values that make a scenario are data, so they live in a file that a person and a GUI can read, with
-comments, and one merge serves every locked scenario. An entry that composes from the full config serves a locked run and a
-fork alike. The tunables model is what a GUI draws the form from, and the base config is what it shows read-only and
-copies into a fork. The fixed values pass the same validation as any YAML's.
+comments, and one merge serves every locked scenario. An entry that composes from the full config serves a locked run
+and a fork alike. The tunables model is what a GUI draws the form from, and the base config is what it shows read-only
+and copies into a fork. The fixed values pass the same validation as any YAML's.
 
 **Rejected:**
 
@@ -89,8 +89,8 @@ parent's scoring mode, termination and HUD, and its perception is held to the pa
 under its own name.
 
 A fork is data. Saving one writes a YAML into a user folder outside `src/`, gitignored by default, and the registry
-reads that folder beside the families' catalogues. A fork whose parent is not registered is an error that names the file.
-Changing a mechanic, such as the scoring mode, the termination or an orb kind, makes a new scenario, in code.
+reads that folder beside the families' catalogues. A fork whose parent is not registered is an error that names the
+file. Changing a mechanic, such as the scoring mode, the termination or an orb kind, makes a new scenario, in code.
 
 **Why:** A fork lets someone push a model past a scenario without changing what the scenario's name means. Values are
 data and mechanics are code, so a user makes a fork without touching the package. A fork of spatial that saw the

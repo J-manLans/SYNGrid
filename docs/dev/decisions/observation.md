@@ -1,6 +1,7 @@
 # Decisions: Observation
 
-What the agent sees and how it is laid out: what earns a place, the perception formats, the orb features the scenario lists, and how an observation leaves the environment.
+What the agent sees and how it is laid out: what earns a place, the perception formats, the orb features the scenario
+lists, and how an observation leaves the environment.
 
 Written in the present tense, in the format of the template in `../design-decisions.md`. A decision added here also
 gets its title in that index.

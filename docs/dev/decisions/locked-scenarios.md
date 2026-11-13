@@ -79,8 +79,9 @@ not exist.
 
 ## Delay's values: a free silence, and a break at half the timeout (2026-11-06)
 
-**Decision:** Delay's step penalty is 0, its `chain_break_penalty` is -0.5 and its timeout is -1.0. It is fully observable: its registry entry allows `vector_markovian`, and the composite and pixel
-perceptions join when they are rebuilt. Its ladder is spatial's (base 1.0, growth 1.5), on tier 3 and 5x5.
+**Decision:** Delay's step penalty is 0, its `chain_break_penalty` is -0.5 and its timeout is -1.0. It is fully
+observable: its registry entry allows `vector_markovian`, and the composite and pixel perceptions join when they are
+rebuilt. Its ladder is spatial's (base 1.0, growth 1.5), on tier 3 and 5x5.
 
 **Why:** If waiting costs something and ending is cheap, an agent learns to end, so the silence is free. With a
 break ending the episode, the break penalty is most of what teaches the chain's order at a long delay: the completed
@@ -102,10 +103,10 @@ field change what a wrong move costs.
 ## Delay's episode length follows from the delay and the grid (2026-11-06)
 
 **Decision:** Delay's `max_steps` is set by its config model, never by a config, and a config that states it is
-rejected. An episode gets one silence after each tier orb but the last, plus a fixed number of spare steps:
-`(max_tier - 1) * delay + 5 * (rows + cols)`, which is 50 spare steps on 5x5. The spare steps follow the grid and
-not the delay. The 5 is a constant on the model. Delay's tunables are the delay, the negative orb's switch and the perception;
-the grid is not one.
+rejected. An episode gets one silence after each tier orb but the last, plus a fixed number of spare steps: `(max_tier -
+1) * delay + 5 * (rows + cols)`, which is 50 spare steps on 5x5. The spare steps follow the grid and not the delay. The
+5 is a constant on the model. Delay's tunables are the delay, the negative orb's switch and the perception; the grid is
+not one.
 
 **Why:** The thesis paired each delay with a `max_steps` by hand, and the spare steps came out as 90, 60, 40, 30 and
 70 for delays of 30, 70, 130, 260 and 390. A comparison across delays then also compared clocks: at the same seed, a

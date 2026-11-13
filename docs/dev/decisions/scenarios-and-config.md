@@ -43,7 +43,8 @@ ScenarioConf                    world_conf, obs_conf
 ```
 
 Each world model has a scenario model that narrows `world_conf` to it. Each orb kind has its own `*_orb_conf` block,
-mirroring `OrbBundle`. A scenario's entry gives it its config class (see "A scenario is one entry in its family's catalogue").
+mirroring `OrbBundle`. A scenario's entry gives it its config class (see "A scenario is one entry in its family's
+catalogue").
 
 **Why:** The config tree and the scenario tree are one tree, so a builder and its config are found in one folder.
 

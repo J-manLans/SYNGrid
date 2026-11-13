@@ -40,8 +40,8 @@ See: "A locked scenario is a base config and its tunables in front of its entry"
 a name and a parent" in `design-decisions.md`.
 
 - **Where a family's shared fixed values are written,** so that four builders do not each state them.
-- **Where a rule that spans fields is checked.** A check on the full model is raised as the entry validates it and names a block,
-  not a field the user can see.
+- **Where a rule that spans fields is checked.** A check on the full model is raised as the entry validates it and names
+  a block, not a field the user can see.
 - **Whether a locked axis has a range,** such as an upper bound on the grid.
 - **Where the user folder for forks is, and how the code finds it.** `user_scenarios/` at the repo root, or
   `output/user_scenarios/`, which keeps one ignored folder but is lost when `output/` is cleared, although forks are

@@ -3,13 +3,15 @@
 This document outlines the coding conventions and best practices for the SynergyGrid project.
 
 ## 1. Python Type Annotations
-- **Function Arguments & Returns**: All functions and methods should include type annotations for arguments and return values.
+- **Function Arguments & Returns**: All functions and methods should include type annotations for arguments and return
+  values.
 
 ```python
 def get_orb_meta(self, only_active: bool) -> list[OrbMeta]:
 ```
 
-- **Variable Annotations**: Variables should be annotated when the type is not immediately obvious or for clarity in complex data structures.
+- **Variable Annotations**: Variables should be annotated when the type is not immediately obvious or for clarity in
+  complex data structures.
 
 ```python
 from typing import Final
@@ -82,7 +84,8 @@ def train_agent(
     """
 ```
 
-- Private helper methods should be prefixed with a "_" as mentioned before and don't need a docstring, clarifying comments is enough.
+- Private helper methods should be prefixed with a "_" as mentioned before and don't need a docstring, clarifying
+  comments is enough.
 
 ```python
 def _empty_spawn_cell(self, position: list[np.int64]) -> bool:
@@ -200,4 +203,5 @@ class TestPerformDroidAction:
 
 ---
 
-Following these conventions will help maintain readability, consistency, and ensure the codebase remains clean and understandable for all contributors.
+Following these conventions will help maintain readability, consistency, and ensure the codebase remains clean and
+understandable for all contributors.

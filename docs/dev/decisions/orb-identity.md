@@ -1,6 +1,7 @@
 # Decisions: Orb identity
 
-The number the agent sees for an orb: how it is built, why tier order shows in it, and where its dense form comes from. The orb meta it is built from is in `orbs.md`.
+The number the agent sees for an orb: how it is built, why tier order shows in it, and where its dense form comes from.
+The orb meta it is built from is in `orbs.md`.
 
 Written in the present tense, in the format of the template in `../design-decisions.md`. A decision added here also
 gets its title in that index.
@@ -75,9 +76,9 @@ should not change.
 
 Where the remap came from is undecided. Two accounts:
 
-- **The thesis's lessons notes** record it as a lesson of its own: the mixed-radix identity flatlined the LSTM under VecNormalize warm-up, and the dense
-  sequential remap fixed it. They call it a narrower, debugging-flavoured lesson, kept apart from the dimensionality
-  story of one-hot against scalar.
+- **The thesis's lessons notes** record it as a lesson of its own: the mixed-radix identity flatlined the LSTM under
+  VecNormalize warm-up, and the dense sequential remap fixed it. They call it a narrower, debugging-flavoured lesson,
+  kept apart from the dimensionality story of one-hot against scalar.
 - **The owner recalls** it coming in with the one-hot experiments, where each identity needed a column of its own and
   dense ids number those columns, and staying when one-hot was dropped because an ablation showed it learning a
   little faster. The owner tried one-hot, and it did not scale, since tiers 1, 2 and 3 were each a kind of their own;

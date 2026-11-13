@@ -22,12 +22,23 @@ area, not to a file of it. `two-senses.md` is never cut.
 
 ## Index
 
-- **[Scenarios](scenarios.md)**: Scenario, Goal scenario, Continuous scenario, Family, Single tier chain, Variant, Sandbox, Spatial, Scaling sparse, scaling dense, Delay, Silence, Spare steps, Axis, Scenario tag, Locked, Full model, Tunables, Base config, Fork.
-- **[Building a scenario](building-a-scenario.md)**: Registry, Entry, Entry type, Catalogue, Lock, Block, Rules, Strategy, Step result, Watcher, Freeze, frozen, Blocking, Population, Count, Bundle, Recipe, Brick, Reader, `build_world`.
-- **[The world](world.md)**: World, Droid, Field, Fixed field, Sampled field, Energy, Score, Settle, Terminal reward, Reward, Penalty, Step clock, Timeout, Terminated, truncated.
-- **[Orbs](orbs.md)**: Orb, Eat, consume, Kind, Category, Direct orb, Fixed reward orb, Negative orb, positive orb, Synergy orb, Chain orb, effect orb, Tier, Identity, Radix identity, Dense identity, Lifespan, Despawn, Cool-down, Expired, ready.
-- **[Digestion](digestion.md)**: Digestion, Digester, Engine, Direct digester, Chain, Progress, Completion, Break, Chain worth, Undigested, Scoring mode, Max-tier, Step-wise, Threshold, Reward ladder.
-- **[Observation](observation.md)**: Observation, Perception, Visibility, Encoding, Markovian, Fog of war, POMDP, Slot, Global feature, Orb feature, View radius, Format, HUD, Metric.
+- **[Scenarios](scenarios.md)**: Scenario, Goal scenario, Continuous scenario, Family, Single tier chain, Variant,
+  Sandbox, Spatial, Scaling sparse, scaling dense, Delay, Silence, Spare steps, Axis, Scenario tag, Locked, Full model,
+  Tunables, Base config, Fork.
+- **[Building a scenario](building-a-scenario.md)**: Registry, Entry, Entry type, Catalogue, Lock, Block, Rules,
+  Strategy, Step result, Watcher, Freeze, frozen, Blocking, Population, Count, Bundle, Recipe, Brick, Reader,
+  `build_world`.
+- **[The world](world.md)**: World, Droid, Field, Fixed field, Sampled field, Energy, Score, Settle, Terminal reward,
+  Reward, Penalty, Step clock, Timeout, Terminated, truncated.
+- **[Orbs](orbs.md)**: Orb, Eat, consume, Kind, Category, Direct orb, Fixed reward orb, Negative orb, positive orb,
+  Synergy orb, Chain orb, effect orb, Tier, Identity, Radix identity, Dense identity, Lifespan, Despawn, Cool-down,
+  Expired, ready.
+- **[Digestion](digestion.md)**: Digestion, Digester, Engine, Direct digester, Chain, Progress, Completion, Break, Chain
+  worth, Undigested, Scoring mode, Max-tier, Step-wise, Threshold, Reward ladder.
+- **[Observation](observation.md)**: Observation, Perception, Visibility, Encoding, Markovian, Fog of war, POMDP, Slot,
+  Global feature, Orb feature, View radius, Format, HUD, Metric.
 - **[Running](running.md)**: Runner, SB3 spec, Run id, Human play, Run controls.
-- **[The rebuild](rebuild.md)**: Strain, Legacy, Skeleton, Reproduction package, Phase, Replay probe, Runner probe, Tape, Trace, Baseline, Scenario sweep, Rule in a value.
-- **[Words with two senses, or not settled](two-senses.md)**: Block, Axis model, Perception, Pool, Sweep, Sparse and dense.
+- **[The rebuild](rebuild.md)**: Strain, Legacy, Skeleton, Reproduction package, Phase, Replay probe, Runner probe,
+  Tape, Trace, Baseline, Scenario sweep, Rule in a value.
+- **[Words with two senses, or not settled](two-senses.md)**: Block, Axis model, Perception, Pool, Sweep, Sparse and
+  dense.

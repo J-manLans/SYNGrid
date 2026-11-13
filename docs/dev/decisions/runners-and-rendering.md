@@ -32,10 +32,10 @@ cloning it and installing it editable, so a user's extension is an edit to their
 
 ## An SB3 algorithm is a spec in the runner table (2026-11-06)
 
-**Decision:** SYNGrid's SB3 algorithms share one runner, `SB3Runner`. Each is an `SB3Spec` in `RUNNER`: the SB3
-class, the device, what it adds to the shared hyperparameters, and an optional frame stack. Calling a spec with the
-scenario and the runner config makes its runner, so `RUNNER` holds a spec for an SB3 algorithm and a class for a user's own runner
-alike. The eval loop hands every model the recurrent state and the episode starts, which a policy that is not
+**Decision:** SYNGrid's SB3 algorithms share one runner, `SB3Runner`. Each is an `SB3Spec` in `RUNNER`: the SB3 class,
+the device, what it adds to the shared hyperparameters, and an optional frame stack. Calling a spec with the scenario
+and the runner config makes its runner, so `RUNNER` holds a spec for an SB3 algorithm and a class for a user's own
+runner alike. The eval loop hands every model the recurrent state and the episode starts, which a policy that is not
 recurrent ignores.
 
 **Why:** The runner classes per algorithm were near copies that differed in those four values. SB3's `predict`
