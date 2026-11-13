@@ -1,5 +1,8 @@
 # Before phase 7: The class diagrams
 
+**Produces:** Mermaid class diagrams of the rebuilt strain, grouped as the owner thinks of the code, to redraw in
+draw.io.
+
 The script draws every class of the rebuilt strain into one Mermaid diagram, with protocol arrows. The diagrams are
 a starting point the owner redraws in draw.io, which imports Mermaid. To fine-tune:
 

@@ -24,8 +24,9 @@ The two perceptions in the `Perception` enum brought in line with the new rules.
    distance, and that the renderer's fog overlay reads in phase 8a.
 
 **One change at a time.** Each of the three is its own commit, and the regression test is run after each against the
-baselines. A difference is explained, and its baselines recorded again, or reverted before the next change starts. The reward must not change.
-Check whether anything scales the observation by its upper bound. When 7a is done, train spatial.
+baselines. A difference is explained, and its baselines recorded again, or reverted before the next change starts. The
+reward must not change. Check whether anything scales the observation by its upper bound. When 7a is done, train
+spatial.
 
 **Done when:** the observation differs from the baselines only where a change was meant to, the reward is identical,
 and spatial still learns.
@@ -43,10 +44,11 @@ before 7b, so the new perceptions are written with the frozen state from the sta
    orb waits for its cell going.
 4. The frozen mark in the two kept perceptions, and the frozen skin in the renderer.
 5. Relock delay, as every scenario was locked: train it and compare the curves with today's delay, ablate what is in
-   doubt while its base config still changes, then lock it and record its baseline again with `probe.py --baseline`. Anything
-   that moves the observation or reward goes in `landscape-changes.md`.
+   doubt while its base config still changes, then lock it and record its baseline again with `probe.py --baseline`.
+   Anything that moves the observation or reward goes in `landscape-changes.md`.
 
-**Done when:** the delay spread at −0.5 is run again on it and learns. The baselines of spatial and scaling are unchanged.
+**Done when:** the delay spread at −0.5 is run again on it and learns. The baselines of spatial and scaling are
+unchanged.
 
 ## 7b: New perceptions, one at a time
 

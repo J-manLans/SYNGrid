@@ -195,8 +195,8 @@ Each of these cost a wrong conclusion in this repo.
 - For where a behaviour came from or when it changed, prefer `git log -S`, a replay probe or loading the artifact
   over inference from a name or a comment.
 - **Before changing anything under `src/` without meaning to change behaviour,** a refactor, a rename, a move or a
-  tidy, **and before any change under `src/syn_grid/runners/`,** read `docs/dev/procedures/checking-behaviour.md`. It says which
-  probe checks the change against the stable version, and what the probes do not reach.
+  tidy, **and before any change under `src/syn_grid/runners/`,** read `docs/dev/procedures/checking-behaviour.md`.
+  It says which probe checks the change against the stable version, and what the probes do not reach.
 
 ## Traps
 

@@ -11,8 +11,8 @@ This README is read every session: the **Next** line, the table, and the list of
 own. A session reads the file of the phase **Next** names, and another phase's file only when the work reaches it or
 the owner asks.
 
-**Next:** fine-tuning the class diagrams (`class-diagrams.md`), then the observation pass (phase 7), starting with what it settles
-first.
+**Next:** fine-tuning the class diagrams (`class-diagrams.md`), then the observation pass (phase 7), starting with what
+it settles first.
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together.
 
@@ -60,12 +60,15 @@ first.
 
 In order.
 
-- [Before phase 7: The class diagrams](class-diagrams.md)
+- [Before phase 7: The class diagrams](class-diagrams.md): Mermaid class diagrams of the rebuilt strain, grouped as the
+  owner thinks of the code, to redraw in draw.io.
 - [Phase 7: The observation pass](phase-7-observation.md): an observation the scenario describes, and the new orb meta.
-- [Phase 8a: The renderer rework](phase-8a-renderer.md): a renderer split by reason to change, and a fog overlay that shows what the agent sees.
-- [Phase 8b: The modular HUD](phase-8b-hud.md): a HUD stacked from drawn pieces and drawn by element kind, so a scenario can list any number of elements in the same style. It replaces the single `hud.png` and the matching by label.
-- [Phase 9: Logging](phase-9-logging.md)
-- [Phase 10: Close out](phase-10-close-out.md)
+- [Phase 8a: The renderer rework](phase-8a-renderer.md): a renderer split by reason to change, and a fog overlay that
+  shows what the agent sees.
+- [Phase 8b: The modular HUD](phase-8b-hud.md): a HUD stacked from drawn pieces and drawn by element kind, so a scenario
+  can list any number of elements in the same style. It replaces the single `hud.png` and the matching by label.
+- [Phase 9: Logging](phase-9-logging.md): the CSV logging checked on real runs, and a plot made from a run's CSV.
+- [Phase 10: Close out](phase-10-close-out.md): fresh docs for people, and a naming pass once legacy is gone.
 
 ---
 
