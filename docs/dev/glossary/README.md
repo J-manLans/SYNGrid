@@ -40,5 +40,5 @@ area, not to a file of it. `two-senses.md` is never cut.
 - **[Running](running.md)**: Runner, SB3 spec, Run id, Human play, Run controls.
 - **[The rebuild](rebuild.md)**: Strain, Legacy, Skeleton, Reproduction package, Phase, Replay probe, Runner probe,
   Tape, Trace, Baseline, Scenario sweep, Rule in a value.
-- **[Words with two senses, or not settled](two-senses.md)**: Block, Axis model, Perception, Pool, Sweep, Sparse and
-  dense.
+- **[Words with two senses, or not settled](two-senses.md)**: Block, Axis model, Perception, Visibility and encoding,
+  Pool, Sweep, Sparse and dense.

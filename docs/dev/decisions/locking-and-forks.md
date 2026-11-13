@@ -62,7 +62,7 @@ and copies into a fork. The fixed values pass the same validation as any YAML's.
 ## A locked scenario is what was run, and changing it makes a different scenario (2026-10-29)
 
 **Decision:** A scenario's name promises one test, so a locked scenario is locked to what was run. Spatial is tier 3,
-seen through the fog-of-war window, with the penalties and orb rewards the ablations kept, fixed in its base config. The
+seen through a lantern of radius 1, with the penalties and orb rewards the ablations kept, fixed in its base config. The
 grid size is its dial on the world. The other locked scenarios follow with their own axis: the chain length and grid for
 scaling sparse and dense, the delay for delay. Beside the axis, `max_steps` is a tunable of every locked scenario, so
 a larger grid can be given the steps it needs, and the scenario tag records it as `_steps100`. `max_energy` is a rule

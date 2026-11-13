@@ -38,7 +38,7 @@ teacher once the tiers were hidden.
 
 - It asks for something no scenario does today: learning a hidden order by watching it, not by trial and error with
   the end reward as the only teacher. The untouched first orb is what stops it being plain imitation.
-- The trail is a vector, since the observation is one. A cell the ghost never visited reads 0. A visited cell reads a
+- In the vector format the trail is a vector. A cell the ghost never visited reads 0. A visited cell reads a
   value that falls with age, down to a floor above 0, so the oldest cell is still readable when the ghost leaves.
   How fast it falls is a dial. Listing only the visited cells, as position and age, keeps the size fixed on a large
   grid. Order numbers in the cells would do the same with less shading.
