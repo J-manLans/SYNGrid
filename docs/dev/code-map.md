@@ -20,7 +20,8 @@ find src/syn_grid -path '*/legacy' -prune -o -path '*/assets' -prune -o -type f 
 
 Outside `src/syn_grid/`: `scripts/replay/` (probe, diff, sweep), `scripts/runner_probe.py` (fingerprints each
 algorithm's runner), `scripts/diagrams/add_protocol_edges.py` (draws the class diagrams into `output/diagrams/` with
-pyreverse, protocol arrows included; needs the `diagrams` extra), `scripts/tidy.sh`, `tests/regression/baselines/` (each
+pyreverse, the whole strain and one per group in its `GROUPS`, with protocol and handed-in arrows; needs the
+`diagrams` extra), `scripts/tidy.sh`, `tests/regression/baselines/` (each
 locked scenario's baseline, which `tests/regression/test_replay.py` checks through the replay probe), and
 `tests/conftest.py` (Hypothesis's profiles).
 
