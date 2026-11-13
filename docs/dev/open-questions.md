@@ -103,6 +103,10 @@ See: "Delay's frozen orbs stay on the field and block their cell" in `design-dec
 
 ## Not tied to a phase
 
+- **Whether the episode logger moves into `runners/`.** It is a Gymnasium wrapper in `gymnasium/utils/`, and the
+  runners decide to wrap the environment with it and where its CSV goes. It imports nothing from `runners/` (checked
+  on 2026-11-13), and both the agent runners and the human runner use it, which speaks for where it is. The test: it
+  belongs with the runners if it changes mostly when run outputs, folders or run ids change. Raised on 2026-11-13.
 - **Properties or plain attributes for what readers take from a digester.** Plain public attributes now; the owner
   may return to properties.
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox. The sandbox is not on the roadmap.
