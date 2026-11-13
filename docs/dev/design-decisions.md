@@ -122,15 +122,15 @@ The rules most decisions below follow.
 - An orb's timer is not observed (2026-10-23)
 - The HUD and the observation share readers and keep their own lists (2026-10-23)
 - The environment hands out a copy of each observation (2026-11-07)
-- An orb's identity is the radix scalar, and tier order is meant to be seen (2026-11-12)
-- An orb's identity is looked up in a table the scenario builds (2026-11-12)
-
-### Perceptions: [`decisions/perceptions.md`](decisions/perceptions.md)
-
 - `vector_markovian_easy` is not rewritten (2026-11-11)
 - The composite perceptions are rewritten, as one (2026-11-11)
 - A perception is a format, and the scenario says what the agent knows (2026-11-11)
 - An orb slot's columns are orb features the scenario lists (2026-11-11)
+
+### Orb identity: [`decisions/orb-identity.md`](decisions/orb-identity.md)
+
+- An orb's identity is the radix scalar, and tier order is meant to be seen (2026-11-12)
+- An orb's identity is looked up in a table the scenario builds (2026-11-12)
 
 ### Runners and rendering: [`decisions/runners-and-rendering.md`](decisions/runners-and-rendering.md)
 

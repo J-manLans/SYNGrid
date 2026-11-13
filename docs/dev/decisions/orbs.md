@@ -1,6 +1,6 @@
 # Decisions: Orbs
 
-What an orb is and carries: its categories and meta, its classes, its timers, and how a population weighs it.
+What an orb is and carries: its categories and meta, its classes, its timers, and how a population weighs it. The identity the agent sees, built from the meta, is in `orb-identity.md`.
 
 Written in the present tense, in the format of the template in `../design-decisions.md`. A decision added here also
 gets its title in that index.
