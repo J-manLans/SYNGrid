@@ -20,7 +20,7 @@ The two perceptions in the `Perception` enum brought in line with the new rules.
    `test_orb_meta.py`. When spatial is trained, also train it with the plain radix on the same seeds.
 2. Global features supplied by the scenario, as `GlobalFeature`s in `ObservationRules.global_features`, each with
    its bound and a reader. The two kept perceptions carry none. Chain progress is needed where tier orbs return.
-3. The view radius, a field on `ObservationRules` that the limited-view perception reads in place of its hardcoded
+3. The view radius, a field on `ObservationRules` that the lantern's perception reads in place of its hardcoded
    distance, and that the renderer's fog overlay reads in phase 8a.
 
 **One change at a time.** Each of the three is its own commit, and the regression test is run after each against the

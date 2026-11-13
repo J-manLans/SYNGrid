@@ -47,7 +47,7 @@ tiers 4 to 7.
 **Why sparse keeps its break penalty:** a break ends the episode, so without a penalty it is a free way out, cheaper
 than walking to the -1 timeout.
 
-**Spatial's break penalty was not ablated.** It was tuned in the thesis era: under a limited view, eating an unknown
+**Spatial's break penalty was not ablated.** It was tuned in the thesis era: under a lantern, eating an unknown
 orb is how the droid explores, and a cheap break keeps that cheap. A larger penalty taught the droid to avoid orbs
 and run out the clock.
 

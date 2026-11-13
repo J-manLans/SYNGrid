@@ -35,8 +35,8 @@ area, not to a file of it. `two-senses.md` is never cut.
   Expired, ready.
 - **[Digestion](digestion.md)**: Digestion, Digester, Engine, Direct digester, Chain, Progress, Completion, Break, Chain
   worth, Undigested, Scoring mode, Max-tier, Step-wise, Threshold, Reward ladder.
-- **[Observation](observation.md)**: Observation, Perception, Visibility, Encoding, Markovian, Fog of war, POMDP, Slot,
-  Global feature, Orb feature, View radius, Format, HUD, Metric.
+- **[Observation](observation.md)**: Observation, Perception, Visibility, Encoding, Markovian, POMDP, Fog of war, Slot,
+  Global feature, Orb feature, View radius, Floodlight, Lantern, Format, HUD, Metric.
 - **[Running](running.md)**: Runner, SB3 spec, Run id, Human play, Run controls.
 - **[The rebuild](rebuild.md)**: Strain, Legacy, Skeleton, Reproduction package, Phase, Replay probe, Runner probe,
   Tape, Trace, Baseline, Scenario sweep, Rule in a value.

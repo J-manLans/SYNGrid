@@ -67,7 +67,7 @@ a name and a parent" in `design-decisions.md`.
   orb feature, the lists exist before it or the mark is built as a one-off. Raised on 2026-11-11.
 - **Whether the composite is a thin layer over the vector,** building the same parts and handing them out as a
   `Dict` in place of joining them. To decide at the code. Raised on 2026-11-11.
-- **Whether the pixel observation gets a limited view, and which kind.** A crop of the window loses the droid's
+- **Whether the pixel observation gets a lantern, and which kind.** A crop of the window loses the droid's
   position; the full grid with the rest blacked out keeps it.
 - **Whether non-tier synergy orbs despawn like negative orbs,** or stay on the field.
 

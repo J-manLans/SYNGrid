@@ -1,7 +1,7 @@
 # SYNGrid: the vision
 
 *Written 2026-10-27, from a long talk with the owner. It says where the project is heading, not what to build next
-or how far it has come. The roadmap does both. Read this first, then the roadmap.*
+or how far it has come. The roadmap does both. Read this before giving a design opinion.*
 
 Picture a small arcade cabinet from a future that never happened. Chunky controls, a few dials, a screen of glowing
 numbers that don't tell you what they mean. On the screen is a grid. A little droid moves across it, eating orbs.

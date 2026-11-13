@@ -99,7 +99,7 @@ structure pays off only once there is one.
 
 **Revisit if:** no custom extractor is planned, so the composites stay flattened copies of the vectors.
 
-## A perception is a format, and the scenario says what the agent knows (2026-11-11)
+## A perception is a format, and the scenario says what the agent knows (2026-11-11, revised 2026-11-13)
 
 **Decision:** There is one perception class per format: vector, composite, grid and pixel. What the agent gets to
 know is the scenario's, in its `ObservationRules`: the view radius, the global features, the orb features and the
@@ -108,8 +108,10 @@ lists; a format only lays out the result.
 
 - **Visibility is one number.** A view radius of none shows every orb; a radius of 1, 2 and up shows the orbs within
   it. Today's `vector_markovian` is the vector format with no radius, and `vector_fog_of_war` is the vector format
-  with a radius of 1. The two are spoken of as the full view and the limited view, not as Markovian and POMDP: even
-  the full view is not Markovian once a delay hides time, and legacy's `fully_pomdp` meant "no global values".
+  with a radius of 1. The two ends are spoken of as the floodlight, no radius, and the lantern, a radius of 1 and
+  up. The names are the glossary's, and no class or enum member carries them. Markovian and POMDP name the task the
+  agent faces, not the view: even under a floodlight a task is not Markovian once a delay hides time, and legacy's
+  `fully_pomdp` meant "no global values".
 - **The `Perception` enum names formats.** This is how "A locked scenario fixes the visibility, and the encoding is
   a tunable" (`locking-and-forks.md`) is built: the radius is the scenario's, the format is the run's.
 - **Every format but pixel reads the same lists.** The vector and the composite write orb features as the columns of
@@ -125,9 +127,13 @@ columns it needs, as "The kept perceptions observe only what earned its place" a
 **Rejected:**
 
 - A class for each pair of visibility and encoding: the classes grow as a product, and the filter is repeated.
-- Visibility as subclasses, or as a selection class of its own: the radius is a number, and "none" covers the full
-  view.
+- Visibility as subclasses, or as a selection class of its own: the radius is a number, and "none" covers the
+  floodlight.
 - Fog of war kept as a named perception a scenario points at: it is the vector format with a radius of 1.
+- Fog of war as the word for the limited view: the name is fun but not honest, since it suggests ground once seen
+  stays seen, and here what the droid leaves goes dark again. A lantern says that.
+- Markovian and POMDP as the names of the two views: they are the right words for a task, and a view does not
+  settle which one a scenario is.
 
 **Revisit if:** one trained model has to move between scenarios, as in curriculum training or transfer. Scenarios
 listing their own columns give them observations of different shapes, as the slot count already does.

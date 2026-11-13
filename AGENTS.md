@@ -47,12 +47,12 @@ The pushed branch can be behind the owner's local tree. Read local files.
 
 Read in this order, and do not ask the owner what these already answer:
 
-1. `docs/vision.md`, for where the project is heading.
-2. The roadmap's `README.md`, for what is next and what has run, and the file of the phase its **Next** line names.
-3. Before a design opinion: the `design-decisions.md` index, the decision files for the area in full,
-   `open-questions.md`, and the index in `docs/dev/archive/README.md`, so a dropped idea is not offered again. Do
-   not treat an open question as decided.
-4. Before reading code, `docs/dev/code-map.md`. Before writing code, `docs/code_style.md` and
+1. The roadmap's `README.md`, for what is next and what has run, and the file of the phase its **Next** line names.
+2. Before a design opinion: `docs/vision.md`, for where the project is heading and the questions to ask of a new
+   idea; the `design-decisions.md` index and the decision files for the area in full; `open-questions.md`; and the
+   index in `docs/dev/archive/README.md`, so a dropped idea is not offered again. Do not treat an open question as
+   decided.
+3. Before reading code, `docs/dev/code-map.md`. Before writing code, `docs/code_style.md` and
    `docs/dev/procedures/writing-tests.md`.
 
 ## Where things go

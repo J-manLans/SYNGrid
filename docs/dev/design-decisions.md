@@ -124,7 +124,7 @@ The rules most decisions below follow.
 - The environment hands out a copy of each observation (2026-11-07)
 - `vector_markovian_easy` is not rewritten (2026-11-11)
 - The composite perceptions are rewritten, as one (2026-11-11)
-- A perception is a format, and the scenario says what the agent knows (2026-11-11)
+- A perception is a format, and the scenario says what the agent knows (2026-11-11, revised 2026-11-13)
 - An orb slot's columns are orb features the scenario lists (2026-11-11)
 
 ### Orb identity: [`decisions/orb-identity.md`](decisions/orb-identity.md)
