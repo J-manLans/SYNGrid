@@ -38,7 +38,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | `docs/dev/glossary/` | What the words mean, one file per area. Its `README.md` indexes every term. Use its terms |
 | `docs/dev/code-map.md` | Where the rebuilt code lives, and the path a run and a step take through it. Read it before reading code |
 | `docs/dev/landscape-changes.md` | Changes that could move what the agent sees or is paid, to check against legacy |
-| `docs/dev/procedures/` | How to do a job only some sessions need: the test sweep, the docs sweep, running legacy. Read the one the job needs, before starting it |
+| `docs/dev/procedures/` | How to do a job only some sessions need: writing tests, the test sweep, checking behaviour, the docs sweep, running legacy. Read the one the job needs, before starting it |
 | `docs/dev/archive/` | Closed investigations and dropped ideas worth keeping, with an index in its `README.md` |
 | `docs/code_style.md` | How code is written |
 | `CONTRIBUTING.md`, `README.md` | For people outside: how to contribute, what SYNGrid is |
@@ -52,7 +52,8 @@ Read in this order, and do not ask the owner what these already answer:
 3. Before a design opinion: the `design-decisions.md` index, the decision files for the area in full,
    `open-questions.md`, and the index in `docs/dev/archive/README.md`, so a dropped idea is not offered again. Do
    not treat an open question as decided.
-4. Before reading code, `docs/dev/code-map.md`. Before writing code, `docs/code_style.md`.
+4. Before reading code, `docs/dev/code-map.md`. Before writing code, `docs/code_style.md` and
+   `docs/dev/procedures/writing-tests.md`.
 
 ## Where things go
 
@@ -145,39 +146,9 @@ hashes.
   be" or "here and not there". A docstring must still read correctly when the rebuild is done.
 - **Work still to do goes in a `# TODO` or `# NOTE` comment,** which the owner can search for. Put a tag in brackets
   when several belong together, as in `# TODO(delay):`.
-- **Every code change ships with its tests,** reviewed together with the code. Where tests go and how they are
-  grouped is in `docs/code_style.md`. How they are written is in "Writing tests" below.
-
-## Writing tests
-
-New rules get their tests before their code, and every change ends with a sweep of the files it touched. Why:
-"Tests come first, from the owner's rules" in `docs/dev/design-decisions.md`.
-
-### New code: tests first
-
-1. The owner states the rules as behaviour: "when X happens, Y must happen", or "Y must never happen". Add the edge
-   cases and rules the owner missed, and ask where a rule is unclear.
-2. Close in on the rules together before writing anything, also when they come as a finished prompt. Review them
-   against the code and give an opinion: what is missing, what is unclear, and how each rule would be tested. Write
-   the tests once the owner and the agent agree.
-3. Write the tests, then stop. The owner reviews them before any code is written. They should read as the owner's
-   rules.
-4. Write the code with the tests as the guide, and see each test go red before it goes green.
-
-Tests go through the public entry points the rest of the code uses, and describe behaviour, not structure. Code whose
-design is still moving, such as a mechanic under ablation, is tried first and gets its tests once its rule is settled
-in `design-decisions.md`.
-
-### The sweep
-
-Every change ends with a sweep over the source files it touched, with coverage and mutmut, and tightening an existing
-test file is the same sweep. Read `docs/dev/procedures/test-sweep.md` before running one.
-
-Traps when writing a test:
-
-- A test that builds a runner works in `tmp_path` with `monkeypatch.chdir`, so its `output/` lands there.
-- The run controls read pygame's queue in one batch and drop what follows Space in it. An event meant for the pause
-  screen is posted with `pygame.time.set_timer`.
+- **Every code change ships with its tests,** reviewed together with the code. A new rule gets its tests first, and
+  the owner reviews them before any code is written. Where tests go and how they are grouped is in
+  `docs/code_style.md`; how they are written is in `docs/dev/procedures/writing-tests.md`.
 
 ## The two strains
 
@@ -223,19 +194,9 @@ Each of these cost a wrong conclusion in this repo.
 - **Written is not run.** Check the has-it-run column in the roadmap before saying something works.
 - For where a behaviour came from or when it changed, prefer `git log -S`, a replay probe or loading the artifact
   over inference from a name or a comment.
-- The replay probe (`scripts/replay/probe.py`) records a locked scenario from its base config, so a run's tunables do
-  not move it; `--run-yaml` records it as a run sees it. The regression test checks each locked scenario against its
-  baseline in `tests/regression/baselines/`. Comparisons are exact, so read the size of a difference before calling
-  it behavioural.
-- **A change meant to leave behaviour alone is checked against the stable version.** For a locked scenario that is
-  the regression test, which plain pytest runs against the baseline. A scenario that is not locked, or a run YAML
-  (`--run-yaml`), has no baseline, so it is probed before and after and compared with `scripts/replay/diff.py`. Say
-  whether the traces matched and what the tape does not reach: rendering, logging, the runners, and any branch its
-  random walk does not hit.
-- **A change to the runners is fingerprinted before and after** with `scripts/runner_probe.py`, which trains each
-  algorithm briefly with a seed, saves and loads it through `train()` and `eval()`, and digests the weights, the eval
-  actions and the CSV rows. The replay probe does not reach the runners, and neither probe reaches the run controls
-  or video recording.
+- **Before changing anything under `src/` without meaning to change behaviour,** a refactor, a rename, a move or a
+  tidy, **and before any change under `src/syn_grid/runners/`,** read `docs/dev/procedures/checking-behaviour.md`. It says which
+  probe checks the change against the stable version, and what the probes do not reach.
 
 ## Traps
 

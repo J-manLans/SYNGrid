@@ -3,7 +3,7 @@
 How the sweep that ends every change is run, over the source files the change touched. Tightening an existing test
 file is the same sweep.
 
-What stays out: how tests are written before the code, which is in `AGENTS.md`, "Writing tests", and why the suite is
+What stays out: how tests are written before the code, which is in `writing-tests.md`, and why the suite is
 built this way, which is in `decisions/testing.md`.
 
 coverage and mutmut are a reading aid, not targets: a file is done when every survivor, every uncovered line and every
