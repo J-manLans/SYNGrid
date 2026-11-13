@@ -24,8 +24,10 @@ fi
 echo "==> Markdown lines past 120 characters (rewrap by hand)"
 # Lists, never edits. Code blocks, table rows and lines holding a link are skipped, since they cannot or should not be
 # broken. README.md keeps a paragraph to a line, and the archive is not rewrapped, so both are left out.
+# awk runs under the C locale, where [\200-\277] is a range of bytes. Under a UTF-8 locale gawk reads it as a range of
+# characters and stops with "Invalid collation character", so the result would depend on who runs it.
 LONG=$(find docs AGENTS.md CONTRIBUTING.md -name '*.md' -not -path 'docs/dev/archive/*' -print0 |
-  xargs -0 awk '
+  xargs -0 env LC_ALL=C awk '
     FNR == 1          { fence = 0 }
     /^```/            { fence = !fence; next }
     fence             { next }

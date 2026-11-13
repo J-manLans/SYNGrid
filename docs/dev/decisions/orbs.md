@@ -10,6 +10,9 @@ gets its title in that index.
 
 ## Two orb categories, and an orb meta that stores only kind and tier (2026-10-12)
 
+**Built by:** phase 7a, the orb identity step, for the meta storing only kind and tier: until then it also holds the
+identity. The rest is built.
+
 **Decision:** There are two orb categories and there will not be a third.
 
 - **Direct:** changes the score and nothing else, on the step it is eaten. The number may be fixed, drawn, or depend
@@ -102,6 +105,9 @@ value per orb, not a class attribute shared by every env in the process.
   handed its orbs; what it owns is spawning.
 
 ## A weight belongs to a sampled field, and a tier chain holds one negative orb (2026-10-12)
+
+**Built by:** nothing on the roadmap yet, for the sampled field and the weighted blocks, which the roadmap lists under
+"Not on this roadmap". The fixed field is built.
 
 **Decision:** A field is filled one of two ways, a separate question from goal or continuous:
 

@@ -74,6 +74,8 @@ before an agent runner is built. Human control overrides the runner config, with
 
 ## The renderer takes plain values, and the HUD is the scenario's list (2026-10-21)
 
+**Built by:** phase 8a, for the fog overlay, and phase 8b, for the stacked HUD and the theme file. The rest is built.
+
 **Decision:** The renderer is handed plain values and never reads the world or a config.
 
 - From the world, through the environment: the droid's position, the orbs on the field and `grid_dimensions`.
@@ -121,6 +123,8 @@ path (a crash left pygame running); `sys.exit()` (it skipped SB3's `on_training_
 runner reading `scenario.hud` itself (two places to read the HUD); polling for keys (a busy CPU core).
 
 ## A run that continues another gets its own id, and records its parent (2026-11-04)
+
+**Built by:** nothing on the roadmap yet. It waits for the GUI (see "Not tied to a phase" in `open-questions.md`).
 
 **Decision:** A run that starts from another run's checkpoint, as a curriculum stage does, is a run of its own. It
 gets its own id from its own scenario and runner config, and it records which checkpoint it came from.

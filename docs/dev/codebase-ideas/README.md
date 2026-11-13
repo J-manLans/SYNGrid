@@ -15,9 +15,9 @@ at how likely it is. The index below repeats it, so work that reaches that point
 ## Who reads what
 
 - **The index** (this README) can be read at any time. It is small on purpose.
-- **An idea file** is opened only at a docs sweep, or when the owner asks. When work reaches an idea's "Returns
-  when", the agent says so in one line, and the owner decides whether the file is opened. A pointer to an idea from
-  another doc does not open it either.
+- **An idea file** is opened at a docs sweep, when the owner asks about its subject, or when the owner says to open
+  it. Work reaching an idea's "Returns when", or a pointer to it from another doc, does not open it: the agent names
+  the idea from the index in one line and asks.
 - **Adding an idea** needs no reading: it is a new file and a line in the index.
 
 The folder has no size limit. It empties itself: an idea that is built moves to `decisions/`, and the docs sweep

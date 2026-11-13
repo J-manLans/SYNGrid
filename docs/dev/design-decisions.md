@@ -4,14 +4,19 @@ What is settled, why, and the alternatives someone might suggest again, so that 
 shaped as it is or put back what was left out on purpose.
 
 The decisions live in `decisions/`, one file per area. A file stays under 2,500 words (`wc -w`); past that, the docs
-sweep proposes splitting it by topic, and splits it once the owner agrees on the files. This file holds the principles
+sweep proposes a split, and makes it once the owner agrees on the files. A part that is a topic of its own becomes a
+file beside it and an area of its own, as orb identity came out of orbs. Where no cut by topic is clean, the area
+becomes a folder with its name, and its parts are files inside it, cut by sub-topic and named plainly, as `testing/`
+is. The index keeps one heading for such an area, and reading the area in full means reading its folder. This file
+holds the principles
 most of them follow and an index of every decision by title, so a decision can be found by its name. Read the area's
 file in full before giving a design opinion in that area.
 
-Written in the present tense. The story of how a decision changed is in `git log`; a reversal that still matters is a
-rejected alternative. File paths, test runs and dates of work stay out, and so do open points, which go in
-`open-questions.md`. When a decision changes, the entry is rewritten to say what is true now. A new decision goes in
-its area's file, and its title in the index below.
+Written in the present tense, also when a decision is ahead of the code. Such an entry opens with a **Built by:**
+line, so the present tense is not read as what the code does today; an entry without one is built. The story of how
+a decision changed is in `git log`; a reversal that still matters is a rejected alternative. File paths, test runs
+and dates of work stay out, and so do open points, which go in `open-questions.md`. When a decision changes, the
+entry is rewritten to say what is true now. A new decision goes in its area's file, and its title in the index below.
 
 ---
 
@@ -19,6 +24,8 @@ its area's file, and its title in the index below.
 
 ### Title (date last settled)
 
+**Built by:** only while some of it is not built: the roadmap phase that builds it, and which part when the rest is
+built, or "nothing on the roadmap yet" and what it waits on. The line goes when it is built.
 **Decision:** what is true.
 **Why:** the reason.
 **Rejected:** alternatives worth not suggesting again, each with its reason.
@@ -150,13 +157,18 @@ The rules most decisions below follow.
 - SYNGrid moves to Python 3.12, through Pop!_OS 24.04 (2026-11-07)
 - Legacy stays until the perceptions are rewritten (2026-11-07)
 
-### Testing: [`decisions/testing.md`](decisions/testing.md)
+### Testing: `decisions/testing/`
+
+The suite, [`suite.md`](decisions/testing/suite.md):
 
 - The regression test runs the replay probe on each locked scenario's base config (2026-11-07)
 - The suite is measured by coverage.py alone, and mutmut (2026-11-07)
 - mutmut forks from a clean server (2026-11-09)
+- Tests come first, from the owner's rules (2026-11-07, revised 2026-11-13)
+
+CI, [`ci.md`](decisions/testing/ci.md):
+
 - Hypothesis checks the world's invariants, and CI runs the tests and ruff (2026-11-07)
-- CI fails below a coverage floor of 85% (2026-11-10)
 - CI checks types with Pyright (2026-11-13)
+- CI fails below a coverage floor of 85% (2026-11-10)
 - CI checks tidy where branches meet main (2026-11-13)
-- Tests come first, from the owner's rules (2026-11-07)

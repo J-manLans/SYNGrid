@@ -32,7 +32,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 |---|---|
 | `docs/vision.md` | Where the project is heading, and the questions to ask of a new idea |
 | `docs/dev/scenario-rebuild-roadmap/` | What is left, in order, and what is stub, legacy or not yet run. `README.md` holds **Next**, the table and the phases; each phase is a file |
-| `docs/dev/design-decisions.md` | What is settled, why, and what was turned down: the principles, and an index of every decision by title. The decisions themselves are in `docs/dev/decisions/`, one file per area |
+| `docs/dev/design-decisions.md` | What is settled, why, and what was turned down: the principles, and an index of every decision by title. The decisions themselves are in `docs/dev/decisions/`, one file per area, or a folder where an area needs several |
 | `docs/dev/open-questions.md` | What is not decided yet, by the phase that needs it |
 | `docs/dev/codebase-ideas/` | Ideas worth returning to that are not problems now, one file per idea. Its `README.md` is the index and the only part read outside a docs sweep |
 | `docs/dev/glossary/` | What the words mean, one file per area. Its `README.md` indexes every term. Use its terms |
@@ -47,11 +47,12 @@ The pushed branch can be behind the owner's local tree. Read local files.
 
 Read in this order, and do not ask the owner what these already answer:
 
-1. The roadmap's `README.md`, for what is next and what has run, and the file of the phase its **Next** line names.
+1. The roadmap's `README.md`, for what is next and what has run. A phase's file is read when the session works on
+   that phase.
 2. Before a design opinion: `docs/vision.md`, for where the project is heading and the questions to ask of a new
    idea; the `design-decisions.md` index and the decision files for the area in full; `open-questions.md`; and the
    index in `docs/dev/archive/README.md`, so a dropped idea is not offered again. Do not treat an open question as
-   decided.
+   decided. Looking up what one decision says reads only that decision's file, found through the index.
 3. Before reading code, `docs/dev/code-map.md`. Before writing code, `docs/code_style.md` and
    `docs/dev/procedures/writing-tests.md`.
 
@@ -62,7 +63,7 @@ Read in this order, and do not ask the owner what these already answer:
 | A decision is made | its area's file in `decisions/`, in the present tense, and its title in the `design-decisions.md` index |
 | A question is answered | remove it from `open-questions.md`; the answer goes to its area's file in `decisions/` |
 | A question comes up | `open-questions.md`, under the phase that needs it |
-| A roadmap step is done | remove it from its phase's file, and update the has-it-run cell in the README's table; when a phase is done, its file and its line go |
+| A roadmap step is done | run the test sweep over the files it touched, then remove it from its phase's file, and update the has-it-run cell in the README's table, and remove or shorten the **Built by:** line of each decision it built; when a phase is done, its file and its line go |
 | Code is first run, or first learns | the has-it-run cell in the roadmap's table |
 | A change touches reward, observation, layout or how often something appears | `landscape-changes.md` |
 | A word is coined | its area's file in `glossary/`, and its name in the index |
@@ -183,6 +184,22 @@ HYPOTHESIS_PROFILE=dev pytest              # the invariants searched far; plain 
 `python` is not on PATH outside the venv. `requires-python` is `>=3.12,<3.13`. Rendering needs
 `SDL_VIDEODRIVER=dummy` and `SDL_AUDIODRIVER=dummy` on a machine without devices.
 
+## What a change runs
+
+| Change | Runs |
+|---|---|
+| Ruff's fix and format, `tidy.sh` alone | nothing more |
+| Docs | `./scripts/tidy.sh`, for the line width |
+| A comment, a docstring, a rename or a move | `pytest` and `pyright`, which catches a missed reference |
+| A refactor meant to keep behaviour | what `docs/dev/procedures/checking-behaviour.md` says |
+| New code or changed behaviour | tests first, as `docs/dev/procedures/writing-tests.md` says, then `pytest` |
+| Anything under `src/syn_grid/runners/`, on top of its row | the runner fingerprint, in `checking-behaviour.md` |
+| A roadmap step is done, or the owner asks to close a test file | the test sweep, `docs/dev/procedures/test-sweep.md` |
+
+Plain `pytest` includes the regression test, and runs after every change but ruff's and docs. The test sweep does not
+run after every change: it runs once over the files a roadmap step touched, before the step leaves the roadmap. The
+probes ask whether behaviour changed, and the sweep asks whether the tests pin the behaviour down.
+
 ## Verify before asserting
 
 Each of these cost a wrong conclusion in this repo.
@@ -194,9 +211,9 @@ Each of these cost a wrong conclusion in this repo.
 - **Written is not run.** Check the has-it-run column in the roadmap before saying something works.
 - For where a behaviour came from or when it changed, prefer `git log -S`, a replay probe or loading the artifact
   over inference from a name or a comment.
-- **Before changing anything under `src/` without meaning to change behaviour,** a refactor, a rename, a move or a
-  tidy, **and before any change under `src/syn_grid/runners/`,** read `docs/dev/procedures/checking-behaviour.md`.
-  It says which probe checks the change against the stable version, and what the probes do not reach.
+- **Before a refactor under `src/` meant to keep behaviour, and before any change under `src/syn_grid/runners/`,**
+  read `docs/dev/procedures/checking-behaviour.md`. It says which probe checks the change against the stable
+  version, and what the probes do not reach.
 
 ## Traps
 

@@ -15,9 +15,12 @@ The two perceptions in the `Perception` enum brought in line with the new rules.
 
 1. The orb identity, as decided in "An orb's identity is the radix scalar, and tier order is meant to be seen" and
    "An orb's identity is looked up in a table the scenario builds": the meta frozen, the world's remap replaced by
-   the scenario's table, and the observation unchanged. The identity tests are revisited with it: `TestIdentities`
-   in `test_grid_world.py`, which pins negative as 1 and the tiers counting up from 2, and `TestIdentity` in
-   `test_orb_meta.py`. When spatial is trained, also train it with the plain radix on the same seeds.
+   the scenario's table, and the observation unchanged. `world.max_identity`, the identity's bound, which the
+   environment hands to the handler and the perception, moves with the remap. Where the table lives, and how the
+   perception reads it before orb features exist, are in `open-questions.md`. The identity tests are revisited with
+   it: `TestIdentities` in `tests/unit/core/test_grid_world.py`, which pins negative as 1 and the tiers counting up
+   from 2, and `TestIdentity` in `tests/unit/core/orbs/test_orb_meta.py`. When spatial is trained, also train it
+   with the plain radix on the same seeds.
 2. Global features supplied by the scenario, as `GlobalFeature`s in `ObservationRules.global_features`, each with
    its bound and a reader. The two kept perceptions carry none. Chain progress is needed where tier orbs return.
 3. The view radius, a field on `ObservationRules` that the lantern's perception reads in place of its hardcoded

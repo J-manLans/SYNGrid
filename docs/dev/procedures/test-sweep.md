@@ -1,10 +1,11 @@
 # The test sweep
 
-How the sweep that ends every change is run, over the source files the change touched. Tightening an existing test
-file is the same sweep.
+How the sweep that ends a roadmap step is run, over the source files the step touched, before the step is removed
+from the roadmap. Tightening an existing test file is the same sweep. When it runs, and what a change runs short of
+it, is in `AGENTS.md`, "What a change runs".
 
 What stays out: how tests are written before the code, which is in `writing-tests.md`, and why the suite is
-built this way, which is in `decisions/testing.md`.
+built this way, which is in `decisions/testing/`.
 
 coverage and mutmut are a reading aid, not targets: a file is done when every survivor, every uncovered line and every
 rule it decides in a value is either tested or listed with its reason.

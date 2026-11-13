@@ -2,8 +2,9 @@
 
 **Returns when:** a scenario with a second body on the grid is planned: a guide, a rival or a companion.
 
-**Idea:** A second body on the grid, a ghost, that shows the agent the tier order and does nothing else. The agent
-cannot see the tiers, so the ghost is the only place the order can come from.
+**Idea:** A second body on the grid, a ghost, that shows the agent the tier order and does nothing else. This
+scenario withholds the identity, so the agent cannot see the tiers and the ghost is the only place the order can come
+from. Elsewhere tier order is visible, by "An orb's identity is the radix scalar, and tier order is meant to be seen".
 
 The rules as talked through:
 

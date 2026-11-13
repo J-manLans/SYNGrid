@@ -106,7 +106,7 @@ dynamic_context = "test_function"
 [tool.coverage.report]
 # A backstop against a dropped test file or a sizeable untested addition, three points under the total when phase
 # 6b closed (88%), to leave room for the observation and render rebuild. Raised once phases 7 and 8 are done; see
-# "CI fails below a coverage floor of 85%" in docs/dev/decisions/testing.md.
+# "CI fails below a coverage floor of 85%" in docs/dev/decisions/testing/ci.md.
 fail_under = 85
 
 [tool.pyright]
@@ -133,5 +133,5 @@ do_not_mutate = ["*/legacy/*", "*/__init__.py"]
 # Fork each mutant from a clean server, not from mutmut's main process. The main process has run the suite once,
 # and torch's thread pool with it; a fork keeps the pool's locks but not its threads, so the SB3 tests hang and a
 # surviving mutant shows as a timeout, which mutmut scores as caught. See "mutmut forks from a clean server" in
-# docs/dev/decisions/testing.md.
+# docs/dev/decisions/testing/suite.md.
 process_isolation = "forkserver"

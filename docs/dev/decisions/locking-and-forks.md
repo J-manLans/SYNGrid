@@ -83,6 +83,8 @@ gives, and the full model would hold a rule where it holds a number).
 
 ## A fork is a full config with a name and a parent (2026-10-29)
 
+**Built by:** nothing on the roadmap yet. What is open is under "Locking a scenario" in `open-questions.md`.
+
 **Decision:** Changing a locked scenario beyond its axis makes a fork: its base config copied, any value edited, and
 saved with a name of its own and the scenario it came from. A fork is built by its parent's entry, so it keeps the
 parent's scoring mode, termination and HUD, and its perception is held to the parent's visibility. Its runs are filed
@@ -106,6 +108,9 @@ recreate, so ignoring it by default costs little, and a user who wants it in git
   place to write.
 
 ## A locked scenario fixes the visibility, and the encoding is a tunable (2026-10-29)
+
+**Built by:** phase 7b, for the composite and pixel encodings a run can pick. The rule is built, with the vector as the
+only encoding.
 
 **Decision:** A locked scenario fixes how much the droid sees, and a run may pick any perception with that
 visibility, whatever its encoding. The scaling scenarios take any fully observable perception: vector, composite or

@@ -10,6 +10,9 @@ gets its title in that index.
 
 ## An orb's identity is the radix scalar, and tier order is meant to be seen (2026-11-12)
 
+**Built by:** orb features, for the identity as an orb feature in the slot (see "An orb slot's columns are orb
+features the scenario lists" in `observation.md`). The rest is built.
+
 **Decision:** The identity the agent sees is one number per orb, built from the mixed-radix formula on category,
 kind and tier, with tier in the top place, so the identity grows with tier. The agent sees it as its rank among the
 scenario's orbs, the dense identity (see "An orb's identity is looked up in a table the scenario builds"), which keeps
@@ -61,6 +64,8 @@ Background, from the talk on 2026-11-11, so the reasoning can be found again:
 expected. The cheap check is an ablation on that scenario and its seeds: the radix against tier plus kind flags.
 
 ## An orb's identity is looked up in a table the scenario builds (2026-11-12)
+
+**Built by:** phase 7a, the orb identity step.
 
 **Decision:** The dense identity stays: the agent sees the orb's rank among the radix identities of the scenario's
 orbs, 1 to N, in radix order. It no longer lives in the orb's meta. The meta holds kind and tier, its radix is a pure

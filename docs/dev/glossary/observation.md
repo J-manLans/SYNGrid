@@ -2,11 +2,11 @@
 
 - **Observation:** what the agent is given each step.
 - **Perception:** the class that turns the world into an observation, and the config value that names it, such as
-  `vector_fog_of_war`.
-- **Visibility:** how much of the world a perception shows: all of it, or a window around the droid. It is a way of
-  talking about perceptions and not a setting.
+  `vector_fog_of_war`. See `two-senses.md`.
+- **Visibility:** how much of the world the agent is shown: all of it under a floodlight, or the orbs within a
+  lantern. The scenario sets it, as the view radius. See `two-senses.md`.
 - **Encoding:** the form the observation takes: a flat vector, a composite of named parts, a grid of cells, or
-  pixels. It is also not a setting.
+  pixels. A run picks it, as the format. See `two-senses.md`.
 - **Markovian:** a task in which one observation is enough to act on. It is a property of a scenario and its view
   together, not of the view: delay under a floodlight is not Markovian. Also in the perception name
   `vector_markovian`, the vector under a floodlight.

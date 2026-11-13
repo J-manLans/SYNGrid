@@ -1,13 +1,13 @@
 # Writing tests
 
-How tests are written: before the code for a new rule, and with a sweep at the end of every change. When to read
+How tests are written: before the code for a new rule, and with a sweep when a roadmap step is done. When to read
 it is in `AGENTS.md`, "Starting a session"; that every code change ships with its tests is in its "How to work with
 the owner".
 
 What stays out: where tests go and how they are grouped, which is in `../../code_style.md`, and how the sweep is run,
 which is in `test-sweep.md`.
 
-New rules get their tests before their code, and every change ends with a sweep of the files it touched. Why:
+New rules get their tests before their code, and a roadmap step ends with a sweep of the files it touched. Why:
 "Tests come first, from the owner's rules" in `../design-decisions.md`.
 
 ## New code: tests first
@@ -27,8 +27,9 @@ in `design-decisions.md`.
 
 ## The sweep
 
-Every change ends with a sweep over the source files it touched, with coverage and mutmut, and tightening an existing
-test file is the same sweep. Read `test-sweep.md` before running one.
+A roadmap step ends with a sweep over the source files it touched, with coverage and mutmut, before the step is
+removed from the roadmap. It does not run after every change; what each change runs is in `AGENTS.md`, "What a change
+runs". Tightening an existing test file is the same sweep. Read `test-sweep.md` before running one.
 
 Traps when writing a test:
 

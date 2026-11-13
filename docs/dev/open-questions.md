@@ -2,7 +2,8 @@
 
 What is not decided yet, grouped by the roadmap phase that needs the answer.
 
-An answered question leaves: the answer becomes an entry in `design-decisions.md` and the question is removed. A
+An answered question leaves: the answer becomes an entry in its area's file in `decisions/`, with its title in the
+`design-decisions.md` index, and the question is removed. A
 question that is half answered stays with what is left of it. Keep each entry to what is known and the options; a
 long argument goes in `codebase-ideas/` or is settled.
 
@@ -63,8 +64,16 @@ a name and a parent" in `design-decisions.md`.
 - **The shape of `obs_conf`.** It is two levels of nesting around one field, `perception`, which now names only a
   format; the view radius and the feature lists are the scenario's.
   See: "A perception is a format, and the scenario says what the agent knows" in `design-decisions.md`.
-- **When the perceptions become formats, and orb features arrive.** 7a adds nothing new, but if 7a½'s frozen mark is an
-  orb feature, the lists exist before it or the mark is built as a one-off. Raised on 2026-11-11.
+- **Where the identity table lives.** The scenario builds it; whether it is a field of `Scenario` or of
+  `ObservationRules` is not said. `world.max_identity`, the identity's bound, moves with it. Needed by 7a's identity
+  step. Raised on 2026-11-13.
+  See: "An orb's identity is looked up in a table the scenario builds" in `design-decisions.md`.
+- **How the perception reads the identity in 7a, before orb features exist.** The decision has the identity orb
+  feature read the table, and 7a adds nothing new. Either the base perception reads the table itself in 7a and the
+  orb feature takes over later, or orb features come in with the identity step. Raised on 2026-11-13.
+- **Which step brings orb features in.** That a perception is a format and a slot's columns are orb features is
+  decided; when the lists are built is not. If 7a½'s frozen mark is an orb feature, the lists exist before it or the
+  mark is built as a one-off. Raised on 2026-11-11.
 - **Whether the composite is a thin layer over the vector,** building the same parts and handing them out as a
   `Dict` in place of joining them. To decide at the code. Raised on 2026-11-11.
 - **Whether the pixel observation gets a lantern, and which kind.** A crop of the window loses the droid's

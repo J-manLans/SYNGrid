@@ -37,6 +37,9 @@ stateless-versus-memory difference the benchmark measures. Chain progress is not
 
 ## The HUD and the observation share readers and keep their own lists (2026-10-23)
 
+**Built by:** phase 7a, the global features step, for the observation's half: the perceptions reading
+`global_features`. The HUD's half is built.
+
 **Decision:** A number the HUD shows and the observation carries is read by the same module-level reader, and each
 consumer lists it in its own tuple: a `HudBar` or `HudStat` in `hud`, a `GlobalFeature` in
 `ObservationRules.global_features`. Readers every scenario can use are in `scenario/blocks/readers.py`; a family's own
@@ -87,6 +90,8 @@ says what the agent knows").
 
 ## The composite perceptions are rewritten, as one (2026-11-11)
 
+**Built by:** phase 7b, the composite step.
+
 **Decision:** `composite_markovian` and `composite_fully_pomdp` come back in phase 7b as one composite format. They
 differ only in global values and a timer, which the scenario's lists now carry.
 
@@ -100,6 +105,9 @@ structure pays off only once there is one.
 **Revisit if:** no custom extractor is planned, so the composites stay flattened copies of the vectors.
 
 ## A perception is a format, and the scenario says what the agent knows (2026-11-11, revised 2026-11-13)
+
+**Built by:** phase 7a, the view radius step, and phase 7b, the formats. The orb features have no step yet (see "An orb
+slot's columns are orb features the scenario lists").
 
 **Decision:** There is one perception class per format: vector, composite, grid and pixel. What the agent gets to
 know is the scenario's, in its `ObservationRules`: the view radius, the global features, the orb features and the
@@ -139,6 +147,9 @@ columns it needs, as "The kept perceptions observe only what earned its place" a
 listing their own columns give them observations of different shapes, as the slot count already does.
 
 ## An orb slot's columns are orb features the scenario lists (2026-11-11)
+
+**Built by:** no step names it yet. When orb features arrive is an open question, under phase 7 in
+`open-questions.md`.
 
 **Decision:** Every orb slot holds the orb's active flag and its position. Everything else about the orb is an orb
 feature: a reader and a bound, as a `GlobalFeature` is, listed by the scenario in its `ObservationRules`. The

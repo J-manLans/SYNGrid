@@ -131,6 +131,9 @@ steps too tight or too loose.
 
 ## Delay's frozen orbs stay on the field and block their cell (2026-11-06, revised 2026-11-11)
 
+**Built by:** phase 7a½, after delay is locked, between the observation pass's alignment (7a) and its new perceptions
+(7b).
+
 **Decision:** A frozen tier orb stays on the field in its own cell, drawn with a frozen skin, and thaws there when
 the delay is over. It blocks its cell: the droid cannot move onto it. Blocking is a property of its own, which an
 orb can have without being frozen; freezing an orb turns it on, and it turns off when the delay is over. A move into
@@ -141,8 +144,7 @@ leaves its cell, the rule that a released orb waits for its cell to clear goes.
 
 The observation marks a frozen orb as frozen, and carries no countdown.
 
-It is built after delay is locked, between the observation pass's alignment (7a) and its new perceptions (7b), and
-comes in as delay's next version, so its spread is run again.
+It comes in as delay's next version, so its spread is run again.
 
 **Why:** What the grid shows has to make sense to the agent and to a person watching (see the questions in
 `docs/vision.md`). An orb that vanishes and comes back in the same cell does not look frozen to a viewer, and to the

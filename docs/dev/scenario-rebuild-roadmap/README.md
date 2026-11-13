@@ -8,11 +8,12 @@ Reasons go in `design-decisions.md`, undecided points in `open-questions.md`. No
 one to be read correctly.
 
 This README is read every session: the **Next** line, the table, and the list of phases. Each phase is a file of its
-own. A session reads the file of the phase **Next** names, and another phase's file only when the work reaches it or
-the owner asks.
+own. A session reads a phase's file when it works on that phase, or when the owner asks.
 
 **Next:** fine-tuning the class diagrams (`class-diagrams.md`), then the observation pass (phase 7), starting with what
 it settles first.
+
+**Next** can name work the owner has put ahead of the phases. It says what is next; the branch name does not.
 
 **Tests from now on:** every piece of new code ships with its tests, and code and tests are reviewed together.
 
