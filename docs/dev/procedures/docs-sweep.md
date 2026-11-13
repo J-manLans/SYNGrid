@@ -19,6 +19,8 @@ What stays out: the rules for committing, which are in `AGENTS.md`, "Commits".
    keeps it short; a `glossary/` file past 1,000 words is cut, by the rule in `glossary/README.md`, without
    asking; and a `decisions/` file past 2,500 words gets a proposed split by topic, made once the owner agrees on the
    files.
+7. Line width: run `./scripts/tidy.sh` and rewrap by hand any markdown line it lists past 120 characters. Rewrap only
+   those lines, so the diff shows what changed.
 6. `codebase-ideas/`, the one time its idea files are read without the owner asking. For each idea:
    - **built:** what was decided goes to its area's file in `decisions/`, and the file and its index line go;
    - **the work has moved past part of it:** edit it to match;
