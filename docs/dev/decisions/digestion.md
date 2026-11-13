@@ -64,8 +64,8 @@ learning curve can be read.
 - Any non-tier orb breaking a chain (legacy): a direct orb changes the score and nothing else.
 - A public `digestion_engine` attribute on the droid: every reader would walk three levels into it.
 
-**Revisit if:** an orb has to change what another kind pays (see "Effect orbs get their magic from the engine" in
-`codebase-ideas.md`), something has to react to what happened and not only to what it paid, or a scenario wants an
+**Revisit if:** an orb has to change what another kind pays (see
+`codebase-ideas/effect-orbs-magic-from-engine.md`), something has to react to what happened and not only to what it paid, or a scenario wants an
 existing kind to break chains, in which case the scenario's entry hands the tier digester the set of breaking kinds.
 
 ## The tier digester is a template with one subclass per scoring mode (2026-10-15)

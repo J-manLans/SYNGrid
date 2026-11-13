@@ -13,9 +13,15 @@ What stays out: the rules for committing, which are in `AGENTS.md`, "Commits".
 3. New terms that belong in `glossary.md`.
 4. Anything that landed in the wrong file, by the table in `AGENTS.md`. A status fact outside the roadmap's table is
    one of these, `docs/vision.md` included.
-5. Size: flag any doc past about 4,000 words (`wc -w`), and any idea in `codebase-ideas.md` or trap in `AGENTS.md`
-   that no longer applies. Flag only; how to shrink a doc is the owner's call. `AGENTS.md` weighs most, since every
-   session reads it in full.
+5. Size: flag any doc past about 4,000 words (`wc -w`), and any trap in `AGENTS.md` that no longer applies. The
+   files in `codebase-ideas/` are not counted: the folder has no size limit, and check 6 keeps it short. Flag only;
+   how to shrink a doc is the owner's call. `AGENTS.md` weighs most, since every session reads it in full.
+6. `codebase-ideas/`, the one time its idea files are read without the owner asking. For each idea:
+   - **built:** what was decided goes to its area's file in `decisions/`, and the file and its index line go;
+   - **the work has moved past part of it:** edit it to match;
+   - **no longer wanted:** delete it, or move it to `archive/` when `archive/README.md` says it is worth keeping.
+
+   Then check that the index matches the folder: one line per file, and the same "Returns when".
 
 Say what changed, and flag borderline calls instead of guessing. Whether something is a decision or still open, and
 whether it is an idea or a problem, is the owner's to say.

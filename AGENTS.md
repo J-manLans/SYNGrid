@@ -34,7 +34,7 @@ The pushed branch can be behind the owner's local tree. Read local files.
 | `docs/dev/scenario-rebuild-roadmap.md` | What is left, in order, and what is stub, legacy or not yet run |
 | `docs/dev/design-decisions.md` | What is settled, why, and what was turned down: the principles, and an index of every decision by title. The decisions themselves are in `docs/dev/decisions/`, one file per area |
 | `docs/dev/open-questions.md` | What is not decided yet, by the phase that needs it |
-| `docs/dev/codebase-ideas.md` | Ideas worth returning to that are not problems now |
+| `docs/dev/codebase-ideas/` | Ideas worth returning to that are not problems now, one file per idea. Its `README.md` is the index and the only part read outside a docs sweep |
 | `docs/dev/glossary.md` | What the words mean. Use its terms |
 | `docs/dev/code-map.md` | Where the rebuilt code lives, and the path a run and a step take through it. Read it before reading code |
 | `docs/dev/landscape-changes.md` | Changes that could move what the agent sees or is paid, to check against legacy |
@@ -66,7 +66,7 @@ Read in this order, and do not ask the owner what these already answer:
 | A change touches reward, observation, layout or how often something appears | `landscape-changes.md` |
 | A word is coined | `glossary.md` |
 | A file or folder is added, moved or renamed, or a run's or a step's path changes | `code-map.md`, in the same change |
-| An idea that is not a problem now | `codebase-ideas.md` |
+| An idea that is not a problem now | a new file in `codebase-ideas/`, and its line in the index |
 | How a job only some sessions need is done | its file in `docs/dev/procedures/` |
 | An investigation closes, or an idea is dropped, and both would cost to redo | `docs/dev/archive/`, by its `README.md`; otherwise delete it |
 | What was done, and what was run | the commit message |

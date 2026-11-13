@@ -12,7 +12,7 @@ Stays out:
 - A decision, or an alternative turned down in one. It belongs in its area's file in `decisions/`, under
   **Rejected**, for as long as the decision stands. When a decision is reversed and its story still matters, the story
   can move here.
-- Anything still open. An idea worth returning to stays in `codebase-ideas.md`, and an open question stays in
+- Anything still open. An idea worth returning to stays in `codebase-ideas/`, and an open question stays in
   `open-questions.md`.
 - Run logs, progress notes and what a session did. They go in the commit message.
 

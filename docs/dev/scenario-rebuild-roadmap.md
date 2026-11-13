@@ -244,6 +244,6 @@ theme file, and the observation and the reward are unchanged.
 
 - The continuous family and the sandbox scenario.
 - Effect orbs, and what they need from the engine: a tick, a stage before routing, a way to change what another
-  kind's orb pays, a way to reach the world. See "Effect orbs get their magic from the engine" in
-  `codebase-ideas.md`.
+  kind's orb pays, a way to reach the world. See "Effect orbs get their magic from the engine",
+  `codebase-ideas/effect-orbs-magic-from-engine.md`.
 - Sampled fields and the weighted orb blocks.

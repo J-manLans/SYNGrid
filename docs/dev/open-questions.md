@@ -4,7 +4,7 @@ What is not decided yet, grouped by the roadmap phase that needs the answer.
 
 An answered question leaves: the answer becomes an entry in `design-decisions.md` and the question is removed. A
 question that is half answered stays with what is left of it. Keep each entry to what is known and the options; a
-long argument goes in `codebase-ideas.md` or is settled.
+long argument goes in `codebase-ideas/` or is settled.
 
 ---
 
@@ -112,11 +112,11 @@ See: "Delay's frozen orbs stay on the field and block their cell" in `design-dec
 - **Whether a `ScoringMode` enum survives** as a router for the sandbox. The sandbox is not on the roadmap.
 - **Whether `on_termination` guards against a second call.** It runs once per episode; a second call would pay the
   owed sum twice, and nothing stops it.
-- **What a GUI needs from the models.** See "A GUI on top of the registry" in `codebase-ideas.md`.
+- **What a GUI needs from the models.** See "A GUI on top of the registry", `codebase-ideas/gui-on-the-registry.md`.
 - **How a run points at the checkpoint it loads, and where a continued run records its parent.** Waits for the GUI,
   which picks a checkpoint from a list. Until then a checkpoint is found by the run id, and a curriculum stage renames
   its parent's files by hand. See "A run that continues another gets its own id" in `design-decisions.md` and
-  "Picking a checkpoint" under "A GUI on top of the registry" in `codebase-ideas.md`. Raised on 2026-11-04.
+  "Picking a checkpoint" in `codebase-ideas/gui-on-the-registry.md`. Raised on 2026-11-04.
 
   Continuing gets its tests when this is settled, not before: curriculum runs come after the GUI and a few new
   scenarios. The rules to test then, as talked through on 2026-11-09: the continued model trains on the run's env;
